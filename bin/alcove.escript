@@ -233,12 +233,12 @@ call(Port, Command) ->
 ";
 static({call,3}) ->
 "
+call(Port, execvp, Arg) when is_port(Port), is_list(Arg) ->
+    alcove_drv:cast(Port, alcove_drv:encode(command(execvp), Arg));
 call(Port, Command, Arg) when is_port(Port), is_list(Arg) ->
-%    case alcove_drv:call(Port, alcove_drv:encode(command(Command), Arg)) of
-    case alcove_drv:cast(Port, alcove_drv:encode(command(Command), Arg)) of
+    case alcove_drv:call(Port, alcove_drv:encode(command(Command), Arg)) of
         badarg ->
-%            erlang:error(badarg, [Port, Command, Arg]);
-            badarg;
+            erlang:error(badarg, [Port, Command, Arg]);
         Reply ->
             Reply
     end.
