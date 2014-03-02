@@ -17,6 +17,7 @@
 
 -include_lib("eunit/include/eunit.hrl").
 -include_lib("kernel/include/file.hrl").
+-include_lib("alcove/include/alcove.hrl").
 
 erlxc_test_() ->
     {setup,
@@ -28,7 +29,9 @@ erlxc_test_() ->
 run(Port) ->
     [
         version(Port),
+        chroot(Port),
         chdir(Port),
+        setrlimit(Port),
         setgid(Port),
         setuid(Port)
     ].
@@ -43,12 +46,24 @@ version(Port) ->
     Version = alcove:version(Port),
     ?_assertEqual(true, is_binary(Version)).
 
+chroot(Port) ->
+    Reply = alcove:chroot(Port, "/bin"),
+    ?_assertEqual(ok, Reply).
+
 chdir(Port) ->
     Reply = alcove:chdir(Port, "/"),
     CWD = alcove:getcwd(Port),
     [
         ?_assertEqual(ok, Reply),
         ?_assertEqual({ok, <<"/">>}, CWD)
+    ].
+
+setrlimit(Port) ->
+    Reply = alcove:setrlimit(Port, 7, #rlimit{cur = 64, max = 64}),
+    Rlimit = alcove:getrlimit(Port, 7),
+    [
+        ?_assertEqual(ok, Reply),
+        ?_assertEqual({ok, #rlimit{cur = 64, max = 64}}, Rlimit)
     ].
 
 setgid(Port) ->
