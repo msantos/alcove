@@ -3,6 +3,7 @@ chroot/1
 execvp/2
 getrlimit/1
 setgid/1
+setns/1
 setrlimit/3
 setuid/1
 version/0

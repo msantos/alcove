@@ -12,13 +12,18 @@
  * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
+
+#define _GNU_SOURCE
+#include <fcntl.h>
+#include <sched.h>
+#include <unistd.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include <sys/types.h>
-#include <unistd.h>
 #include <limits.h>
 #include <err.h>
 #include <errno.h>
+
+#include <sys/types.h>
 
 #include "alcove.h"
 #include "alcove_cmd.h"
@@ -284,6 +289,43 @@ alcove_setrlimit(ETERM *arg)
     rlim.rlim_max = max;
 
     rv = setrlimit(resource, &rlim);
+
+    return ( (rv < 0) ? alcove_errno(errno) : erl_mk_atom("ok"));
+
+BADARG:
+    return erl_mk_atom("badarg");
+}
+
+/*
+ * setns(2)
+ *
+ */
+    static ETERM *
+alcove_setns(ETERM *arg)
+{
+    ETERM *hd = NULL;
+    char *path = NULL;
+    int fd = -1;
+    int rv = 0;
+
+    /* path */
+    arg = alcove_list_head(&hd, arg);
+    if (!hd || !ALCOVE_IS_IOLIST(hd))
+        goto BADARG;
+
+    if (erl_iolist_length(hd) > 0)
+        path = erl_iolist_to_string(hd);
+
+    if (!path)
+        goto BADARG;
+
+    fd = open(path, O_RDONLY);
+    if (fd < 0)
+        return alcove_errno(errno);
+
+    rv = setns(fd, 0);
+
+    (void)close(fd);
 
     return ( (rv < 0) ? alcove_errno(errno) : erl_mk_atom("ok"));
 
