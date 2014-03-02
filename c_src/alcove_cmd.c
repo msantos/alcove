@@ -12,10 +12,10 @@
  * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
+#include "alcove.h"
+#include "alcove_cmd.h"
 
-#define _GNU_SOURCE
 #include <fcntl.h>
-#include <sched.h>
 #include <unistd.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -24,9 +24,6 @@
 #include <errno.h>
 
 #include <sys/types.h>
-
-#include "alcove.h"
-#include "alcove_cmd.h"
 
 static char **alcove_list_to_argv(ETERM *);
 static void alcove_free_argv(char **);

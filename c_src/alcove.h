@@ -12,6 +12,9 @@
  * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
+#define _GNU_SOURCE
+#include <sched.h>
+
 #include <string.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -41,6 +44,13 @@ typedef struct {
     int fdin;
     int fdout;
     int fderr;
+    int ns;
+    struct {
+        int ctl[2];
+        int in[2];
+        int out[2];
+        int err[2];
+    } fd;
 } alcove_state_t;
 
 typedef struct {

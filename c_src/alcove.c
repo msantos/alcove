@@ -12,10 +12,10 @@
  * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
-#include <signal.h>
-
 #include "alcove.h"
 #include "err.h"
+
+#include <signal.h>
 
 #define ALCOVE_MSG_CALL  0
 #define ALCOVE_MSG_CAST (htons(1))
@@ -23,12 +23,18 @@
 #define ALCOVE_MSG_CHILDOUT (htons(3))
 #define ALCOVE_MSG_CHILDERR (htons(4))
 
+#define PIPE_READ 0
+#define PIPE_WRITE 1
+
 static int alcove_fork(alcove_state_t *);
 
 static void alcove_ctl(int fd);
 static void alcove_select(alcove_state_t *);
 static alcove_msg_t *alcove_msg(int);
 static void usage(alcove_state_t *);
+
+static int alcove_fork_child(void *arg);
+static int alcove_fork_parent(void *arg);
 
 static ssize_t alcove_child_proxy(int, int, u_int16_t);
 static int alcove_write(int fd, u_int16_t, ETERM *);
@@ -72,8 +78,20 @@ main(int argc, char *argv[])
 
     signal(SIGCHLD, gotsig);
 
-    while ( (ch = getopt(argc, argv, "hv")) != -1) {
+    while ( (ch = getopt(argc, argv, "n:hv")) != -1) {
         switch (ch) {
+            case 'n':
+#ifdef HAVE_NAMESPACES
+                if (!strncmp("ipc", optarg, 3))         ap->ns |= CLONE_NEWIPC;
+                else if (!strncmp("net", optarg, 3))    ap->ns |= CLONE_NEWNET;
+                else if (!strncmp("ns", optarg, 2))     ap->ns |= CLONE_NEWNS;
+                else if (!strncmp("pid", optarg, 3))    ap->ns |= CLONE_NEWPID;
+                else if (!strncmp("uts", optarg, 3))    ap->ns |= CLONE_NEWUTS;
+                else usage(ap);
+#else
+                usage(ap);
+#endif
+                break;
             case 'v':
                 ap->verbose++;
                 break;
@@ -93,60 +111,89 @@ main(int argc, char *argv[])
     static int
 alcove_fork(alcove_state_t *ap)
 {
-    int ctl[2] = {0};
-    int fdin[2] = {0};
-    int fdout[2] = {0};
-    int fderr[2] = {0};
+#ifdef HAVE_NAMESPACES
+    const int STACK_SIZE = 65536;
+    char *child_stack = NULL;
+    char *stack_top;
 
-    if (socketpair(AF_UNIX, SOCK_STREAM, 0, ctl) < 0)
+    child_stack = calloc(STACK_SIZE, 1);
+    if (!child_stack)
+        erl_err_sys("calloc");
+
+    stack_top = child_stack + STACK_SIZE;
+#endif
+
+    if (socketpair(AF_UNIX, SOCK_STREAM, 0, ap->fd.ctl) < 0)
         erl_err_sys("socketpair");
 
-    if ( (pipe(fdin) < 0)
-            || (pipe(fdout) < 0)
-            || (pipe(fderr) < 0))
+    if ( (pipe(ap->fd.in) < 0)
+            || (pipe(ap->fd.out) < 0)
+            || (pipe(ap->fd.err) < 0))
         erl_err_sys("pipe");
 
-    ap->pid = fork();
+#ifdef HAVE_NAMESPACES
+    if (clone(alcove_fork_child, stack_top, ap->ns|SIGCHLD, ap) < 0)
+        erl_err_sys("clone");
 
-#define PIPE_READ 0
-#define PIPE_WRITE 1
+    (void)alcove_fork_parent(ap);
+#else
+    ap->pid = fork();
 
     switch (ap->pid) {
         case -1:
             erl_err_sys("fork");
         case 0:
-            if ( (close(ctl[PIPE_WRITE]) < 0)
-                    || (close(fdin[PIPE_WRITE]) < 0)
-                    || (close(fdout[PIPE_READ]) < 0)
-                    || (close(fderr[PIPE_READ]) < 0))
-                erl_err_sys("close");
-
-            if ( (dup2(fdin[PIPE_READ], STDIN_FILENO) < 0)
-                    || (dup2(fdout[PIPE_WRITE], STDOUT_FILENO) < 0)
-                    || (dup2(fderr[PIPE_WRITE], STDERR_FILENO) < 0))
-                erl_err_sys("dup2");
-
-            alcove_ctl(ctl[0]);
-
+            (void)alcove_fork_child(ap);
             break;
-
         default:
-            if ( (close(ctl[PIPE_READ]) < 0)
-                    || (close(fdin[PIPE_READ]) < 0)
-                    || (close(fdout[PIPE_WRITE]) < 0)
-                    || (close(fderr[PIPE_WRITE]) < 0))
-                erl_err_sys("close");
-
-            ap->ctl = ctl[PIPE_WRITE];
-            ap->fdin = fdin[PIPE_WRITE];
-            ap->fdout = fdout[PIPE_READ];
-            ap->fderr = fderr[PIPE_READ];
-
+            (void)alcove_fork_parent(ap);
             break;
     }
+#endif
 
     return 0;
 }
+
+    static int
+alcove_fork_child(void *arg)
+{
+    alcove_state_t *ap = arg;
+
+    if ( (close(ap->fd.ctl[PIPE_WRITE]) < 0)
+            || (close(ap->fd.in[PIPE_WRITE]) < 0)
+            || (close(ap->fd.out[PIPE_READ]) < 0)
+            || (close(ap->fd.err[PIPE_READ]) < 0))
+        erl_err_sys("close");
+
+    if ( (dup2(ap->fd.in[PIPE_READ], STDIN_FILENO) < 0)
+            || (dup2(ap->fd.out[PIPE_WRITE], STDOUT_FILENO) < 0)
+            || (dup2(ap->fd.err[PIPE_WRITE], STDERR_FILENO) < 0))
+        erl_err_sys("dup2");
+
+    alcove_ctl(ap->fd.ctl[PIPE_READ]);
+
+    return 0;
+}
+
+    static int
+alcove_fork_parent(void *arg)
+{
+    alcove_state_t *ap = arg;
+
+    if ( (close(ap->fd.ctl[PIPE_READ]) < 0)
+            || (close(ap->fd.in[PIPE_READ]) < 0)
+            || (close(ap->fd.out[PIPE_WRITE]) < 0)
+            || (close(ap->fd.err[PIPE_WRITE]) < 0))
+        erl_err_sys("close");
+
+    ap->ctl = ap->fd.ctl[PIPE_WRITE];
+    ap->fdin = ap->fd.in[PIPE_WRITE];
+    ap->fdout = ap->fd.out[PIPE_READ];
+    ap->fderr = ap->fd.err[PIPE_READ];
+
+    return 0;
+}
+
 
     static void
 alcove_ctl(int fd)
@@ -449,13 +496,11 @@ usage(alcove_state_t *ap)
     (void)fprintf(stderr, "%s %s\n",
             __progname, ALCOVE_VERSION);
     (void)fprintf(stderr,
-            "usage: %s -n <name> <options>\n"
-            "    -n <name>        container name\n"
-            "    -o <path>        error log\n"
-            "    -P <path>        LXC path\n"
-            "    -v               verbose mode\n"
-            "    -d <option>      debug: nodaemonize, nocloseallfds\n"
-            "    -t <type>        container type (permanent, transient, temporary)\n",
+            "usage: %s <options>\n"
+#ifdef HAVE_NAMESPACES
+            "   -n <namespace>  new namespace: ipc, net, ns, pid, uts\n"
+#endif
+            "   -v              verbose mode\n",
             __progname
             );
 
