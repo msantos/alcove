@@ -19,7 +19,7 @@
 -include_lib("kernel/include/file.hrl").
 -include_lib("alcove/include/alcove.hrl").
 
-erlxc_test_() ->
+alcove_test_() ->
     {setup,
         fun start/0,
         fun stop/1,
@@ -30,6 +30,7 @@ run(Port) ->
     % Test order must be maintained
     [
         version(Port),
+        getpid(Port),
         chroot(Port),
         chdir(Port),
         setrlimit(Port),
@@ -40,7 +41,11 @@ run(Port) ->
     ].
 
 start() ->
-    alcove_drv:start().
+    Options = case os:type() of
+        {unix,linux} -> [{ns, "pid"}];
+        {unix,_} -> []
+    end,
+    alcove_drv:start(Options).
 
 stop(Port) ->
     alcove_drv:stop(Port).
@@ -48,6 +53,16 @@ stop(Port) ->
 version(Port) ->
     Version = alcove:version(Port),
     ?_assertEqual(true, is_binary(Version)).
+
+getpid(Port) ->
+    PID = alcove:getpid(Port),
+    case os:type() of
+        {unix,linux} ->
+            % Running in a PID namespace
+            ?_assertEqual(1, PID);
+        {unix,_} ->
+            ?_assertEqual(true, is_integer(PID))
+    end.
 
 chroot(Port) ->
     Reply = alcove:chroot(Port, "/bin"),

@@ -193,6 +193,16 @@ alcove_getgid(ETERM *arg)
 }
 
 /*
+ * getpid(2)
+ *
+ */
+    static ETERM *
+alcove_getpid(ETERM *arg)
+{
+    return erl_mk_uint(getpid());
+}
+
+/*
  * getuid(2)
  *
  */
