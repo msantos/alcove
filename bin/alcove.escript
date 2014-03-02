@@ -256,10 +256,11 @@ specs() ->
 -spec execvp(port(),iodata(),iodata()) -> 'ok'.
 -spec getcwd(port()) -> {'ok', binary()} | {'error', file:posix()}.
 -spec getgid(port()) -> non_neg_integer().
+-spec getpid(port()) -> non_neg_integer().
 -spec getrlimit(port(),non_neg_integer()) -> {'ok', #rlimit{}} | {'error', file:posix()}.
 -spec getuid(port()) -> non_neg_integer().
--spec recv(port()) -> any().
--spec recv(port(),'infinity' | non_neg_integer()) -> any().
+-spec recv(port()) -> 'false' | binary().
+-spec recv(port(),'infinity' | non_neg_integer()) -> 'false' | binary().
 -spec setgid(port(),non_neg_integer()) -> 'ok' | {'error', file:posix()}.
 -spec setns(port(),iodata()) -> 'ok' | {'error', file:posix()}.
 -spec setrlimit(port(),non_neg_integer(),non_neg_integer(),non_neg_integer()) -> 'ok' | {'error', file:posix()}.
