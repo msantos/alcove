@@ -27,7 +27,9 @@ erlxc_test_() ->
 
 run(Port) ->
     [
-        version(Port)
+        version(Port),
+        setgid(Port),
+        setuid(Port)
     ].
 
 start() ->
@@ -39,3 +41,19 @@ stop(Port) ->
 version(Port) ->
     Version = alcove:version(Port),
     ?_assertEqual(true, is_binary(Version)).
+
+setgid(Port) ->
+    Reply = alcove:setgid(Port, 65534),
+    GID = alcove:getgid(Port),
+    [
+        ?_assertEqual(ok, Reply),
+        ?_assertEqual(65534, GID)
+    ].
+
+setuid(Port) ->
+    Reply = alcove:setuid(Port, 65534),
+    UID = alcove:getuid(Port),
+    [
+        ?_assertEqual(ok, Reply),
+        ?_assertEqual(65534, UID)
+    ].
