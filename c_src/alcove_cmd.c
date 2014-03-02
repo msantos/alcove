@@ -171,6 +171,21 @@ BADARG:
 }
 
 /*
+ * getcwd(3)
+ *
+ */
+    static ETERM *
+alcove_getcwd(ETERM *arg)
+{
+    char buf[PATH_MAX] = {0};
+
+    if (!getcwd(buf, sizeof(buf)))
+        return alcove_errno(errno);
+
+    return alcove_ok(erl_mk_binary(buf, strlen(buf)));
+}
+
+/*
  * getgid(2)
  *
  */

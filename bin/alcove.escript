@@ -254,6 +254,7 @@ specs() ->
 -spec chdir(port(),iodata()) -> 'ok' | {'error', file:posix()}.
 -spec chroot(port(),iodata()) -> 'ok' | {'error', file:posix()}.
 -spec execvp(port(),iodata(),iodata()) -> 'ok'.
+-spec getcwd(port()) -> {'ok', binary()} | {'error', file:posix()}.
 -spec getgid(port()) -> non_neg_integer().
 -spec getrlimit(port(),non_neg_integer()) -> {'ok', #rlimit{}} | {'error', file:posix()}.
 -spec getuid(port()) -> non_neg_integer().
