@@ -265,6 +265,56 @@ BADARG:
 }
 
 /*
+ * gethostname(2)
+ *
+ */
+    static ETERM *
+alcove_gethostname(ETERM *arg)
+{
+    char name[HOST_NAME_MAX] = {0};
+    int rv = 0;
+
+    rv = gethostname(name, HOST_NAME_MAX-1);
+
+    return (rv < 0)
+        ? alcove_errno(errno)
+        : alcove_ok(erl_mk_binary(name, strlen(name)));
+}
+
+/*
+ * sethostname(2)
+ *
+ */
+    static ETERM *
+alcove_sethostname(ETERM *arg)
+{
+    ETERM *hd = NULL;
+    char *name = NULL;
+    int rv = 0;
+
+    /* hostname */
+    arg = alcove_list_head(&hd, arg);
+    if (!hd || !ALCOVE_IS_IOLIST(hd))
+        goto BADARG;
+
+    if (erl_iolist_length(hd) > 0)
+        name = erl_iolist_to_string(hd);
+
+    if (!name)
+        goto BADARG;
+
+    rv = sethostname(name, strlen(name)+1);
+
+    erl_free(name);
+
+    return ( (rv < 0) ? alcove_errno(errno) : erl_mk_atom("ok"));
+
+BADARG:
+    erl_free(name);
+    return erl_mk_atom("badarg");
+}
+
+/*
  * getrlimit(2)
  *
  */

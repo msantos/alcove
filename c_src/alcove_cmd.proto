@@ -3,10 +3,12 @@ chroot/1
 execvp/2
 getcwd/0
 getgid/0
+gethostname/0
 getpid/0
 getrlimit/1
 getuid/0
 setgid/1
+sethostname/1
 setns/1
 setrlimit/3
 setuid/1

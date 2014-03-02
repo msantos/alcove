@@ -31,6 +31,7 @@ run(Port) ->
     [
         version(Port),
         getpid(Port),
+        sethostname(Port),
         chroot(Port),
         chdir(Port),
         setrlimit(Port),
@@ -42,7 +43,7 @@ run(Port) ->
 
 start() ->
     Options = case os:type() of
-        {unix,linux} -> [{ns, "pid"}];
+        {unix,linux} -> [{ns, "pid"}, {ns, "uts"}];
         {unix,_} -> []
     end,
     alcove_drv:start(Options).
@@ -62,6 +63,23 @@ getpid(Port) ->
             ?_assertEqual(1, PID);
         {unix,_} ->
             ?_assertEqual(true, is_integer(PID))
+    end.
+
+sethostname(Port) ->
+    Reply = case os:type() of
+        {unix,linux} ->
+            alcove:sethostname(Port, "alcove");
+        {unix,_} ->
+            ok
+    end,
+    Hostname = alcove:gethostname(Port),
+    case os:type() of
+        {unix,linux} ->
+            [?_assertEqual(ok, Reply),
+                ?_assertEqual({ok, <<"alcove">>}, Hostname)];
+        {unix,_} ->
+            [?_assertEqual(ok, Reply),
+                ?_assertMatch({ok, <<_/binary>>}, Hostname)]
     end.
 
 chroot(Port) ->
