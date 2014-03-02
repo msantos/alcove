@@ -38,4 +38,4 @@ stop(Port) ->
 
 version(Port) ->
     Version = alcove:version(Port),
-    ?_assertMatch(true, is_binary(Version)).
+    ?_assertEqual(true, is_binary(Version)).

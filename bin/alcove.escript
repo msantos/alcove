@@ -234,7 +234,8 @@ call(Port, Command) ->
 static({call,3}) ->
 "
 call(Port, execvp, Arg) when is_port(Port), is_list(Arg) ->
-    alcove_drv:cast(Port, alcove_drv:encode(command(execvp), Arg));
+    alcove_drv:cast(Port, alcove_drv:encode(command(execvp), Arg)),
+    ok;
 call(Port, Command, Arg) when is_port(Port), is_list(Arg) ->
     case alcove_drv:call(Port, alcove_drv:encode(command(Command), Arg)) of
         badarg ->
@@ -249,4 +250,22 @@ includes(Header) ->
 
 % FIXME hack for hard coding typespecs
 specs() ->
-"".
+"
+-spec stdin(port(),binary()) -> 'true'.
+-spec stdout(port()) -> any().
+-spec stdout(port(),'infinity' | non_neg_integer()) -> any().
+-spec stderr(port()) -> any().
+-spec stderr(port(),'infinity' | non_neg_integer()) -> any().
+-spec recv(port()) -> any().
+-spec recv(port(),'infinity' | non_neg_integer()) -> any().
+-spec setrlimit(port(),non_neg_integer(),#rlimit{}) -> 'ok' | {'error', file:posix()}.
+-spec chdir(port(),iodata()) -> 'ok' | {'error', file:posix()}.
+-spec chroot(port(),iodata()) -> 'ok' | {'error', file:posix()}.
+-spec execvp(port(),iodata(),iodata()) -> 'ok'.
+-spec getrlimit(port(),non_neg_integer()) -> {'ok', #rlimit{}} | {'error', file:posix()}.
+-spec setgid(port(),non_neg_integer()) -> 'ok' | {'error', file:posix()}.
+-spec setns(port(),iodata()) -> 'ok' | {'error', file:posix()}.
+-spec setrlimit(port(),non_neg_integer(),non_neg_integer(),non_neg_integer()) -> 'ok' | {'error', file:posix()}.
+-spec setuid(port(),non_neg_integer()) -> 'ok' | {'error', file:posix()}.
+-spec version(port()) -> binary().
+".

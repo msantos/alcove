@@ -32,10 +32,10 @@ $(DEPSOLVER_PLT):
 		--apps erts kernel stdlib crypto
 
 dialyzer: $(DEPSOLVER_PLT)
-	@dialyzer --plt $(DEPSOLVER_PLT) -Wrace_conditions --src src test examples
+	@dialyzer -I include --plt $(DEPSOLVER_PLT) -Wrace_conditions --src src test
 
 typer: $(DEPSOLVER_PLT)
-	@typer --plt $(DEPSOLVER_PLT) -r ./src
+	@typer -I include --plt $(DEPSOLVER_PLT) -r ./src
 
 distclean: clean
 	@rm $(DEPSOLVER_PLT)
