@@ -131,6 +131,7 @@ alcove_execvp(ETERM *arg)
     ETERM *hd = NULL;
     char *progname = NULL;
     char **argv = NULL;
+    int errnum = 0;
 
     /* progname */
     arg = alcove_list_head(&hd, arg);
@@ -155,7 +156,13 @@ alcove_execvp(ETERM *arg)
     }
 
     execvp(progname, argv);
-    erl_err_sys("execvp");
+
+    errnum = errno;
+
+    erl_free(progname);
+    alcove_free_argv(argv);
+
+    return alcove_errno(errnum);
 
 BADARG:
     erl_free(progname);
