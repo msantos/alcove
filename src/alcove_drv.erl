@@ -16,21 +16,28 @@
 
 %% API
 -export([start/0, start/1, stop/1]).
--export([call/2, cast/2, encode/2, encode/3, event/1, event/2]).
+-export([call/2, call/3, cast/2, encode/2, encode/3, event/1, event/2]).
 -export([getopts/1]).
 
+-spec start() -> port().
 start() ->
     start([]).
 
+-spec start(proplists:proplist()) -> port().
 start(Options) ->
     [Cmd|Argv] = getopts(Options),
     open_port({spawn_executable, Cmd}, [{args, Argv}, {packet, 2}, binary]).
 
-call(Port, Data) when is_port(Port), is_binary(Data), byte_size(Data) < 16#ffff ->
+call(Port, Data) ->
+    call(Port, Data, infinity).
+call(Port, Data, Timeout) when is_port(Port), is_binary(Data), byte_size(Data) < 16#ffff ->
     true = erlang:port_command(Port, Data),
     receive
         {Port, {data, <<?UINT16(?ALCOVE_MSG_CALL), Msg/binary>>}} ->
             binary_to_term(Msg)
+    after
+        Timeout ->
+            {error,timedout}
     end.
 
 cast(Port, Data) when is_port(Port), is_binary(Data), byte_size(Data) < 16#ffff ->
@@ -86,10 +93,10 @@ optarg(_)                       -> "".
 switch(Switch) ->
     [lists:concat(["-", Switch])].
 
-switch(Switch, Arg) when is_binary(Arg) ->
-    switch(Switch, binary_to_list(Arg));
-switch(Switch, Arg) ->
-    [lists:concat(["-", Switch]), Arg].
+%switch(Switch, Arg) when is_binary(Arg) ->
+%    switch(Switch, binary_to_list(Arg));
+%switch(Switch, Arg) ->
+%    [lists:concat(["-", Switch]), Arg].
 
 find_executable(Exe) ->
     case os:find_executable(Exe) of
@@ -101,7 +108,7 @@ find_executable(Exe) ->
 
 type_to_atom(?ALCOVE_MSG_CALL) -> call;
 type_to_atom(?ALCOVE_MSG_CAST) -> cast;
-type_to_atom(?ALCOVE_MSG_CHILDIN) -> stdin;
+%type_to_atom(?ALCOVE_MSG_CHILDIN) -> stdin;
 type_to_atom(?ALCOVE_MSG_CHILDOUT) -> stdout;
 type_to_atom(?ALCOVE_MSG_CHILDERR) -> stderr.
 
