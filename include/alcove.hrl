@@ -14,6 +14,11 @@
         port :: port()
     }).
 
+-record(rlimit, {
+        cur = 0 :: non_neg_integer(),
+        max = 0 :: non_neg_integer()
+    }).
+
 -define(UINT16(N), N:2/unsigned-integer-unit:8).
 
 -define(ALCOVE_MSG_CALL, 0).

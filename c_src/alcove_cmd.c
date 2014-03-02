@@ -210,6 +210,87 @@ BADARG:
     return erl_mk_atom("badarg");
 }
 
+/*
+ * getrlimit(2)
+ *
+ */
+    static ETERM *
+alcove_getrlimit(ETERM *arg)
+{
+    ETERM *hd = NULL;
+    int resource = 0;
+    struct rlimit rlim = {0};
+    int rv = 0;
+
+    /* resource */
+    arg = alcove_list_head(&hd, arg);
+    if (!hd || !ERL_IS_INTEGER(hd))
+        goto BADARG;
+
+    resource = ERL_INT_VALUE(hd);
+
+    rv = getrlimit(resource, &rlim);
+
+    /* XXX u_int64_t */
+    return ( (rv < 0)
+            ? alcove_errno(errno)
+            : alcove_ok(alcove_tuple3(
+                    erl_mk_atom("rlimit"),
+                    erl_mk_uint(rlim.rlim_cur),
+                    erl_mk_uint(rlim.rlim_max)
+                    )));
+
+BADARG:
+    return erl_mk_atom("badarg");
+}
+
+/*
+ * setrlimit(2)
+ *
+ */
+    static ETERM *
+alcove_setrlimit(ETERM *arg)
+{
+    ETERM *hd = NULL;
+    int resource = 0;
+    int cur = 0, max = 0;
+    struct rlimit rlim = {0};
+    int rv = 0;
+
+    /* resource */
+    arg = alcove_list_head(&hd, arg);
+    if (!hd || !ERL_IS_INTEGER(hd))
+        goto BADARG;
+
+    resource = ERL_INT_VALUE(hd);
+
+    /* XXX u_int64_t */
+
+    /* rlim_cur: soft limit */
+    arg = alcove_list_head(&hd, arg);
+    if (!hd || !ERL_IS_INTEGER(hd))
+        goto BADARG;
+
+    cur = ERL_INT_UVALUE(hd);
+
+    /* rlim_max: hard limit */
+    arg = alcove_list_head(&hd, arg);
+    if (!hd || !ERL_IS_INTEGER(hd))
+        goto BADARG;
+
+    max = ERL_INT_UVALUE(hd);
+
+    rlim.rlim_cur = cur;
+    rlim.rlim_max = max;
+
+    rv = setrlimit(resource, &rlim);
+
+    return ( (rv < 0) ? alcove_errno(errno) : erl_mk_atom("ok"));
+
+BADARG:
+    return erl_mk_atom("badarg");
+}
+
 
 /*
  * Utility functions
