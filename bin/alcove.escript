@@ -153,7 +153,7 @@ static() ->
 static({stdin,2}) ->
 "
 stdin(Port, Data) ->
-    alcove_drv:cast(Port, <<?UINT16(?ALCOVE_MSG_CHILDIN), Data/binary>>).
+    alcove_drv:cast(Port, [<<?UINT16(?ALCOVE_MSG_CHILDIN)>>, Data]).
 ";
 
 static({stdout,1}) ->
@@ -265,10 +265,10 @@ specs() ->
 -spec setrlimit(port(),non_neg_integer(),non_neg_integer(),non_neg_integer()) -> 'ok' | {'error', file:posix()}.
 -spec setrlimit(port(),non_neg_integer(),#rlimit{}) -> 'ok' | {'error', file:posix()}.
 -spec setuid(port(),non_neg_integer()) -> 'ok' | {'error', file:posix()}.
--spec stderr(port()) -> any().
--spec stderr(port(),'infinity' | non_neg_integer()) -> any().
--spec stdin(port(),binary()) -> 'true'.
--spec stdout(port()) -> any().
--spec stdout(port(),'infinity' | non_neg_integer()) -> any().
+-spec stderr(port()) -> 'false' | binary().
+-spec stderr(port(),'infinity' | non_neg_integer()) -> 'false' | binary().
+-spec stdin(port(),iodata()) -> 'true'.
+-spec stdout(port()) -> 'false' | binary().
+-spec stdout(port(),'infinity' | non_neg_integer()) -> 'false' | binary().
 -spec version(port()) -> binary().
 ".

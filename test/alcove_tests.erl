@@ -27,13 +27,16 @@ erlxc_test_() ->
     }.
 
 run(Port) ->
+    % Test order must be maintained
     [
         version(Port),
         chroot(Port),
         chdir(Port),
         setrlimit(Port),
         setgid(Port),
-        setuid(Port)
+        setuid(Port),
+        execvp(Port),
+        stdin(Port)
     ].
 
 start() ->
@@ -80,4 +83,21 @@ setuid(Port) ->
     [
         ?_assertEqual(ok, Reply),
         ?_assertEqual(65534, UID)
+    ].
+
+execvp(Port) ->
+    % cwd = /, chroot'ed in /bin
+    Reply = alcove:execvp(Port, "/busybox", ["/busybox", "sh", "-i"]),
+    Stderr = alcove:stderr(Port, 5000),
+    [
+        ?_assertEqual(ok, Reply),
+        ?_assertNotEqual(false, Stderr)
+    ].
+
+stdin(Port) ->
+    Reply = alcove:stdin(Port, "help\n"),
+    Stdout = alcove:stdout(Port, 5000),
+    [
+        ?_assertEqual(true, Reply),
+        ?_assertNotEqual(false, Stdout)
     ].
