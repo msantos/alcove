@@ -1,0 +1,6 @@
+chdir/1
+chroot/1
+execvp/2
+setgid/1
+setuid/1
+version/0
