@@ -251,21 +251,23 @@ includes(Header) ->
 % FIXME hack for hard coding typespecs
 specs() ->
 "
--spec stdin(port(),binary()) -> 'true'.
--spec stdout(port()) -> any().
--spec stdout(port(),'infinity' | non_neg_integer()) -> any().
--spec stderr(port()) -> any().
--spec stderr(port(),'infinity' | non_neg_integer()) -> any().
--spec recv(port()) -> any().
--spec recv(port(),'infinity' | non_neg_integer()) -> any().
--spec setrlimit(port(),non_neg_integer(),#rlimit{}) -> 'ok' | {'error', file:posix()}.
 -spec chdir(port(),iodata()) -> 'ok' | {'error', file:posix()}.
 -spec chroot(port(),iodata()) -> 'ok' | {'error', file:posix()}.
 -spec execvp(port(),iodata(),iodata()) -> 'ok'.
+-spec getgid(port()) -> non_neg_integer().
 -spec getrlimit(port(),non_neg_integer()) -> {'ok', #rlimit{}} | {'error', file:posix()}.
+-spec getuid(port()) -> non_neg_integer().
+-spec recv(port()) -> any().
+-spec recv(port(),'infinity' | non_neg_integer()) -> any().
 -spec setgid(port(),non_neg_integer()) -> 'ok' | {'error', file:posix()}.
 -spec setns(port(),iodata()) -> 'ok' | {'error', file:posix()}.
 -spec setrlimit(port(),non_neg_integer(),non_neg_integer(),non_neg_integer()) -> 'ok' | {'error', file:posix()}.
+-spec setrlimit(port(),non_neg_integer(),#rlimit{}) -> 'ok' | {'error', file:posix()}.
 -spec setuid(port(),non_neg_integer()) -> 'ok' | {'error', file:posix()}.
+-spec stderr(port()) -> any().
+-spec stderr(port(),'infinity' | non_neg_integer()) -> any().
+-spec stdin(port(),binary()) -> 'true'.
+-spec stdout(port()) -> any().
+-spec stdout(port(),'infinity' | non_neg_integer()) -> any().
 -spec version(port()) -> binary().
 ".

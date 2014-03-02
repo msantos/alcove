@@ -1,7 +1,9 @@
 chdir/1
 chroot/1
 execvp/2
+getgid/0
 getrlimit/1
+getuid/0
 setgid/1
 setns/1
 setrlimit/3

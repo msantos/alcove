@@ -171,6 +171,26 @@ BADARG:
 }
 
 /*
+ * getgid(2)
+ *
+ */
+    static ETERM *
+alcove_getgid(ETERM *arg)
+{
+    return erl_mk_uint(getgid());
+}
+
+/*
+ * getuid(2)
+ *
+ */
+    static ETERM *
+alcove_getuid(ETERM *arg)
+{
+    return erl_mk_uint(getuid());
+}
+
+/*
  * setgid(2)
  *
  */
@@ -186,7 +206,7 @@ alcove_setgid(ETERM *arg)
     if (!hd || !ERL_IS_INTEGER(hd))
         goto BADARG;
 
-    gid = ERL_INT_VALUE(hd);
+    gid = ERL_INT_UVALUE(hd);
 
     rv = setgid(gid);
 
@@ -212,7 +232,7 @@ alcove_setuid(ETERM *arg)
     if (!hd || !ERL_IS_INTEGER(hd))
         goto BADARG;
 
-    uid = ERL_INT_VALUE(hd);
+    uid = ERL_INT_UVALUE(hd);
 
     rv = setuid(uid);
 
