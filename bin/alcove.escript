@@ -159,7 +159,7 @@ stdin(Port, Data) ->
 static({stdout,1}) ->
 "
 stdout(Port) ->
-    stdout(Port, infinity).
+    stdout(Port, 0).
 ";
 static({stdout,2}) ->
 "
@@ -176,7 +176,7 @@ stdout(Port, Timeout) ->
 static({stderr,1}) ->
 "
 stderr(Port) ->
-    stderr(Port, infinity).
+    stderr(Port, 0).
 ";
 static({stderr,2}) ->
 "
@@ -193,7 +193,7 @@ stderr(Port, Timeout) ->
 static({recv,1}) ->
 "
 recv(Port) ->
-    recv(Port, infinity).
+    recv(Port, 0).
 ";
 static({recv,2}) ->
 "
