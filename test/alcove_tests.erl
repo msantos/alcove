@@ -28,6 +28,7 @@ erlxc_test_() ->
 run(Port) ->
     [
         version(Port),
+        chdir(Port),
         setgid(Port),
         setuid(Port)
     ].
@@ -41,6 +42,14 @@ stop(Port) ->
 version(Port) ->
     Version = alcove:version(Port),
     ?_assertEqual(true, is_binary(Version)).
+
+chdir(Port) ->
+    Reply = alcove:chdir(Port, "/"),
+    CWD = alcove:getcwd(Port),
+    [
+        ?_assertEqual(ok, Reply),
+        ?_assertEqual({ok, <<"/">>}, CWD)
+    ].
 
 setgid(Port) ->
     Reply = alcove:setgid(Port, 65534),
