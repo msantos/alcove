@@ -30,8 +30,8 @@ start(Options) ->
 
 call(Port, Data) ->
     call(Port, Data, infinity).
-call(Port, Data, Timeout) when is_port(Port), is_binary(Data), byte_size(Data) < 16#ffff ->
-    true = erlang:port_command(Port, Data),
+call(Port, Data, Timeout) ->
+    true = send(Port, Data, iolist_size(Data)),
     receive
         {Port, {data, <<?UINT16(?ALCOVE_MSG_CALL), Msg/binary>>}} ->
             binary_to_term(Msg)
@@ -40,7 +40,10 @@ call(Port, Data, Timeout) when is_port(Port), is_binary(Data), byte_size(Data) <
             {error,timedout}
     end.
 
-cast(Port, Data) when is_port(Port), is_binary(Data), byte_size(Data) < 16#ffff ->
+cast(Port, Data) ->
+    send(Port, Data, iolist_size(Data)).
+
+send(Port, Data, Size) when is_port(Port), Size < 16#ffff ->
     erlang:port_command(Port, Data).
 
 event(Port) when is_port(Port) ->
