@@ -26,6 +26,12 @@
 #define PIPE_READ 0
 #define PIPE_WRITE 1
 
+#ifdef CLONE_NEWNS
+#pragma message "Support for namespaces using clone(2) enabled"
+#else
+#pragma message "Support for namespaces using clone(2) disabled"
+#endif
+
 typedef struct {
     int ctl[2];
     int in[2];
@@ -88,12 +94,13 @@ main(int argc, char *argv[])
     while ( (ch = getopt(argc, argv, "n:hv")) != -1) {
         switch (ch) {
             case 'n':
-#ifdef HAVE_NAMESPACES
+#ifdef CLONE_NEWNS
                 if (!strncmp("ipc", optarg, 3))         ap->ns |= CLONE_NEWIPC;
                 else if (!strncmp("net", optarg, 3))    ap->ns |= CLONE_NEWNET;
                 else if (!strncmp("ns", optarg, 2))     ap->ns |= CLONE_NEWNS;
                 else if (!strncmp("pid", optarg, 3))    ap->ns |= CLONE_NEWPID;
                 else if (!strncmp("uts", optarg, 3))    ap->ns |= CLONE_NEWUTS;
+                else if (!strncmp("user", optarg, 4))    ap->ns |= CLONE_NEWUSER;
                 else usage(ap);
 #else
                 usage(ap);
@@ -120,7 +127,7 @@ alcove_fork(alcove_state_t *ap)
 {
     alcove_fd_t fd = {{0}};
 
-#ifdef HAVE_NAMESPACES
+#ifdef CLONE_NEWNS
     const int STACK_SIZE = 65536;
     char *child_stack = NULL;
     char *stack_top;
@@ -140,7 +147,7 @@ alcove_fork(alcove_state_t *ap)
             || (pipe(fd.err) < 0))
         erl_err_sys("pipe");
 
-#ifdef HAVE_NAMESPACES
+#ifdef CLONE_NEWNS
     ap->pid = clone(alcove_fork_child, stack_top, ap->ns | SIGCHLD, &fd);
     if (ap->pid < 0)
         erl_err_sys("clone");
@@ -505,8 +512,8 @@ usage(alcove_state_t *ap)
             __progname, ALCOVE_VERSION);
     (void)fprintf(stderr,
             "usage: %s <options>\n"
-#ifdef HAVE_NAMESPACES
-            "   -n <namespace>  new namespace: ipc, net, ns, pid, uts\n"
+#ifdef CLONE_NEWNS
+            "   -n <namespace>  new namespace: ipc, net, ns, pid, user, uts\n"
 #endif
             "   -v              verbose mode\n",
             __progname
