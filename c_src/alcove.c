@@ -128,15 +128,12 @@ alcove_fork(alcove_state_t *ap)
     alcove_fd_t fd = {{0}};
 
 #ifdef CLONE_NEWNS
-    const int STACK_SIZE = 65536;
+    const size_t stack_size = 65536;
     char *child_stack = NULL;
-    char *stack_top;
 
-    child_stack = calloc(STACK_SIZE, 1);
+    child_stack = calloc(stack_size, 1);
     if (!child_stack)
         erl_err_sys("calloc");
-
-    stack_top = child_stack + STACK_SIZE;
 #endif
 
     if (socketpair(AF_UNIX, SOCK_STREAM, 0, fd.ctl) < 0)
@@ -148,7 +145,7 @@ alcove_fork(alcove_state_t *ap)
         erl_err_sys("pipe");
 
 #ifdef CLONE_NEWNS
-    ap->pid = clone(alcove_fork_child, stack_top, ap->ns | SIGCHLD, &fd);
+    ap->pid = clone(alcove_fork_child, child_stack + stack_size, ap->ns | SIGCHLD, &fd);
     if (ap->pid < 0)
         erl_err_sys("clone");
 
