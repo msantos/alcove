@@ -26,6 +26,13 @@
 #define PIPE_READ 0
 #define PIPE_WRITE 1
 
+typedef struct {
+    int ctl[2];
+    int in[2];
+    int out[2];
+    int err[2];
+} alcove_fd_t;
+
 static int alcove_fork(alcove_state_t *);
 
 static void alcove_ctl(int fd);
@@ -34,7 +41,7 @@ static alcove_msg_t *alcove_msg(int);
 static void usage(alcove_state_t *);
 
 static int alcove_fork_child(void *arg);
-static int alcove_fork_parent(void *arg);
+static int alcove_fork_parent(alcove_state_t *ap, alcove_fd_t *fd);
 
 static ssize_t alcove_child_proxy(int, int, u_int16_t);
 static int alcove_write(int fd, u_int16_t, ETERM *);
@@ -111,6 +118,8 @@ main(int argc, char *argv[])
     static int
 alcove_fork(alcove_state_t *ap)
 {
+    alcove_fd_t fd = {{0}};
+
 #ifdef HAVE_NAMESPACES
     const int STACK_SIZE = 65536;
     char *child_stack = NULL;
@@ -123,20 +132,20 @@ alcove_fork(alcove_state_t *ap)
     stack_top = child_stack + STACK_SIZE;
 #endif
 
-    if (socketpair(AF_UNIX, SOCK_STREAM, 0, ap->fd.ctl) < 0)
+    if (socketpair(AF_UNIX, SOCK_STREAM, 0, fd.ctl) < 0)
         erl_err_sys("socketpair");
 
-    if ( (pipe(ap->fd.in) < 0)
-            || (pipe(ap->fd.out) < 0)
-            || (pipe(ap->fd.err) < 0))
+    if ( (pipe(fd.in) < 0)
+            || (pipe(fd.out) < 0)
+            || (pipe(fd.err) < 0))
         erl_err_sys("pipe");
 
 #ifdef HAVE_NAMESPACES
-    ap->pid = clone(alcove_fork_child, stack_top, ap->ns|SIGCHLD, ap);
+    ap->pid = clone(alcove_fork_child, stack_top, ap->ns | SIGCHLD, &fd);
     if (ap->pid < 0)
         erl_err_sys("clone");
 
-    (void)alcove_fork_parent(ap);
+    (void)alcove_fork_parent(ap, &fd);
 #else
     ap->pid = fork();
 
@@ -147,7 +156,7 @@ alcove_fork(alcove_state_t *ap)
             (void)alcove_fork_child(ap);
             break;
         default:
-            (void)alcove_fork_parent(ap);
+            (void)alcove_fork_parent(ap, &fd);
             break;
     }
 #endif
@@ -158,39 +167,37 @@ alcove_fork(alcove_state_t *ap)
     static int
 alcove_fork_child(void *arg)
 {
-    alcove_state_t *ap = arg;
+    alcove_fd_t *fd = arg;
 
-    if ( (close(ap->fd.ctl[PIPE_WRITE]) < 0)
-            || (close(ap->fd.in[PIPE_WRITE]) < 0)
-            || (close(ap->fd.out[PIPE_READ]) < 0)
-            || (close(ap->fd.err[PIPE_READ]) < 0))
+    if ( (close(fd->ctl[PIPE_WRITE]) < 0)
+            || (close(fd->in[PIPE_WRITE]) < 0)
+            || (close(fd->out[PIPE_READ]) < 0)
+            || (close(fd->err[PIPE_READ]) < 0))
         erl_err_sys("close");
 
-    if ( (dup2(ap->fd.in[PIPE_READ], STDIN_FILENO) < 0)
-            || (dup2(ap->fd.out[PIPE_WRITE], STDOUT_FILENO) < 0)
-            || (dup2(ap->fd.err[PIPE_WRITE], STDERR_FILENO) < 0))
+    if ( (dup2(fd->in[PIPE_READ], STDIN_FILENO) < 0)
+            || (dup2(fd->out[PIPE_WRITE], STDOUT_FILENO) < 0)
+            || (dup2(fd->err[PIPE_WRITE], STDERR_FILENO) < 0))
         erl_err_sys("dup2");
 
-    alcove_ctl(ap->fd.ctl[PIPE_READ]);
+    alcove_ctl(fd->ctl[PIPE_READ]);
 
     return 0;
 }
 
     static int
-alcove_fork_parent(void *arg)
+alcove_fork_parent(alcove_state_t *ap, alcove_fd_t *fd)
 {
-    alcove_state_t *ap = arg;
-
-    if ( (close(ap->fd.ctl[PIPE_READ]) < 0)
-            || (close(ap->fd.in[PIPE_READ]) < 0)
-            || (close(ap->fd.out[PIPE_WRITE]) < 0)
-            || (close(ap->fd.err[PIPE_WRITE]) < 0))
+    if ( (close(fd->ctl[PIPE_READ]) < 0)
+            || (close(fd->in[PIPE_READ]) < 0)
+            || (close(fd->out[PIPE_WRITE]) < 0)
+            || (close(fd->err[PIPE_WRITE]) < 0))
         erl_err_sys("close");
 
-    ap->ctl = ap->fd.ctl[PIPE_WRITE];
-    ap->fdin = ap->fd.in[PIPE_WRITE];
-    ap->fdout = ap->fd.out[PIPE_READ];
-    ap->fderr = ap->fd.err[PIPE_READ];
+    ap->ctl = fd->ctl[PIPE_WRITE];
+    ap->fdin = fd->in[PIPE_WRITE];
+    ap->fdout = fd->out[PIPE_READ];
+    ap->fderr = fd->err[PIPE_READ];
 
     return 0;
 }

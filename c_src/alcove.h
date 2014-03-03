@@ -45,12 +45,6 @@ typedef struct {
     int fdout;
     int fderr;
     int ns;
-    struct {
-        int ctl[2];
-        int in[2];
-        int out[2];
-        int err[2];
-    } fd;
 } alcove_state_t;
 
 typedef struct {
