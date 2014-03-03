@@ -132,7 +132,8 @@ alcove_fork(alcove_state_t *ap)
         erl_err_sys("pipe");
 
 #ifdef HAVE_NAMESPACES
-    if (clone(alcove_fork_child, stack_top, ap->ns|SIGCHLD, ap) < 0)
+    ap->pid = clone(alcove_fork_child, stack_top, ap->ns|SIGCHLD, ap);
+    if (ap->pid < 0)
         erl_err_sys("clone");
 
     (void)alcove_fork_parent(ap);
