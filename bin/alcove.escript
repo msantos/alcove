@@ -141,7 +141,7 @@ static_exports() ->
     [{stdin,2},
      {stdout,1}, {stdout,2},
      {stderr,1}, {stderr,2},
-     {recv,1}, {recv,2},
+     {ctl,1}, {ctl,2},
      {setrlimit,3},
      {command,1},
      {call,2},
@@ -190,14 +190,14 @@ stderr(Port, Timeout) ->
     end.
 ";
 
-static({recv,1}) ->
+static({ctl,1}) ->
 "
-recv(Port) ->
-    recv(Port, 0).
+ctl(Port) ->
+    ctl(Port, 0).
 ";
-static({recv,2}) ->
+static({ctl,2}) ->
 "
-recv(Port, Timeout) ->
+ctl(Port, Timeout) ->
     receive
         {Port, {data, <<?UINT16(?ALCOVE_MSG_CALL), Msg/binary>>}} ->
             binary_to_term(Msg)
@@ -260,8 +260,8 @@ specs() ->
 -spec getpid(port()) -> non_neg_integer().
 -spec getrlimit(port(),non_neg_integer()) -> {'ok', #rlimit{}} | {'error', file:posix()}.
 -spec getuid(port()) -> non_neg_integer().
--spec recv(port()) -> 'false' | binary().
--spec recv(port(),'infinity' | non_neg_integer()) -> 'false' | binary().
+-spec ctl(port()) -> 'false' | binary().
+-spec ctl(port(),'infinity' | non_neg_integer()) -> 'false' | binary().
 -spec setgid(port(),non_neg_integer()) -> 'ok' | {'error', file:posix()}.
 -spec sethostname(port(),_) -> 'ok' | {'error', file:posix()}.
 -spec setns(port(),iodata()) -> 'ok' | {'error', file:posix()}.
