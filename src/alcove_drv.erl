@@ -78,14 +78,20 @@ getopts(Options) when is_list(Options) ->
     Exec = proplists:get_value(exec, Options, "sudo"),
     Progname = proplists:get_value(progname, Options, progname()),
 
-    Opt = lists:map(fun
-                    (verbose) -> {verbose, 1};
-                    ({ns, N}) -> {namespace, N};
-                    (N) when is_atom(N) -> {N, true};
-                    ({_,_} = N) -> N
-                end, Options),
+    Options1 = proplists:substitute_aliases([{ns, namespace}], Options),
 
-    Switches = lists:append([ optarg(N) || N <- Opt ]),
+    Options2 = lists:map(fun
+                    (verbose) ->
+                        {verbose, 1};
+                    ({Tag, [H|_] = N}) when is_atom(Tag), (is_list(H) orelse is_binary(H)) ->
+                        [{Tag, X} || X <- N];
+                    (N) when is_atom(N) ->
+                        {N, true};
+                    ({_,_} = N) ->
+                        N
+                end, Options1),
+
+    Switches = lists:append([ optarg(N) || N <- lists:flatten(Options2) ]),
     [Cmd|Argv] = [ N || N <- string:tokens(Exec, " ") ++ [Progname|Switches], N /= ""],
     [find_executable(Cmd)|Argv].
 

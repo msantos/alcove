@@ -43,7 +43,7 @@ run(Port) ->
 
 start() ->
     Options = case os:type() of
-        {unix,linux} -> [{ns, "pid"}, {ns, "uts"}];
+        {unix,linux} -> [{ns, ["pid", "uts"]}];
         {unix,_} -> []
     end,
     alcove_drv:start(Options).
