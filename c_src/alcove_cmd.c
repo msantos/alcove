@@ -432,6 +432,31 @@ BADARG:
     return erl_mk_atom("badarg");
 }
 
+/*
+ * unshare(2)
+ *
+ */
+    static ETERM *
+alcove_unshare(ETERM *arg)
+{
+    ETERM *hd = NULL;
+    int flags = 0;
+    int rv = 0;
+
+    /* flags */
+    arg = alcove_list_head(&hd, arg);
+    if (!hd || !ERL_IS_INTEGER(hd))
+        goto BADARG;
+
+    flags = ERL_INT_VALUE(hd);
+
+    rv = unshare(flags);
+
+    return ( (rv < 0) ? alcove_errno(errno) : erl_mk_atom("ok"));
+
+BADARG:
+    return erl_mk_atom("badarg");
+}
 
 /*
  * Utility functions
