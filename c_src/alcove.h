@@ -24,6 +24,7 @@
 #include <sys/resource.h>
 #include <sys/types.h>
 #include <sys/socket.h>
+#include <signal.h>
 
 #include <erl_driver.h>
 #include <erl_interface.h>
@@ -39,12 +40,9 @@ enum {
 typedef struct {
     u_int32_t opt;
     u_int8_t verbose;
-    pid_t pid;
-    int ctl;
     int fdin;
     int fdout;
     int fderr;
-    int ns;
 } alcove_state_t;
 
 typedef struct {
@@ -52,7 +50,9 @@ typedef struct {
     unsigned char *arg;
 } alcove_msg_t;
 
-int alcove_send(ETERM *t);
+void gotsig(int sig);
+
+void alcove_ctl(alcove_state_t *ap);
 
 void *alcove_malloc(ssize_t size);
 
@@ -65,7 +65,7 @@ ETERM *alcove_ok(ETERM *);
 ETERM *alcove_bool(bool);
 ETERM *alcove_bin(const char *);
 
-ETERM *alcove_cmd(u_int32_t, ETERM *);
+ETERM *alcove_cmd(alcove_state_t *, u_int32_t, ETERM *);
 
 #define VERBOSE(x, ...) do { \
     if (ap->verbose >= x) { \

@@ -25,13 +25,32 @@
 
 #include <sys/types.h>
 
+#define PIPE_READ 0
+#define PIPE_WRITE 1
+
+typedef struct {
+    int ctl[2];
+    int in[2];
+    int out[2];
+    int err[2];
+} alcove_fd_t;
+
+typedef struct {
+    alcove_state_t *ap;
+    alcove_fd_t *fd;
+} alcove_child_t;
+
 static char **alcove_list_to_argv(ETERM *);
 static void alcove_free_argv(char **);
+
+static int alcove_stdio(alcove_fd_t *fd);
+static int alcove_child_fun(void *arg);
+static int alcove_parent_fd(alcove_state_t *ap, alcove_fd_t *fd);
 
 #define ALCOVE_IS_IOLIST(_t)  (ERL_IS_BINARY(_t) || ERL_IS_LIST(_t))
 
     ETERM *
-alcove_cmd(u_int32_t cmd, ETERM *arg)
+alcove_cmd(alcove_state_t *ap, u_int32_t cmd, ETERM *arg)
 {
     alcove_cmd_t *fun = NULL;
 
@@ -43,11 +62,11 @@ alcove_cmd(u_int32_t cmd, ETERM *arg)
     if (!ERL_IS_LIST(arg) || erl_length(arg) != fun->narg)
         return erl_mk_atom("badarg");
 
-    return (*fun->fp)(arg);
+    return (*fun->fp)(ap, arg);
 }
 
     static ETERM *
-alcove_version(ETERM *arg)
+alcove_version(alcove_state_t *ap, ETERM *arg)
 {
     return alcove_bin(ALCOVE_VERSION);
 }
@@ -57,7 +76,7 @@ alcove_version(ETERM *arg)
  *
  */
     static ETERM *
-alcove_chdir(ETERM *arg)
+alcove_chdir(alcove_state_t *ap, ETERM *arg)
 {
     ETERM *hd = NULL;
     char *path = NULL;
@@ -90,7 +109,7 @@ BADARG:
  *
  */
     static ETERM *
-alcove_chroot(ETERM *arg)
+alcove_chroot(alcove_state_t *ap, ETERM *arg)
 {
     ETERM *hd = NULL;
     char *path = NULL;
@@ -119,11 +138,57 @@ BADARG:
 }
 
 /*
+ * clone(2)
+ *
+ */
+    static ETERM *
+alcove_clone(alcove_state_t *ap, ETERM *arg)
+{
+    ETERM *hd = NULL;
+    alcove_child_t child_arg = {0};
+    alcove_fd_t fd = {{0}};
+    const size_t stack_size = 65536;
+    char *child_stack = NULL;
+    int flags = 0;
+    pid_t pid = 0;
+
+    /* flags */
+    arg = alcove_list_head(&hd, arg);
+    if (!hd || !ERL_IS_INTEGER(hd))
+        goto BADARG;
+
+    flags = ERL_INT_UVALUE(hd);
+
+    child_stack = calloc(stack_size, 1);
+    if (!child_stack)
+        return alcove_errno(errno);
+
+    if (alcove_stdio(&fd) < 0)
+        return alcove_errno(errno);
+
+    child_arg.ap = ap;
+    child_arg.fd = &fd;
+
+    pid = clone(alcove_child_fun, child_stack + stack_size, flags | SIGCHLD, &child_arg);
+
+    if (pid < 0)
+        return alcove_errno(errno);
+
+    if (alcove_parent_fd(ap, &fd) < 0)
+        return alcove_errno(errno);
+
+    return alcove_ok(erl_mk_int(pid));
+
+BADARG:
+    return erl_mk_atom("badarg");
+}
+
+/*
  * execvp(3)
  *
  */
     static ETERM *
-alcove_execvp(ETERM *arg)
+alcove_execvp(alcove_state_t *ap, ETERM *arg)
 {
     ETERM *hd = NULL;
     char *progname = NULL;
@@ -168,11 +233,41 @@ BADARG:
 }
 
 /*
+ * fork(2)
+ *
+ */
+    static ETERM *
+alcove_fork(alcove_state_t *ap, ETERM *arg)
+{
+    alcove_fd_t fd = {{0}};
+    pid_t pid = 0;
+
+    if (alcove_stdio(&fd) < 0)
+        return alcove_errno(errno);
+
+    pid = fork();
+
+    switch (pid) {
+        case -1:
+            return alcove_errno(errno);
+        case 0:
+            alcove_ctl(ap);
+            erl_err_sys("fork");
+        default:
+            if (alcove_parent_fd(ap, &fd) < 0)
+                return alcove_errno(errno);
+
+            return alcove_ok(erl_mk_int(pid));
+    }
+}
+
+
+/*
  * getcwd(3)
  *
  */
     static ETERM *
-alcove_getcwd(ETERM *arg)
+alcove_getcwd(alcove_state_t *ap, ETERM *arg)
 {
     char buf[PATH_MAX] = {0};
 
@@ -187,7 +282,7 @@ alcove_getcwd(ETERM *arg)
  *
  */
     static ETERM *
-alcove_getgid(ETERM *arg)
+alcove_getgid(alcove_state_t *ap, ETERM *arg)
 {
     return erl_mk_uint(getgid());
 }
@@ -197,7 +292,7 @@ alcove_getgid(ETERM *arg)
  *
  */
     static ETERM *
-alcove_getpid(ETERM *arg)
+alcove_getpid(alcove_state_t *ap, ETERM *arg)
 {
     return erl_mk_uint(getpid());
 }
@@ -207,7 +302,7 @@ alcove_getpid(ETERM *arg)
  *
  */
     static ETERM *
-alcove_getuid(ETERM *arg)
+alcove_getuid(alcove_state_t *ap, ETERM *arg)
 {
     return erl_mk_uint(getuid());
 }
@@ -217,7 +312,7 @@ alcove_getuid(ETERM *arg)
  *
  */
     static ETERM *
-alcove_setgid(ETERM *arg)
+alcove_setgid(alcove_state_t *ap, ETERM *arg)
 {
     ETERM *hd = NULL;
     gid_t gid = {0};
@@ -243,7 +338,7 @@ BADARG:
  *
  */
     static ETERM *
-alcove_setuid(ETERM *arg)
+alcove_setuid(alcove_state_t *ap, ETERM *arg)
 {
     ETERM *hd = NULL;
     uid_t uid = {0};
@@ -269,7 +364,7 @@ BADARG:
  *
  */
     static ETERM *
-alcove_gethostname(ETERM *arg)
+alcove_gethostname(alcove_state_t *ap, ETERM *arg)
 {
     char name[HOST_NAME_MAX] = {0};
     int rv = 0;
@@ -286,7 +381,7 @@ alcove_gethostname(ETERM *arg)
  *
  */
     static ETERM *
-alcove_sethostname(ETERM *arg)
+alcove_sethostname(alcove_state_t *ap, ETERM *arg)
 {
     ETERM *hd = NULL;
     char *name = NULL;
@@ -319,7 +414,7 @@ BADARG:
  *
  */
     static ETERM *
-alcove_getrlimit(ETERM *arg)
+alcove_getrlimit(alcove_state_t *ap, ETERM *arg)
 {
     ETERM *hd = NULL;
     int resource = 0;
@@ -353,7 +448,7 @@ BADARG:
  *
  */
     static ETERM *
-alcove_setrlimit(ETERM *arg)
+alcove_setrlimit(alcove_state_t *ap, ETERM *arg)
 {
     ETERM *hd = NULL;
     int resource = 0;
@@ -400,7 +495,7 @@ BADARG:
  *
  */
     static ETERM *
-alcove_setns(ETERM *arg)
+alcove_setns(alcove_state_t *ap, ETERM *arg)
 {
     ETERM *hd = NULL;
     char *path = NULL;
@@ -437,7 +532,7 @@ BADARG:
  *
  */
     static ETERM *
-alcove_unshare(ETERM *arg)
+alcove_unshare(alcove_state_t *ap, ETERM *arg)
 {
     ETERM *hd = NULL;
     int flags = 0;
@@ -511,4 +606,56 @@ alcove_free_argv(char **argv)
         free(argv[i]);
 
     free(argv);
+}
+
+    static int
+alcove_stdio(alcove_fd_t *fd)
+{
+    if ( (pipe(fd->in) < 0)
+            || (pipe(fd->out) < 0)
+            || (pipe(fd->err) < 0))
+        return -1;
+
+    return 0;
+}
+
+    static int
+alcove_child_fun(void *arg)
+{
+    alcove_child_t *child_arg = arg;
+    alcove_state_t *ap = child_arg->ap;
+    alcove_fd_t *fd = child_arg->fd;
+
+    if ( (close(fd->in[PIPE_WRITE]) < 0)
+            || (close(fd->out[PIPE_READ]) < 0)
+            || (close(fd->err[PIPE_READ]) < 0))
+        return -1;
+
+    if ( (dup2(fd->in[PIPE_READ], STDIN_FILENO) < 0)
+            || (dup2(fd->out[PIPE_WRITE], STDOUT_FILENO) < 0)
+            || (dup2(fd->err[PIPE_WRITE], STDERR_FILENO) < 0))
+        return -1;
+
+    ap->fdin = fd->in[PIPE_READ];
+    ap->fdout = fd->out[PIPE_WRITE];
+    ap->fderr = fd->err[PIPE_WRITE];
+
+    alcove_ctl(ap);
+
+    return 0;
+}
+
+    static int
+alcove_parent_fd(alcove_state_t *ap, alcove_fd_t *fd)
+{
+    if ( (close(fd->in[PIPE_READ]) < 0)
+            || (close(fd->out[PIPE_WRITE]) < 0)
+            || (close(fd->err[PIPE_WRITE]) < 0))
+        return -1;
+
+    ap->fdin = fd->in[PIPE_WRITE];
+    ap->fdout = fd->out[PIPE_READ];
+    ap->fderr = fd->err[PIPE_READ];
+
+    return 0;
 }

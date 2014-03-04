@@ -23,14 +23,14 @@ OIFS=$IFS
 while read line; do
     IFS=/
     set -- $line
-    printf "static ETERM *alcove_%s(ETERM *);\n" $1
+    printf "static ETERM *alcove_%s(alcove_state_t *, ETERM *);\n" $1
 done < $PROTO
 
 cat<< 'EOF'
 
 /* commands */
 typedef struct {
-    ETERM *(*fp)(ETERM *);
+    ETERM *(*fp)(alcove_state_t *, ETERM *);
     u_int8_t narg;
 } alcove_cmd_t;
 
