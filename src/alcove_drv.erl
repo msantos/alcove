@@ -29,8 +29,11 @@ start(Options) ->
     [Cmd|Argv] = getopts(Options),
     open_port({spawn_executable, Cmd}, [{args, Argv}, {packet, 2}, binary]).
 
+-spec call(port(),iodata()) -> any().
 call(Port, Data) ->
     call(Port, Data, 5000).
+
+-spec call(port(),iodata(),'infinity' | non_neg_integer()) -> any().
 call(Port, Data, Timeout) ->
     true = send(Port, Data, iolist_size(Data)),
     receive
@@ -44,9 +47,11 @@ call(Port, Data, Timeout) ->
             {error,timedout}
     end.
 
+-spec cast(port(),iodata()) -> any().
 cast(Port, Data) ->
     send(Port, Data, iolist_size(Data)).
 
+-spec send(port(),iodata(),pos_integer()) -> any().
 send(Port, Data, Size) when is_port(Port), Size < 16#ffff ->
     erlang:port_command(Port, Data).
 

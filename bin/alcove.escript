@@ -158,10 +158,9 @@ call_to_fun([H|T], Acc) ->
     call_to_fun(T, [{binary_to_list(Name), binary_to_integer(Arity)}|Acc]).
 
 static_exports() ->
-    [{stdin,2}, {stdin,3},
-     {stdout,2}, {stdout,3},
-     {stderr,2}, {stderr,3},
-     {ctl,1}, {ctl,2},
+    [{stdin,3},
+     {stdout,3},
+     {stderr,3},
      {encode,2}, {encode,3},
      {command,1},
      {call,2},
@@ -171,11 +170,6 @@ static_exports() ->
 static() ->
     [ static({Fun, Arity}) || {Fun, Arity} <- static_exports() ].
 
-static({stdin,2}) ->
-"
-stdin(Port, Data) ->
-    stdin(Port, [], Data).
-";
 static({stdin,3}) ->
 "
 stdin(Port, Pids, Data) ->
@@ -183,11 +177,6 @@ stdin(Port, Pids, Data) ->
     alcove_drv:cast(Port, Stdin).
 ";
 
-static({stdout,2}) ->
-"
-stdout(Port, Pids) ->
-    stdout(Port, Pids, 0).
-";
 static({stdout,3}) ->
 "
 % XXX discard all but the first PID
@@ -201,11 +190,6 @@ stdout(Port, [Pid|_], Timeout) ->
     end.
 ";
 
-static({stderr,2}) ->
-"
-stderr(Port, Pids) ->
-    stderr(Port, Pids, 0).
-";
 static({stderr,3}) ->
 "
 % XXX discard all but the first PID
@@ -213,23 +197,6 @@ stderr(Port, [Pid|_], Timeout) ->
     receive
         {Port, {data, <<?UINT16(?ALCOVE_MSG_CHILDERR), ?UINT32(Pid), Msg/binary>>}} ->
             Msg
-    after
-        Timeout ->
-            false
-    end.
-";
-
-static({ctl,1}) ->
-"
-ctl(Port) ->
-    ctl(Port, 0).
-";
-static({ctl,2}) ->
-"
-ctl(Port, Timeout) ->
-    receive
-        {Port, {data, <<?UINT16(?ALCOVE_MSG_CALL), Msg/binary>>}} ->
-            binary_to_term(Msg)
     after
         Timeout ->
             false
@@ -293,26 +260,60 @@ includes(Header) ->
 specs() ->
 "
 -spec chdir(port(),iodata()) -> 'ok' | {'error', file:posix()}.
+-spec chdir(port(),list(integer()),iodata()) -> 'ok' | {'error', file:posix()}.
+
 -spec chroot(port(),iodata()) -> 'ok' | {'error', file:posix()}.
+-spec chroot(port(),list(integer()),iodata()) -> 'ok' | {'error', file:posix()}.
+
+-spec clone(port(),non_neg_integer()) -> {'ok', non_neg_integer()} | {'error', file:posix()}.
+-spec clone(port(),[integer()],non_neg_integer()) -> {'ok', non_neg_integer()} | {'error', file:posix()}.
+
 -spec execvp(port(),iodata(),iodata()) -> 'ok'.
+-spec execvp(port(),list(integer()),iodata(),iodata()) -> 'ok'.
+
+-spec fork(port()) -> {'ok', non_neg_integer()} | {'error', file:posix()}.
+-spec fork(port(),[integer()]) -> {'ok', non_neg_integer()} | {'error', file:posix()}.
+
 -spec getcwd(port()) -> {'ok', binary()} | {'error', file:posix()}.
+-spec getcwd(port(),list(integer())) -> {'ok', binary()} | {'error', file:posix()}.
+
 -spec getgid(port()) -> non_neg_integer().
+-spec getgid(port(),list(integer())) -> non_neg_integer().
+
 -spec gethostname(port()) -> {'ok', binary()} | {'error', file:posix()}.
+-spec gethostname(port(),list(integer())) -> {'ok', binary()} | {'error', file:posix()}.
+
 -spec getpid(port()) -> non_neg_integer().
+-spec getpid(port(),list(integer())) -> non_neg_integer().
+
 -spec getrlimit(port(),non_neg_integer()) -> {'ok', #rlimit{}} | {'error', file:posix()}.
+-spec getrlimit(port(),list(integer()),non_neg_integer()) -> {'ok', #rlimit{}} | {'error', file:posix()}.
+
 -spec getuid(port()) -> non_neg_integer().
--spec ctl(port()) -> 'false' | binary().
--spec ctl(port(),'infinity' | non_neg_integer()) -> 'false' | binary().
+-spec getuid(port(),list(integer())) -> non_neg_integer().
+
 -spec setgid(port(),non_neg_integer()) -> 'ok' | {'error', file:posix()}.
--spec sethostname(port(),_) -> 'ok' | {'error', file:posix()}.
+-spec setgid(port(),list(integer()),non_neg_integer()) -> 'ok' | {'error', file:posix()}.
+
+-spec sethostname(port(),iodata()) -> 'ok' | {'error', file:posix()}.
+-spec sethostname(port(),list(integer()),iodata()) -> 'ok' | {'error', file:posix()}.
+
 -spec setns(port(),iodata()) -> 'ok' | {'error', file:posix()}.
--spec setrlimit(port(),non_neg_integer(),non_neg_integer(),non_neg_integer()) -> 'ok' | {'error', file:posix()}.
+-spec setns(port(),list(integer()),iodata()) -> 'ok' | {'error', file:posix()}.
+
 -spec setrlimit(port(),non_neg_integer(),#rlimit{}) -> 'ok' | {'error', file:posix()}.
+-spec setrlimit(port(),list(integer()),non_neg_integer(),#rlimit{}) -> 'ok' | {'error', file:posix()}.
+
 -spec setuid(port(),non_neg_integer()) -> 'ok' | {'error', file:posix()}.
--spec stderr(port(),list(integer())) -> 'false' | binary().
+-spec setuid(port(),list(integer()),non_neg_integer()) -> 'ok' | {'error', file:posix()}.
+
 -spec stderr(port(),list(integer()),'infinity' | non_neg_integer()) -> 'false' | binary().
 -spec stdin(port(),list(integer()),iodata()) -> 'true'.
--spec stdout(port(),list(integer())) -> 'false' | binary().
 -spec stdout(port(),list(integer()),'infinity' | non_neg_integer()) -> 'false' | binary().
+
+-spec unshare(port(),iodata()) -> 'ok' | {'error', file:posix()}.
+-spec unshare(port(),[integer()],iodata()) -> 'ok' | {'error', file:posix()}.
+
 -spec version(port()) -> binary().
+-spec version(port(),list(integer())) -> binary().
 ".
