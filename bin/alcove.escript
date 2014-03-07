@@ -236,7 +236,7 @@ ctl(Port, Timeout) ->
 static({setrlimit,3}) ->
 "
 setrlimit(Port, Resource, #rlimit{cur = Cur, max = Max}) ->
-    setrlimit(Port, Resource, Cur, Max).
+    setrlimit(Port, [], Resource, Cur, Max).
 ";
 
 static({command,1}) ->
