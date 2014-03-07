@@ -38,7 +38,7 @@ run({Port, Child}) ->
         setgid(Port, Child),
         setuid(Port, Child),
         execvp(Port, Child),
-        stdin(Port)
+        stdin(Port, Child)
     ].
 
 -define(CLONE_NEWPID, 16#20000000).
@@ -129,15 +129,15 @@ setuid(Port, Child) ->
 execvp(Port, Child) ->
     % cwd = /, chroot'ed in /bin
     Reply = alcove:execvp(Port, [Child], "/busybox", ["/busybox", "sh", "-i"]),
-    Stderr = alcove:stderr(Port, 5000),
+    Stderr = alcove:stderr(Port, [Child], 5000),
     [
         ?_assertEqual(ok, Reply),
         ?_assertNotEqual(false, Stderr)
     ].
 
-stdin(Port) ->
-    Reply = alcove:stdin(Port, "help\n"),
-    Stdout = alcove:stdout(Port, 5000),
+stdin(Port, Child) ->
+    Reply = alcove:stdin(Port, [Child], "help\n"),
+    Stdout = alcove:stdout(Port, [Child], 5000),
     [
         ?_assertEqual(true, Reply),
         ?_assertNotEqual(false, Stdout)

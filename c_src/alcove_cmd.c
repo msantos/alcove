@@ -38,14 +38,14 @@ typedef struct {
 typedef struct {
     alcove_state_t *ap;
     alcove_fd_t *fd;
-} alcove_child_t;
+} alcove_arg_t;
 
 static char **alcove_list_to_argv(ETERM *);
 static void alcove_free_argv(char **);
 
 static int alcove_stdio(alcove_fd_t *fd);
 static int alcove_child_fun(void *arg);
-static int alcove_parent_fd(alcove_state_t *ap, alcove_fd_t *fd);
+static int alcove_parent_fd(alcove_state_t *ap, alcove_fd_t *fd, pid_t pid);
 
 #define ALCOVE_IS_IOLIST(_t)  (ERL_IS_BINARY(_t) || ERL_IS_LIST(_t))
 
@@ -145,12 +145,15 @@ BADARG:
 alcove_clone(alcove_state_t *ap, ETERM *arg)
 {
     ETERM *hd = NULL;
-    alcove_child_t child_arg = {0};
+    alcove_arg_t child_arg = {0};
     alcove_fd_t fd = {{0}};
     const size_t stack_size = 1024 * 1024;
     char *child_stack = NULL;
     int flags = 0;
     pid_t pid = 0;
+
+    if (ap->nchild >= ALCOVE_MAX_CHILD - 1)
+        return alcove_errno(EAGAIN);
 
     /* flags */
     arg = alcove_list_head(&hd, arg);
@@ -176,7 +179,7 @@ alcove_clone(alcove_state_t *ap, ETERM *arg)
 
     free(child_stack);
 
-    if (alcove_parent_fd(ap, &fd) < 0)
+    if (alcove_parent_fd(ap, &fd, pid) < 0)
         return alcove_errno(errno);
 
     return alcove_ok(erl_mk_int(pid));
@@ -241,9 +244,12 @@ BADARG:
     static ETERM *
 alcove_fork(alcove_state_t *ap, ETERM *arg)
 {
-    alcove_child_t child_arg = {0};
+    alcove_arg_t child_arg = {0};
     alcove_fd_t fd = {{0}};
     pid_t pid = 0;
+
+    if (ap->nchild >= ALCOVE_MAX_CHILD - 1)
+        return alcove_errno(EAGAIN);
 
     if (alcove_stdio(&fd) < 0)
         return alcove_errno(errno);
@@ -260,7 +266,7 @@ alcove_fork(alcove_state_t *ap, ETERM *arg)
             (void)alcove_child_fun(&child_arg);
             erl_err_sys("fork");
         default:
-            if (alcove_parent_fd(ap, &fd) < 0)
+            if (alcove_parent_fd(ap, &fd, pid) < 0)
                 return alcove_errno(errno);
 
             return alcove_ok(erl_mk_int(pid));
@@ -640,7 +646,7 @@ alcove_stdio(alcove_fd_t *fd)
     static int
 alcove_child_fun(void *arg)
 {
-    alcove_child_t *child_arg = arg;
+    alcove_arg_t *child_arg = arg;
     alcove_state_t *ap = child_arg->ap;
     alcove_fd_t *fd = child_arg->fd;
 
@@ -654,26 +660,34 @@ alcove_child_fun(void *arg)
             || (dup2(fd->err[PIPE_WRITE], STDERR_FILENO) < 0))
         return -1;
 
-    ap->fdin = fd->in[PIPE_READ];
-    ap->fdout = fd->out[PIPE_WRITE];
-    ap->fderr = fd->err[PIPE_WRITE];
-
     alcove_ctl(ap);
 
     return 0;
 }
 
     static int
-alcove_parent_fd(alcove_state_t *ap, alcove_fd_t *fd)
+alcove_parent_fd(alcove_state_t *ap, alcove_fd_t *fd, pid_t pid)
 {
+    int i = 0;
+
     if ( (close(fd->in[PIPE_READ]) < 0)
             || (close(fd->out[PIPE_WRITE]) < 0)
             || (close(fd->err[PIPE_WRITE]) < 0))
         return -1;
 
-    ap->fdin = fd->in[PIPE_WRITE];
-    ap->fdout = fd->out[PIPE_READ];
-    ap->fderr = fd->err[PIPE_READ];
+    ap->nchild++;
+
+    for (i = 0; i < ALCOVE_MAX_CHILD; i++) {
+        if (ap->child[i].pid)
+            continue;
+
+        ap->child[i].pid = pid;
+        ap->child[i].fdin = fd->in[PIPE_WRITE];
+        ap->child[i].fdout = fd->out[PIPE_READ];
+        ap->child[i].fderr = fd->err[PIPE_READ];
+
+        break;
+    }
 
     return 0;
 }

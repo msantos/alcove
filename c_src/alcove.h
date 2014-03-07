@@ -38,11 +38,19 @@ enum {
 };
 
 typedef struct {
-    u_int32_t opt;
-    u_int8_t verbose;
+    pid_t pid;
     int fdin;
     int fdout;
     int fderr;
+} alcove_child_t;
+
+#define ALCOVE_MAX_CHILD    16
+
+typedef struct {
+    u_int32_t opt;
+    u_int8_t verbose;
+    alcove_child_t *child;
+    u_int32_t nchild;
 } alcove_state_t;
 
 typedef struct {

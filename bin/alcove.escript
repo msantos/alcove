@@ -159,9 +159,10 @@ call_to_fun([H|T], Acc) ->
 
 static_exports() ->
     [{stdin,2}, {stdin,3},
-     {stdout,1}, {stdout,2},
-     {stderr,1}, {stderr,2},
+     {stdout,2}, {stdout,3},
+     {stderr,2}, {stderr,3},
      {ctl,1}, {ctl,2},
+     {encode,2}, {encode,3},
      {command,1},
      {call,2},
      {call,3},
@@ -178,19 +179,21 @@ stdin(Port, Data) ->
 static({stdin,3}) ->
 "
 stdin(Port, Pids, Data) ->
-    alcove_drv:cast(Port, Pids, [<<?UINT16(?ALCOVE_MSG_CHILDIN)>>, Data]).
+    Stdin = alcove_drv:msg(Pids, Data),
+    alcove_drv:cast(Port, Stdin).
 ";
 
-static({stdout,1}) ->
-"
-stdout(Port) ->
-    stdout(Port, 0).
-";
 static({stdout,2}) ->
 "
-stdout(Port, Timeout) ->
+stdout(Port, Pids) ->
+    stdout(Port, Pids, 0).
+";
+static({stdout,3}) ->
+"
+% XXX discard all but the first PID
+stdout(Port, [Pid|_], Timeout) ->
     receive
-        {Port, {data, <<?UINT16(?ALCOVE_MSG_CHILDOUT), Msg/binary>>}} ->
+        {Port, {data, <<?UINT16(?ALCOVE_MSG_CHILDOUT), ?UINT32(Pid), Msg/binary>>}} ->
             Msg
     after
         Timeout ->
@@ -198,16 +201,17 @@ stdout(Port, Timeout) ->
     end.
 ";
 
-static({stderr,1}) ->
-"
-stderr(Port) ->
-    stderr(Port, 0).
-";
 static({stderr,2}) ->
 "
-stderr(Port, Timeout) ->
+stderr(Port, Pids) ->
+    stderr(Port, Pids, 0).
+";
+static({stderr,3}) ->
+"
+% XXX discard all but the first PID
+stderr(Port, [Pid|_], Timeout) ->
     receive
-        {Port, {data, <<?UINT16(?ALCOVE_MSG_CHILDERR), Msg/binary>>}} ->
+        {Port, {data, <<?UINT16(?ALCOVE_MSG_CHILDERR), ?UINT32(Pid), Msg/binary>>}} ->
             Msg
     after
         Timeout ->
@@ -230,6 +234,19 @@ ctl(Port, Timeout) ->
         Timeout ->
             false
     end.
+";
+
+static({encode,2}) ->
+"
+encode(Call, Arg) when is_atom(Call) ->
+    encode(Call, [], Arg).
+";
+
+static({encode,3}) ->
+"
+encode(Call, Pids, Arg) when is_atom(Call), is_list(Pids), is_list(Arg) ->
+    Bin = alcove_drv:encode(command(Call), Arg),
+    alcove_drv:msg(Pids, Bin).
 ";
 
 static({command,1}) ->
@@ -258,10 +275,10 @@ call(Port, Command, Options) ->
 static({call,4}) ->
 "
 call(Port, Pids, execvp, Arg) when is_port(Port), is_list(Arg) ->
-    alcove_drv:cast(Port, Pids, alcove_drv:encode(command(execvp), Arg)),
+    alcove_drv:cast(Port, encode(execvp, Pids, Arg)),
     ok;
 call(Port, Pids, Command, Arg) when is_port(Port), is_list(Arg) ->
-    case alcove_drv:call(Port, Pids, alcove_drv:encode(command(Command), Arg)) of
+    case alcove_drv:call(Port, encode(Command, Pids, Arg)) of
         badarg ->
             erlang:error(badarg, [Port, Command, Arg]);
         Reply ->
@@ -292,10 +309,10 @@ specs() ->
 -spec setrlimit(port(),non_neg_integer(),non_neg_integer(),non_neg_integer()) -> 'ok' | {'error', file:posix()}.
 -spec setrlimit(port(),non_neg_integer(),#rlimit{}) -> 'ok' | {'error', file:posix()}.
 -spec setuid(port(),non_neg_integer()) -> 'ok' | {'error', file:posix()}.
--spec stderr(port()) -> 'false' | binary().
--spec stderr(port(),'infinity' | non_neg_integer()) -> 'false' | binary().
--spec stdin(port(),iodata()) -> 'true'.
--spec stdout(port()) -> 'false' | binary().
--spec stdout(port(),'infinity' | non_neg_integer()) -> 'false' | binary().
+-spec stderr(port(),list(integer())) -> 'false' | binary().
+-spec stderr(port(),list(integer()),'infinity' | non_neg_integer()) -> 'false' | binary().
+-spec stdin(port(),list(integer()),iodata()) -> 'true'.
+-spec stdout(port(),list(integer())) -> 'false' | binary().
+-spec stdout(port(),list(integer()),'infinity' | non_neg_integer()) -> 'false' | binary().
 -spec version(port()) -> binary().
 ".
