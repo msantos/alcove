@@ -239,11 +239,15 @@ BADARG:
     static ETERM *
 alcove_fork(alcove_state_t *ap, ETERM *arg)
 {
+    alcove_child_t child_arg = {0};
     alcove_fd_t fd = {{0}};
     pid_t pid = 0;
 
     if (alcove_stdio(&fd) < 0)
         return alcove_errno(errno);
+
+    child_arg.ap = ap;
+    child_arg.fd = &fd;
 
     pid = fork();
 
@@ -251,7 +255,7 @@ alcove_fork(alcove_state_t *ap, ETERM *arg)
         case -1:
             return alcove_errno(errno);
         case 0:
-            alcove_ctl(ap);
+            (void)alcove_child_fun(&child_arg);
             erl_err_sys("fork");
         default:
             if (alcove_parent_fd(ap, &fd) < 0)

@@ -16,7 +16,8 @@
 
 %% API
 -export([start/0, start/1, stop/1]).
--export([call/2, call/3, cast/2, encode/2, encode/3, event/1, event/2]).
+-export([call/2, call/3, call/4, cast/2, cast/3, encode/2, encode/3, event/1, event/2]).
+-export([msg/2, msg/3]).
 -export([getopts/1]).
 
 -spec start() -> port().
@@ -29,19 +30,28 @@ start(Options) ->
     open_port({spawn_executable, Cmd}, [{args, Argv}, {packet, 2}, binary]).
 
 call(Port, Data) ->
-    call(Port, Data, infinity).
-call(Port, Data, Timeout) ->
-    true = send(Port, Data, iolist_size(Data)),
+    call(Port, [], Data, infinity).
+call(Port, Pids, Data) ->
+    call(Port, Pids, Data, infinity).
+call(Port, Pids, Data, _Timeout) ->
+    Msg = msg(Pids, Data),
+    true = send(Port, Msg, iolist_size(Msg)),
     receive
-        {Port, {data, <<?UINT16(?ALCOVE_MSG_CALL), Msg/binary>>}} ->
-            binary_to_term(Msg)
+        {Port, {data, <<?UINT16(?ALCOVE_MSG_CALL), Reply/binary>>}} ->
+            binary_to_term(Reply);
+        {Port, {data, <<?UINT16(?ALCOVE_MSG_CHILDOUT), ?UINT16(Len), ?UINT16(?ALCOVE_MSG_CALL), Reply/binary>>}} when Len =:= 2 + byte_size(Reply) ->
+            binary_to_term(Reply)
     after
-        Timeout ->
+        %Timeout ->
+        5000 ->
             {error,timedout}
     end.
 
 cast(Port, Data) ->
-    send(Port, Data, iolist_size(Data)).
+    cast(Port, [], Data).
+cast(Port, Pids, Data) ->
+    Msg = msg(Pids, Data),
+    send(Port, Msg, iolist_size(Msg)).
 
 send(Port, Data, Size) when is_port(Port), Size < 16#ffff ->
     erlang:port_command(Port, Data).
@@ -51,16 +61,28 @@ event(Port) when is_port(Port) ->
 
 event(Port, Timeout) when is_port(Port) ->
     receive
-        {Port, {data, <<?UINT16(Type), Msg/binary>>}} when
+        {Port, {data, <<?UINT16(Type), Reply/binary>>}} when
             Type =:= ?ALCOVE_MSG_CALL;
             Type =:= ?ALCOVE_MSG_CAST;
             Type =:= ?ALCOVE_MSG_CHILDOUT;
             Type =:= ?ALCOVE_MSG_CHILDERR ->
-                {type_to_atom(Type), binary_to_term(Msg)}
+                {type_to_atom(Type), binary_to_term(Reply)}
     after
         Timeout ->
             false
     end.
+
+msg([], Data) ->
+    Data;
+msg(Pids, Data) ->
+    Size = iolist_size(Data),
+    msg(Pids, Data, [<<?UINT16(Size)>>|Data]).
+
+msg([], _Data, [_Length|Acc]) ->
+    Acc;
+msg([_Pid|Pids], Data, Acc) ->
+    Size = iolist_size(Acc),
+    msg(Pids, Data, [<<?UINT16(Size)>>, <<?UINT16(?ALCOVE_MSG_CHILDIN)>>|Acc]).
 
 encode(Command, Arg) when is_integer(Command), is_list(Arg) ->
     encode(?ALCOVE_MSG_CALL, Command, Arg).

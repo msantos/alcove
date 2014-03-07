@@ -4,7 +4,7 @@
 %%% Generate the alcove.erl file
 %%%
 main([]) ->
-    File = "liblxc.erl",
+    File = "alcove.erl",
     Proto = "c_src/alcove_cmd.proto",
     main([File, Proto]);
 
@@ -66,24 +66,43 @@ mkerl(File, Proto) ->
                 ]),
 
     Comment_gen = erl_syntax:comment([" Generated functions"]),
-    Exports_gen = erl_syntax:attribute(erl_syntax:atom(export), [
+    Exports_gen0 = erl_syntax:attribute(erl_syntax:atom(export), [
                 erl_syntax:list([
                     erl_syntax:arity_qualifier(erl_syntax:atom(Fun), erl_syntax:integer(Arity+1))
                         || {Fun, Arity} <- Calls ])
                 ]),
 
+    Exports_gen1 = erl_syntax:attribute(erl_syntax:atom(export), [
+                erl_syntax:list([
+                    erl_syntax:arity_qualifier(erl_syntax:atom(Fun), erl_syntax:integer(Arity+2))
+                        || {Fun, Arity} <- Calls ])
+                ]),
+
     % Generate the functions
     Functions = [ begin
-                    % name(Port, ...) -> liblxc:call(Port, Fun, [...])
+                    % name(Port, ...) -> alcove:call(Port, [], Fun, [...])
                     Arg = arg("Arg", Arity),
-                    Pattern = [erl_syntax:variable("Port")|Arg],
-                    Body = erl_syntax:application(
+
+                    Pattern0 = [erl_syntax:variable("Port")|Arg],
+                    Body0 = erl_syntax:application(
                         erl_syntax:atom(call),
-                        [erl_syntax:variable("Port"), erl_syntax:atom(Fun),
-                            erl_syntax:list(Arg)]
+                        [erl_syntax:variable("Port"), erl_syntax:nil(),
+                            erl_syntax:atom(Fun), erl_syntax:list(Arg)]
                     ),
-                    Clause = erl_syntax:clause(Pattern, [], [Body]),
-                    erl_syntax:function(erl_syntax:atom(Fun), [Clause])
+                    Clause0 = erl_syntax:clause(Pattern0, [], [Body0]),
+
+                    % name(Port, Pids, ...) -> alcove:call(Port, Pids, Fun, [...])
+                    Pattern1 = [erl_syntax:variable("Port"), erl_syntax:variable("Pids")|Arg],
+                    Body1 = erl_syntax:application(
+                        erl_syntax:atom(call),
+                        [erl_syntax:variable("Port"), erl_syntax:variable("Pids"),
+                            erl_syntax:atom(Fun), erl_syntax:list(Arg)]
+                    ),
+                    Clause1 = erl_syntax:clause(Pattern1, [], [Body1]),
+
+                    [erl_syntax:function(erl_syntax:atom(Fun), [Clause0]),
+                        erl_syntax:function(erl_syntax:atom(Fun), [Clause1])]
+
                 end || {Fun, Arity} <- Calls ],
 
     Code0 = erl_prettypr:format(erl_syntax:form_list(lists:flatten([
@@ -97,7 +116,8 @@ mkerl(File, Proto) ->
                 Exports_static,
 
                 Comment_gen,
-                Exports_gen,
+                Exports_gen0,
+                Exports_gen1,
 
                 Static,
                 api(Proto),
@@ -119,7 +139,7 @@ mkerl(File, Proto) ->
 arg(Prefix, Arity) ->
     [ erl_syntax:variable(string:concat(Prefix, integer_to_list(N))) || N <- lists:seq(1,Arity) ].
 
-% List the supported liblxc API functions
+% List the supported alcove API functions
 calls(Proto) ->
     {ok, Bin} = file:read_file(Proto),
     Fun = binary:split(Bin, <<"\n">>, [trim,global]),
@@ -138,14 +158,15 @@ call_to_fun([H|T], Acc) ->
     call_to_fun(T, [{binary_to_list(Name), binary_to_integer(Arity)}|Acc]).
 
 static_exports() ->
-    [{stdin,2},
+    [{stdin,2}, {stdin,3},
      {stdout,1}, {stdout,2},
      {stderr,1}, {stderr,2},
      {ctl,1}, {ctl,2},
      {setrlimit,3},
      {command,1},
      {call,2},
-     {call,3}].
+     {call,3},
+     {call,4}].
 
 static() ->
     [ static({Fun, Arity}) || {Fun, Arity} <- static_exports() ].
@@ -153,7 +174,12 @@ static() ->
 static({stdin,2}) ->
 "
 stdin(Port, Data) ->
-    alcove_drv:cast(Port, [<<?UINT16(?ALCOVE_MSG_CHILDIN)>>, Data]).
+    stdin(Port, [], Data).
+";
+static({stdin,3}) ->
+"
+stdin(Port, Pids, Data) ->
+    alcove_drv:cast(Port, Pids, [<<?UINT16(?ALCOVE_MSG_CHILDIN)>>, Data]).
 ";
 
 static({stdout,1}) ->
@@ -166,7 +192,7 @@ static({stdout,2}) ->
 stdout(Port, Timeout) ->
     receive
         {Port, {data, <<?UINT16(?ALCOVE_MSG_CHILDOUT), Msg/binary>>}} ->
-            binary_to_term(Msg)
+            Msg
     after
         Timeout ->
             false
@@ -183,7 +209,7 @@ static({stderr,2}) ->
 stderr(Port, Timeout) ->
     receive
         {Port, {data, <<?UINT16(?ALCOVE_MSG_CHILDERR), Msg/binary>>}} ->
-            binary_to_term(Msg)
+            Msg
     after
         Timeout ->
             false
@@ -229,15 +255,20 @@ lookup(Cmd, N, Cmds, Max) when N =< Max ->
 static({call,2}) ->
 "
 call(Port, Command) ->
-    call(Port, Command, []).
+    call(Port, [], Command, []).
 ";
 static({call,3}) ->
 "
-call(Port, execvp, Arg) when is_port(Port), is_list(Arg) ->
-    alcove_drv:cast(Port, alcove_drv:encode(command(execvp), Arg)),
+call(Port, Command, Options) ->
+    call(Port, [], Command, Options).
+";
+static({call,4}) ->
+"
+call(Port, Pids, execvp, Arg) when is_port(Port), is_list(Arg) ->
+    alcove_drv:cast(Port, Pids, alcove_drv:encode(command(execvp), Arg)),
     ok;
-call(Port, Command, Arg) when is_port(Port), is_list(Arg) ->
-    case alcove_drv:call(Port, alcove_drv:encode(command(Command), Arg)) of
+call(Port, Pids, Command, Arg) when is_port(Port), is_list(Arg) ->
+    case alcove_drv:call(Port, Pids, alcove_drv:encode(command(Command), Arg)) of
         badarg ->
             erlang:error(badarg, [Port, Command, Arg]);
         Reply ->

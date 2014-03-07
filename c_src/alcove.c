@@ -35,7 +35,7 @@
 static int alcove_call(alcove_state_t *ap, int fd, u_int16_t len);
 static alcove_msg_t * alcove_msg(int fd, u_int16_t len);
 
-static ssize_t alcove_child_proxy(int fdin, u_int16_t type);
+static ssize_t alcove_child_stdio(int fdin, u_int16_t type);
 static int alcove_write(u_int16_t, ETERM *);
 static ssize_t alcove_read(int, void *, ssize_t);
 
@@ -63,8 +63,6 @@ main(int argc, char *argv[])
 {
     alcove_state_t *ap = NULL;
     int ch = 0;
-
-    erl_init(NULL, 0);
 
     ap = calloc(1, sizeof(alcove_state_t));
     if (!ap)
@@ -98,9 +96,14 @@ alcove_ctl(alcove_state_t *ap)
     int fdmax = 0;
     int rv = 0;
 
+    erl_init(NULL, 0);
+
     for ( ; ; ) {
+        /* XXX remove PID from state */
+        /*
         if (child_exited)
             return;
+            */
 
         FD_ZERO(&rfds);
         FD_SET(STDIN_FILENO, &rfds);
@@ -158,6 +161,11 @@ alcove_ctl(alcove_state_t *ap)
                 if (alcove_read(STDIN_FILENO, buf, bufsz) != bufsz)
                     erl_err_sys("read:stdin");
 
+                /* XXX */
+                if (ap->fdin < 0)
+                    erl_err_quit("badarg");
+
+                /* XXX msg should include PID */
                 if (write(ap->fdin, buf, bufsz) != bufsz)
                     erl_err_sys("write:stdin->childin");
             }
@@ -168,22 +176,22 @@ alcove_ctl(alcove_state_t *ap)
         }
 
         if (FD_ISSET(ap->fdout, &rfds)) {
-            switch (alcove_child_proxy(ap->fdout, ALCOVE_MSG_CHILDOUT)) {
+            switch (alcove_child_stdio(ap->fdout, ALCOVE_MSG_CHILDOUT)) {
                 case -1:
-                    erl_err_sys("alcove_child_proxy");
                 case 0:
-                    return;
+                    ap->fdout = -1;
+                    break;
                 default:
                     break;
             }
         }
 
         if (FD_ISSET(ap->fderr, &rfds)) {
-            switch (alcove_child_proxy(ap->fderr, ALCOVE_MSG_CHILDERR)) {
+            switch (alcove_child_stdio(ap->fderr, ALCOVE_MSG_CHILDERR)) {
                 case -1:
-                    erl_err_sys("alcove_child_proxy");
                 case 0:
-                    return;
+                    ap->fderr = -1;
+                    break;
                 default:
                     break;
             }
@@ -260,9 +268,10 @@ BADARG:
 }
 
     static ssize_t
-alcove_child_proxy(int fdin, u_int16_t type)
+alcove_child_stdio(int fdin, u_int16_t type)
 {
     ssize_t n = 0;
+    u_int16_t msglen = 0;
     char buf[65535] = {0};
 
     errno = 0;
@@ -275,8 +284,15 @@ alcove_child_proxy(int fdin, u_int16_t type)
         return -1;
     }
 
-    if (alcove_write(type, erl_mk_binary(buf,n)) < 0)
-        erl_err_sys("alcove_write");
+    msglen = htons(n+sizeof(type));
+
+    flockfile(stdout);
+
+    if ( (write(STDOUT_FILENO, &msglen, 2) != 2) ||
+         (write(STDOUT_FILENO, &type, 2) != 2) ||
+         (write(STDOUT_FILENO, buf, n) != n))
+
+    funlockfile(stdout);
 
     return n;
 }
