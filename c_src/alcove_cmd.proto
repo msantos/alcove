@@ -12,7 +12,7 @@ getuid/0
 setgid/1
 sethostname/1
 setns/1
-setrlimit/3
+setrlimit/2
 setuid/1
 unshare/1
 version/0

@@ -457,6 +457,7 @@ BADARG:
 alcove_setrlimit(alcove_state_t *ap, ETERM *arg)
 {
     ETERM *hd = NULL;
+    ETERM *t = NULL;
     int resource = 0;
     int cur = 0, max = 0;
     struct rlimit rlim = {0};
@@ -469,21 +470,32 @@ alcove_setrlimit(alcove_state_t *ap, ETERM *arg)
 
     resource = ERL_INT_VALUE(hd);
 
-    /* XXX u_int64_t */
+    /* {rlimit, rlim_cur, rlim_max} */
+
+    /* XXX rlim_cur, rlim_max = u_int64_t; cur, max = u_int32_t */
+
+    arg = alcove_list_head(&hd, arg);
+    if (!hd || !ERL_IS_TUPLE(hd) || erl_size(hd) != 3)
+        goto BADARG;
+
+    /* 'rlimit' */
+    t = erl_element(1, hd);
+    if (!t || !ERL_IS_ATOM(t) || strncmp(ERL_ATOM_PTR(t), "rlimit", 6))
+        goto BADARG;
 
     /* rlim_cur: soft limit */
-    arg = alcove_list_head(&hd, arg);
-    if (!hd || !ERL_IS_INTEGER(hd))
+    t = erl_element(2, hd);
+    if (!t || !ERL_IS_INTEGER(t))
         goto BADARG;
 
-    cur = ERL_INT_UVALUE(hd);
+    cur = ERL_INT_UVALUE(t);
 
     /* rlim_max: hard limit */
-    arg = alcove_list_head(&hd, arg);
-    if (!hd || !ERL_IS_INTEGER(hd))
+    t = erl_element(3, hd);
+    if (!t || !ERL_IS_INTEGER(t))
         goto BADARG;
 
-    max = ERL_INT_UVALUE(hd);
+    max = ERL_INT_UVALUE(t);
 
     rlim.rlim_cur = cur;
     rlim.rlim_max = max;

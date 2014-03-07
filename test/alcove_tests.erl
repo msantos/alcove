@@ -103,7 +103,7 @@ chdir(Port, Child) ->
 -define(RLIMIT_NOFILE, 7).
 
 setrlimit(Port, Child) ->
-    Reply = alcove:setrlimit(Port, [Child], ?RLIMIT_NOFILE, 64, 64),
+    Reply = alcove:setrlimit(Port, [Child], ?RLIMIT_NOFILE, #rlimit{cur = 64, max = 64}),
     Rlimit = alcove:getrlimit(Port, [Child], ?RLIMIT_NOFILE),
     [
         ?_assertEqual(ok, Reply),

@@ -162,7 +162,6 @@ static_exports() ->
      {stdout,1}, {stdout,2},
      {stderr,1}, {stderr,2},
      {ctl,1}, {ctl,2},
-     {setrlimit,3},
      {command,1},
      {call,2},
      {call,3},
@@ -231,12 +230,6 @@ ctl(Port, Timeout) ->
         Timeout ->
             false
     end.
-";
-
-static({setrlimit,3}) ->
-"
-setrlimit(Port, Resource, #rlimit{cur = Cur, max = Max}) ->
-    setrlimit(Port, [], Resource, Cur, Max).
 ";
 
 static({command,1}) ->
