@@ -147,7 +147,7 @@ alcove_clone(alcove_state_t *ap, ETERM *arg)
     ETERM *hd = NULL;
     alcove_child_t child_arg = {0};
     alcove_fd_t fd = {{0}};
-    const size_t stack_size = 65536;
+    const size_t stack_size = 1024 * 1024;
     char *child_stack = NULL;
     int flags = 0;
     pid_t pid = 0;
@@ -173,6 +173,8 @@ alcove_clone(alcove_state_t *ap, ETERM *arg)
 
     if (pid < 0)
         return alcove_errno(errno);
+
+    free(child_stack);
 
     if (alcove_parent_fd(ap, &fd) < 0)
         return alcove_errno(errno);
