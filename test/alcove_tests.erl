@@ -30,6 +30,7 @@ run({Port, Child}) ->
     % Test order must be maintained
     [
         version(Port),
+        pid(Port),
         getpid(Port, Child),
         sethostname(Port, Child),
         chroot(Port, Child),
@@ -60,6 +61,10 @@ stop({Port, _Child}) ->
 version(Port) ->
     Version = alcove:version(Port),
     ?_assertEqual(true, is_binary(Version)).
+
+pid(Port) ->
+    Pids = alcove:pid(Port),
+    ?_assertEqual(1, length(Pids)).
 
 getpid(Port, Child) ->
     PID = alcove:getpid(Port, [Child]),

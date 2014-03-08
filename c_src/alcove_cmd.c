@@ -71,6 +71,22 @@ alcove_version(alcove_state_t *ap, ETERM *arg)
     return alcove_bin(ALCOVE_VERSION);
 }
 
+    static ETERM *
+alcove_pid(alcove_state_t *ap, ETERM *arg)
+{
+    ETERM *t = erl_mk_empty_list();
+    int i = 0;
+
+    for (i = 0; i < ALCOVE_MAX_CHILD; i++) {
+        if (ap->child[i].pid <= 0)
+            continue;
+
+        t = erl_cons(erl_mk_int(ap->child[i].pid), t);
+    }
+
+    return t;
+}
+
 /*
  * chdir(2)
  *
@@ -306,7 +322,7 @@ alcove_getgid(alcove_state_t *ap, ETERM *arg)
     static ETERM *
 alcove_getpid(alcove_state_t *ap, ETERM *arg)
 {
-    return erl_mk_uint(getpid());
+    return erl_mk_int(getpid());
 }
 
 /*
