@@ -195,6 +195,35 @@ BADARG:
 }
 
 /*
+ * clone flags
+ *
+ */
+    ETERM *
+alcove_clone_flags(alcove_state_t *ap, ETERM *arg)
+{
+    ETERM *hd = NULL;
+    char *flag = NULL;
+
+    /* flag */
+    arg = alcove_list_head(&hd, arg);
+    if (!hd || !ERL_IS_ATOM(hd))
+        goto BADARG;
+
+    flag = ERL_ATOM_PTR(hd);
+
+    if      (!strncmp(flag, "newns", 5))    return erl_mk_int(CLONE_NEWNS);
+    else if (!strncmp(flag, "newuts", 6))   return erl_mk_int(CLONE_NEWUTS);
+    else if (!strncmp(flag, "newipc", 6))   return erl_mk_int(CLONE_NEWIPC);
+    else if (!strncmp(flag, "newuser", 7))  return erl_mk_int(CLONE_NEWUSER);
+    else if (!strncmp(flag, "newpid", 6))   return erl_mk_int(CLONE_NEWPID);
+    else if (!strncmp(flag, "newnet", 6))   return erl_mk_int(CLONE_NEWNET);
+    else return erl_mk_atom("false");
+
+BADARG:
+    return erl_mk_atom("badarg");
+}
+
+/*
  * Utility functions
  */
     int

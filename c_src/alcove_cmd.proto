@@ -1,6 +1,7 @@
 chdir/1
 chroot/1
 clone/1
+clone_flags/1
 execvp/2
 fork/0
 getcwd/0
