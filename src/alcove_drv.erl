@@ -75,12 +75,12 @@ msg([], Data) ->
     Data;
 msg(Pids, Data) ->
     Size = iolist_size(Data),
-    msg(Pids, Data, [<<?UINT16(Size)>>, Data]).
+    msg(lists:reverse(Pids), Data, [<<?UINT16(Size)>>, Data]).
 
 msg([], _Data, [_Length|Acc]) ->
     Acc;
 msg([Pid|Pids], Data, Acc) ->
-    Size = iolist_size(Acc),
+    Size = iolist_size(Acc) + 2 + 4,
     msg(Pids, Data, [<<?UINT16(Size)>>, <<?UINT16(?ALCOVE_MSG_CHILDIN)>>, <<?UINT32(Pid)>>|Acc]).
 
 encode(Command, Arg) when is_integer(Command), is_list(Arg) ->
