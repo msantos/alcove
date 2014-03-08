@@ -292,6 +292,12 @@ specs() ->
 -spec getuid(port()) -> non_neg_integer().
 -spec getuid(port(),list(integer())) -> non_neg_integer().
 
+-spec kill(port(), integer(), integer()) -> 'ok' | {'error', file:posix()}.
+-spec kill(port(), [integer()], integer(), integer()) -> 'ok' | {'error', file:posix()}.
+
+-spec pid(port()) -> [integer()].
+-spec pid(port(),[integer()]) -> [integer()].
+
 -spec setgid(port(),non_neg_integer()) -> 'ok' | {'error', file:posix()}.
 -spec setgid(port(),list(integer()),non_neg_integer()) -> 'ok' | {'error', file:posix()}.
 

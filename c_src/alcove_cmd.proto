@@ -9,6 +9,7 @@ gethostname/0
 getpid/0
 getrlimit/1
 getuid/0
+kill/2
 pid/0
 setgid/1
 sethostname/1
