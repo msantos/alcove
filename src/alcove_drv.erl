@@ -96,7 +96,7 @@ stop(Port) when is_port(Port) ->
 %%--------------------------------------------------------------------
 -spec getopts(proplists:proplist()) -> list(string() | [string()]).
 getopts(Options) when is_list(Options) ->
-    Exec = proplists:get_value(exec, Options, "sudo"),
+    Exec = proplists:get_value(exec, Options, ""),
     Progname = proplists:get_value(progname, Options, progname()),
 
     Options1 = proplists:substitute_aliases([{ns, namespace}], Options),

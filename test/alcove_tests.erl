@@ -46,7 +46,7 @@ run({Port, Child}) ->
 -define(CLONE_NEWUTS, 16#04000000).
 
 start() ->
-    Port = alcove_drv:start(),
+    Port = alcove_drv:start([{exec, "sudo"}]),
     {ok, Child} = case os:type() of
         {unix,linux} ->
             alcove:clone(Port, ?CLONE_NEWPID bxor ?CLONE_NEWUTS);
