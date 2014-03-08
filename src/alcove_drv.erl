@@ -40,7 +40,7 @@ call(Port, Data, Timeout) ->
         {Port, {data, <<?UINT16(?ALCOVE_MSG_CALL), Reply/binary>>}} ->
             binary_to_term(Reply);
         % XXX ignore the PID
-        {Port, {data, <<?UINT16(?ALCOVE_MSG_CHILDOUT), ?UINT32(_Pid), ?UINT16(Len), ?UINT16(?ALCOVE_MSG_CALL), Reply/binary>>}} when Len =:= 2 + byte_size(Reply) ->
+        {Port, {data, <<?UINT16(?ALCOVE_MSG_STDOUT), ?UINT32(_Pid), ?UINT16(Len), ?UINT16(?ALCOVE_MSG_CALL), Reply/binary>>}} when Len =:= 2 + byte_size(Reply) ->
             binary_to_term(Reply)
     after
         Timeout ->
@@ -63,8 +63,8 @@ event(Port, Timeout) when is_port(Port) ->
         {Port, {data, <<?UINT16(Type), Reply/binary>>}} when
             Type =:= ?ALCOVE_MSG_CALL;
             Type =:= ?ALCOVE_MSG_CAST;
-            Type =:= ?ALCOVE_MSG_CHILDOUT;
-            Type =:= ?ALCOVE_MSG_CHILDERR ->
+            Type =:= ?ALCOVE_MSG_STDOUT;
+            Type =:= ?ALCOVE_MSG_STDERR ->
                 {type_to_atom(Type), binary_to_term(Reply)}
     after
         Timeout ->
@@ -81,7 +81,7 @@ msg([], _Data, [_Length|Acc]) ->
     Acc;
 msg([Pid|Pids], Data, Acc) ->
     Size = iolist_size(Acc) + 2 + 4,
-    msg(Pids, Data, [<<?UINT16(Size)>>, <<?UINT16(?ALCOVE_MSG_CHILDIN)>>, <<?UINT32(Pid)>>|Acc]).
+    msg(Pids, Data, [<<?UINT16(Size)>>, <<?UINT16(?ALCOVE_MSG_STDIN)>>, <<?UINT32(Pid)>>|Acc]).
 
 encode(Command, Arg) when is_integer(Command), is_list(Arg) ->
     encode(?ALCOVE_MSG_CALL, Command, Arg).
@@ -138,9 +138,9 @@ find_executable(Exe) ->
 
 type_to_atom(?ALCOVE_MSG_CALL) -> call;
 type_to_atom(?ALCOVE_MSG_CAST) -> cast;
-%type_to_atom(?ALCOVE_MSG_CHILDIN) -> stdin;
-type_to_atom(?ALCOVE_MSG_CHILDOUT) -> stdout;
-type_to_atom(?ALCOVE_MSG_CHILDERR) -> stderr.
+%type_to_atom(?ALCOVE_MSG_STDIN) -> stdin;
+type_to_atom(?ALCOVE_MSG_STDOUT) -> stdout;
+type_to_atom(?ALCOVE_MSG_STDERR) -> stderr.
 
 basedir(Module) ->
     case code:priv_dir(Module) of

@@ -182,7 +182,7 @@ static({stdout,3}) ->
 % XXX discard all but the first PID
 stdout(Port, [Pid|_], Timeout) ->
     receive
-        {Port, {data, <<?UINT16(?ALCOVE_MSG_CHILDOUT), ?UINT32(Pid), Msg/binary>>}} ->
+        {Port, {data, <<?UINT16(?ALCOVE_MSG_STDOUT), ?UINT32(Pid), Msg/binary>>}} ->
             Msg
     after
         Timeout ->
@@ -195,7 +195,7 @@ static({stderr,3}) ->
 % XXX discard all but the first PID
 stderr(Port, [Pid|_], Timeout) ->
     receive
-        {Port, {data, <<?UINT16(?ALCOVE_MSG_CHILDERR), ?UINT32(Pid), Msg/binary>>}} ->
+        {Port, {data, <<?UINT16(?ALCOVE_MSG_STDERR), ?UINT32(Pid), Msg/binary>>}} ->
             Msg
     after
         Timeout ->

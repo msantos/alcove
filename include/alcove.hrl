@@ -24,6 +24,6 @@
 
 -define(ALCOVE_MSG_CALL, 0).
 -define(ALCOVE_MSG_CAST, 1).
--define(ALCOVE_MSG_CHILDIN, 2).
--define(ALCOVE_MSG_CHILDOUT, 3).
--define(ALCOVE_MSG_CHILDERR, 4).
+-define(ALCOVE_MSG_STDIN, 2).
+-define(ALCOVE_MSG_STDOUT, 3).
+-define(ALCOVE_MSG_STDERR, 4).

@@ -20,9 +20,9 @@
 
 #define ALCOVE_MSG_CALL  0
 #define ALCOVE_MSG_CAST (htons(1))
-#define ALCOVE_MSG_CHILDIN (htons(2))
-#define ALCOVE_MSG_CHILDOUT (htons(3))
-#define ALCOVE_MSG_CHILDERR (htons(4))
+#define ALCOVE_MSG_STDIN (htons(2))
+#define ALCOVE_MSG_STDOUT (htons(3))
+#define ALCOVE_MSG_STDERR (htons(4))
 
 #define PIPE_READ 0
 #define PIPE_WRITE 1
@@ -204,7 +204,7 @@ alcove_ctl(alcove_state_t *ap)
                 if (alcove_call(ap, STDIN_FILENO, bufsz) < 0)
                     erl_err_quit("call");
             }
-            else if (type == ALCOVE_MSG_CHILDIN) {
+            else if (type == ALCOVE_MSG_STDIN) {
                 if (alcove_read(STDIN_FILENO, &pid, sizeof(pid)) != sizeof(pid))
                     erl_err_sys("read:stdin");
 
@@ -239,7 +239,7 @@ alcove_ctl(alcove_state_t *ap)
                 continue;
 
             if (FD_ISSET(ap->child[i].fdout, &rfds)) {
-                switch (alcove_child_stdio(ap->child[i].fdout, ap->child[i].pid, ALCOVE_MSG_CHILDOUT)) {
+                switch (alcove_child_stdio(ap->child[i].fdout, ap->child[i].pid, ALCOVE_MSG_STDOUT)) {
                     case -1:
                     case 0:
                         ap->child[i].fdout = -1;
@@ -250,7 +250,7 @@ alcove_ctl(alcove_state_t *ap)
             }
 
             if (FD_ISSET(ap->child[i].fderr, &rfds)) {
-                switch (alcove_child_stdio(ap->child[i].fderr, ap->child[i].pid, ALCOVE_MSG_CHILDERR)) {
+                switch (alcove_child_stdio(ap->child[i].fderr, ap->child[i].pid, ALCOVE_MSG_STDERR)) {
                     case -1:
                     case 0:
                         ap->child[i].fderr = -1;
