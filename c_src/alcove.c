@@ -141,6 +141,8 @@ alcove_ctl(alcove_state_t *ap)
                         break;
                     }
             }
+
+            child_exited = 0;
         }
 
         FD_ZERO(&rfds);
