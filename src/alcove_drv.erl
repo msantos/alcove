@@ -29,7 +29,7 @@ start(Options) ->
     [Cmd|Argv] = getopts(Options),
     open_port({spawn_executable, Cmd}, [{args, Argv}, {packet, 2}, binary]).
 
--spec call(port(),iodata()) -> any().
+-spec call(port(),iodata()) -> 'badarg' | boolean() | binary() | non_neg_integer() | 'ok' | {'ok', binary() | non_neg_integer() | #rlimit{}} | {'error', file:posix()}.
 call(Port, Data) ->
     call(Port, Data, 5000).
 
