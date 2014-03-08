@@ -6,6 +6,7 @@ deps/
 *.swp
 .eunit/
 .depsolver_plt
+c_src/alcove_call.h
 c_src/alcove_cmd.h
 c_src/alcove_version.h
 src/alcove.erl

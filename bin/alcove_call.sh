@@ -19,23 +19,16 @@ EOF
 
 PROTO=$1
 
-cat<< 'EOF'
-
-/* commands */
-typedef struct {
-    ETERM *(*fp)(alcove_state_t *, ETERM *);
-    u_int8_t narg;
-} alcove_cmd_t;
-
-alcove_cmd_t cmds[] = {
-EOF
-
+OIFS=$IFS
 while read line; do
     IFS=/
     set -- $line
-    printf "    {alcove_%s, %s},\n" $1 $2
+    printf "ETERM *alcove_%s(alcove_state_t *, ETERM *);\n" $1
 done < $PROTO
 
 cat<< 'EOF'
-};
+char **alcove_list_to_argv(ETERM *);
+void alcove_free_argv(char **);
+
+#define ALCOVE_IS_IOLIST(_t)  (ERL_IS_BINARY(_t) || ERL_IS_LIST(_t))
 EOF
