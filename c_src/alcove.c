@@ -33,6 +33,19 @@
 #pragma message "Support for namespaces using clone(2) disabled"
 #endif
 
+typedef struct {
+    u_int16_t len;
+    u_int16_t type;
+    pid_t pid;
+    unsigned char buf[65535];
+} alcove_msg_stdio_t;
+
+typedef struct {
+    u_int16_t len;
+    u_int16_t type;
+    unsigned char buf[65535];
+} alcove_msg_call_t;
+
 static ssize_t alcove_call(alcove_state_t *ap, int fd, u_int16_t len);
 static alcove_msg_t * alcove_msg(int fd, u_int16_t len);
 
@@ -323,12 +336,7 @@ alcove_child_stdio(int fdin, pid_t pid, u_int16_t type)
 {
     ssize_t n = 0;
     u_int16_t packet_len = 0;
-    struct {
-        u_int16_t len;
-        u_int16_t type;
-        pid_t pid;
-        unsigned char buf[65535];
-    } msg = {0};
+    alcove_msg_stdio_t msg = {0};
 
     errno = 0;
     n = read(fdin, msg.buf, sizeof(msg.buf));
@@ -360,11 +368,7 @@ alcove_write(u_int16_t type, ETERM *t)
     ssize_t n = 0;
     int term_len = 0;
     u_int16_t packet_len = 0;
-    struct {
-        u_int16_t len;
-        u_int16_t type;
-        unsigned char buf[65535];
-    } msg = {0};
+    alcove_msg_call_t msg = {0};
 
     term_len = erl_term_len(t);
     if (term_len < 0 || term_len+sizeof(msg.len)+sizeof(msg.type) >= UINT16_MAX)
