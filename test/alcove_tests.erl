@@ -38,6 +38,7 @@ run({Port, Child}) ->
         setrlimit(Port, Child),
         setgid(Port, Child),
         setuid(Port, Child),
+        fork(Port, Child),
         execvp(Port, Child),
         stdin(Port, Child)
     ].
@@ -129,6 +130,16 @@ setuid(Port, Child) ->
     [
         ?_assertEqual(ok, Reply),
         ?_assertEqual(65534, UID)
+    ].
+
+fork(Port, Child) ->
+    Pids = [ alcove:fork(Port, [Child]) || _ <- lists:seq(1, 32) ],
+    [Last|_Rest] = lists:reverse(Pids),
+    Reply = alcove:getpid(Port, [Child]),
+
+    [
+        ?_assertEqual(true, is_integer(Reply)),
+        ?_assertEqual({error,eagain}, Last)
     ].
 
 execvp(Port, Child) ->

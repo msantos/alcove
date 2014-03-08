@@ -36,6 +36,7 @@ typedef struct {
 static int alcove_stdio(alcove_fd_t *fd);
 static int alcove_child_fun(void *arg);
 static int alcove_parent_fd(alcove_state_t *ap, alcove_fd_t *fd, pid_t pid);
+static int stdio_pid(alcove_child_t *c, void *arg1, void *arg2);
 
 /*
  * fork(2)
@@ -255,8 +256,6 @@ alcove_child_fun(void *arg)
     int
 alcove_parent_fd(alcove_state_t *ap, alcove_fd_t *fd, pid_t pid)
 {
-    int i = 0;
-
     if ( (close(fd->in[PIPE_READ]) < 0)
             || (close(fd->out[PIPE_WRITE]) < 0)
             || (close(fd->err[PIPE_WRITE]) < 0))
@@ -264,17 +263,19 @@ alcove_parent_fd(alcove_state_t *ap, alcove_fd_t *fd, pid_t pid)
 
     ap->nchild++;
 
-    for (i = 0; i < ALCOVE_MAX_CHILD; i++) {
-        if (ap->child[i].pid)
-            continue;
+    return pid_foreach(ap, 0, fd, &pid, pid_equal, stdio_pid);
+}
 
-        ap->child[i].pid = pid;
-        ap->child[i].fdin = fd->in[PIPE_WRITE];
-        ap->child[i].fdout = fd->out[PIPE_READ];
-        ap->child[i].fderr = fd->err[PIPE_READ];
+    static int
+stdio_pid(alcove_child_t *c, void *arg1, void *arg2)
+{
+    alcove_fd_t *fd = arg1;
+    pid_t *pid = arg2;
 
-        break;
-    }
+    c->pid = *pid;
+    c->fdin = fd->in[PIPE_WRITE];
+    c->fdout = fd->out[PIPE_READ];
+    c->fderr = fd->err[PIPE_READ];
 
     return 0;
 }

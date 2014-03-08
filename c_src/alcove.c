@@ -27,7 +27,7 @@
 #define PIPE_READ 0
 #define PIPE_WRITE 1
 
-#ifdef CLONE_NEWNS
+#ifdef __linux__
 #pragma message "Support for namespaces using clone(2) enabled"
 #else
 #pragma message "Support for namespaces using clone(2) disabled"
@@ -52,6 +52,11 @@ static alcove_msg_t * alcove_msg(int fd, u_int16_t len);
 static ssize_t alcove_child_stdio(int fdin, pid_t pid, u_int16_t type);
 static ssize_t alcove_write(u_int16_t, ETERM *);
 static ssize_t alcove_read(int, void *, ssize_t);
+
+static int zero_pid(alcove_child_t *c, void *arg1, void *arg2);
+static int set_pid(alcove_child_t *c, void *arg1, void *arg2);
+static int write_to_pid(alcove_child_t *c, void *arg1, void *arg2);
+static int read_from_pid(alcove_child_t *c, void *arg1, void *arg2);
 
 static void alcove_stats(alcove_state_t *ap);
 static void usage(alcove_state_t *);
@@ -116,12 +121,8 @@ alcove_ctl(alcove_state_t *ap)
     ap->nchild = 0;
 
     for ( ; ; ) {
-        int i = 0;
-
         if (child_exited) {
-            pid_t pid = 0;
-
-            pid = waitpid(-1, 0, WNOHANG);
+            pid_t pid = waitpid(-1, 0, WNOHANG);
 
             switch (pid) {
                 case -1:
@@ -129,17 +130,8 @@ alcove_ctl(alcove_state_t *ap)
                 case 0:
                     break;
                 default:
-                    for (i = 0; i < ALCOVE_MAX_CHILD; i++) {
-                        if (ap->child[i].pid != pid)
-                            continue;
-
-                        ap->child[i].pid = 0;
-                        ap->child[i].fdin = -1;
-                        ap->child[i].fdout = -1;
-                        ap->child[i].fderr = -1;
-
-                        break;
-                    }
+                    ap->nchild--;
+                    (void)pid_foreach(ap, pid, NULL, NULL, pid_equal, zero_pid);
             }
 
             child_exited = 0;
@@ -147,24 +139,10 @@ alcove_ctl(alcove_state_t *ap)
 
         FD_ZERO(&rfds);
         FD_SET(STDIN_FILENO, &rfds);
+
         fdmax = STDIN_FILENO;
 
-        for (i = 0; i < ALCOVE_MAX_CHILD; i++) {
-            if (ap->child[i].pid == 0)
-                continue;
-
-            if (ap->child[i].fdout > -1) {
-                FD_SET(ap->child[i].fdout, &rfds);
-                fdmax = MAX(fdmax, ap->child[i].fdout);
-            }
-
-            if (ap->child[i].fderr > -1) {
-                FD_SET(ap->child[i].fderr, &rfds);
-                fdmax = MAX(fdmax, ap->child[i].fderr);
-            }
-
-            break;
-        }
+        (void)pid_foreach(ap, 0, &rfds, &fdmax, pid_not_equal, set_pid);
 
         rv = select(fdmax+1, &rfds, NULL, NULL, NULL);
 
@@ -183,7 +161,6 @@ alcove_ctl(alcove_state_t *ap)
             u_int16_t type = 0;
             pid_t pid = 0;
             char buf[65535] = {0};
-            int i = 0;
 
             errno = 0;
 
@@ -216,18 +193,13 @@ alcove_ctl(alcove_state_t *ap)
                 if (alcove_read(STDIN_FILENO, buf, bufsz) != bufsz)
                     erl_err_sys("read:stdin");
 
-                for (i = 0; i < ALCOVE_MAX_CHILD; i++) {
-                    if (pid != ap->child[i].pid)
-                        continue;
-
-                    /* XXX badarg */
-                    if (ap->child[i].fdin == -1)
-                        erl_err_quit("%d:fd closed", pid);
-
-                    if (write(ap->child[i].fdin, buf, bufsz) != bufsz)
-                        erl_err_sys("write:stdin->childin");
-
-                    break;
+                switch (pid_foreach(ap, pid, buf, &bufsz, pid_equal, write_to_pid)) {
+                    case -2:
+                        erl_err_sys("write:stdin");
+                    case -1:
+                        /* XXX badarg */
+                    case 0:
+                        break;
                 }
             }
             else {
@@ -236,32 +208,7 @@ alcove_ctl(alcove_state_t *ap)
             }
         }
 
-        for (i = 0; i < ALCOVE_MAX_CHILD; i++) {
-            if (ap->child[i].pid == 0)
-                continue;
-
-            if (FD_ISSET(ap->child[i].fdout, &rfds)) {
-                switch (alcove_child_stdio(ap->child[i].fdout, ap->child[i].pid, ALCOVE_MSG_STDOUT)) {
-                    case -1:
-                    case 0:
-                        ap->child[i].fdout = -1;
-                        break;
-                    default:
-                        break;
-                }
-            }
-
-            if (FD_ISSET(ap->child[i].fderr, &rfds)) {
-                switch (alcove_child_stdio(ap->child[i].fderr, ap->child[i].pid, ALCOVE_MSG_STDERR)) {
-                    case -1:
-                    case 0:
-                        ap->child[i].fderr = -1;
-                        break;
-                    default:
-                        break;
-                }
-            }
-        }
+        pid_foreach(ap, 0, &rfds, NULL, pid_not_equal, read_from_pid);
     }
 }
 
@@ -406,6 +353,113 @@ alcove_read(int fd, void *buf, ssize_t len)
     } while (got < len);
 
     return len;
+}
+
+    int
+pid_foreach(alcove_state_t *ap, pid_t pid, void *arg1, void *arg2,
+        int (*comp)(pid_t, pid_t), int (*fp)(alcove_child_t *, void *, void *))
+{
+    int i = 0;
+    int rv = 0;
+
+    for (i = 0; i < ALCOVE_MAX_CHILD; i++) {
+        if ((*comp)(ap->child[i].pid, pid) == 0)
+            continue;
+
+        rv = (*fp)(&(ap->child[i]), arg1, arg2);
+
+        if (rv <= 0)
+            return rv;
+    }
+
+    return 1;
+}
+
+    int
+pid_equal(pid_t p1, pid_t p2)
+{
+    return (p1 == p2);
+}
+
+    int
+pid_not_equal(pid_t p1, pid_t p2)
+{
+    return (p1 != p2);
+}
+
+    static int
+zero_pid(alcove_child_t *c, void *arg1, void *arg2)
+{
+    c->pid = 0;
+    c->fdin = -1;
+    c->fdout = -1;
+    c->fderr = -1;
+
+    return 0;
+}
+
+    static int
+set_pid(alcove_child_t *c, void *arg1, void *arg2)
+{
+    fd_set *rfds = arg1;
+    int *fdmax = arg2;
+
+    if (c->fdout > -1) {
+        FD_SET(c->fdout, rfds);
+        *fdmax = MAX(*fdmax, c->fdout);
+    }
+
+    if (c->fderr > -1) {
+        FD_SET(c->fderr, rfds);
+        *fdmax = MAX(*fdmax, c->fderr);
+    }
+
+    return 1;
+}
+
+    static int
+write_to_pid(alcove_child_t *c, void *arg1, void *arg2)
+{
+    char *buf = arg1;
+    u_int16_t *bufsz = arg2;
+
+    if (c->fdin == -1)
+        return -1;
+
+    if (write(c->fdin, buf, *bufsz) != *bufsz)
+        return -2;
+
+    return 0;
+}
+
+    static int
+read_from_pid(alcove_child_t *c, void *arg1, void *arg2)
+{
+    fd_set *rfds = arg1;
+
+    if (FD_ISSET(c->fdout, rfds)) {
+        switch (alcove_child_stdio(c->fdout, c->pid, ALCOVE_MSG_STDOUT)) {
+            case -1:
+            case 0:
+                c->fdout = -1;
+                break;
+            default:
+                break;
+        }
+    }
+
+    if (FD_ISSET(c->fderr, rfds)) {
+        switch (alcove_child_stdio(c->fderr, c->pid, ALCOVE_MSG_STDERR)) {
+            case -1:
+            case 0:
+                c->fderr = -1;
+                break;
+            default:
+                break;
+        }
+    }
+
+    return 1;
 }
 
     static void
