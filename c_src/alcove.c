@@ -33,11 +33,11 @@
 #pragma message "Support for namespaces using clone(2) disabled"
 #endif
 
-static int alcove_call(alcove_state_t *ap, int fd, u_int16_t len);
+static ssize_t alcove_call(alcove_state_t *ap, int fd, u_int16_t len);
 static alcove_msg_t * alcove_msg(int fd, u_int16_t len);
 
 static ssize_t alcove_child_stdio(int fdin, pid_t pid, u_int16_t type);
-static int alcove_write(u_int16_t, ETERM *);
+static ssize_t alcove_write(u_int16_t, ETERM *);
 static ssize_t alcove_read(int, void *, ssize_t);
 
 static void alcove_stats(alcove_state_t *ap);
@@ -250,13 +250,13 @@ alcove_ctl(alcove_state_t *ap)
     }
 }
 
-    static int
+    static ssize_t
 alcove_call(alcove_state_t *ap, int fd, u_int16_t len)
 {
     alcove_msg_t *msg = NULL;
     ETERM *arg = NULL;
     ETERM *reply = NULL;
-    int rv = -1;
+    ssize_t rv = -1;
 
     msg = alcove_msg(fd, len);
     if (!msg)
@@ -322,11 +322,16 @@ BADARG:
 alcove_child_stdio(int fdin, pid_t pid, u_int16_t type)
 {
     ssize_t n = 0;
-    u_int16_t msglen = 0;
-    char buf[65535] = {0};
+    u_int16_t packet_len = 0;
+    struct {
+        u_int16_t len;
+        u_int16_t type;
+        pid_t pid;
+        unsigned char buf[65535];
+    } msg = {0};
 
     errno = 0;
-    n = read(fdin, buf, sizeof(buf));
+    n = read(fdin, msg.buf, sizeof(msg.buf));
 
     if (n <= 0) {
         if (errno == 0)
@@ -335,53 +340,50 @@ alcove_child_stdio(int fdin, pid_t pid, u_int16_t type)
         return -1;
     }
 
-    msglen = htons(n+sizeof(type)+sizeof(pid));
-    pid = htonl(pid);
+    msg.len = htons(sizeof(type)+sizeof(pid)+n);
+
+    msg.type = type;
+    msg.pid = htonl(pid);
+
+    packet_len = sizeof(msg.len) + sizeof(msg.type) + sizeof(msg.pid) + n;
 
     flockfile(stdout);
-
-    if ( (write(STDOUT_FILENO, &msglen, 2) != 2) ||
-         (write(STDOUT_FILENO, &type, 2) != 2) ||
-         (write(STDOUT_FILENO, &pid, sizeof(pid)) != sizeof(pid)) ||
-         (write(STDOUT_FILENO, buf, n) != n))
-
+    n = write(STDOUT_FILENO, &msg, packet_len);
     funlockfile(stdout);
 
-    return n;
+    return (n == packet_len ? n : -1);
 }
 
-    static int
+    static ssize_t
 alcove_write(u_int16_t type, ETERM *t)
 {
-    int tlen = 0;
-    u_int16_t hlen = 0;
-    unsigned char *buf = NULL;
+    ssize_t n = 0;
+    int term_len = 0;
+    u_int16_t packet_len = 0;
+    struct {
+        u_int16_t len;
+        u_int16_t type;
+        unsigned char buf[65535];
+    } msg = {0};
 
-    tlen = erl_term_len(t);
-    if (tlen < 0 || tlen+sizeof(type) >= UINT16_MAX)
+    term_len = erl_term_len(t);
+    if (term_len < 0 || term_len+sizeof(msg.len)+sizeof(msg.type) >= UINT16_MAX)
         goto ERR;
 
-    hlen = ntohs(tlen+sizeof(type));
+    msg.len = htons(term_len+sizeof(msg.type));
 
-    buf = alcove_malloc(tlen);
-
-    if (erl_encode(t, buf) < 1)
+    if (erl_encode(t, msg.buf) < 1)
         goto ERR;
+
+    packet_len = sizeof(msg.len) + sizeof(msg.type) + term_len;
 
     flockfile(stdout);
-
-    if ( (write(STDOUT_FILENO, &hlen, 2) != 2) ||
-         (write(STDOUT_FILENO, &type, 2) != 2) ||
-         (write(STDOUT_FILENO, buf, tlen) != tlen))
-        goto ERR;
-
+    n = write(STDOUT_FILENO, &msg, packet_len);
     funlockfile(stdout);
 
-    erl_free(buf);
-    return 0;
+    return (n == packet_len ? n : -1);
 
 ERR:
-    erl_free(buf);
     return -1;
 }
 
