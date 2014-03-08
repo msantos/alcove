@@ -161,7 +161,7 @@ static_exports() ->
     [{stdin,3},
      {stdout,3},
      {stderr,3},
-     {encode,2}, {encode,3},
+     {encode,3},
      {command,1},
      {call,2},
      {call,3},
@@ -201,12 +201,6 @@ stderr(Port, [Pid|_], Timeout) ->
         Timeout ->
             false
     end.
-";
-
-static({encode,2}) ->
-"
-encode(Call, Arg) when is_atom(Call) ->
-    encode(Call, [], Arg).
 ";
 
 static({encode,3}) ->
