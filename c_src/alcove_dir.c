@@ -15,16 +15,6 @@
 #include "alcove.h"
 #include "alcove_call.h"
 
-#include <fcntl.h>
-#include <unistd.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <limits.h>
-#include <err.h>
-#include <errno.h>
-
-#include <sys/types.h>
-
 /*
  * chdir(2)
  *

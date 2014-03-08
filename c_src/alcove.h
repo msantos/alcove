@@ -12,9 +12,6 @@
  * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
-#define _GNU_SOURCE
-#include <sched.h>
-
 #include <string.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -25,6 +22,9 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <signal.h>
+
+#include <fcntl.h>
+#include <sys/types.h>
 
 #include <erl_driver.h>
 #include <erl_interface.h>

@@ -12,18 +12,11 @@
  * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
+#define _GNU_SOURCE
+#include <sched.h>
+
 #include "alcove.h"
 #include "alcove_call.h"
-
-#include <fcntl.h>
-#include <unistd.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <limits.h>
-#include <err.h>
-#include <errno.h>
-
-#include <sys/types.h>
 
 #define PIPE_READ 0
 #define PIPE_WRITE 1
