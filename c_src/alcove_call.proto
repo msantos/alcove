@@ -1,7 +1,7 @@
 chdir/1
 chroot/1
 clone/1
-clone_flag/1
+clone_define/1
 execvp/2
 fork/0
 getcwd/0
@@ -12,6 +12,7 @@ getrlimit/1
 getuid/0
 kill/2
 pid/0
+rlimit_define/1
 setgid/1
 sethostname/1
 setns/1

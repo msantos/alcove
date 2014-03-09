@@ -167,17 +167,26 @@ static() ->
 
 static({define,3}) ->
 "
-define(Port, clone, Flags) when is_list(Flags) ->
-    lists:foldl(fun(Flag,A) ->
-                case alcove:clone_flag(Port, Flag) of
+define(Port, clone, Constants) when is_list(Constants) ->
+    lists:foldl(fun(Constant,A) ->
+                case alcove:clone_define(Port, Constant) of
                     {error, unsupported} ->
                         erlang:error(badarg);
                     false ->
-                        erlang:error(badarg, [Flag]);
+                        erlang:error(badarg, [Constant]);
                     N ->
                         A bxor N
                 end
-        end, 0, Flags).
+        end, 0, Constants);
+define(Port, rlimit, Constants) when is_list(Constants) ->
+    lists:foldl(fun(Constant,A) ->
+                case alcove:clone_define(Port, Constant) of
+                    false ->
+                        erlang:error(badarg, [Constant]);
+                    N ->
+                        A bxor N
+                end
+        end, 0, Constants).
 ";
 
 static({stdin,3}) ->

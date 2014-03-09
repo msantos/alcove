@@ -103,7 +103,7 @@ setns({unix, _Port, _Child}) ->
 
 unshare({linux, Port, _Child}) ->
     {ok, Child1} = alcove:fork(Port),
-    ok = alcove:unshare(Port, [Child1], alcove:clone_flag(Port, newuts)),
+    ok = alcove:unshare(Port, [Child1], alcove:clone_define(Port, newuts)),
     Reply = alcove:sethostname(Port, [Child1], "unshare"),
     Hostname = alcove:gethostname(Port, [Child1]),
     [?_assertEqual(ok, Reply),
@@ -123,11 +123,10 @@ chdir({_, Port, Child}) ->
         ?_assertEqual({ok, <<"/">>}, CWD)
     ].
 
--define(RLIMIT_NOFILE, 7).
-
 setrlimit({_, Port, Child}) ->
-    Reply = alcove:setrlimit(Port, [Child], ?RLIMIT_NOFILE, #rlimit{cur = 64, max = 64}),
-    Rlimit = alcove:getrlimit(Port, [Child], ?RLIMIT_NOFILE),
+    RLIMIT_NOFILE = alcove:rlimit_define(Port, nofile),
+    Reply = alcove:setrlimit(Port, [Child], RLIMIT_NOFILE, #rlimit{cur = 64, max = 64}),
+    Rlimit = alcove:getrlimit(Port, [Child], RLIMIT_NOFILE),
     [
         ?_assertEqual(ok, Reply),
         ?_assertEqual({ok, #rlimit{cur = 64, max = 64}}, Rlimit)

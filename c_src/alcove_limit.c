@@ -107,3 +107,43 @@ alcove_setrlimit(alcove_state_t *ap, ETERM *arg)
 BADARG:
     return erl_mk_atom("badarg");
 }
+
+/*
+ * rlimit constants
+ *
+ */
+    ETERM *
+alcove_rlimit_define(alcove_state_t *ap, ETERM *arg)
+{
+    ETERM *hd = NULL;
+    char *flag = NULL;
+
+    /* flag */
+    arg = alcove_list_head(&hd, arg);
+    if (!hd || !ERL_IS_ATOM(hd))
+        goto BADARG;
+
+    flag = ERL_ATOM_PTR(hd);
+
+    if      (!strncmp(flag, "cpu", 3))          return erl_mk_int(RLIMIT_CPU);
+    else if (!strncmp(flag, "fsize", 5))        return erl_mk_int(RLIMIT_FSIZE);
+    else if (!strncmp(flag, "data", 4))         return erl_mk_int(RLIMIT_DATA);
+    else if (!strncmp(flag, "stack", 5))        return erl_mk_int(RLIMIT_STACK);
+    else if (!strncmp(flag, "core", 4))         return erl_mk_int(RLIMIT_CORE);
+    else if (!strncmp(flag, "rss", 3))          return erl_mk_int(RLIMIT_RSS);
+    else if (!strncmp(flag, "nproc", 5))        return erl_mk_int(RLIMIT_NPROC);
+    else if (!strncmp(flag, "nofile", 6))       return erl_mk_int(RLIMIT_NOFILE);
+    else if (!strncmp(flag, "memlock", 7))      return erl_mk_int(RLIMIT_MEMLOCK);
+    else if (!strncmp(flag, "as", 2))           return erl_mk_int(RLIMIT_AS);
+    else if (!strncmp(flag, "locks", 5))        return erl_mk_int(RLIMIT_LOCKS);
+    else if (!strncmp(flag, "sigpending", 10))  return erl_mk_int(RLIMIT_SIGPENDING);
+    else if (!strncmp(flag, "msgqueue", 8))     return erl_mk_int(RLIMIT_MSGQUEUE);
+    else if (!strncmp(flag, "nice", 4))         return erl_mk_int(RLIMIT_NICE);
+    else if (!strncmp(flag, "rtprio", 6))       return erl_mk_int(RLIMIT_RTPRIO);
+    else if (!strncmp(flag, "rttime", 6))       return erl_mk_int(RLIMIT_RTTIME);
+    else if (!strncmp(flag, "nlimits", 7))      return erl_mk_int(RLIMIT_NLIMITS);
+    else return erl_mk_atom("false");
+
+BADARG:
+    return erl_mk_atom("badarg");
+}
