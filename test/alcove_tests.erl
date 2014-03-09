@@ -99,7 +99,7 @@ setns({linux, Port, Child}) ->
     Hostname1 = alcove:gethostname(Port, [Child1]),
     ?_assertEqual(Hostname0, Hostname1);
 setns({unix, _Port, _Child}) ->
-    ?_assert(true).
+    ?_assertEqual(ok,ok).
 
 unshare({linux, Port, _Child}) ->
     {ok, Child1} = alcove:fork(Port),
@@ -109,7 +109,7 @@ unshare({linux, Port, _Child}) ->
     [?_assertEqual(ok, Reply),
         ?_assertEqual({ok, <<"unshare">>}, Hostname)];
 unshare({unix, _Port, _Child}) ->
-    ?_assert(true).
+    ?_assertEqual(ok,ok).
 
 chroot({_, Port, Child}) ->
     Reply = alcove:chroot(Port, [Child], "/bin"),

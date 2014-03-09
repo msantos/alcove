@@ -231,7 +231,7 @@ alcove_clone_define(alcove_state_t *ap, ETERM *arg)
 BADARG:
     return erl_mk_atom("badarg");
 #else
-    return alcove_error("unsupported");
+    return erl_mk_atom("false");
 #endif
 }
 

@@ -170,8 +170,6 @@ static({define,3}) ->
 define(Port, clone, Constants) when is_list(Constants) ->
     lists:foldl(fun(Constant,A) ->
                 case alcove:clone_define(Port, Constant) of
-                    {error, unsupported} ->
-                        erlang:error(badarg);
                     false ->
                         erlang:error(badarg, [Constant]);
                     N ->
@@ -180,7 +178,7 @@ define(Port, clone, Constants) when is_list(Constants) ->
         end, 0, Constants);
 define(Port, rlimit, Constants) when is_list(Constants) ->
     lists:foldl(fun(Constant,A) ->
-                case alcove:clone_define(Port, Constant) of
+                case alcove:rlimit_define(Port, Constant) of
                     false ->
                         erlang:error(badarg, [Constant]);
                     N ->
@@ -281,6 +279,11 @@ specs() ->
 -spec clone(port(),non_neg_integer()) -> {'ok', non_neg_integer()} | {'error', file:posix()}.
 -spec clone(port(),[integer()],non_neg_integer()) -> {'ok', non_neg_integer()} | {'error', file:posix()}.
 
+-spec clone_define(port(),atom()) -> 'false' | non_neg_integer().
+-spec clone_define(port(),[integer()],atom()) -> 'false' | non_neg_integer().
+
+-spec define(port(),'clone' | 'rlimit',[atom()]) -> integer().
+
 -spec execvp(port(),iodata(),iodata()) -> 'ok'.
 -spec execvp(port(),list(integer()),iodata(),iodata()) -> 'ok'.
 
@@ -311,6 +314,9 @@ specs() ->
 -spec pid(port()) -> [integer()].
 -spec pid(port(),[integer()]) -> [integer()].
 
+-spec rlimit_define(port(),atom()) -> 'false' | non_neg_integer().
+-spec rlimit_define(port(),[integer()],atom()) -> 'false' | non_neg_integer().
+
 -spec setgid(port(),non_neg_integer()) -> 'ok' | {'error', file:posix()}.
 -spec setgid(port(),list(integer()),non_neg_integer()) -> 'ok' | {'error', file:posix()}.
 
@@ -330,8 +336,8 @@ specs() ->
 -spec stdin(port(),list(integer()),iodata()) -> 'true'.
 -spec stdout(port(),list(integer()),'infinity' | non_neg_integer()) -> 'false' | binary().
 
--spec unshare(port(),iodata()) -> 'ok' | {'error', file:posix()}.
--spec unshare(port(),[integer()],iodata()) -> 'ok' | {'error', file:posix()}.
+-spec unshare(port(),non_neg_integer()) -> 'ok' | {'error', file:posix()}.
+-spec unshare(port(),[integer()],non_neg_integer()) -> 'ok' | {'error', file:posix()}.
 
 -spec version(port()) -> binary().
 -spec version(port(),list(integer())) -> binary().
