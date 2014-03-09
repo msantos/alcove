@@ -175,15 +175,6 @@ define(Port, clone, Constants) when is_list(Constants) ->
                     N ->
                         A bxor N
                 end
-        end, 0, Constants);
-define(Port, rlimit, Constants) when is_list(Constants) ->
-    lists:foldl(fun(Constant,A) ->
-                case alcove:rlimit_define(Port, Constant) of
-                    false ->
-                        erlang:error(badarg, [Constant]);
-                    N ->
-                        A bxor N
-                end
         end, 0, Constants).
 ";
 
@@ -282,7 +273,7 @@ specs() ->
 -spec clone_define(port(),atom()) -> 'false' | non_neg_integer().
 -spec clone_define(port(),[integer()],atom()) -> 'false' | non_neg_integer().
 
--spec define(port(),'clone' | 'rlimit',[atom()]) -> integer().
+-spec define(port(),'clone',[atom()]) -> integer().
 
 -spec execvp(port(),iodata(),iodata()) -> 'ok'.
 -spec execvp(port(),list(integer()),iodata(),iodata()) -> 'ok'.
