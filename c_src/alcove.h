@@ -54,7 +54,7 @@ typedef struct {
 } alcove_state_t;
 
 typedef struct {
-    u_int32_t cmd;
+    u_int32_t call;
     unsigned char *arg;
 } alcove_msg_t;
 
@@ -78,7 +78,7 @@ ETERM *alcove_ok(ETERM *);
 ETERM *alcove_bool(bool);
 ETERM *alcove_bin(const char *);
 
-ETERM *alcove_cmd(alcove_state_t *, u_int32_t, ETERM *);
+ETERM *alcove_call(alcove_state_t *, u_int32_t, ETERM *);
 
 #define VERBOSE(x, ...) do { \
     if (ap->verbose >= x) { \

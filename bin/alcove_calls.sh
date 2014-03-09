@@ -21,13 +21,13 @@ PROTO=$1
 
 cat<< 'EOF'
 
-/* commands */
+/* calls */
 typedef struct {
     ETERM *(*fp)(alcove_state_t *, ETERM *);
     u_int8_t narg;
-} alcove_cmd_t;
+} alcove_call_t;
 
-alcove_cmd_t cmds[] = {
+alcove_call_t calls[] = {
 EOF
 
 while read line; do

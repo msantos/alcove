@@ -5,7 +5,7 @@
 %%%
 main([]) ->
     File = "alcove.erl",
-    Proto = "c_src/alcove_cmd.proto",
+    Proto = "c_src/alcove_call.proto",
     main([File, Proto]);
 
 main([File, Proto]) ->

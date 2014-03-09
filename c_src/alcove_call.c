@@ -14,7 +14,7 @@
  */
 #include "alcove.h"
 #include "alcove_call.h"
-#include "alcove_cmd.h"
+#include "alcove_calls.h"
 
 #include <fcntl.h>
 #include <unistd.h>
@@ -27,14 +27,14 @@
 #include <sys/types.h>
 
     ETERM *
-alcove_cmd(alcove_state_t *ap, u_int32_t cmd, ETERM *arg)
+alcove_call(alcove_state_t *ap, u_int32_t call, ETERM *arg)
 {
-    alcove_cmd_t *fun = NULL;
+    alcove_call_t *fun = NULL;
 
-    if (cmd >= sizeof(cmds)/sizeof(cmds[0]))
+    if (call >= sizeof(calls)/sizeof(calls[0]))
         return erl_mk_atom("badarg");
 
-    fun = &cmds[cmd];
+    fun = &calls[call];
 
     if (!ERL_IS_LIST(arg) || erl_length(arg) != fun->narg)
         return erl_mk_atom("badarg");

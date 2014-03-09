@@ -253,7 +253,7 @@ alcove_msg_call(alcove_state_t *ap, int fd, u_int16_t len)
     if (!arg)
         goto DONE;
 
-    reply = alcove_cmd(ap, msg->cmd, arg);
+    reply = alcove_call(ap, msg->call, arg);
     if (!reply)
         goto DONE;
 
@@ -271,20 +271,20 @@ DONE:
     static alcove_msg_t *
 alcove_msg_read(int fd, u_int16_t len)
 {
-    u_int16_t cmd = 0;
+    u_int16_t call = 0;
     alcove_msg_t *msg = NULL;
 
-    if (len <= sizeof(cmd))
+    if (len <= sizeof(call))
         return NULL;
 
-    len -= sizeof(cmd);
+    len -= sizeof(call);
 
-    /* cmd */
-    if (alcove_read(fd, &cmd, sizeof(cmd)) != sizeof(cmd))
+    /* call */
+    if (alcove_read(fd, &call, sizeof(call)) != sizeof(call))
         return NULL;
 
     msg = alcove_malloc(sizeof(alcove_msg_t));
-    msg->cmd = ntohs(cmd);
+    msg->call = ntohs(call);
 
     /* arg */
     msg->arg = alcove_malloc(len);
