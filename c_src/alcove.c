@@ -166,6 +166,9 @@ alcove_ctl(alcove_state_t *ap)
         }
 
         pid_foreach(ap, 0, &rfds, NULL, pid_not_equal, read_from_pid);
+
+        if (ap->verbose > 1)
+            alcove_stats(ap);
     }
 }
 
