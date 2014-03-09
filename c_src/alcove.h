@@ -23,6 +23,9 @@
 #include <sys/socket.h>
 #include <signal.h>
 
+#include <arpa/inet.h>
+#include <stdint.h>
+
 #include <fcntl.h>
 #include <sys/types.h>
 

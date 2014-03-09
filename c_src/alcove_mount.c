@@ -78,7 +78,11 @@ alcove_mount(alcove_state_t *ap, ETERM *arg)
     if (erl_iolist_length(hd) > 0)
         data = erl_iolist_to_string(hd);
 
+#ifdef __linux__
     rv = mount(source, target, filesystemtype, mountflags, data);
+#else
+    rv = mount(filesystemtype, target, mountflags, data);
+#endif
 
     erl_free(source);
     erl_free(target);
@@ -118,7 +122,11 @@ alcove_umount(alcove_state_t *ap, ETERM *arg)
     if (!source)
         goto BADARG;
 
+#ifdef __linux__
     rv = umount(source);
+#else
+    rv = unmount(source, 0);
+#endif
 
     erl_free(source);
 
@@ -146,15 +154,23 @@ alcove_mount_define(alcove_state_t *ap, ETERM *arg)
 
     flag = ERL_ATOM_PTR(hd);
 
+#ifdef MS_RDONLY
     if      (!strncmp(flag, "rdonly", 6))           return erl_mk_int(MS_RDONLY);
+#elif MNT_RDONLY
+    if      (!strncmp(flag, "rdonly", 6))           return erl_mk_int(MNT_RDONLY);
+#endif
 #ifdef MS_NOSUID
     else if (!strncmp(flag, "nosuid", 6))           return erl_mk_int(MS_NOSUID);
+#elif MNT_NOSUID
+    else if (!strncmp(flag, "nosuid", 6))           return erl_mk_int(MNT_NOSUID);
 #endif
 #ifdef MS_NODEV
     else if (!strncmp(flag, "nodev", 5))            return erl_mk_int(MS_NODEV);
 #endif
 #ifdef MS_NOEXEC
     else if (!strncmp(flag, "noexec", 6))           return erl_mk_int(MS_NOEXEC);
+#elif MNT_NOEXEC
+    else if (!strncmp(flag, "noexec", 6))           return erl_mk_int(MNT_NOEXEC);
 #endif
 #ifdef MS_SYNCHRONOUS
     else if (!strncmp(flag, "synchronous", 11))     return erl_mk_int(MS_SYNCHRONOUS);

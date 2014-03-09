@@ -15,7 +15,7 @@
 #include "alcove.h"
 
 #include <signal.h>
-#include <wait.h>
+#include <sys/wait.h>
 
 #define ALCOVE_MSG_CALL  0
 #define ALCOVE_MSG_CAST (htons(1))
@@ -494,7 +494,7 @@ alcove_stats(alcove_state_t *ap)
     unsigned long freed = 0;
 
     erl_eterm_statistics(&allocated, &freed);
-    VERBOSE(0, "allocated=%ld, freed=%ld", allocated, freed);
+    VERBOSE(2, "allocated=%ld, freed=%ld", allocated, freed);
     erl_eterm_release();
 }
 

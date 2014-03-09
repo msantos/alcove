@@ -149,7 +149,10 @@ call_to_fun([], Acc) ->
     lists:reverse(Acc);
 call_to_fun([H|T], Acc) ->
     [Fun, Arity] = binary:split(H, <<"/">>),
-    call_to_fun(T, [{binary_to_list(Fun), binary_to_integer(Arity)}|Acc]).
+    call_to_fun(T, [{binary_to_list(Fun), b2i(Arity)}|Acc]).
+
+b2i(N) when is_binary(N) ->
+    list_to_integer(binary_to_list(N)).
 
 static_exports() ->
     [{define,3},

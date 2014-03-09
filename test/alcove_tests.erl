@@ -119,7 +119,9 @@ mount({linux, Port, Child}) ->
     [
         ?_assertEqual(ok, Mount),
         ?_assertEqual(ok, Umount)
-    ].
+    ];
+mount({unix, _Port, _Child}) ->
+    ?_assertEqual(ok,ok).
 
 chroot({_, Port, Child}) ->
     Reply = alcove:chroot(Port, [Child], "/bin"),
