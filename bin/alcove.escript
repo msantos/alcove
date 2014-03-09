@@ -157,8 +157,8 @@ b2i(N) when is_binary(N) ->
 static_exports() ->
     [{define,3},
      {stdin,3},
-     {stdout,3},
-     {stderr,3},
+     {stdout,2}, {stdout,3},
+     {stderr,2}, {stderr,3},
      {encode,3},
      {command,1},
      {call,2},
@@ -197,6 +197,11 @@ stdin(Port, Pids, Data) ->
     alcove_drv:cast(Port, Stdin).
 ";
 
+static({stdout,2}) ->
+"
+stdout(Port, Pids) ->
+    stdout(Port, Pids, 0).
+";
 static({stdout,3}) ->
 "
 % XXX discard all but the first PID
@@ -210,6 +215,11 @@ stdout(Port, [Pid|_], Timeout) ->
     end.
 ";
 
+static({stderr,2}) ->
+"
+stderr(Port, Pids) ->
+    stderr(Port, Pids, 0).
+";
 static({stderr,3}) ->
 "
 % XXX discard all but the first PID
