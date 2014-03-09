@@ -34,6 +34,7 @@ run(State) ->
         getpid(State),
         sethostname(State),
         setns(State),
+        unshare(State),
         chroot(State),
         chdir(State),
         setrlimit(State),
@@ -98,6 +99,16 @@ setns({linux, Port, Child}) ->
     Hostname1 = alcove:gethostname(Port, [Child1]),
     ?_assertEqual(Hostname0, Hostname1);
 setns({unix, _Port, _Child}) ->
+    ?_assert(true).
+
+unshare({linux, Port, _Child}) ->
+    {ok, Child1} = alcove:fork(Port),
+    ok = alcove:unshare(Port, [Child1], alcove:clone_flag(Port, newuts)),
+    Reply = alcove:sethostname(Port, [Child1], "unshare"),
+    Hostname = alcove:gethostname(Port, [Child1]),
+    [?_assertEqual(ok, Reply),
+        ?_assertEqual({ok, <<"unshare">>}, Hostname)];
+unshare({unix, _Port, _Child}) ->
     ?_assert(true).
 
 chroot({_, Port, Child}) ->
