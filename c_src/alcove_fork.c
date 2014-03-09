@@ -203,11 +203,11 @@ BADARG:
 }
 
 /*
- * clone flags
+ * clone flag
  *
  */
     ETERM *
-alcove_clone_flags(alcove_state_t *ap, ETERM *arg)
+alcove_clone_flag(alcove_state_t *ap, ETERM *arg)
 {
 #ifdef __linux__
     ETERM *hd = NULL;

@@ -50,10 +50,7 @@ start() ->
     Port = alcove_drv:start([{exec, "sudo"}]),
     case os:type() of
         {unix,linux} ->
-            Flags = alcove:clone_flags(Port, newpid)
-                bxor alcove:clone_flags(Port, newuts)
-                bxor alcove:clone_flags(Port, newnet)
-                bxor alcove:clone_flags(Port, newipc),
+            Flags = alcove:define(Port, clone, [newpid,newuts,newnet,newipc]),
             {ok, Child} = alcove:clone(Port, Flags),
             {linux, Port, Child};
         {unix,_} ->

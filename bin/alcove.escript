@@ -149,16 +149,11 @@ call_to_fun([], Acc) ->
     lists:reverse(Acc);
 call_to_fun([H|T], Acc) ->
     [Fun, Arity] = binary:split(H, <<"/">>),
-    Name = case Fun of
-        <<"lxc_container_", Rest/binary>> ->
-            Rest;
-        _ ->
-            Fun
-    end,
-    call_to_fun(T, [{binary_to_list(Name), binary_to_integer(Arity)}|Acc]).
+    call_to_fun(T, [{binary_to_list(Fun), binary_to_integer(Arity)}|Acc]).
 
 static_exports() ->
-    [{stdin,3},
+    [{define,3},
+     {stdin,3},
      {stdout,3},
      {stderr,3},
      {encode,3},
@@ -169,6 +164,21 @@ static_exports() ->
 
 static() ->
     [ static({Fun, Arity}) || {Fun, Arity} <- static_exports() ].
+
+static({define,3}) ->
+"
+define(Port, clone, Flags) when is_list(Flags) ->
+    lists:foldl(fun(Flag,A) ->
+                case alcove:clone_flag(Port, Flag) of
+                    {error, unsupported} ->
+                        erlang:error(badarg);
+                    false ->
+                        erlang:error(badarg, [Flag]);
+                    N ->
+                        A bxor N
+                end
+        end, 0, Flags).
+";
 
 static({stdin,3}) ->
 "
