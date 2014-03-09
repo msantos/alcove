@@ -12,8 +12,10 @@
  * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
+#ifdef __linux__
 #define _GNU_SOURCE
 #include <sched.h>
+#endif
 
 #include "alcove.h"
 #include "alcove_call.h"
@@ -81,6 +83,7 @@ alcove_fork(alcove_state_t *ap, ETERM *arg)
     ETERM *
 alcove_clone(alcove_state_t *ap, ETERM *arg)
 {
+#ifdef __linux__
     ETERM *hd = NULL;
     alcove_arg_t child_arg = {0};
     alcove_fd_t fd = {{0}};
@@ -123,6 +126,9 @@ alcove_clone(alcove_state_t *ap, ETERM *arg)
 
 BADARG:
     return erl_mk_atom("badarg");
+#else
+    return alcove_error("unsupported");
+#endif
 }
 
 /*
@@ -132,6 +138,7 @@ BADARG:
     ETERM *
 alcove_setns(alcove_state_t *ap, ETERM *arg)
 {
+#ifdef __linux__
     ETERM *hd = NULL;
     char *path = NULL;
     int fd = -1;
@@ -160,6 +167,9 @@ alcove_setns(alcove_state_t *ap, ETERM *arg)
 
 BADARG:
     return erl_mk_atom("badarg");
+#else
+    return alcove_error("unsupported");
+#endif
 }
 
 /*
@@ -169,6 +179,7 @@ BADARG:
     ETERM *
 alcove_unshare(alcove_state_t *ap, ETERM *arg)
 {
+#ifdef __linux__
     ETERM *hd = NULL;
     int flags = 0;
     int rv = 0;
@@ -186,6 +197,9 @@ alcove_unshare(alcove_state_t *ap, ETERM *arg)
 
 BADARG:
     return erl_mk_atom("badarg");
+#else
+    return alcove_error("unsupported");
+#endif
 }
 
 /*
@@ -195,6 +209,7 @@ BADARG:
     ETERM *
 alcove_clone_flags(alcove_state_t *ap, ETERM *arg)
 {
+#ifdef __linux__
     ETERM *hd = NULL;
     char *flag = NULL;
 
@@ -215,6 +230,9 @@ alcove_clone_flags(alcove_state_t *ap, ETERM *arg)
 
 BADARG:
     return erl_mk_atom("badarg");
+#else
+    return alcove_error("unsupported");
+#endif
 }
 
 /*
