@@ -13,7 +13,6 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 #include "alcove.h"
-#include "err.h"
 
 #include <signal.h>
 #include <wait.h>
@@ -46,8 +45,8 @@ typedef struct {
     unsigned char buf[65535];
 } alcove_msg_call_t;
 
-static ssize_t alcove_call(alcove_state_t *ap, int fd, u_int16_t len);
-static alcove_msg_t * alcove_msg(int fd, u_int16_t len);
+static ssize_t alcove_msg_call(alcove_state_t *ap, int fd, u_int16_t len);
+static alcove_msg_t *alcove_msg_read(int fd, u_int16_t len);
 
 static ssize_t alcove_child_stdio(int fdin, pid_t pid, u_int16_t type);
 static ssize_t alcove_write(u_int16_t, ETERM *);
@@ -180,7 +179,7 @@ alcove_ctl(alcove_state_t *ap)
                 erl_err_sys("read:stdin");
 
             if (type == ALCOVE_MSG_CALL) {
-                if (alcove_call(ap, STDIN_FILENO, bufsz) < 0)
+                if (alcove_msg_call(ap, STDIN_FILENO, bufsz) < 0)
                     erl_err_quit("call");
             }
             else if (type == ALCOVE_MSG_STDIN) {
@@ -213,14 +212,14 @@ alcove_ctl(alcove_state_t *ap)
 }
 
     static ssize_t
-alcove_call(alcove_state_t *ap, int fd, u_int16_t len)
+alcove_msg_call(alcove_state_t *ap, int fd, u_int16_t len)
 {
     alcove_msg_t *msg = NULL;
     ETERM *arg = NULL;
     ETERM *reply = NULL;
     ssize_t rv = -1;
 
-    msg = alcove_msg(fd, len);
+    msg = alcove_msg_read(fd, len);
     if (!msg)
         return -1;
 
@@ -244,7 +243,7 @@ DONE:
 }
 
     static alcove_msg_t *
-alcove_msg(int fd, u_int16_t len)
+alcove_msg_read(int fd, u_int16_t len)
 {
     u_int16_t cmd = 0;
     alcove_msg_t *msg = NULL;
