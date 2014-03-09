@@ -12,6 +12,7 @@ getrlimit/1
 getuid/0
 kill/2
 mount/5
+mount_define/1
 pid/0
 rlimit_define/1
 setgid/1
@@ -19,5 +20,6 @@ sethostname/1
 setns/1
 setrlimit/2
 setuid/1
+umount/1
 unshare/1
 version/0
