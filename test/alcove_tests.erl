@@ -33,6 +33,7 @@ run(State) ->
         pid(State),
         getpid(State),
         sethostname(State),
+        setns(State),
         chroot(State),
         chdir(State),
         setrlimit(State),
@@ -85,6 +86,19 @@ sethostname({linux, Port, Child}) ->
 sethostname({unix, Port, Child}) ->
     Hostname = alcove:gethostname(Port, [Child]),
     ?_assertMatch({ok, <<_/binary>>}, Hostname).
+
+setns({linux, Port, Child}) ->
+    {ok, Child1} = alcove:fork(Port),
+    ok = alcove:setns(Port, [Child1], [
+            "/proc/",
+            integer_to_list(Child),
+            "/ns/uts"
+        ]),
+    Hostname0 = alcove:gethostname(Port, [Child]),
+    Hostname1 = alcove:gethostname(Port, [Child1]),
+    ?_assertEqual(Hostname0, Hostname1);
+setns({unix, _Port, _Child}) ->
+    ?_assert(true).
 
 chroot({_, Port, Child}) ->
     Reply = alcove:chroot(Port, [Child], "/bin"),
