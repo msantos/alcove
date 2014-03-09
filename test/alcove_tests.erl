@@ -26,21 +26,21 @@ alcove_test_() ->
         fun run/1
     }.
 
-run({Port, Child}) ->
+run(State) ->
     % Test order must be maintained
     [
-        version(Port),
-        pid(Port),
-        getpid(Port, Child),
-        sethostname(Port, Child),
-        chroot(Port, Child),
-        chdir(Port, Child),
-        setrlimit(Port, Child),
-        setgid(Port, Child),
-        setuid(Port, Child),
-        fork(Port, Child),
-        execvp(Port, Child),
-        stdin(Port, Child)
+        version(State),
+        pid(State),
+        getpid(State),
+        sethostname(State),
+        chroot(State),
+        chdir(State),
+        setrlimit(State),
+        setgid(State),
+        setuid(State),
+        fork(State),
+        execvp(State),
+        stdin(State)
     ].
 
 -define(CLONE_NEWPID, 16#20000000).
@@ -48,58 +48,52 @@ run({Port, Child}) ->
 
 start() ->
     Port = alcove_drv:start([{exec, "sudo"}]),
-    {ok, Child} = case os:type() of
+    case os:type() of
         {unix,linux} ->
-            Flags = alcove:clone_flags(Port, newpid) bxor alcove:clone_flags(Port, newuts),
-            alcove:clone(Port, Flags);
+            Flags = alcove:clone_flags(Port, newpid)
+                bxor alcove:clone_flags(Port, newuts)
+                bxor alcove:clone_flags(Port, newnet)
+                bxor alcove:clone_flags(Port, newipc),
+            {ok, Child} = alcove:clone(Port, Flags),
+            {linux, Port, Child};
         {unix,_} ->
-            alcove:fork(Port)
-    end,
-    {Port, Child}.
+            {ok, Child} = alcove:fork(Port),
+            {unix, Port, Child}
+    end.
 
-stop({Port, _Child}) ->
+stop({_, Port, _Child}) ->
     alcove_drv:stop(Port).
 
-version(Port) ->
+version({_, Port, _Child}) ->
     Version = alcove:version(Port),
     ?_assertEqual(true, is_binary(Version)).
 
-pid(Port) ->
+pid({_, Port, _Child}) ->
     Pids = alcove:pid(Port),
     ?_assertEqual(1, length(Pids)).
 
-getpid(Port, Child) ->
+getpid({linux, Port, Child}) ->
+    % Running in a PID namespace
     PID = alcove:getpid(Port, [Child]),
-    case os:type() of
-        {unix,linux} ->
-            % Running in a PID namespace
-            ?_assertEqual(1, PID);
-        {unix,_} ->
-            ?_assertEqual(true, is_integer(PID))
-    end.
+    ?_assertEqual(1, PID);
+getpid({unix, Port, Child}) ->
+    PID = alcove:getpid(Port, [Child]),
+    ?_assertEqual(true, PID > 0).
 
-sethostname(Port, Child) ->
-    Reply = case os:type() of
-        {unix,linux} ->
-            alcove:sethostname(Port, [Child], "alcove");
-        {unix,_} ->
-            ok
-    end,
+sethostname({linux, Port, Child}) ->
+    Reply = alcove:sethostname(Port, [Child], "alcove"),
     Hostname = alcove:gethostname(Port, [Child]),
-    case os:type() of
-        {unix,linux} ->
-            [?_assertEqual(ok, Reply),
-                ?_assertEqual({ok, <<"alcove">>}, Hostname)];
-        {unix,_} ->
-            [?_assertEqual(ok, Reply),
-                ?_assertMatch({ok, <<_/binary>>}, Hostname)]
-    end.
+    [?_assertEqual(ok, Reply),
+        ?_assertEqual({ok, <<"alcove">>}, Hostname)];
+sethostname({unix, Port, Child}) ->
+    Hostname = alcove:gethostname(Port, [Child]),
+    ?_assertMatch({ok, <<_/binary>>}, Hostname).
 
-chroot(Port, Child) ->
+chroot({_, Port, Child}) ->
     Reply = alcove:chroot(Port, [Child], "/bin"),
     ?_assertEqual(ok, Reply).
 
-chdir(Port, Child) ->
+chdir({_, Port, Child}) ->
     Reply = alcove:chdir(Port, [Child], "/"),
     CWD = alcove:getcwd(Port, [Child]),
     [
@@ -109,7 +103,7 @@ chdir(Port, Child) ->
 
 -define(RLIMIT_NOFILE, 7).
 
-setrlimit(Port, Child) ->
+setrlimit({_, Port, Child}) ->
     Reply = alcove:setrlimit(Port, [Child], ?RLIMIT_NOFILE, #rlimit{cur = 64, max = 64}),
     Rlimit = alcove:getrlimit(Port, [Child], ?RLIMIT_NOFILE),
     [
@@ -117,7 +111,7 @@ setrlimit(Port, Child) ->
         ?_assertEqual({ok, #rlimit{cur = 64, max = 64}}, Rlimit)
     ].
 
-setgid(Port, Child) ->
+setgid({_, Port, Child}) ->
     Reply = alcove:setgid(Port, [Child], 65534),
     GID = alcove:getgid(Port, [Child]),
     [
@@ -125,7 +119,7 @@ setgid(Port, Child) ->
         ?_assertEqual(65534, GID)
     ].
 
-setuid(Port, Child) ->
+setuid({_, Port, Child}) ->
     Reply = alcove:setuid(Port, [Child], 65534),
     UID = alcove:getuid(Port, [Child]),
     [
@@ -133,7 +127,7 @@ setuid(Port, Child) ->
         ?_assertEqual(65534, UID)
     ].
 
-fork(Port, Child) ->
+fork({_, Port, Child}) ->
     Pids = [ alcove:fork(Port, [Child]) || _ <- lists:seq(1, 32) ],
     [Last|_Rest] = lists:reverse(Pids),
     Reply = alcove:getpid(Port, [Child]),
@@ -143,7 +137,7 @@ fork(Port, Child) ->
         ?_assertEqual({error,eagain}, Last)
     ].
 
-execvp(Port, Child) ->
+execvp({_, Port, Child}) ->
     % cwd = /, chroot'ed in /bin
     Reply = alcove:execvp(Port, [Child], "/busybox", ["/busybox", "sh", "-i"]),
     Stderr = alcove:stderr(Port, [Child], 5000),
@@ -152,7 +146,7 @@ execvp(Port, Child) ->
         ?_assertNotEqual(false, Stderr)
     ].
 
-stdin(Port, Child) ->
+stdin({_, Port, Child}) ->
     Reply = alcove:stdin(Port, [Child], "help\n"),
     Stdout = alcove:stdout(Port, [Child], 5000),
     [
