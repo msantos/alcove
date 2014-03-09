@@ -45,6 +45,7 @@ typedef struct {
     unsigned char buf[65535];
 } alcove_msg_call_t;
 
+static int alcove_stdin(alcove_state_t *ap);
 static ssize_t alcove_msg_call(alcove_state_t *ap, int fd, u_int16_t len);
 static alcove_msg_t *alcove_msg_read(int fd, u_int16_t len);
 
@@ -112,7 +113,6 @@ alcove_ctl(alcove_state_t *ap)
 {
     fd_set rfds;
     int fdmax = 0;
-    int rv = 0;
 
     erl_init(NULL, 0);
 
@@ -143,72 +143,95 @@ alcove_ctl(alcove_state_t *ap)
 
         (void)pid_foreach(ap, 0, &rfds, &fdmax, pid_not_equal, set_pid);
 
-        rv = select(fdmax+1, &rfds, NULL, NULL, NULL);
-
-        if (rv < 0) {
+        if (select(fdmax+1, &rfds, NULL, NULL, NULL) < 0) {
             switch (errno) {
                 case EAGAIN:
                 case EINTR:
                     continue;
-            default:
-                break;
+                default:
+                    break;
             }
         }
 
         if (FD_ISSET(STDIN_FILENO, &rfds)) {
-            u_int16_t bufsz = 0;
-            u_int16_t type = 0;
-            pid_t pid = 0;
-            char buf[65535] = {0};
-
-            errno = 0;
-
-            /* total length, not including length header */
-            if (alcove_read(STDIN_FILENO, &bufsz, sizeof(bufsz)) != sizeof(bufsz)) {
-                if (errno == 0)
+            switch (alcove_stdin(ap)) {
+                case -1:
+                    erl_err_sys("alcove_stdin");
+                case 1:
+                    /* EOF */
                     return;
-
-                erl_err_sys("read:stdin");
-            }
-
-            bufsz = ntohs(bufsz);
-            bufsz -= sizeof(type);
-
-            /* message type */
-            if (alcove_read(STDIN_FILENO, &type, sizeof(type)) != sizeof(type))
-                erl_err_sys("read:stdin");
-
-            if (type == ALCOVE_MSG_CALL) {
-                if (alcove_msg_call(ap, STDIN_FILENO, bufsz) < 0)
-                    erl_err_quit("call");
-            }
-            else if (type == ALCOVE_MSG_STDIN) {
-                if (alcove_read(STDIN_FILENO, &pid, sizeof(pid)) != sizeof(pid))
-                    erl_err_sys("read:stdin");
-
-                pid = ntohl(pid);
-                bufsz -= sizeof(pid);
-
-                if (alcove_read(STDIN_FILENO, buf, bufsz) != bufsz)
-                    erl_err_sys("read:stdin");
-
-                switch (pid_foreach(ap, pid, buf, &bufsz, pid_equal, write_to_pid)) {
-                    case -2:
-                        erl_err_sys("write:stdin");
-                    case -1:
-                        /* XXX badarg */
-                    case 0:
-                        break;
-                }
-            }
-            else {
-                /* XXX return badarg to caller */
-                erl_err_quit("bad message type:%u", type);
+                case 0:
+                    break;
             }
         }
 
         pid_foreach(ap, 0, &rfds, NULL, pid_not_equal, read_from_pid);
     }
+}
+
+    static int
+alcove_stdin(alcove_state_t *ap)
+{
+    u_int16_t bufsz = 0;
+    u_int16_t type = 0;
+    pid_t pid = 0;
+    char buf[65535] = {0};
+
+    errno = 0;
+
+    /* 
+     * Call:
+     *  |length:2|call:2|command:2|arg:...|
+     *
+     * Stdin:
+     *  |length:2|stdin:2|pid:4|data:...|
+     *
+     */
+
+    /* total length, not including length header */
+    if (alcove_read(STDIN_FILENO, &bufsz, sizeof(bufsz)) != sizeof(bufsz)) {
+        if (errno == 0)
+            return 1;
+
+        return -1;
+    }
+
+    bufsz = ntohs(bufsz);
+    bufsz -= sizeof(type);
+
+    /* message type */
+    if (alcove_read(STDIN_FILENO, &type, sizeof(type)) != sizeof(type))
+        return -1;
+
+    if (type == ALCOVE_MSG_CALL) {
+        if (alcove_msg_call(ap, STDIN_FILENO, bufsz) < 0)
+            return -1;
+    }
+    else if (type == ALCOVE_MSG_STDIN) {
+        if (alcove_read(STDIN_FILENO, &pid, sizeof(pid)) != sizeof(pid))
+            return -1;
+
+        pid = ntohl(pid);
+        bufsz -= sizeof(pid);
+
+        if (alcove_read(STDIN_FILENO, buf, bufsz) != bufsz)
+            return -1;
+
+        switch (pid_foreach(ap, pid, buf, &bufsz, pid_equal, write_to_pid)) {
+            case -2:
+                return -1;
+            case -1:
+                /* XXX badarg */
+            case 0:
+                break;
+        }
+    }
+    else {
+        /* XXX return badarg to caller */
+        return -1;
+    }
+
+    return 0;
 }
 
     static ssize_t
