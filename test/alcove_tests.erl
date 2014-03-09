@@ -35,6 +35,7 @@ run(State) ->
         sethostname(State),
         setns(State),
         unshare(State),
+        mount(State),
         chroot(State),
         chdir(State),
         setrlimit(State),
@@ -52,7 +53,7 @@ start() ->
     Port = alcove_drv:start([{exec, "sudo"}]),
     case os:type() of
         {unix,linux} ->
-            Flags = alcove:define(Port, clone, [newpid,newuts,newnet,newipc]),
+            Flags = alcove:define(Port, clone, [newns,newpid,newuts,newnet,newipc]),
             {ok, Child} = alcove:clone(Port, Flags),
             {linux, Port, Child};
         {unix,_} ->
@@ -110,6 +111,15 @@ unshare({linux, Port, _Child}) ->
         ?_assertEqual({ok, <<"unshare">>}, Hostname)];
 unshare({unix, _Port, _Child}) ->
     ?_assertEqual(ok,ok).
+
+mount({linux, Port, Child}) ->
+    Flags = alcove:define(Port, mount, [bind,rdonly,noexec]),
+    Mount = alcove:mount(Port, [Child], "/bin", "/mnt", "", Flags, ""),
+    Umount = alcove:umount(Port, [Child], "/mnt"),
+    [
+        ?_assertEqual(ok, Mount),
+        ?_assertEqual(ok, Umount)
+    ].
 
 chroot({_, Port, Child}) ->
     Reply = alcove:chroot(Port, [Child], "/bin"),
