@@ -61,7 +61,7 @@ typedef struct {
     unsigned char *arg;
 } alcove_msg_t;
 
-void gotsig(int sig);
+void sighandler(int sig);
 
 void alcove_ctl(alcove_state_t *ap);
 

@@ -66,7 +66,7 @@ extern char *__progname;
 static int child_exited = 0;
 
     void
-gotsig(int sig)
+sighandler(int sig)
 {
     switch (sig) {
         case SIGCHLD:
@@ -91,7 +91,7 @@ main(int argc, char *argv[])
     if (!ap->child)
         erl_err_sys("calloc");
 
-    signal(SIGCHLD, gotsig);
+    signal(SIGCHLD, sighandler);
 
     while ( (ch = getopt(argc, argv, "hv")) != -1) {
         switch (ch) {
@@ -118,6 +118,7 @@ alcove_ctl(alcove_state_t *ap)
 
     (void)memset(ap->child, 0, sizeof(alcove_child_t) * ALCOVE_MAX_CHILD);
     ap->nchild = 0;
+    child_exited = 0;
 
     for ( ; ; ) {
         if (child_exited) {
