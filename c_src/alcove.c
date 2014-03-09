@@ -182,7 +182,7 @@ alcove_stdin(alcove_state_t *ap)
 
     errno = 0;
 
-    /* 
+    /*
      * Call:
      *  |length:2|call:2|command:2|arg:...|
      *
