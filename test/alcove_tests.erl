@@ -52,13 +52,13 @@ run(State) ->
 start() ->
     Port = alcove_drv:start([{exec, "sudo"}]),
     case os:type() of
-        {unix,linux} ->
+        {unix,linux} = OS ->
             Flags = alcove:define(Port, clone, [newns,newpid,newuts,newnet,newipc]),
             {ok, Child} = alcove:clone(Port, Flags),
-            {linux, Port, Child};
-        {unix,_} ->
+            {OS, Port, Child};
+        {unix,_} = OS ->
             {ok, Child} = alcove:fork(Port),
-            {unix, Port, Child}
+            {OS, Port, Child}
     end.
 
 stop({_, Port, _Child}) ->
@@ -72,24 +72,24 @@ pid({_, Port, _Child}) ->
     Pids = alcove:pid(Port),
     ?_assertEqual(1, length(Pids)).
 
-getpid({linux, Port, Child}) ->
+getpid({{unix,linux}, Port, Child}) ->
     % Running in a PID namespace
     PID = alcove:getpid(Port, [Child]),
     ?_assertEqual(1, PID);
-getpid({unix, Port, Child}) ->
+getpid({_, Port, Child}) ->
     PID = alcove:getpid(Port, [Child]),
     ?_assertEqual(true, PID > 0).
 
-sethostname({linux, Port, Child}) ->
+sethostname({{unix,linux}, Port, Child}) ->
     Reply = alcove:sethostname(Port, [Child], "alcove"),
     Hostname = alcove:gethostname(Port, [Child]),
     [?_assertEqual(ok, Reply),
         ?_assertEqual({ok, <<"alcove">>}, Hostname)];
-sethostname({unix, Port, Child}) ->
+sethostname({_, Port, Child}) ->
     Hostname = alcove:gethostname(Port, [Child]),
     ?_assertMatch({ok, <<_/binary>>}, Hostname).
 
-setns({linux, Port, Child}) ->
+setns({{unix,linux}, Port, Child}) ->
     {ok, Child1} = alcove:fork(Port),
     ok = alcove:setns(Port, [Child1], [
             "/proc/",
@@ -99,28 +99,28 @@ setns({linux, Port, Child}) ->
     Hostname0 = alcove:gethostname(Port, [Child]),
     Hostname1 = alcove:gethostname(Port, [Child1]),
     ?_assertEqual(Hostname0, Hostname1);
-setns({unix, _Port, _Child}) ->
+setns({_, _Port, _Child}) ->
     ?_assertEqual(ok,ok).
 
-unshare({linux, Port, _Child}) ->
+unshare({{unix,linux}, Port, _Child}) ->
     {ok, Child1} = alcove:fork(Port),
     ok = alcove:unshare(Port, [Child1], alcove:clone_define(Port, newuts)),
     Reply = alcove:sethostname(Port, [Child1], "unshare"),
     Hostname = alcove:gethostname(Port, [Child1]),
     [?_assertEqual(ok, Reply),
         ?_assertEqual({ok, <<"unshare">>}, Hostname)];
-unshare({unix, _Port, _Child}) ->
+unshare({_, _Port, _Child}) ->
     ?_assertEqual(ok,ok).
 
-mount({linux, Port, Child}) ->
+mount({{unix,linux}, Port, Child}) ->
     Flags = alcove:define(Port, mount, [bind,rdonly,noexec]),
-    Mount = alcove:mount(Port, [Child], "/bin", "/mnt", "", Flags, ""),
+    Mount = alcove:mount(Port, [Child], "/tmp", "/mnt", "", Flags, ""),
     Umount = alcove:umount(Port, [Child], "/mnt"),
     [
         ?_assertEqual(ok, Mount),
         ?_assertEqual(ok, Umount)
     ];
-mount({unix, _Port, _Child}) ->
+mount({_, _Port, _Child}) ->
     ?_assertEqual(ok,ok).
 
 chroot({_, Port, Child}) ->
