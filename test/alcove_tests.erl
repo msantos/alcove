@@ -36,6 +36,7 @@ run(State) ->
         setns(State),
         unshare(State),
         mount(State),
+        tmpfs(State),
         chroot(State),
         chdir(State),
         setrlimit(State),
@@ -121,6 +122,17 @@ mount({{unix,linux}, Port, Child}) ->
         ?_assertEqual(ok, Umount)
     ];
 mount({_, _Port, _Child}) ->
+    ?_assertEqual(ok,ok).
+
+tmpfs({{unix,linux}, Port, Child}) ->
+    Flags = alcove:define(Port, mount, [noexec]),
+    Mount = alcove:mount(Port, [Child], "tmpfs", "/mnt", "tmpfs", Flags, <<"size=16M", 0>>),
+    Umount = alcove:umount(Port, [Child], "/mnt"),
+    [
+        ?_assertEqual(ok, Mount),
+        ?_assertEqual(ok, Umount)
+    ];
+tmpfs({_, _Port, _Child}) ->
     ?_assertEqual(ok,ok).
 
 chroot({_, Port, Child}) ->
