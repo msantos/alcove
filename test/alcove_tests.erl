@@ -43,6 +43,7 @@ run(State) ->
         setgid(State),
         setuid(State),
         fork(State),
+        prctl(State),
         execvp(State),
         stdin(State)
     ].
@@ -181,6 +182,44 @@ fork({_, Port, Child}) ->
         ?_assertEqual(true, is_integer(Reply)),
         ?_assertEqual({error,eagain}, Last)
     ].
+
+prctl({linux, Port, _Child}) ->
+    {ok, Fork} = alcove:fork(Port),
+
+    % capability is set:
+    %   returns 0 | 1 in function result, arg2 = int
+    PR_CAPBSET_READ = alcove:prctl_define(Port, capbset_read),
+    Reply0 = alcove:prctl(Port, [Fork], PR_CAPBSET_READ, 0, 0,0,0),
+
+    % set process name:
+    %   arg2 = char *, up to 16 bytes, NULL terminated
+    PR_SET_NAME = alcove:prctl_define(Port, set_name),
+    Reply1 = alcove:prctl(Port, [Fork], PR_SET_NAME, <<"test",0>>, 0,0,0),
+
+    % get process name
+    %   value returned in arg2 = char *, up to 16 bytes
+    PR_GET_NAME = alcove:prctl_define(Port, get_name),
+    Reply2 = alcove:prctl(Port, [Fork], PR_GET_NAME, <<0:(17*8)>>, 0,0,0),
+
+    % set parent death signal
+    %  arg2 = signal
+    PR_SET_PDEATHSIG = alcove:prctl_define(Port, set_pdeathsig),
+    Reply3 = alcove:prctl(Port, [Fork], PR_SET_PDEATHSIG, 9, 0,0,0),
+
+    % get parent death signal
+    %  arg2 = int *
+    PR_GET_PDEATHSIG = alcove:prctl_define(Port, get_pdeathsig),
+    Reply4 = alcove:prctl(Port, [Fork], PR_GET_PDEATHSIG, <<0:32>>, 0,0,0),
+
+    [
+        ?_assertEqual({ok,1,0,0,0,0}, Reply0),
+        ?_assertEqual({ok,0,<<116,101,115,116,0>>,0,0,0}, Reply1),
+        ?_assertMatch({ok,0,<<116,101,115,116,0,0,0,0,0,0,0,0,0,0,0,0,0>>,0,0,0}, Reply2),
+        ?_assertMatch({ok,0,9,0,0,0}, Reply3),
+        ?_assertMatch({ok,0,<<9,0,0,0>>,0,0,0}, Reply4)
+    ];
+prctl({_, Port, Child}) ->
+    ?_assertEqual(ok,ok).
 
 execvp({_, Port, Child}) ->
     % cwd = /, chroot'ed in /bin

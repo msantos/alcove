@@ -29,7 +29,7 @@ alcove_mount(alcove_state_t *ap, ETERM *arg)
     char *target = NULL;
     char *filesystemtype = NULL;
     unsigned long mountflags = 0;
-    char *data = NULL;
+    void *data = NULL;
 
     int rv = 0;
 
@@ -76,7 +76,7 @@ alcove_mount(alcove_state_t *ap, ETERM *arg)
         goto BADARG;
 
     if (erl_iolist_length(hd) > 0)
-        data = erl_iolist_to_string(hd);
+        data = ERL_BIN_PTR(erl_iolist_to_binary(hd));
 
 #ifdef __linux__
     rv = mount(source, target, filesystemtype, mountflags, data);

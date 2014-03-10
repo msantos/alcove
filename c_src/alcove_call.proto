@@ -14,6 +14,8 @@ kill/2
 mount/5
 mount_define/1
 pid/0
+prctl/5
+prctl_define/1
 rlimit_define/1
 setgid/1
 sethostname/1
