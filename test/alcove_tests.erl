@@ -55,7 +55,13 @@ start() ->
     Port = alcove_drv:start([{exec, "sudo"}]),
     case os:type() of
         {unix,linux} = OS ->
-            Flags = alcove:define(Port, clone, [newns,newpid,newuts,newnet,newipc]),
+            Flags = alcove:define(Port, clone, [
+                    newipc,
+                    newnet,
+                    newns,
+                    newpid,
+                    newuts
+                ]),
             {ok, Child} = alcove:clone(Port, Flags),
             {OS, Port, Child};
         {unix,_} = OS ->
@@ -218,7 +224,7 @@ prctl({linux, Port, _Child}) ->
         ?_assertMatch({ok,0,9,0,0,0}, Reply3),
         ?_assertMatch({ok,0,<<9,0,0,0>>,0,0,0}, Reply4)
     ];
-prctl({_, Port, Child}) ->
+prctl({_, _Port, _Child}) ->
     ?_assertEqual(ok,ok).
 
 execvp({_, Port, Child}) ->
