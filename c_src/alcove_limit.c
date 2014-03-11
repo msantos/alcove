@@ -36,13 +36,12 @@ alcove_getrlimit(alcove_state_t *ap, ETERM *arg)
 
     rv = getrlimit(resource, &rlim);
 
-    /* XXX u_int64_t */
     return ( (rv < 0)
             ? alcove_errno(errno)
             : alcove_ok(alcove_tuple3(
                     erl_mk_atom("rlimit"),
-                    erl_mk_uint(rlim.rlim_cur),
-                    erl_mk_uint(rlim.rlim_max)
+                    erl_mk_ulonglong(rlim.rlim_cur),
+                    erl_mk_ulonglong(rlim.rlim_max)
                     )));
 
 BADARG:
@@ -70,9 +69,8 @@ alcove_setrlimit(alcove_state_t *ap, ETERM *arg)
 
     resource = ERL_INT_VALUE(hd);
 
+    /* XXX rlim_cur/rlim_max may be uint64_t */
     /* {rlimit, rlim_cur, rlim_max} */
-
-    /* XXX rlim_cur, rlim_max = u_int64_t; cur, max = u_int32_t */
 
     arg = alcove_list_head(&hd, arg);
     if (!hd || !ERL_IS_TUPLE(hd) || erl_size(hd) != 3)
