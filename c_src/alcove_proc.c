@@ -31,9 +31,17 @@ typedef struct {
 #define PRARG(x) ((x.type) ? (unsigned long)x.data : x.u.n)
 #define PRVAL(x) ((x.type) ? erl_mk_binary(x.data, x.len) : erl_mk_ulonglong(x.u.n))
 
-#define PRCOPY(x) do { \
-    x.data = alcove_malloc(x.len); \
-    (void)memcpy(x.data, x.u.b, x.len); \
+#define PROPT(_term, _arg) do { \
+    if (ERL_IS_INTEGER(_term)) { \
+        _arg.u.n = ERL_INT_UVALUE(_term); \
+    } \
+    else if (ALCOVE_IS_IOLIST(_term)) { \
+        _arg.u.b = ERL_BIN_PTR(erl_iolist_to_binary(_term)); \
+        _arg.len = erl_iolist_length(_term); \
+        _arg.type = 1; \
+        _arg.data = alcove_malloc(_arg.len); \
+        (void)memcpy(_arg.data, _arg.u.b, _arg.len); \
+    } \
 } while (0)
 #endif
 
@@ -114,60 +122,28 @@ alcove_prctl(alcove_state_t *ap, ETERM *arg)
     if (!hd)
         goto BADARG;
 
-    if (ERL_IS_INTEGER(hd)) {
-        arg2.u.n = ERL_INT_UVALUE(hd);
-    }
-    else if (ALCOVE_IS_IOLIST(hd)) {
-        arg2.u.b = ERL_BIN_PTR(erl_iolist_to_binary(hd));
-        arg2.len = erl_iolist_length(hd);
-        arg2.type = 1;
-        PRCOPY(arg2);
-    }
+    PROPT(hd, arg2);
 
     /* arg3 */
     arg = alcove_list_head(&hd, arg);
     if (!hd)
         goto BADARG;
 
-    if (ERL_IS_INTEGER(hd)) {
-        arg3.u.n = ERL_INT_UVALUE(hd);
-    }
-    else if (ALCOVE_IS_IOLIST(hd)) {
-        arg3.u.b = ERL_BIN_PTR(erl_iolist_to_binary(hd));
-        arg3.len = erl_iolist_length(hd);
-        arg3.type = 1;
-        PRCOPY(arg3);
-    }
+    PROPT(hd, arg3);
 
     /* arg4 */
     arg = alcove_list_head(&hd, arg);
     if (!hd)
         goto BADARG;
 
-    if (ERL_IS_INTEGER(hd)) {
-        arg4.u.n = ERL_INT_UVALUE(hd);
-    }
-    else if (ALCOVE_IS_IOLIST(hd)) {
-        arg4.u.b = ERL_BIN_PTR(erl_iolist_to_binary(hd));
-        arg4.len = erl_iolist_length(hd);
-        arg4.type = 1;
-        PRCOPY(arg4);
-    }
+    PROPT(hd, arg3);
 
     /* arg5 */
     arg = alcove_list_head(&hd, arg);
     if (!hd)
         goto BADARG;
 
-    if (ERL_IS_INTEGER(hd)) {
-        arg5.u.n = ERL_INT_UVALUE(hd);
-    }
-    else if (ALCOVE_IS_IOLIST(hd)) {
-        arg5.u.b = ERL_BIN_PTR(erl_iolist_to_binary(hd));
-        arg5.len = erl_iolist_length(hd);
-        arg5.type = 1;
-        PRCOPY(arg5);
-    }
+    PROPT(hd, arg3);
 
     rv = prctl(option, PRARG(arg2), PRARG(arg3), PRARG(arg4), PRARG(arg5));
 
