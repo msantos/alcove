@@ -20,27 +20,24 @@
 
 typedef struct {
     u_char type;
+    unsigned long arg;
     char *data;
     size_t len;
-    union {
-        unsigned long n;
-        unsigned char *b;
-    } u;
 } alcove_prctl_arg_t;
 
-#define PRARG(x) ((x.type) ? (unsigned long)x.data : x.u.n)
-#define PRVAL(x) ((x.type) ? erl_mk_binary(x.data, x.len) : erl_mk_ulonglong(x.u.n))
+#define PRARG(x) ((x.type) ? (unsigned long)x.data : x.arg)
+#define PRVAL(x) ((x.type) ? erl_mk_binary(x.data, x.len) : erl_mk_ulonglong(x.arg))
 
 #define PROPT(_term, _arg) do { \
     if (ERL_IS_INTEGER(_term)) { \
-        _arg.u.n = ERL_INT_UVALUE(_term); \
+        _arg.arg = ERL_INT_UVALUE(_term); \
     } \
     else if (ALCOVE_IS_IOLIST(_term)) { \
-        _arg.u.b = ERL_BIN_PTR(erl_iolist_to_binary(_term)); \
-        _arg.len = erl_iolist_length(_term); \
+        ETERM *bin = NULL; \
+        bin = erl_iolist_to_binary(_term); \
         _arg.type = 1; \
         _arg.data = alcove_malloc(_arg.len); \
-        (void)memcpy(_arg.data, _arg.u.b, _arg.len); \
+        (void)memcpy(_arg.data, ERL_BIN_PTR(bin), ERL_BIN_SIZE(bin)); \
     } \
 } while (0)
 #endif
