@@ -416,10 +416,9 @@ pid_not_equal(pid_t p1, pid_t p2)
     static int
 zero_pid(alcove_child_t *c, void *arg1, void *arg2)
 {
-    c->pid = 0;
+    (void)close(c->fdin);
     c->fdin = -1;
-    c->fdout = -1;
-    c->fderr = -1;
+    c->pid = 0;
 
     return 0;
 }
@@ -467,6 +466,7 @@ read_from_pid(alcove_child_t *c, void *arg1, void *arg2)
         switch (alcove_child_stdio(c->fdout, c->pid, ALCOVE_MSG_STDOUT)) {
             case -1:
             case 0:
+                (void)close(c->fdout);
                 c->fdout = -1;
                 break;
             default:
@@ -478,6 +478,7 @@ read_from_pid(alcove_child_t *c, void *arg1, void *arg2)
         switch (alcove_child_stdio(c->fderr, c->pid, ALCOVE_MSG_STDERR)) {
             case -1:
             case 0:
+                (void)close(c->fderr);
                 c->fderr = -1;
                 break;
             default:

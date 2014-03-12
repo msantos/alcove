@@ -255,6 +255,8 @@ alcove_child_fun(void *arg)
     alcove_arg_t *child_arg = arg;
     alcove_state_t *ap = child_arg->ap;
     alcove_fd_t *fd = child_arg->fd;
+    int maxfd = sysconf(_SC_OPEN_MAX);
+    int n = 0;
 
     if ( (close(fd->in[PIPE_WRITE]) < 0)
             || (close(fd->out[PIPE_READ]) < 0)
@@ -265,6 +267,16 @@ alcove_child_fun(void *arg)
             || (dup2(fd->out[PIPE_WRITE], STDOUT_FILENO) < 0)
             || (dup2(fd->err[PIPE_WRITE], STDERR_FILENO) < 0))
         return -1;
+
+    /* Close all other fd's inherited from the parent.
+     * XXX parent may have raised maxfd using setrlimit
+     */
+    for (n = 0; n < maxfd; n++) {
+        if ( (n != STDIN_FILENO)
+                && (n != STDOUT_FILENO)
+                && (n != STDERR_FILENO))
+            (void)close(n);
+    }
 
     alcove_ctl(ap);
 
