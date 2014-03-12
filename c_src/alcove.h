@@ -40,6 +40,7 @@ enum {
 
 typedef struct {
     pid_t pid;
+    int exited;
     int fdin;
     int fdout;
     int fderr;

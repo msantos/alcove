@@ -53,7 +53,8 @@ static ssize_t alcove_child_stdio(int fdin, pid_t pid, u_int16_t type);
 static ssize_t alcove_write(u_int16_t, ETERM *);
 static ssize_t alcove_read(int, void *, ssize_t);
 
-static int zero_pid(alcove_child_t *c, void *arg1, void *arg2);
+static int exited_pid(alcove_child_t *c, void *arg1, void *arg2);
+static int free_pid(alcove_child_t *c, void *arg1, void *arg2);
 static int set_pid(alcove_child_t *c, void *arg1, void *arg2);
 static int write_to_pid(alcove_child_t *c, void *arg1, void *arg2);
 static int read_from_pid(alcove_child_t *c, void *arg1, void *arg2);
@@ -130,12 +131,13 @@ alcove_ctl(alcove_state_t *ap)
                 case 0:
                     break;
                 default:
-                    ap->nchild--;
-                    (void)pid_foreach(ap, pid, NULL, NULL, pid_equal, zero_pid);
+                    (void)pid_foreach(ap, pid, NULL, NULL, pid_equal, exited_pid);
             }
 
             child_exited = 0;
         }
+
+        (void)pid_foreach(ap, 0, ap, NULL, pid_not_equal, free_pid);
 
         FD_ZERO(&rfds);
         FD_SET(STDIN_FILENO, &rfds);
@@ -414,13 +416,26 @@ pid_not_equal(pid_t p1, pid_t p2)
 }
 
     static int
-zero_pid(alcove_child_t *c, void *arg1, void *arg2)
+exited_pid(alcove_child_t *c, void *arg1, void *arg2)
 {
     (void)close(c->fdin);
     c->fdin = -1;
-    c->pid = 0;
-
+    c->exited = 1;
     return 0;
+}
+
+    static int
+free_pid(alcove_child_t *c, void *arg1, void *arg2)
+{
+    alcove_state_t *ap = arg1;
+
+    if (c->exited && c->fdout == -1 && c->fderr == -1) {
+            c->pid = 0;
+            c->exited = 0;
+            ap->nchild--;
+    }
+
+    return 1;
 }
 
     static int
