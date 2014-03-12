@@ -75,15 +75,11 @@ alcove_list_to_argv(ETERM *arg)
     ssize_t len = 0;
     int i = 0;
     char **argv = NULL;
+    long maxarg = sysconf(_SC_ARG_MAX);
 
     len = erl_length(arg);
 
-    /* xargs --show-limits
-     *
-     * POSIX smallest allowable upper limit on argument length (all
-     * systems): 4096
-     */
-    if (len < 0 || len >= 4096)
+    if (len < 0 || len >= maxarg)
         return NULL;
 
     /* NULL terminate */
