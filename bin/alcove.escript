@@ -333,6 +333,15 @@ specs() ->
 -spec pid(port()) -> [integer()].
 -spec pid(port(),[integer()]) -> [integer()].
 
+-type prctl_arg() :: iodata() | non_neg_integer().
+-type prctl_val() :: binary() | non_neg_integer().
+
+-spec prctl(port(),integer(),prctl_arg(),prctl_arg(),prctl_arg(),prctl_arg()) -> {'ok',integer(),prctl_val(),prctl_val(),prctl_val(),prctl_val()}.
+-spec prctl(port(),[integer()],integer(),prctl_arg(),prctl_arg(),prctl_arg(),prctl_arg()) -> {'ok',integer(),prctl_val(),prctl_val(),prctl_val(),prctl_val()}.
+
+-spec prctl_define(port(),atom()) -> 'false' | non_neg_integer().
+-spec prctl_define(port(),[integer()],atom()) -> 'false' | non_neg_integer().
+
 -spec rlimit_define(port(),atom()) -> 'false' | non_neg_integer().
 -spec rlimit_define(port(),[integer()],atom()) -> 'false' | non_neg_integer().
 
