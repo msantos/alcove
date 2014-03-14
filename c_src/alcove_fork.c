@@ -36,6 +36,7 @@ typedef struct {
 } alcove_arg_t;
 
 static int alcove_stdio(alcove_fd_t *fd);
+static void alcove_close_pipe(int fd[2]);
 static int alcove_child_fun(void *arg);
 static int alcove_parent_fd(alcove_state_t *ap, alcove_fd_t *fd, pid_t pid);
 static int stdio_pid(alcove_child_t *c, void *arg1, void *arg2);
@@ -243,10 +244,25 @@ alcove_stdio(alcove_fd_t *fd)
 {
     if ( (pipe(fd->in) < 0)
             || (pipe(fd->out) < 0)
-            || (pipe(fd->err) < 0))
+            || (pipe(fd->err) < 0)) {
+        alcove_close_pipe(fd->in);
+        alcove_close_pipe(fd->out);
+        alcove_close_pipe(fd->err);
         return -1;
+    }
 
     return 0;
+}
+
+    static void
+alcove_close_pipe(int fd[2])
+{
+    /* fd should be above 0 since STDIN_FILENO is still open */
+    if (fd[0] > 0)
+        (void)close(fd[0]);
+
+    if (fd[1] > 0)
+        (void)close(fd[1]);
 }
 
     int
@@ -284,10 +300,16 @@ alcove_child_fun(void *arg)
     int
 alcove_parent_fd(alcove_state_t *ap, alcove_fd_t *fd, pid_t pid)
 {
+    /* What to do if close(2) fails here?
+     *
+     * The options are ignore the failure, kill the child process and
+     * return errno or exit (the child will be forced to exit as well
+     * when stdin is closed).
+     */
     if ( (close(fd->in[PIPE_READ]) < 0)
-            || (close(fd->out[PIPE_WRITE]) < 0)
-            || (close(fd->err[PIPE_WRITE]) < 0))
-        return -1;
+            || (close(fd->out[PIPE_WRITE]) < 0) ||
+            (close(fd->err[PIPE_WRITE]) < 0))
+        erl_err_sys("alcove_parent_fd:close");
 
     ap->nchild++;
 
