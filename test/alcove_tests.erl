@@ -142,8 +142,11 @@ tmpfs({{unix,linux}, Port, Child}) ->
 tmpfs({_, _Port, _Child}) ->
     ?_assertEqual(ok,ok).
 
-chroot({_, Port, Child}) ->
+chroot({{unix,linux}, Port, Child}) ->
     Reply = alcove:chroot(Port, [Child], "/bin"),
+    ?_assertEqual(ok, Reply);
+chroot({{unix,freebsd}, Port, Child}) ->
+    Reply = alcove:chroot(Port, [Child], "/rescue"),
     ?_assertEqual(ok, Reply).
 
 chdir({_, Port, Child}) ->
@@ -227,9 +230,17 @@ prctl({linux, Port, _Child}) ->
 prctl({_, _Port, _Child}) ->
     ?_assertEqual(ok,ok).
 
-execvp({_, Port, Child}) ->
+execvp({{unix,linux}, Port, Child}) ->
     % cwd = /, chroot'ed in /bin
     Reply = alcove:execvp(Port, [Child], "/busybox", ["/busybox", "sh", "-i"]),
+    Stderr = alcove:stderr(Port, [Child], 5000),
+    [
+        ?_assertEqual(ok, Reply),
+        ?_assertNotEqual(false, Stderr)
+    ];
+execvp({{unix,freebsd}, Port, Child}) ->
+    % cwd = /, chroot'ed in /bin
+    Reply = alcove:execvp(Port, [Child], "/sh", ["/sh", "-i"]),
     Stderr = alcove:stderr(Port, [Child], 5000),
     [
         ?_assertEqual(ok, Reply),
@@ -237,7 +248,7 @@ execvp({_, Port, Child}) ->
     ].
 
 stdin({_, Port, Child}) ->
-    Reply = alcove:stdin(Port, [Child], "help\n"),
+    Reply = alcove:stdin(Port, [Child], "echo alcove\n"),
     Stdout = alcove:stdout(Port, [Child], 5000),
     [
         ?_assertEqual(true, Reply),
