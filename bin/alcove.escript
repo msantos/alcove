@@ -156,9 +156,10 @@ b2i(N) when is_binary(N) ->
 
 static_exports() ->
     [{define,3},
-     {stdin,3},
-     {stdout,2}, {stdout,3},
-     {stderr,2}, {stderr,3},
+     {stdin,2}, {stdin,3},
+     {stdout,1}, {stdout,2}, {stdout,3},
+     {stderr,1}, {stderr,2}, {stderr,3},
+     {event,2}, {event,3}, {event,4},
      {encode,3},
      {command,1},
      {call,2},
@@ -190,13 +191,22 @@ define(Port, mount, Constants) when is_list(Constants) ->
         end, 0, Constants).
 ";
 
+static({stdin,2}) ->
+"
+stdin(Port, Data) ->
+    stdin(Port, [], Data).
+";
 static({stdin,3}) ->
 "
 stdin(Port, Pids, Data) ->
-    Stdin = alcove_drv:msg(Pids, Data),
-    alcove_drv:cast(Port, Stdin).
+    alcove_drv:stdin(Port, Pids, Data).
 ";
 
+static({stdout,1}) ->
+"
+stdout(Port) ->
+    stdout(Port, [], 0).
+";
 static({stdout,2}) ->
 "
 stdout(Port, Pids) ->
@@ -204,17 +214,15 @@ stdout(Port, Pids) ->
 ";
 static({stdout,3}) ->
 "
-% XXX discard all but the first PID
-stdout(Port, [Pid|_], Timeout) ->
-    receive
-        {Port, {data, <<?UINT16(?ALCOVE_MSG_STDOUT), ?UINT32(Pid), Msg/binary>>}} ->
-            Msg
-    after
-        Timeout ->
-            false
-    end.
+stdout(Port, Pids, Timeout) ->
+    alcove_drv:stdout(Port, Pids, Timeout).
 ";
 
+static({stderr,1}) ->
+"
+stderr(Port) ->
+    stderr(Port, [], 0).
+";
 static({stderr,2}) ->
 "
 stderr(Port, Pids) ->
@@ -222,15 +230,24 @@ stderr(Port, Pids) ->
 ";
 static({stderr,3}) ->
 "
-% XXX discard all but the first PID
-stderr(Port, [Pid|_], Timeout) ->
-    receive
-        {Port, {data, <<?UINT16(?ALCOVE_MSG_STDERR), ?UINT32(Pid), Msg/binary>>}} ->
-            Msg
-    after
-        Timeout ->
-            false
-    end.
+stderr(Port, Pids, Timeout) ->
+    alcove_drv:stderr(Port, Pids, Timeout).
+";
+
+static({event,2}) ->
+"
+event(Port, Type) ->
+    event(Port, [], Type, 0).
+";
+static({event,3}) ->
+"
+event(Port, Pids, Type) ->
+    event(Port, Pids, Type, 0).
+";
+static({event,4}) ->
+"
+event(Port, Pids, Type, Timeout) ->
+    event(Port, Pids, Type, Timeout).
 ";
 
 static({encode,3}) ->

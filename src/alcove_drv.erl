@@ -16,7 +16,8 @@
 
 %% API
 -export([start/0, start/1, stop/1]).
--export([call/2, call/3, call/4, cast/2, encode/2, encode/3, event/3, event/4]).
+-export([call/2, call/3, call/4, cast/2, encode/2, encode/3]).
+-export([stdin/3, stdout/3, stderr/3, event/4]).
 -export([msg/2, msg/3]).
 -export([getopts/1]).
 
@@ -45,8 +46,13 @@ call(Port, Pids, Data, Timeout) ->
     true = send(Port, Data, iolist_size(Data)),
     event(Port, Pids, ?ALCOVE_MSG_CALL, Timeout).
 
-event(Port, Pids, Type) ->
-    event(Port, Pids, Type, 5000).
+-spec cast(port(),iodata()) -> any().
+cast(Port, Data) ->
+    send(Port, Data, iolist_size(Data)).
+
+-spec send(port(),iodata(),pos_integer()) -> any().
+send(Port, Data, Size) when is_port(Port), Size < 16#ffff ->
+    erlang:port_command(Port, Data).
 
 event(Port, Pids, Type, Timeout) when is_atom(Type) ->
     event(Port, Pids, atom_to_type(Type), Timeout);
@@ -124,13 +130,161 @@ event(Port, [Pid0, Pid1, Pid2, Pid3, Pid4], Type, Timeout) ->
             {error,timedout}
     end.
 
--spec cast(port(),iodata()) -> any().
-cast(Port, Data) ->
-    send(Port, Data, iolist_size(Data)).
+stdin(Port, Pids, Data) ->
+    Stdin = msg(Pids, Data),
+    cast(Port, Stdin).
 
--spec send(port(),iodata(),pos_integer()) -> any().
-send(Port, Data, Size) when is_port(Port), Size < 16#ffff ->
-    erlang:port_command(Port, Data).
+stdout(Port, [], Timeout) ->
+    receive
+        {Port, {data, <<
+                Reply/binary
+                >>}} ->
+            Reply
+    after
+        Timeout ->
+            false
+    end;
+stdout(Port, [Pid0], Timeout) ->
+    receive
+        {Port, {data, <<
+                ?UINT16(?ALCOVE_MSG_STDOUT), ?UINT32(Pid0),
+                Reply/binary
+                >>}} ->
+            Reply
+    after
+        Timeout ->
+            false
+    end;
+stdout(Port, [Pid0, Pid1], Timeout) ->
+    receive
+        {Port, {data, <<
+                ?UINT16(?ALCOVE_MSG_STDOUT), ?UINT32(Pid0),
+                ?UINT16(_Len1), ?UINT16(?ALCOVE_MSG_STDOUT), ?UINT32(Pid1),
+                Reply/binary
+                >>}} ->
+            Reply
+    after
+        Timeout ->
+            false
+    end;
+stdout(Port, [Pid0, Pid1, Pid2], Timeout) ->
+    receive
+        {Port, {data, <<
+                ?UINT16(?ALCOVE_MSG_STDOUT), ?UINT32(Pid0),
+                ?UINT16(_Len1), ?UINT16(?ALCOVE_MSG_STDOUT), ?UINT32(Pid1),
+                ?UINT16(_Len2), ?UINT16(?ALCOVE_MSG_STDOUT), ?UINT32(Pid2),
+                Reply/binary
+                >>}} ->
+            Reply
+    after
+        Timeout ->
+            false
+    end;
+stdout(Port, [Pid0, Pid1, Pid2, Pid3], Timeout) ->
+    receive
+        {Port, {data, <<
+                ?UINT16(?ALCOVE_MSG_STDOUT), ?UINT32(Pid0),
+                ?UINT16(_Len1), ?UINT16(?ALCOVE_MSG_STDOUT), ?UINT32(Pid1),
+                ?UINT16(_Len2), ?UINT16(?ALCOVE_MSG_STDOUT), ?UINT32(Pid2),
+                ?UINT16(_Len3), ?UINT16(?ALCOVE_MSG_STDOUT), ?UINT32(Pid3),
+                Reply/binary
+                >>}} ->
+            Reply
+    after
+        Timeout ->
+            false
+    end;
+stdout(Port, [Pid0, Pid1, Pid2, Pid3, Pid4], Timeout) ->
+    receive
+        {Port, {data, <<
+                ?UINT16(?ALCOVE_MSG_STDOUT), ?UINT32(Pid0),
+                ?UINT16(_Len1), ?UINT16(?ALCOVE_MSG_STDOUT), ?UINT32(Pid1),
+                ?UINT16(_Len2), ?UINT16(?ALCOVE_MSG_STDOUT), ?UINT32(Pid2),
+                ?UINT16(_Len3), ?UINT16(?ALCOVE_MSG_STDOUT), ?UINT32(Pid3),
+                ?UINT16(_Len4), ?UINT16(?ALCOVE_MSG_STDOUT), ?UINT32(Pid4),
+                Reply/binary
+                >>}} ->
+            Reply
+    after
+        Timeout ->
+            false
+    end.
+
+stderr(Port, [], Timeout) ->
+    receive
+        {Port, {data, <<
+                Reply/binary
+                >>}} ->
+            Reply
+    after
+        Timeout ->
+            false
+    end;
+stderr(Port, [Pid0], Timeout) ->
+    receive
+        {Port, {data, <<
+                ?UINT16(?ALCOVE_MSG_STDERR), ?UINT32(Pid0),
+                Reply/binary
+                >>}} ->
+            Reply
+    after
+        Timeout ->
+            false
+    end;
+stderr(Port, [Pid0, Pid1], Timeout) ->
+    receive
+        {Port, {data, <<
+                ?UINT16(?ALCOVE_MSG_STDERR), ?UINT32(Pid0),
+                ?UINT16(_Len1), ?UINT16(?ALCOVE_MSG_STDERR), ?UINT32(Pid1),
+                Reply/binary
+                >>}} ->
+            Reply
+    after
+        Timeout ->
+            false
+    end;
+stderr(Port, [Pid0, Pid1, Pid2], Timeout) ->
+    receive
+        {Port, {data, <<
+                ?UINT16(?ALCOVE_MSG_STDERR), ?UINT32(Pid0),
+                ?UINT16(_Len1), ?UINT16(?ALCOVE_MSG_STDERR), ?UINT32(Pid1),
+                ?UINT16(_Len2), ?UINT16(?ALCOVE_MSG_STDERR), ?UINT32(Pid2),
+                Reply/binary
+                >>}} ->
+            Reply
+    after
+        Timeout ->
+            false
+    end;
+stderr(Port, [Pid0, Pid1, Pid2, Pid3], Timeout) ->
+    receive
+        {Port, {data, <<
+                ?UINT16(?ALCOVE_MSG_STDERR), ?UINT32(Pid0),
+                ?UINT16(_Len1), ?UINT16(?ALCOVE_MSG_STDERR), ?UINT32(Pid1),
+                ?UINT16(_Len2), ?UINT16(?ALCOVE_MSG_STDERR), ?UINT32(Pid2),
+                ?UINT16(_Len3), ?UINT16(?ALCOVE_MSG_STDERR), ?UINT32(Pid3),
+                Reply/binary
+                >>}} ->
+            Reply
+    after
+        Timeout ->
+            false
+    end;
+stderr(Port, [Pid0, Pid1, Pid2, Pid3, Pid4], Timeout) ->
+    receive
+        {Port, {data, <<
+                ?UINT16(?ALCOVE_MSG_STDERR), ?UINT32(Pid0),
+                ?UINT16(_Len1), ?UINT16(?ALCOVE_MSG_STDERR), ?UINT32(Pid1),
+                ?UINT16(_Len2), ?UINT16(?ALCOVE_MSG_STDERR), ?UINT32(Pid2),
+                ?UINT16(_Len3), ?UINT16(?ALCOVE_MSG_STDERR), ?UINT32(Pid3),
+                ?UINT16(_Len4), ?UINT16(?ALCOVE_MSG_STDERR), ?UINT32(Pid4),
+                Reply/binary
+                >>}} ->
+            Reply
+    after
+        Timeout ->
+            false
+    end.
 
 msg([], Data) ->
     Data;
