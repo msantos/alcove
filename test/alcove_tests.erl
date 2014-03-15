@@ -43,13 +43,11 @@ run(State) ->
         setgid(State),
         setuid(State),
         fork(State),
+        signal(State),
         prctl(State),
         execvp(State),
         stdin(State)
     ].
-
--define(CLONE_NEWPID, 16#20000000).
--define(CLONE_NEWUTS, 16#04000000).
 
 start() ->
     Port = alcove_drv:start([{exec, "sudo"}]),
@@ -190,6 +188,31 @@ fork({_, Port, Child}) ->
     [
         ?_assertEqual(true, is_integer(Reply)),
         ?_assertEqual({error,eagain}, Last)
+    ].
+
+signal({_, Port, _Child}) ->
+    {ok, Child1} = alcove:fork(Port),
+
+    TERM = alcove:signal_define(Port, term),
+
+    SA0 = alcove:sigaction(Port, [Child1], TERM, ign),
+    Kill0 = alcove:kill(Port, Child1, TERM),
+    Pid0 = alcove:getpid(Port, [Child1]),
+
+    SA1 = alcove:sigaction(Port, [Child1], TERM, dfl),
+    Kill1 = alcove:kill(Port, Child1, TERM),
+    timer:sleep(1000),
+    alcove:kill(Port, Child1, 0),
+    Search = alcove:kill(Port, Child1, 0),
+
+    [
+        ?_assertEqual(ok, SA0),
+        ?_assertEqual(ok, Kill0),
+        ?_assertEqual(true, is_integer(Pid0)),
+
+        ?_assertEqual(ok, SA1),
+        ?_assertEqual(ok, Kill1),
+        ?_assertEqual({error,esrch}, Search)
     ].
 
 prctl({linux, Port, _Child}) ->

@@ -15,6 +15,7 @@
 #include "alcove.h"
 
 #include <signal.h>
+#include <sys/select.h>
 #include <sys/wait.h>
 
 #define ALCOVE_MSG_CALL  0
@@ -59,22 +60,20 @@ static int set_pid(alcove_child_t *c, void *arg1, void *arg2);
 static int write_to_pid(alcove_child_t *c, void *arg1, void *arg2);
 static int read_from_pid(alcove_child_t *c, void *arg1, void *arg2);
 
+static int alcove_handle_signal(alcove_state_t *ap);
+
 static void alcove_stats(alcove_state_t *ap);
 static void usage(alcove_state_t *);
 
 extern char *__progname;
 
-static int child_exited = 0;
+u_int64_t sigcaught = 0;
 
     void
 sighandler(int sig)
 {
-    switch (sig) {
-        case SIGCHLD:
-            child_exited = 1;
-            break;
-        default:
-            break;
+    if (sig < sizeof(sigcaught) * 8) {
+        sigcaught ^= (1 << sig);
     }
 }
 
@@ -83,6 +82,7 @@ main(int argc, char *argv[])
 {
     alcove_state_t *ap = NULL;
     int ch = 0;
+    struct sigaction act = {{0}};
 
     ap = calloc(1, sizeof(alcove_state_t));
     if (!ap)
@@ -92,7 +92,9 @@ main(int argc, char *argv[])
     if (!ap->child)
         erl_err_sys("calloc");
 
-    signal(SIGCHLD, sighandler);
+    act.sa_handler = sighandler;
+    if (sigaction(SIGCHLD, &act, NULL) < 0)
+        erl_err_sys("sigaction");
 
     while ( (ch = getopt(argc, argv, "hv")) != -1) {
         switch (ch) {
@@ -119,23 +121,11 @@ alcove_ctl(alcove_state_t *ap)
 
     (void)memset(ap->child, 0, sizeof(alcove_child_t) * ALCOVE_MAX_CHILD);
     ap->nchild = 0;
-    child_exited = 0;
+    sigcaught = 0;
 
     for ( ; ; ) {
-        if (child_exited) {
-            pid_t pid = waitpid(-1, 0, WNOHANG);
-
-            switch (pid) {
-                case -1:
-                    erl_err_sys("waitpid");
-                case 0:
-                    break;
-                default:
-                    (void)pid_foreach(ap, pid, NULL, NULL, pid_equal, exited_pid);
-            }
-
-            child_exited = 0;
-        }
+        if (alcove_handle_signal(ap) < 0)
+            erl_err_sys("alcove_handle_signal");
 
         (void)pid_foreach(ap, 0, ap, NULL, pid_not_equal, free_pid);
 
@@ -503,6 +493,59 @@ read_from_pid(alcove_child_t *c, void *arg1, void *arg2)
 
     return 1;
 }
+
+    static int
+alcove_handle_signal(alcove_state_t *ap) {
+    int signum = 0;
+    ETERM *reply = NULL;
+    int rv = -1;
+
+    if (!sigcaught)
+        return 0;
+
+    for (signum = 0; signum < sizeof(sigcaught) * 8; signum++) {
+        if (!(sigcaught & (1 << signum)))
+            continue;
+
+        if (signum == SIGCHLD) {
+            pid_t pid = 0;
+
+            for ( ; ; ) {
+                errno = 0;
+                pid = waitpid(-1, 0, WNOHANG);
+
+                if (errno == ECHILD || pid == 0)
+                    break;
+
+                if (pid < 0)
+                    return -1;
+
+                (void)pid_foreach(ap, pid, NULL, NULL, pid_equal, exited_pid);
+            }
+        }
+
+        reply = alcove_tuple3(
+                erl_mk_atom("signal"),
+                erl_mk_int(getpid()),
+                erl_mk_int(signum)
+                );
+
+        if (alcove_write(ALCOVE_MSG_CAST, reply) < 0) {
+            erl_free_compound(reply);
+            goto DONE;
+        }
+
+        erl_free_compound(reply);
+
+        sigcaught &= ~(1 << signum);
+    }
+
+    rv = 0;
+
+DONE:
+    return rv;
+}
+
 
     static void
 alcove_stats(alcove_state_t *ap)

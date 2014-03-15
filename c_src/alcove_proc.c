@@ -53,40 +53,6 @@ alcove_getpid(alcove_state_t *ap, ETERM *arg)
 }
 
 /*
- * kill(2)
- *
- */
-    ETERM *
-alcove_kill(alcove_state_t *ap, ETERM *arg)
-{
-    ETERM *hd = NULL;
-    pid_t pid = 0;
-    int sig = 0;
-    int rv = 0;
-
-    /* pid */
-    arg = alcove_list_head(&hd, arg);
-    if (!hd || !ERL_IS_INTEGER(hd))
-        goto BADARG;
-
-    pid = ERL_INT_VALUE(hd);
-
-    /* signal */
-    arg = alcove_list_head(&hd, arg);
-    if (!hd || !ERL_IS_INTEGER(hd))
-        goto BADARG;
-
-    sig = ERL_INT_VALUE(hd);
-
-    rv = kill(pid, sig);
-
-    return (rv < 0 ? alcove_errno(errno) : erl_mk_atom("ok"));
-
-BADARG:
-    return erl_mk_atom("badarg");
-}
-
-/*
  * prctl(2)
  *
  */

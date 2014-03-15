@@ -82,6 +82,8 @@ ETERM *alcove_bin(const char *);
 
 ETERM *alcove_call(alcove_state_t *, u_int32_t, ETERM *);
 
+ETERM *signum_to_atom(int signum);
+
 #define VERBOSE(x, ...) do { \
     if (ap->verbose >= x) { \
         erl_err_msg(__VA_ARGS__); \
