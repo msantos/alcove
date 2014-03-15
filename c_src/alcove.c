@@ -37,13 +37,13 @@ typedef struct {
     u_int16_t len;
     u_int16_t type;
     pid_t pid;
-    unsigned char buf[65535];
+    unsigned char buf[65535 - (sizeof(u_int16_t)*2+sizeof(pid_t))];
 } alcove_msg_stdio_t;
 
 typedef struct {
     u_int16_t len;
     u_int16_t type;
-    unsigned char buf[65535];
+    unsigned char buf[65535 - (sizeof(u_int16_t)*2)];
 } alcove_msg_call_t;
 
 static int alcove_stdin(alcove_state_t *ap);
@@ -51,7 +51,8 @@ static ssize_t alcove_msg_call(alcove_state_t *ap, int fd, u_int16_t len);
 static alcove_msg_t *alcove_msg_read(int fd, u_int16_t len);
 
 static ssize_t alcove_child_stdio(int fdin, pid_t pid, u_int16_t type);
-static ssize_t alcove_write(u_int16_t, ETERM *);
+static ssize_t alcove_send(u_int16_t, ETERM *);
+static ssize_t alcove_write(void *data, size_t len);
 static ssize_t alcove_read(int, void *, ssize_t);
 
 static int exited_pid(alcove_child_t *c, void *arg1, void *arg2);
@@ -250,7 +251,7 @@ alcove_msg_call(alcove_state_t *ap, int fd, u_int16_t len)
     if (!reply)
         goto DONE;
 
-    rv = alcove_write(ALCOVE_MSG_CALL, reply);
+    rv = alcove_send(ALCOVE_MSG_CALL, reply);
 
 DONE:
     free(msg->arg);
@@ -302,7 +303,7 @@ BADARG:
 alcove_child_stdio(int fdin, pid_t pid, u_int16_t type)
 {
     ssize_t n = 0;
-    u_int16_t packet_len = 0;
+    u_int16_t len = 0;
     alcove_msg_stdio_t msg = {0};
 
     errno = 0;
@@ -315,47 +316,49 @@ alcove_child_stdio(int fdin, pid_t pid, u_int16_t type)
         return -1;
     }
 
-    msg.len = htons(sizeof(type)+sizeof(pid)+n);
+    len = sizeof(type) + sizeof(pid) + n;
 
+    msg.len = htons(len);
     msg.type = type;
     msg.pid = htonl(pid);
 
-    packet_len = sizeof(msg.len) + sizeof(msg.type) + sizeof(msg.pid) + n;
-
-    flockfile(stdout);
-    n = write(STDOUT_FILENO, &msg, packet_len);
-    funlockfile(stdout);
-
-    return (n == packet_len ? n : -1);
+    return alcove_write(&msg, sizeof(msg.len)+len);
 }
 
     static ssize_t
-alcove_write(u_int16_t type, ETERM *t)
+alcove_send(u_int16_t type, ETERM *t)
 {
-    ssize_t n = 0;
     int term_len = 0;
-    u_int16_t packet_len = 0;
+    u_int16_t len = 0;
     alcove_msg_call_t msg = {0};
 
     term_len = erl_term_len(t);
-    if (term_len < 0 || term_len+sizeof(msg.len)+sizeof(msg.type) >= UINT16_MAX)
+    len = sizeof(msg.type) + term_len;
+
+    if (term_len < 0 || len > sizeof(msg.buf))
         goto ERR;
 
-    msg.len = htons(term_len+sizeof(msg.type));
+    msg.len = htons(len);
 
     if (erl_encode(t, msg.buf) < 1)
         goto ERR;
 
-    packet_len = sizeof(msg.len) + sizeof(msg.type) + term_len;
-
-    flockfile(stdout);
-    n = write(STDOUT_FILENO, &msg, packet_len);
-    funlockfile(stdout);
-
-    return (n == packet_len ? n : -1);
+    return alcove_write(&msg, sizeof(msg.len)+len);
 
 ERR:
     return -1;
+}
+
+    static ssize_t
+alcove_write(void *data, size_t len)
+{
+    ssize_t n = 0;
+
+    flockfile(stdout);
+    n = write(STDOUT_FILENO, data, len);
+    funlockfile(stdout);
+
+    return (n == len ? n : -1);
 }
 
     static ssize_t
@@ -524,13 +527,12 @@ alcove_handle_signal(alcove_state_t *ap) {
             }
         }
 
-        reply = alcove_tuple3(
+        reply = alcove_tuple2(
                 erl_mk_atom("signal"),
-                erl_mk_int(getpid()),
                 erl_mk_int(signum)
                 );
 
-        if (alcove_write(ALCOVE_MSG_EVENT, reply) < 0) {
+        if (alcove_send(ALCOVE_MSG_EVENT, reply) < 0) {
             erl_free_compound(reply);
             goto DONE;
         }
