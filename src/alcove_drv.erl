@@ -16,7 +16,7 @@
 
 %% API
 -export([start/0, start/1, stop/1]).
--export([call/2, call/3, cast/2, encode/2, encode/3]).
+-export([call/2, call/3, call/4, cast/2, encode/2, encode/3, event/3, event/4]).
 -export([msg/2, msg/3]).
 -export([getopts/1]).
 
@@ -35,16 +35,89 @@ start(Options) ->
     | {'ok', binary() | non_neg_integer() | #rlimit{} | 'unsupported'} | {'error', file:posix()}
     | {'ok',integer(),prctl_val(), prctl_val(), prctl_val(), prctl_val()}.
 call(Port, Data) ->
-    call(Port, Data, 5000).
+    call(Port, [], Data, 5000).
+
+call(Port, Pids, Data) ->
+    call(Port, Pids, Data, 5000).
 
 -spec call(port(),iodata(),'infinity' | non_neg_integer()) -> any().
-call(Port, Data, Timeout) ->
+call(Port, Pids, Data, Timeout) ->
     true = send(Port, Data, iolist_size(Data)),
+    event(Port, Pids, ?ALCOVE_MSG_CALL, Timeout).
+
+event(Port, Pids, Type) ->
+    event(Port, Pids, Type, 5000).
+
+event(Port, Pids, Type, Timeout) when is_atom(Type) ->
+    event(Port, Pids, atom_to_type(Type), Timeout);
+event(Port, [], Type, Timeout) ->
     receive
-        {Port, {data, <<?UINT16(?ALCOVE_MSG_CALL), Reply/binary>>}} ->
-            binary_to_term(Reply);
-        % XXX ignore the PID
-        {Port, {data, <<?UINT16(?ALCOVE_MSG_STDOUT), ?UINT32(_Pid), ?UINT16(Len), ?UINT16(?ALCOVE_MSG_CALL), Reply/binary>>}} when Len =:= 2 + byte_size(Reply) ->
+        {Port, {data, <<?UINT16(Type), Reply/binary>>}} ->
+            binary_to_term(Reply)
+    after
+        Timeout ->
+            {error,timedout}
+    end;
+event(Port, [Pid0], Type, Timeout) ->
+    receive
+        {Port, {data, <<
+                ?UINT16(?ALCOVE_MSG_STDOUT), ?UINT32(Pid0),
+                ?UINT16(Len), ?UINT16(Type), Reply/binary
+                >>}} when Len =:= 2 + byte_size(Reply) ->
+            binary_to_term(Reply)
+    after
+        Timeout ->
+            {error,timedout}
+    end;
+event(Port, [Pid0, Pid1], Type, Timeout) ->
+    receive
+        {Port, {data, <<
+                ?UINT16(?ALCOVE_MSG_STDOUT), ?UINT32(Pid0),
+                ?UINT16(_Len1), ?UINT16(?ALCOVE_MSG_STDOUT), ?UINT32(Pid1),
+                ?UINT16(Len), ?UINT16(Type), Reply/binary
+                >>}} when Len =:= 2 + byte_size(Reply) ->
+            binary_to_term(Reply)
+    after
+        Timeout ->
+            {error,timedout}
+    end;
+event(Port, [Pid0, Pid1, Pid2], Type, Timeout) ->
+    receive
+        {Port, {data, <<
+                ?UINT16(?ALCOVE_MSG_STDOUT), ?UINT32(Pid0),
+                ?UINT16(_Len1), ?UINT16(?ALCOVE_MSG_STDOUT), ?UINT32(Pid1),
+                ?UINT16(_Len2), ?UINT16(?ALCOVE_MSG_STDOUT), ?UINT32(Pid2),
+                ?UINT16(Len), ?UINT16(Type), Reply/binary
+                >>}} when Len =:= 2 + byte_size(Reply) ->
+            binary_to_term(Reply)
+    after
+        Timeout ->
+            {error,timedout}
+    end;
+event(Port, [Pid0, Pid1, Pid2, Pid3], Type, Timeout) ->
+    receive
+        {Port, {data, <<
+                ?UINT16(?ALCOVE_MSG_STDOUT), ?UINT32(Pid0),
+                ?UINT16(_Len1), ?UINT16(?ALCOVE_MSG_STDOUT), ?UINT32(Pid1),
+                ?UINT16(_Len2), ?UINT16(?ALCOVE_MSG_STDOUT), ?UINT32(Pid2),
+                ?UINT16(_Len3), ?UINT16(?ALCOVE_MSG_STDOUT), ?UINT32(Pid3),
+                ?UINT16(Len), ?UINT16(Type), Reply/binary
+                >>}} when Len =:= 2 + byte_size(Reply) ->
+            binary_to_term(Reply)
+    after
+        Timeout ->
+            {error,timedout}
+    end;
+event(Port, [Pid0, Pid1, Pid2, Pid3, Pid4], Type, Timeout) ->
+    receive
+        {Port, {data, <<
+                ?UINT16(?ALCOVE_MSG_STDOUT), ?UINT32(Pid0),
+                ?UINT16(_Len1), ?UINT16(?ALCOVE_MSG_STDOUT), ?UINT32(Pid1),
+                ?UINT16(_Len2), ?UINT16(?ALCOVE_MSG_STDOUT), ?UINT32(Pid2),
+                ?UINT16(_Len3), ?UINT16(?ALCOVE_MSG_STDOUT), ?UINT32(Pid3),
+                ?UINT16(_Len4), ?UINT16(?ALCOVE_MSG_STDOUT), ?UINT32(Pid4),
+                ?UINT16(Len), ?UINT16(Type), Reply/binary
+                >>}} when Len =:= 2 + byte_size(Reply) ->
             binary_to_term(Reply)
     after
         Timeout ->
@@ -124,11 +197,11 @@ find_executable(Exe) ->
             N
     end.
 
-type_to_atom(?ALCOVE_MSG_CALL) -> call;
-type_to_atom(?ALCOVE_MSG_EVENT) -> event;
-%type_to_atom(?ALCOVE_MSG_STDIN) -> stdin;
-type_to_atom(?ALCOVE_MSG_STDOUT) -> stdout;
-type_to_atom(?ALCOVE_MSG_STDERR) -> stderr.
+atom_to_type(call) -> ?ALCOVE_MSG_CALL;
+atom_to_type(event) -> ?ALCOVE_MSG_EVENT;
+atom_to_type(stdin) -> ?ALCOVE_MSG_STDIN;
+atom_to_type(stdout) -> ?ALCOVE_MSG_STDOUT;
+atom_to_type(stderr) -> ?ALCOVE_MSG_STDERR.
 
 basedir(Module) ->
     case code:priv_dir(Module) of

@@ -269,7 +269,7 @@ call(Port, Pids, execvp, Arg) when is_port(Port), is_list(Arg) ->
     alcove_drv:cast(Port, encode(execvp, Pids, Arg)),
     ok;
 call(Port, Pids, Command, Arg) when is_port(Port), is_list(Arg) ->
-    case alcove_drv:call(Port, encode(Command, Pids, Arg)) of
+    case alcove_drv:call(Port, Pids, encode(Command, Pids, Arg)) of
         badarg ->
             erlang:error(badarg, [Port, Command, Arg]);
         Reply ->

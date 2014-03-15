@@ -339,6 +339,7 @@ alcove_send(u_int16_t type, ETERM *t)
         goto ERR;
 
     msg.len = htons(len);
+    msg.type = type;
 
     if (erl_encode(t, msg.buf) < 1)
         goto ERR;
