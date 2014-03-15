@@ -16,7 +16,7 @@
 
 %% API
 -export([start/0, start/1, stop/1]).
--export([call/2, call/3, cast/2, encode/2, encode/3, event/1, event/2]).
+-export([call/2, call/3, cast/2, encode/2, encode/3]).
 -export([msg/2, msg/3]).
 -export([getopts/1]).
 
@@ -58,22 +58,6 @@ cast(Port, Data) ->
 -spec send(port(),iodata(),pos_integer()) -> any().
 send(Port, Data, Size) when is_port(Port), Size < 16#ffff ->
     erlang:port_command(Port, Data).
-
-event(Port) when is_port(Port) ->
-    event(Port, 0).
-
-event(Port, Timeout) when is_port(Port) ->
-    receive
-        {Port, {data, <<?UINT16(Type), Reply/binary>>}} when
-            Type =:= ?ALCOVE_MSG_CALL;
-            Type =:= ?ALCOVE_MSG_CAST;
-            Type =:= ?ALCOVE_MSG_STDOUT;
-            Type =:= ?ALCOVE_MSG_STDERR ->
-                {type_to_atom(Type), binary_to_term(Reply)}
-    after
-        Timeout ->
-            false
-    end.
 
 msg([], Data) ->
     Data;
@@ -141,7 +125,7 @@ find_executable(Exe) ->
     end.
 
 type_to_atom(?ALCOVE_MSG_CALL) -> call;
-type_to_atom(?ALCOVE_MSG_CAST) -> cast;
+type_to_atom(?ALCOVE_MSG_EVENT) -> event;
 %type_to_atom(?ALCOVE_MSG_STDIN) -> stdin;
 type_to_atom(?ALCOVE_MSG_STDOUT) -> stdout;
 type_to_atom(?ALCOVE_MSG_STDERR) -> stderr.

@@ -19,7 +19,7 @@
 #include <sys/wait.h>
 
 #define ALCOVE_MSG_CALL  0
-#define ALCOVE_MSG_CAST (htons(1))
+#define ALCOVE_MSG_EVENT (htons(1))
 #define ALCOVE_MSG_STDIN (htons(2))
 #define ALCOVE_MSG_STDOUT (htons(3))
 #define ALCOVE_MSG_STDERR (htons(4))
@@ -530,7 +530,7 @@ alcove_handle_signal(alcove_state_t *ap) {
                 erl_mk_int(signum)
                 );
 
-        if (alcove_write(ALCOVE_MSG_CAST, reply) < 0) {
+        if (alcove_write(ALCOVE_MSG_EVENT, reply) < 0) {
             erl_free_compound(reply);
             goto DONE;
         }
