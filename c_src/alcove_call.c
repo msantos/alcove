@@ -26,6 +26,8 @@
 
 #include <sys/types.h>
 
+static int cons_pid(alcove_child_t *c, void *arg1, void *arg2);
+
     ETERM *
 alcove_call(alcove_state_t *ap, u_int32_t call, ETERM *arg)
 {
@@ -52,15 +54,7 @@ alcove_version(alcove_state_t *ap, ETERM *arg)
 alcove_pid(alcove_state_t *ap, ETERM *arg)
 {
     ETERM *t = erl_mk_empty_list();
-    int i = 0;
-
-    for (i = 0; i < ALCOVE_MAX_CHILD; i++) {
-        if (ap->child[i].pid <= 0)
-            continue;
-
-        t = erl_cons(erl_mk_int(ap->child[i].pid), t);
-    }
-
+    (void)pid_foreach(ap, 0, &t, NULL, pid_not_equal, cons_pid);
     return t;
 }
 
@@ -113,4 +107,12 @@ alcove_free_argv(char **argv)
         free(argv[i]);
 
     free(argv);
+}
+
+    static int
+cons_pid(alcove_child_t *c, void *arg1, void *arg2)
+{
+    ETERM **t = arg1;
+    *t = erl_cons(erl_mk_int(c->pid), *t);
+    return 1;
 }

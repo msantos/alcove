@@ -88,16 +88,21 @@ main(int argc, char *argv[])
     if (!ap)
         erl_err_sys("calloc");
 
-    ap->child = calloc(ALCOVE_MAX_CHILD, sizeof(alcove_child_t));
-    if (!ap->child)
-        erl_err_sys("calloc");
-
     act.sa_handler = sighandler;
     if (sigaction(SIGCHLD, &act, NULL) < 0)
         erl_err_sys("sigaction");
 
-    while ( (ch = getopt(argc, argv, "hv")) != -1) {
+    /* 3 pipes per child */
+    ap->maxchild = FD_SETSIZE / 3 - 3;
+
+    while ( (ch = getopt(argc, argv, "am:hv")) != -1) {
         switch (ch) {
+            case 'm': {
+                u_int16_t n = (u_int16_t)atoi(optarg);
+
+                if (n < ap->maxchild)
+                    ap->maxchild = n;
+            }
             case 'v':
                 ap->verbose++;
                 break;
@@ -106,6 +111,10 @@ main(int argc, char *argv[])
                 usage(ap);
         }
     }
+
+    ap->child = calloc(ap->maxchild, sizeof(alcove_child_t));
+    if (!ap->child)
+        erl_err_sys("calloc");
 
     alcove_ctl(ap);
     exit(0);
@@ -119,7 +128,7 @@ alcove_ctl(alcove_state_t *ap)
 
     erl_init(NULL, 0);
 
-    (void)memset(ap->child, 0, sizeof(alcove_child_t) * ALCOVE_MAX_CHILD);
+    (void)memset(ap->child, 0, sizeof(alcove_child_t) * ap->maxchild);
     sigcaught = 0;
 
     for ( ; ; ) {
@@ -380,7 +389,7 @@ pid_foreach(alcove_state_t *ap, pid_t pid, void *arg1, void *arg2,
     int i = 0;
     int rv = 0;
 
-    for (i = 0; i < ALCOVE_MAX_CHILD; i++) {
+    for (i = 0; i < ap->maxchild; i++) {
         if ((*comp)(ap->child[i].pid, pid) == 0)
             continue;
 
@@ -555,6 +564,7 @@ usage(alcove_state_t *ap)
             __progname, ALCOVE_VERSION);
     (void)fprintf(stderr,
             "usage: %s <options>\n"
+            "   -m <num>        max children\n"
             "   -v              verbose mode\n",
             __progname
             );

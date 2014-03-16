@@ -325,25 +325,21 @@ getopts(Options) when is_list(Options) ->
     Exec = proplists:get_value(exec, Options, ""),
     Progname = proplists:get_value(progname, Options, progname()),
 
-    Options1 = proplists:substitute_aliases([{ns, namespace}], Options),
-
-    Options2 = lists:map(fun
+    Options1 = lists:map(fun
                     (verbose) ->
                         {verbose, 1};
-                    ({Tag, [H|_] = N}) when is_atom(Tag), (is_list(H) orelse is_binary(H)) ->
-                        [{Tag, X} || X <- N];
                     (N) when is_atom(N) ->
                         {N, true};
                     ({_,_} = N) ->
                         N
-                end, Options1),
+                end, Options),
 
-    Switches = lists:append([ optarg(N) || N <- lists:flatten(Options2) ]),
+    Switches = lists:append([ optarg(N) || N <- Options1 ]),
     [Cmd|Argv] = [ N || N <- string:tokens(Exec, " ") ++ [Progname|Switches], N /= ""],
     [find_executable(Cmd)|Argv].
 
 optarg({verbose, Arg})          -> switch(string:copies("v", Arg));
-optarg({namespace, Arg})        -> switch("n", Arg);
+optarg({maxchild, Arg})         -> switch("m", Arg);
 optarg(_)                       -> "".
 
 switch(Switch) ->
@@ -352,7 +348,7 @@ switch(Switch) ->
 switch(Switch, Arg) when is_binary(Arg) ->
     switch(Switch, binary_to_list(Arg));
 switch(Switch, Arg) ->
-    [lists:concat(["-", Switch]), Arg].
+    [lists:concat(["-", Switch, " ", Arg])].
 
 find_executable(Exe) ->
     case os:find_executable(Exe) of
