@@ -271,10 +271,17 @@ stdout({_, Port, Child}) ->
         ?_assertEqual(<<"0123456789\n">>, Stdout)
     ].
 
-stderr({_, Port, Child}) ->
+stderr({{unix,linux}, Port, Child}) ->
     Reply = alcove:stdin(Port, [Child], "nonexistent 0123456789\n"),
     Stderr = alcove:stderr(Port, [Child], 5000),
     [
         ?_assertEqual(true, Reply),
-        ?_assertEqual(<<"sh: nonexistent: not found\n">>, Stderr)
+        ?_assertMatch(<<"sh: ", _/binary>>, Stderr)
+    ];
+stderr({{unix,freebsd}, Port, Child}) ->
+    Reply = alcove:stdin(Port, [Child], "nonexistent 0123456789\n"),
+    Stderr = alcove:stderr(Port, [Child], 5000),
+    [
+        ?_assertEqual(true, Reply),
+        ?_assertEqual(<<"nonexistent: not found\n">>, Stderr)
     ].
