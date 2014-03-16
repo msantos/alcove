@@ -18,7 +18,7 @@
 -export([start/0, start/1, stop/1]).
 -export([call/2, call/3, call/4, cast/2, encode/2, encode/3]).
 -export([stdin/3, stdout/3, stderr/3, event/4]).
--export([msg/2, msg/3]).
+-export([msg/2]).
 -export([getopts/1]).
 
 -type prctl_val() :: binary() | non_neg_integer().
@@ -130,8 +130,10 @@ event(Port, [Pid0, Pid1, Pid2, Pid3, Pid4], Type, Timeout) ->
             {error,timedout}
     end.
 
+stdin(Port, [], Data) ->
+    cast(Port, Data);
 stdin(Port, Pids, Data) ->
-    Stdin = msg(Pids, Data),
+    Stdin = hdr(lists:reverse(Pids), [Data]),
     cast(Port, Stdin).
 
 stdout(Port, [], Timeout) ->
@@ -290,13 +292,13 @@ msg([], Data) ->
     Data;
 msg(Pids, Data) ->
     Size = iolist_size(Data),
-    msg(lists:reverse(Pids), Data, [<<?UINT16(Size)>>, Data]).
+    hdr(lists:reverse(Pids), [<<?UINT16(Size)>>, Data]).
 
-msg([], _Data, [_Length|Acc]) ->
+hdr([], [_Length|Acc]) ->
     Acc;
-msg([Pid|Pids], Data, Acc) ->
+hdr([Pid|Pids], Acc) ->
     Size = iolist_size(Acc) + 2 + 4,
-    msg(Pids, Data, [<<?UINT16(Size)>>, <<?UINT16(?ALCOVE_MSG_STDIN)>>, <<?UINT32(Pid)>>|Acc]).
+    hdr(Pids, [<<?UINT16(Size)>>, <<?UINT16(?ALCOVE_MSG_STDIN)>>, <<?UINT32(Pid)>>|Acc]).
 
 encode(Command, Arg) when is_integer(Command), is_list(Arg) ->
     encode(?ALCOVE_MSG_CALL, Command, Arg).

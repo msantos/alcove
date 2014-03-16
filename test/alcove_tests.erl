@@ -46,7 +46,8 @@ run(State) ->
         signal(State),
         prctl(State),
         execvp(State),
-        stdin(State)
+        stdout(State),
+        stderr(State)
     ].
 
 start() ->
@@ -255,25 +256,25 @@ prctl({_, _Port, _Child}) ->
 
 execvp({{unix,linux}, Port, Child}) ->
     % cwd = /, chroot'ed in /bin
-    Reply = alcove:execvp(Port, [Child], "/busybox", ["/busybox", "sh", "-i"]),
-    Stderr = alcove:stderr(Port, [Child], 5000),
-    [
-        ?_assertEqual(ok, Reply),
-        ?_assertNotEqual(false, Stderr)
-    ];
+    Reply = alcove:execvp(Port, [Child], "/busybox", ["/busybox", "sh"]),
+    ?_assertEqual(ok, Reply);
 execvp({{unix,freebsd}, Port, Child}) ->
-    % cwd = /, chroot'ed in /bin
-    Reply = alcove:execvp(Port, [Child], "/sh", ["/sh", "-i"]),
-    Stderr = alcove:stderr(Port, [Child], 5000),
-    [
-        ?_assertEqual(ok, Reply),
-        ?_assertNotEqual(false, Stderr)
-    ].
+    % cwd = /, chroot'ed in /rescue
+    Reply = alcove:execvp(Port, [Child], "/sh", ["/sh"]),
+    ?_assertEqual(ok, Reply).
 
-stdin({_, Port, Child}) ->
-    Reply = alcove:stdin(Port, [Child], "echo alcove\n"),
+stdout({_, Port, Child}) ->
+    Reply = alcove:stdin(Port, [Child], "echo 0123456789\n"),
     Stdout = alcove:stdout(Port, [Child], 5000),
     [
         ?_assertEqual(true, Reply),
-        ?_assertNotEqual(false, Stdout)
+        ?_assertEqual(<<"0123456789\n">>, Stdout)
+    ].
+
+stderr({_, Port, Child}) ->
+    Reply = alcove:stdin(Port, [Child], "nonexistent 0123456789\n"),
+    Stderr = alcove:stderr(Port, [Child], 5000),
+    [
+        ?_assertEqual(true, Reply),
+        ?_assertEqual(<<"sh: nonexistent: not found\n">>, Stderr)
     ].
