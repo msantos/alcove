@@ -247,7 +247,7 @@ event(Port, Pids, Type) ->
 static({event,4}) ->
 "
 event(Port, Pids, Type, Timeout) ->
-    event(Port, Pids, Type, Timeout).
+    alcove_drv:event(Port, Pids, Type, Timeout).
 ";
 
 static({encode,3}) ->
@@ -376,6 +376,12 @@ specs() ->
 
 -spec setuid(port(),non_neg_integer()) -> 'ok' | {'error', file:posix()}.
 -spec setuid(port(),list(integer()),non_neg_integer()) -> 'ok' | {'error', file:posix()}.
+
+-spec sigaction(port(),integer(),atom()) -> 'ok' | {'error', file:posix()}.
+-spec sigaction(port(),[integer()],integer(),atom()) -> 'ok' | {'error', file:posix()}.
+
+-spec signal_define(port(),atom()) -> 'false' | non_neg_integer().
+-spec signal_define(port(),[integer()],atom()) -> 'false' | non_neg_integer().
 
 -spec stderr(port(),list(integer()),'infinity' | non_neg_integer()) -> 'false' | binary().
 -spec stdin(port(),list(integer()),iodata()) -> 'true'.

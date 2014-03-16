@@ -21,7 +21,13 @@
 -export([msg/2]).
 -export([getopts/1]).
 
+-export_type([reply/0]).
+
 -type prctl_val() :: binary() | non_neg_integer().
+
+-type reply() :: 'badarg' | boolean() | binary() | non_neg_integer() | [integer()] | 'ok'
+    | {'ok', binary() | non_neg_integer() | #rlimit{} | 'unsupported'} | {'error', file:posix()}
+    | {'ok',integer(),prctl_val(), prctl_val(), prctl_val(), prctl_val()}.
 
 -spec start() -> port().
 start() ->
@@ -32,16 +38,15 @@ start(Options) ->
     [Cmd|Argv] = getopts(Options),
     open_port({spawn_executable, Cmd}, [{args, Argv}, {packet, 2}, binary]).
 
--spec call(port(),iodata()) -> 'badarg' | boolean() | binary() | non_neg_integer() | [integer()] | 'ok'
-    | {'ok', binary() | non_neg_integer() | #rlimit{} | 'unsupported'} | {'error', file:posix()}
-    | {'ok',integer(),prctl_val(), prctl_val(), prctl_val(), prctl_val()}.
+-spec call(port(),iodata()) -> reply().
 call(Port, Data) ->
     call(Port, [], Data, 5000).
 
+-spec call(port(),[integer()],iodata()) -> reply().
 call(Port, Pids, Data) ->
     call(Port, Pids, Data, 5000).
 
--spec call(port(),iodata(),'infinity' | non_neg_integer()) -> any().
+-spec call(port(),[integer()],iodata(),'infinity' | non_neg_integer()) -> reply().
 call(Port, Pids, Data, Timeout) ->
     true = send(Port, Data, iolist_size(Data)),
     event(Port, Pids, ?ALCOVE_MSG_CALL, Timeout).
@@ -54,6 +59,7 @@ cast(Port, Data) ->
 send(Port, Data, Size) when is_port(Port), Size < 16#ffff ->
     erlang:port_command(Port, Data).
 
+-spec event(port(),[integer()],non_neg_integer(),'infinity' | non_neg_integer()) -> reply().
 event(Port, Pids, Type, Timeout) when is_atom(Type) ->
     event(Port, Pids, atom_to_type(Type), Timeout);
 event(Port, [], Type, Timeout) ->
@@ -62,7 +68,7 @@ event(Port, [], Type, Timeout) ->
             binary_to_term(Reply)
     after
         Timeout ->
-            {error,timedout}
+            false
     end;
 event(Port, [Pid0], Type, Timeout) ->
     receive
@@ -73,7 +79,7 @@ event(Port, [Pid0], Type, Timeout) ->
             binary_to_term(Reply)
     after
         Timeout ->
-            {error,timedout}
+            false
     end;
 event(Port, [Pid0, Pid1], Type, Timeout) ->
     receive
@@ -85,7 +91,7 @@ event(Port, [Pid0, Pid1], Type, Timeout) ->
             binary_to_term(Reply)
     after
         Timeout ->
-            {error,timedout}
+            false
     end;
 event(Port, [Pid0, Pid1, Pid2], Type, Timeout) ->
     receive
@@ -98,7 +104,7 @@ event(Port, [Pid0, Pid1, Pid2], Type, Timeout) ->
             binary_to_term(Reply)
     after
         Timeout ->
-            {error,timedout}
+            false
     end;
 event(Port, [Pid0, Pid1, Pid2, Pid3], Type, Timeout) ->
     receive
@@ -112,7 +118,7 @@ event(Port, [Pid0, Pid1, Pid2, Pid3], Type, Timeout) ->
             binary_to_term(Reply)
     after
         Timeout ->
-            {error,timedout}
+            false
     end;
 event(Port, [Pid0, Pid1, Pid2, Pid3, Pid4], Type, Timeout) ->
     receive
@@ -127,15 +133,17 @@ event(Port, [Pid0, Pid1, Pid2, Pid3, Pid4], Type, Timeout) ->
             binary_to_term(Reply)
     after
         Timeout ->
-            {error,timedout}
+            false
     end.
 
+-spec stdin(port(),[integer()],iodata()) -> 'true'.
 stdin(Port, [], Data) ->
     cast(Port, Data);
 stdin(Port, Pids, Data) ->
     Stdin = hdr(lists:reverse(Pids), [Data]),
     cast(Port, Stdin).
 
+-spec stdout(port(),[integer()],'infinity' | non_neg_integer()) -> 'false' | binary().
 stdout(Port, [], Timeout) ->
     receive
         {Port, {data, <<
@@ -212,6 +220,7 @@ stdout(Port, [Pid0, Pid1, Pid2, Pid3, Pid4], Timeout) ->
             false
     end.
 
+-spec stderr(port(),[integer()],'infinity' | non_neg_integer()) -> 'false' | binary().
 stderr(Port, [], Timeout) ->
     receive
         {Port, {data, <<
