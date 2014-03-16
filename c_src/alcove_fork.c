@@ -39,6 +39,7 @@ static int alcove_stdio(alcove_fd_t *fd);
 static void alcove_close_pipe(int fd[2]);
 static int alcove_child_fun(void *arg);
 static int alcove_parent_fd(alcove_state_t *ap, alcove_fd_t *fd, pid_t pid);
+static int avail_pid(alcove_child_t *c, void *arg1, void *arg2);
 static int stdio_pid(alcove_child_t *c, void *arg1, void *arg2);
 
 /*
@@ -52,7 +53,7 @@ alcove_fork(alcove_state_t *ap, ETERM *arg)
     alcove_fd_t fd = {{0}};
     pid_t pid = 0;
 
-    if (ap->nchild >= ALCOVE_MAX_CHILD - 1)
+    if (pid_foreach(ap, 0, NULL, NULL, pid_equal, avail_pid) != 0)
         return alcove_errno(EAGAIN);
 
     if (alcove_stdio(&fd) < 0)
@@ -93,7 +94,7 @@ alcove_clone(alcove_state_t *ap, ETERM *arg)
     int flags = 0;
     pid_t pid = 0;
 
-    if (ap->nchild >= ALCOVE_MAX_CHILD - 1)
+    if (pid_foreach(ap, 0, NULL, NULL, pid_equal, avail_pid) != 0)
         return alcove_errno(EAGAIN);
 
     /* flags */
@@ -311,9 +312,17 @@ alcove_parent_fd(alcove_state_t *ap, alcove_fd_t *fd, pid_t pid)
             (close(fd->err[PIPE_WRITE]) < 0))
         erl_err_sys("alcove_parent_fd:close");
 
-    ap->nchild++;
-
     return pid_foreach(ap, 0, fd, &pid, pid_equal, stdio_pid);
+}
+
+    static int
+avail_pid(alcove_child_t *c, void *arg1, void *arg2)
+{
+    /* slot found */
+    if (c->pid == 0)
+        return 0;
+
+    return 1;
 }
 
     static int

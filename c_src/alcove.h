@@ -52,7 +52,6 @@ typedef struct {
     u_int32_t opt;
     u_int8_t verbose;
     alcove_child_t *child;
-    u_int32_t nchild;
 } alcove_state_t;
 
 typedef struct {

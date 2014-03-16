@@ -56,7 +56,6 @@ static ssize_t alcove_write(void *data, size_t len);
 static ssize_t alcove_read(int, void *, ssize_t);
 
 static int exited_pid(alcove_child_t *c, void *arg1, void *arg2);
-static int free_pid(alcove_child_t *c, void *arg1, void *arg2);
 static int set_pid(alcove_child_t *c, void *arg1, void *arg2);
 static int write_to_pid(alcove_child_t *c, void *arg1, void *arg2);
 static int read_from_pid(alcove_child_t *c, void *arg1, void *arg2);
@@ -121,14 +120,11 @@ alcove_ctl(alcove_state_t *ap)
     erl_init(NULL, 0);
 
     (void)memset(ap->child, 0, sizeof(alcove_child_t) * ALCOVE_MAX_CHILD);
-    ap->nchild = 0;
     sigcaught = 0;
 
     for ( ; ; ) {
         if (alcove_handle_signal(ap) < 0)
             erl_err_sys("alcove_handle_signal");
-
-        (void)pid_foreach(ap, 0, ap, NULL, pid_not_equal, free_pid);
 
         FD_ZERO(&rfds);
         FD_SET(STDIN_FILENO, &rfds);
@@ -419,20 +415,6 @@ exited_pid(alcove_child_t *c, void *arg1, void *arg2)
 }
 
     static int
-free_pid(alcove_child_t *c, void *arg1, void *arg2)
-{
-    alcove_state_t *ap = arg1;
-
-    if (c->exited && c->fdout == -1 && c->fderr == -1) {
-            c->pid = 0;
-            c->exited = 0;
-            ap->nchild--;
-    }
-
-    return 1;
-}
-
-    static int
 set_pid(alcove_child_t *c, void *arg1, void *arg2)
 {
     fd_set *rfds = arg1;
@@ -446,6 +428,11 @@ set_pid(alcove_child_t *c, void *arg1, void *arg2)
     if (c->fderr > -1) {
         FD_SET(c->fderr, rfds);
         *fdmax = MAX(*fdmax, c->fderr);
+    }
+
+    if (c->exited && c->fdout == -1 && c->fderr == -1) {
+        c->pid = 0;
+        c->exited = 0;
     }
 
     return 1;

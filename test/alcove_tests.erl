@@ -184,11 +184,23 @@ setuid({_, Port, Child}) ->
 fork({_, Port, Child}) ->
     Pids = [ alcove:fork(Port, [Child]) || _ <- lists:seq(1, 32) ],
     [Last|_Rest] = lists:reverse(Pids),
-    Reply = alcove:getpid(Port, [Child]),
+    Reply0 = alcove:getpid(Port, [Child]),
+
+    [{ok, Child0}|_] = [ N || N <- Pids, N =/= {error,eagain} ],
+    ok = alcove:kill(Port, [Child], Child0, 15),
+    waitpid(Port, [Child], Child0),
+    Reply1 = alcove:fork(Port, [Child]),
+    Reply2 = alcove:fork(Port, [Child]),
+
+    % XXX discard output from killed process
+    flush(stdout, Port, [Child]),
 
     [
-        ?_assertEqual(true, is_integer(Reply)),
-        ?_assertEqual({error,eagain}, Last)
+        ?_assertEqual(true, is_integer(Reply0)),
+        ?_assertEqual({error,eagain}, Last),
+
+        ?_assertMatch({ok, _}, Reply1),
+        ?_assertEqual({error,eagain}, Reply2)
     ].
 
 signal({_, Port, _Child}) ->
@@ -202,7 +214,7 @@ signal({_, Port, _Child}) ->
 
     SA1 = alcove:sigaction(Port, [Child1], TERM, dfl),
     Kill1 = alcove:kill(Port, Child1, TERM),
-    timer:sleep(1000),
+    waitpid(Port, [], Child1),
     alcove:kill(Port, Child1, 0),
     Search = alcove:kill(Port, Child1, 0),
 
@@ -254,6 +266,7 @@ prctl({linux, Port, _Child}) ->
 prctl({_, _Port, _Child}) ->
     ?_assertEqual(ok,ok).
 
+
 execvp({{unix,linux}, Port, Child}) ->
     % cwd = /, chroot'ed in /bin
     Reply = alcove:execvp(Port, [Child], "/busybox", ["/busybox", "sh"]),
@@ -285,3 +298,20 @@ stderr({{unix,freebsd}, Port, Child}) ->
         ?_assertEqual(true, Reply),
         ?_assertEqual(<<"nonexistent: not found\n">>, Stderr)
     ].
+
+waitpid(Port, Pids, Child) ->
+    case alcove:kill(Port, Pids, Child, 0) of
+        ok ->
+            timer:sleep(10),
+            waitpid(Port, Pids, Child);
+        {error,esrch} ->
+            ok
+    end.
+
+flush(stdout, Port, Pids) ->
+    case alcove:stdout(Port, Pids) of
+        false ->
+            ok;
+        _ ->
+            flush(stdout, Port, Pids)
+    end.
