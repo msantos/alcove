@@ -99,19 +99,19 @@ event_1(Port, [], Type, Timeout) ->
 event_1(Port, [Pid0] = Pids, Type, Timeout) ->
     receive
         {Port, {data, <<
-                ?UINT16(?ALCOVE_MSG_STDOUT), ?UINT32(Pid0),
+                ?ALCOVE_HDR(?ALCOVE_MSG_STDOUT, Pid0),
                 ?UINT16(Len), ?UINT16(Type), Reply/binary
             >>}} when Len =:= 2 + byte_size(Reply) ->
             binary_to_term(Reply);
         {Port, {data, <<
-                ?UINT16(?ALCOVE_MSG_STDOUT), ?UINT32(Pid0),
+                ?ALCOVE_HDR(?ALCOVE_MSG_STDOUT, Pid0),
                 ?UINT16(Len), ?UINT16(Type1), Reply/binary
             >>}} when Len =:= 2 + byte_size(Reply) ->
             events(Port, Pids, Type,
                 <<?UINT16(Len), ?UINT16(Type1), Reply/binary>>),
             event_1(Port, Pids, Type, Timeout);
         {Port, {data, <<
-                ?UINT16(?ALCOVE_MSG_STDOUT), ?UINT32(Pid0),
+                ?ALCOVE_HDR(?ALCOVE_MSG_STDOUT, Pid0),
                 ?UINT16(Len), ?UINT16(Type1), Reply/binary
             >>}} ->
             events(Port, Pids, Type,
@@ -123,22 +123,19 @@ event_1(Port, [Pid0] = Pids, Type, Timeout) ->
 event_1(Port, [Pid0,Pid1] = Pids, Type, Timeout) ->
     receive
         {Port, {data, <<
-                ?UINT16(?ALCOVE_MSG_STDOUT), ?UINT32(Pid0),
-                ?UINT16(_), ?UINT16(?ALCOVE_MSG_STDOUT), ?UINT32(Pid1),
+                ?ALCOVE_HDR(?ALCOVE_MSG_STDOUT, Pid0, Pid1),
                 ?UINT16(Len), ?UINT16(Type), Reply/binary
             >>}} when Len =:= 2 + byte_size(Reply) ->
             binary_to_term(Reply);
         {Port, {data, <<
-                ?UINT16(?ALCOVE_MSG_STDOUT), ?UINT32(Pid0),
-                ?UINT16(_), ?UINT16(?ALCOVE_MSG_STDOUT), ?UINT32(Pid1),
+                ?ALCOVE_HDR(?ALCOVE_MSG_STDOUT, Pid0, Pid1),
                 ?UINT16(Len), ?UINT16(Type1), Reply/binary
             >>}} when Len =:= 2 + byte_size(Reply) ->
             events(Port, Pids, Type,
                 <<?UINT16(Len), ?UINT16(Type1), Reply/binary>>),
             event_1(Port, Pids, Type, Timeout);
         {Port, {data, <<
-                ?UINT16(?ALCOVE_MSG_STDOUT), ?UINT32(Pid0),
-                ?UINT16(_), ?UINT16(?ALCOVE_MSG_STDOUT), ?UINT32(Pid1),
+                ?ALCOVE_HDR(?ALCOVE_MSG_STDOUT, Pid0, Pid1),
                 ?UINT16(Len), ?UINT16(Type1), Reply/binary
             >>}} ->
             events(Port, Pids, Type,
@@ -150,25 +147,19 @@ event_1(Port, [Pid0,Pid1] = Pids, Type, Timeout) ->
 event_1(Port, [Pid0,Pid1,Pid2] = Pids, Type, Timeout) ->
     receive
         {Port, {data, <<
-                ?UINT16(?ALCOVE_MSG_STDOUT), ?UINT32(Pid0),
-                ?UINT16(_), ?UINT16(?ALCOVE_MSG_STDOUT), ?UINT32(Pid1),
-                ?UINT16(_), ?UINT16(?ALCOVE_MSG_STDOUT), ?UINT32(Pid2),
+                ?ALCOVE_HDR(?ALCOVE_MSG_STDOUT, Pid0, Pid1, Pid2),
                 ?UINT16(Len), ?UINT16(Type), Reply/binary
             >>}} when Len =:= 2 + byte_size(Reply) ->
             binary_to_term(Reply);
         {Port, {data, <<
-                ?UINT16(?ALCOVE_MSG_STDOUT), ?UINT32(Pid0),
-                ?UINT16(_), ?UINT16(?ALCOVE_MSG_STDOUT), ?UINT32(Pid1),
-                ?UINT16(_), ?UINT16(?ALCOVE_MSG_STDOUT), ?UINT32(Pid2),
+                ?ALCOVE_HDR(?ALCOVE_MSG_STDOUT, Pid0, Pid1, Pid2),
                 ?UINT16(Len), ?UINT16(Type1), Reply/binary
             >>}} when Len =:= 2 + byte_size(Reply) ->
             events(Port, Pids, Type,
                 <<?UINT16(Len), ?UINT16(Type1), Reply/binary>>),
             event_1(Port, Pids, Type, Timeout);
         {Port, {data, <<
-                ?UINT16(?ALCOVE_MSG_STDOUT), ?UINT32(Pid0),
-                ?UINT16(_), ?UINT16(?ALCOVE_MSG_STDOUT), ?UINT32(Pid1),
-                ?UINT16(_), ?UINT16(?ALCOVE_MSG_STDOUT), ?UINT32(Pid2),
+                ?ALCOVE_HDR(?ALCOVE_MSG_STDOUT, Pid0, Pid1, Pid2),
                 ?UINT16(Len), ?UINT16(Type1), Reply/binary
             >>}} ->
             events(Port, Pids, Type,
@@ -180,28 +171,19 @@ event_1(Port, [Pid0,Pid1,Pid2] = Pids, Type, Timeout) ->
 event_1(Port, [Pid0,Pid1,Pid2,Pid3] = Pids, Type, Timeout) ->
     receive
         {Port, {data, <<
-                ?UINT16(?ALCOVE_MSG_STDOUT), ?UINT32(Pid0),
-                ?UINT16(_), ?UINT16(?ALCOVE_MSG_STDOUT), ?UINT32(Pid1),
-                ?UINT16(_), ?UINT16(?ALCOVE_MSG_STDOUT), ?UINT32(Pid2),
-                ?UINT16(_), ?UINT16(?ALCOVE_MSG_STDOUT), ?UINT32(Pid3),
+                ?ALCOVE_HDR(?ALCOVE_MSG_STDOUT, Pid0, Pid1, Pid2, Pid3),
                 ?UINT16(Len), ?UINT16(Type), Reply/binary
             >>}} when Len =:= 2 + byte_size(Reply) ->
             binary_to_term(Reply);
         {Port, {data, <<
-                ?UINT16(?ALCOVE_MSG_STDOUT), ?UINT32(Pid0),
-                ?UINT16(_), ?UINT16(?ALCOVE_MSG_STDOUT), ?UINT32(Pid1),
-                ?UINT16(_), ?UINT16(?ALCOVE_MSG_STDOUT), ?UINT32(Pid2),
-                ?UINT16(_), ?UINT16(?ALCOVE_MSG_STDOUT), ?UINT32(Pid3),
+                ?ALCOVE_HDR(?ALCOVE_MSG_STDOUT, Pid0, Pid1, Pid2, Pid3),
                 ?UINT16(Len), ?UINT16(Type1), Reply/binary
             >>}} when Len =:= 2 + byte_size(Reply) ->
             events(Port, Pids, Type,
                 <<?UINT16(Len), ?UINT16(Type1), Reply/binary>>),
             event_1(Port, Pids, Type, Timeout);
         {Port, {data, <<
-                ?UINT16(?ALCOVE_MSG_STDOUT), ?UINT32(Pid0),
-                ?UINT16(_), ?UINT16(?ALCOVE_MSG_STDOUT), ?UINT32(Pid1),
-                ?UINT16(_), ?UINT16(?ALCOVE_MSG_STDOUT), ?UINT32(Pid2),
-                ?UINT16(_), ?UINT16(?ALCOVE_MSG_STDOUT), ?UINT32(Pid3),
+                ?ALCOVE_HDR(?ALCOVE_MSG_STDOUT, Pid0, Pid1, Pid2, Pid3),
                 ?UINT16(Len), ?UINT16(Type1), Reply/binary
             >>}} ->
             events(Port, Pids, Type,
@@ -213,31 +195,19 @@ event_1(Port, [Pid0,Pid1,Pid2,Pid3] = Pids, Type, Timeout) ->
 event_1(Port, [Pid0,Pid1,Pid2,Pid3,Pid4] = Pids, Type, Timeout) ->
     receive
         {Port, {data, <<
-                ?UINT16(?ALCOVE_MSG_STDOUT), ?UINT32(Pid0),
-                ?UINT16(_), ?UINT16(?ALCOVE_MSG_STDOUT), ?UINT32(Pid1),
-                ?UINT16(_), ?UINT16(?ALCOVE_MSG_STDOUT), ?UINT32(Pid2),
-                ?UINT16(_), ?UINT16(?ALCOVE_MSG_STDOUT), ?UINT32(Pid3),
-                ?UINT16(_), ?UINT16(?ALCOVE_MSG_STDOUT), ?UINT32(Pid4),
+                ?ALCOVE_HDR(?ALCOVE_MSG_STDOUT, Pid0, Pid1, Pid2, Pid3, Pid4),
                 ?UINT16(Len), ?UINT16(Type), Reply/binary
             >>}} when Len =:= 2 + byte_size(Reply) ->
             binary_to_term(Reply);
         {Port, {data, <<
-                ?UINT16(?ALCOVE_MSG_STDOUT), ?UINT32(Pid0),
-                ?UINT16(_), ?UINT16(?ALCOVE_MSG_STDOUT), ?UINT32(Pid1),
-                ?UINT16(_), ?UINT16(?ALCOVE_MSG_STDOUT), ?UINT32(Pid2),
-                ?UINT16(_), ?UINT16(?ALCOVE_MSG_STDOUT), ?UINT32(Pid3),
-                ?UINT16(_), ?UINT16(?ALCOVE_MSG_STDOUT), ?UINT32(Pid4),
+                ?ALCOVE_HDR(?ALCOVE_MSG_STDOUT, Pid0, Pid1, Pid2, Pid3, Pid4),
                 ?UINT16(Len), ?UINT16(Type1), Reply/binary
             >>}} when Len =:= 2 + byte_size(Reply) ->
             events(Port, Pids, Type,
                 <<?UINT16(Len), ?UINT16(Type1), Reply/binary>>),
             event_1(Port, Pids, Type, Timeout);
         {Port, {data, <<
-                ?UINT16(?ALCOVE_MSG_STDOUT), ?UINT32(Pid0),
-                ?UINT16(_), ?UINT16(?ALCOVE_MSG_STDOUT), ?UINT32(Pid1),
-                ?UINT16(_), ?UINT16(?ALCOVE_MSG_STDOUT), ?UINT32(Pid2),
-                ?UINT16(_), ?UINT16(?ALCOVE_MSG_STDOUT), ?UINT32(Pid3),
-                ?UINT16(_), ?UINT16(?ALCOVE_MSG_STDOUT), ?UINT32(Pid4),
+                ?ALCOVE_HDR(?ALCOVE_MSG_STDOUT, Pid0, Pid1, Pid2, Pid3, Pid4),
                 ?UINT16(Len), ?UINT16(Type1), Reply/binary
             >>}} ->
             events(Port, Pids, Type,
@@ -303,7 +273,7 @@ stdio(Port, [], _Type, Timeout) ->
 stdio(Port, [Pid0], Type, Timeout) ->
     receive
         {Port, {data, <<
-                ?UINT16(Type), ?UINT32(Pid0),
+                ?ALCOVE_HDR(Type, Pid0),
                 Reply/binary
                 >>}} ->
             Reply
@@ -314,8 +284,7 @@ stdio(Port, [Pid0], Type, Timeout) ->
 stdio(Port, [Pid0, Pid1], Type, Timeout) ->
     receive
         {Port, {data, <<
-                ?UINT16(Type), ?UINT32(Pid0),
-                ?UINT16(_Len1), ?UINT16(Type), ?UINT32(Pid1),
+                ?ALCOVE_HDR(Type, Pid0, Pid1),
                 Reply/binary
                 >>}} ->
             Reply
@@ -326,9 +295,7 @@ stdio(Port, [Pid0, Pid1], Type, Timeout) ->
 stdio(Port, [Pid0, Pid1, Pid2], Type, Timeout) ->
     receive
         {Port, {data, <<
-                ?UINT16(Type), ?UINT32(Pid0),
-                ?UINT16(_Len1), ?UINT16(Type), ?UINT32(Pid1),
-                ?UINT16(_Len2), ?UINT16(Type), ?UINT32(Pid2),
+                ?ALCOVE_HDR(Type, Pid0, Pid1, Pid2),
                 Reply/binary
                 >>}} ->
             Reply
@@ -339,10 +306,7 @@ stdio(Port, [Pid0, Pid1, Pid2], Type, Timeout) ->
 stdio(Port, [Pid0, Pid1, Pid2, Pid3], Type, Timeout) ->
     receive
         {Port, {data, <<
-                ?UINT16(Type), ?UINT32(Pid0),
-                ?UINT16(_Len1), ?UINT16(Type), ?UINT32(Pid1),
-                ?UINT16(_Len2), ?UINT16(Type), ?UINT32(Pid2),
-                ?UINT16(_Len3), ?UINT16(Type), ?UINT32(Pid3),
+                ?ALCOVE_HDR(Type, Pid0, Pid1, Pid2, Pid3),
                 Reply/binary
                 >>}} ->
             Reply
@@ -353,11 +317,7 @@ stdio(Port, [Pid0, Pid1, Pid2, Pid3], Type, Timeout) ->
 stdio(Port, [Pid0, Pid1, Pid2, Pid3, Pid4], Type, Timeout) ->
     receive
         {Port, {data, <<
-                ?UINT16(Type), ?UINT32(Pid0),
-                ?UINT16(_Len1), ?UINT16(Type), ?UINT32(Pid1),
-                ?UINT16(_Len2), ?UINT16(Type), ?UINT32(Pid2),
-                ?UINT16(_Len3), ?UINT16(Type), ?UINT32(Pid3),
-                ?UINT16(_Len4), ?UINT16(Type), ?UINT32(Pid4),
+                ?ALCOVE_HDR(Type, Pid0, Pid1, Pid2, Pid3, Pid4),
                 Reply/binary
                 >>}} ->
             Reply
