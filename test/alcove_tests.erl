@@ -219,7 +219,7 @@ fork({_, Port, Child}) ->
 
     [{ok, Child0}|_] = [ N || N <- Pids, N =/= {error,eagain} ],
     ok = alcove:kill(Port, [Child], Child0, 15),
-    waitpid(Port, [Child], Child0),
+    waitpid(Port, [Child]),
     Reply1 = alcove:fork(Port, [Child]),
     Reply2 = alcove:fork(Port, [Child]),
 
@@ -241,11 +241,12 @@ signal({_, Port, _Child}) ->
 
     SA0 = alcove:sigaction(Port, [Child1], TERM, ign),
     Kill0 = alcove:kill(Port, Child1, TERM),
+    waitpid(Port, []),
     Pid0 = alcove:getpid(Port, [Child1]),
 
     SA1 = alcove:sigaction(Port, [Child1], TERM, dfl),
     Kill1 = alcove:kill(Port, Child1, TERM),
-    waitpid(Port, [], Child1),
+    waitpid(Port, []),
     alcove:kill(Port, Child1, 0),
     Search = alcove:kill(Port, Child1, 0),
 
@@ -354,13 +355,13 @@ stderr({{unix,freebsd}, Port, Child}) ->
         ?_assertEqual(<<"nonexistent: not found\n">>, Stderr)
     ].
 
-waitpid(Port, Pids, Child) ->
-    case alcove:kill(Port, Pids, Child, 0) of
-        ok ->
-            timer:sleep(10),
-            waitpid(Port, Pids, Child);
-        {error,esrch} ->
-            ok
+waitpid(Port, Pids) ->
+    SIGCHLD = alcove:signal_define(Port, chld),
+    case alcove_drv:event(Port, Pids, ?ALCOVE_MSG_EVENT, 5000) of
+        {signal, SIGCHLD} ->
+            ok;
+        false ->
+            false
     end.
 
 flush(stdout, Port, Pids) ->
