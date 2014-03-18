@@ -47,6 +47,7 @@ run(State) ->
         signal(State),
         portstress(State),
         forkstress(State),
+        forkchain(State),
         prctl(State),
         execvp(State),
         stdout(State),
@@ -270,6 +271,17 @@ forkstress({_, Port, _Child}) ->
     {ok, Fork} = alcove:fork(Port),
     Reply = forkstress_1(Port, Fork, 100),
     ?_assertEqual(ok, Reply).
+
+forkchain({_, Port, _Child}) ->
+    {ok, Child0} = alcove:fork(Port),
+    {ok, Child1} = alcove:fork(Port, [Child0]),
+    {ok, Child2} = alcove:fork(Port, [Child0, Child1]),
+    {ok, Child3} = alcove:fork(Port, [Child0, Child1, Child2]),
+    {ok, Child4} = alcove:fork(Port, [Child0, Child1, Child2, Child3]),
+
+    Pid = alcove:getpid(Port, [Child0, Child1, Child2, Child3, Child4]),
+
+    ?_assertEqual(Pid, Child4).
 
 prctl({linux, Port, _Child}) ->
     {ok, Fork} = alcove:fork(Port),
