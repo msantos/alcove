@@ -29,6 +29,7 @@ alcove_test_() ->
 run(State) ->
     % Test order must be maintained
     [
+        msg(State),
         version(State),
         pid(State),
         getpid(State),
@@ -44,6 +45,8 @@ run(State) ->
         setuid(State),
         fork(State),
         signal(State),
+        portstress(State),
+        forkstress(State),
         prctl(State),
         execvp(State),
         stdout(State),
@@ -70,6 +73,33 @@ start() ->
 
 stop({_, Port, _Child}) ->
     alcove_drv:stop(Port).
+
+msg({_, Port, Child}) ->
+    % Length, Message type, Term
+    Msg = <<0,16, 0,1, 131,104,2,100,0,6,115,105,103,110,97,108,97,17,
+            0,16, 0,1, 131,104,2,100,0,6,115,105,103,110,97,108,97,17,
+            0,16, 0,1, 131,104,2,100,0,6,115,105,103,110,97,108,97,17,
+            0,13, 0,0, 131,109,0,0,0,5,48,46,50,46,48,
+            0,16, 0,1, 131,104,2,100,0,6,115,105,103,110,97,108,97,17>>,
+
+    Reply = alcove_drv:events(Port, [Child], ?ALCOVE_MSG_CALL, Msg),
+
+    Sig1 = alcove_drv:event(Port, [Child], ?ALCOVE_MSG_EVENT, 0),
+    Sig2 = alcove_drv:event(Port, [Child], ?ALCOVE_MSG_EVENT, 0),
+    Sig3 = alcove_drv:event(Port, [Child], ?ALCOVE_MSG_EVENT, 0),
+    Sig4 = alcove_drv:event(Port, [Child], ?ALCOVE_MSG_EVENT, 0),
+    Sig5 = alcove_drv:event(Port, [Child], ?ALCOVE_MSG_EVENT, 0),
+
+    [
+        ?_assertEqual(<<"0.2.0">>, Reply),
+
+        ?_assertEqual({signal,17}, Sig1),
+        ?_assertEqual({signal,17}, Sig2),
+        ?_assertEqual({signal,17}, Sig3),
+        ?_assertEqual({signal,17}, Sig4),
+        ?_assertEqual(false, Sig5)
+
+    ].
 
 version({_, Port, _Child}) ->
     Version = alcove:version(Port),
@@ -228,6 +258,19 @@ signal({_, Port, _Child}) ->
         ?_assertEqual({error,esrch}, Search)
     ].
 
+portstress({_, Port, Child}) ->
+    Reply = [ alcove:version(Port, [Child]) || _ <- lists:seq(1,1000) ],
+    Ok = lists:filter(fun
+            (false) -> false;
+            (_) -> true
+            end, Reply),
+    ?_assertEqual(Ok, Reply).
+
+forkstress({_, Port, _Child}) ->
+    {ok, Fork} = alcove:fork(Port),
+    Reply = forkstress_1(Port, Fork, 100),
+    ?_assertEqual(ok, Reply).
+
 prctl({linux, Port, _Child}) ->
     {ok, Fork} = alcove:fork(Port),
 
@@ -314,4 +357,16 @@ flush(stdout, Port, Pids) ->
             ok;
         _ ->
             flush(stdout, Port, Pids)
+    end.
+
+forkstress_1(_Port, _Child, 0) ->
+    ok;
+forkstress_1(Port, Child, N) ->
+    {ok, Fork} = alcove:fork(Port, [Child]),
+    ok = alcove:kill(Port, [Child], Fork, 15),
+    case alcove:version(Port, [Child]) of
+        {error, timedout} ->
+            fail;
+        _ ->
+            forkstress_1(Port, Child, N-1)
     end.
