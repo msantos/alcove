@@ -278,85 +278,19 @@ stdin(Port, Pids, Data) ->
     Stdin = hdr(lists:reverse(Pids), [Data]),
     cast(Port, Stdin).
 
--spec stdout(port(),[integer()],'infinity' | non_neg_integer()) -> 'false' | binary().
-stdout(Port, [], Timeout) ->
-    receive
-        {Port, {data, <<
-                Reply/binary
-                >>}} ->
-            Reply
-    after
-        Timeout ->
-            false
-    end;
-stdout(Port, [Pid0], Timeout) ->
-    receive
-        {Port, {data, <<
-                ?UINT16(?ALCOVE_MSG_STDOUT), ?UINT32(Pid0),
-                Reply/binary
-                >>}} ->
-            Reply
-    after
-        Timeout ->
-            false
-    end;
-stdout(Port, [Pid0, Pid1], Timeout) ->
-    receive
-        {Port, {data, <<
-                ?UINT16(?ALCOVE_MSG_STDOUT), ?UINT32(Pid0),
-                ?UINT16(_Len1), ?UINT16(?ALCOVE_MSG_STDOUT), ?UINT32(Pid1),
-                Reply/binary
-                >>}} ->
-            Reply
-    after
-        Timeout ->
-            false
-    end;
-stdout(Port, [Pid0, Pid1, Pid2], Timeout) ->
-    receive
-        {Port, {data, <<
-                ?UINT16(?ALCOVE_MSG_STDOUT), ?UINT32(Pid0),
-                ?UINT16(_Len1), ?UINT16(?ALCOVE_MSG_STDOUT), ?UINT32(Pid1),
-                ?UINT16(_Len2), ?UINT16(?ALCOVE_MSG_STDOUT), ?UINT32(Pid2),
-                Reply/binary
-                >>}} ->
-            Reply
-    after
-        Timeout ->
-            false
-    end;
-stdout(Port, [Pid0, Pid1, Pid2, Pid3], Timeout) ->
-    receive
-        {Port, {data, <<
-                ?UINT16(?ALCOVE_MSG_STDOUT), ?UINT32(Pid0),
-                ?UINT16(_Len1), ?UINT16(?ALCOVE_MSG_STDOUT), ?UINT32(Pid1),
-                ?UINT16(_Len2), ?UINT16(?ALCOVE_MSG_STDOUT), ?UINT32(Pid2),
-                ?UINT16(_Len3), ?UINT16(?ALCOVE_MSG_STDOUT), ?UINT32(Pid3),
-                Reply/binary
-                >>}} ->
-            Reply
-    after
-        Timeout ->
-            false
-    end;
-stdout(Port, [Pid0, Pid1, Pid2, Pid3, Pid4], Timeout) ->
-    receive
-        {Port, {data, <<
-                ?UINT16(?ALCOVE_MSG_STDOUT), ?UINT32(Pid0),
-                ?UINT16(_Len1), ?UINT16(?ALCOVE_MSG_STDOUT), ?UINT32(Pid1),
-                ?UINT16(_Len2), ?UINT16(?ALCOVE_MSG_STDOUT), ?UINT32(Pid2),
-                ?UINT16(_Len3), ?UINT16(?ALCOVE_MSG_STDOUT), ?UINT32(Pid3),
-                ?UINT16(_Len4), ?UINT16(?ALCOVE_MSG_STDOUT), ?UINT32(Pid4),
-                Reply/binary
-                >>}} ->
-            Reply
-    after
-        Timeout ->
-            false
-    end.
+-spec stdout(port(),[integer()],'infinity' | non_neg_integer()) ->
+    'false' | binary().
+stdout(Port, Pids, Timeout) ->
+    stdio(Port, Pids, ?ALCOVE_MSG_STDOUT, Timeout).
 
--spec stderr(port(),[integer()],'infinity' | non_neg_integer()) -> 'false' | binary().
-stderr(Port, [], Timeout) ->
+-spec stderr(port(),[integer()],'infinity' | non_neg_integer()) ->
+    'false' | binary().
+stderr(Port, Pids, Timeout) ->
+    stdio(Port, Pids, ?ALCOVE_MSG_STDERR, Timeout).
+
+-spec stdio(port(),[integer()],integer(),'infinity' | non_neg_integer()) ->
+    'false' | binary().
+stdio(Port, [], _Type, Timeout) ->
     receive
         {Port, {data, <<
                 Reply/binary
@@ -366,10 +300,10 @@ stderr(Port, [], Timeout) ->
         Timeout ->
             false
     end;
-stderr(Port, [Pid0], Timeout) ->
+stdio(Port, [Pid0], Type, Timeout) ->
     receive
         {Port, {data, <<
-                ?UINT16(?ALCOVE_MSG_STDERR), ?UINT32(Pid0),
+                ?UINT16(Type), ?UINT32(Pid0),
                 Reply/binary
                 >>}} ->
             Reply
@@ -377,11 +311,11 @@ stderr(Port, [Pid0], Timeout) ->
         Timeout ->
             false
     end;
-stderr(Port, [Pid0, Pid1], Timeout) ->
+stdio(Port, [Pid0, Pid1], Type, Timeout) ->
     receive
         {Port, {data, <<
-                ?UINT16(?ALCOVE_MSG_STDERR), ?UINT32(Pid0),
-                ?UINT16(_Len1), ?UINT16(?ALCOVE_MSG_STDERR), ?UINT32(Pid1),
+                ?UINT16(Type), ?UINT32(Pid0),
+                ?UINT16(_Len1), ?UINT16(Type), ?UINT32(Pid1),
                 Reply/binary
                 >>}} ->
             Reply
@@ -389,12 +323,12 @@ stderr(Port, [Pid0, Pid1], Timeout) ->
         Timeout ->
             false
     end;
-stderr(Port, [Pid0, Pid1, Pid2], Timeout) ->
+stdio(Port, [Pid0, Pid1, Pid2], Type, Timeout) ->
     receive
         {Port, {data, <<
-                ?UINT16(?ALCOVE_MSG_STDERR), ?UINT32(Pid0),
-                ?UINT16(_Len1), ?UINT16(?ALCOVE_MSG_STDERR), ?UINT32(Pid1),
-                ?UINT16(_Len2), ?UINT16(?ALCOVE_MSG_STDERR), ?UINT32(Pid2),
+                ?UINT16(Type), ?UINT32(Pid0),
+                ?UINT16(_Len1), ?UINT16(Type), ?UINT32(Pid1),
+                ?UINT16(_Len2), ?UINT16(Type), ?UINT32(Pid2),
                 Reply/binary
                 >>}} ->
             Reply
@@ -402,13 +336,13 @@ stderr(Port, [Pid0, Pid1, Pid2], Timeout) ->
         Timeout ->
             false
     end;
-stderr(Port, [Pid0, Pid1, Pid2, Pid3], Timeout) ->
+stdio(Port, [Pid0, Pid1, Pid2, Pid3], Type, Timeout) ->
     receive
         {Port, {data, <<
-                ?UINT16(?ALCOVE_MSG_STDERR), ?UINT32(Pid0),
-                ?UINT16(_Len1), ?UINT16(?ALCOVE_MSG_STDERR), ?UINT32(Pid1),
-                ?UINT16(_Len2), ?UINT16(?ALCOVE_MSG_STDERR), ?UINT32(Pid2),
-                ?UINT16(_Len3), ?UINT16(?ALCOVE_MSG_STDERR), ?UINT32(Pid3),
+                ?UINT16(Type), ?UINT32(Pid0),
+                ?UINT16(_Len1), ?UINT16(Type), ?UINT32(Pid1),
+                ?UINT16(_Len2), ?UINT16(Type), ?UINT32(Pid2),
+                ?UINT16(_Len3), ?UINT16(Type), ?UINT32(Pid3),
                 Reply/binary
                 >>}} ->
             Reply
@@ -416,14 +350,14 @@ stderr(Port, [Pid0, Pid1, Pid2, Pid3], Timeout) ->
         Timeout ->
             false
     end;
-stderr(Port, [Pid0, Pid1, Pid2, Pid3, Pid4], Timeout) ->
+stdio(Port, [Pid0, Pid1, Pid2, Pid3, Pid4], Type, Timeout) ->
     receive
         {Port, {data, <<
-                ?UINT16(?ALCOVE_MSG_STDERR), ?UINT32(Pid0),
-                ?UINT16(_Len1), ?UINT16(?ALCOVE_MSG_STDERR), ?UINT32(Pid1),
-                ?UINT16(_Len2), ?UINT16(?ALCOVE_MSG_STDERR), ?UINT32(Pid2),
-                ?UINT16(_Len3), ?UINT16(?ALCOVE_MSG_STDERR), ?UINT32(Pid3),
-                ?UINT16(_Len4), ?UINT16(?ALCOVE_MSG_STDERR), ?UINT32(Pid4),
+                ?UINT16(Type), ?UINT32(Pid0),
+                ?UINT16(_Len1), ?UINT16(Type), ?UINT32(Pid1),
+                ?UINT16(_Len2), ?UINT16(Type), ?UINT32(Pid2),
+                ?UINT16(_Len3), ?UINT16(Type), ?UINT32(Pid3),
+                ?UINT16(_Len4), ?UINT16(Type), ?UINT32(Pid4),
                 Reply/binary
                 >>}} ->
             Reply
