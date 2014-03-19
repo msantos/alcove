@@ -393,6 +393,6 @@ specs() ->
 -spec unshare(port(),non_neg_integer()) -> 'ok' | {'error', file:posix()}.
 -spec unshare(port(),[integer()],non_neg_integer()) -> 'ok' | {'error', file:posix()}.
 
--spec version(port()) -> binary().
--spec version(port(),list(integer())) -> binary().
+-spec version(port()) -> binary() | {'error', 'timedout'}.
+-spec version(port(),list(integer())) -> binary() | {'error', 'timedout'}.
 ".

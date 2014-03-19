@@ -26,8 +26,10 @@
 
 -type prctl_val() :: binary() | non_neg_integer().
 
--type reply() :: 'badarg' | boolean() | binary() | non_neg_integer() | [integer()] | 'ok'
-    | {'ok', binary() | non_neg_integer() | #rlimit{} | 'unsupported'} | {'error', file:posix()}
+-type reply() :: 'badarg' | 'ok' | boolean() | binary()
+    | non_neg_integer() | [integer()]
+    | {'ok', binary() | non_neg_integer() | #rlimit{} | 'unsupported'}
+    | {'error', file:posix()}
     | {'ok',integer(),prctl_val(), prctl_val(), prctl_val(), prctl_val()}.
 
 -spec start() -> port().
@@ -61,7 +63,8 @@ send(Port, Data, Size) when is_port(Port), Size < 16#ffff ->
     erlang:port_command(Port, Data).
 
 -spec event(port(),[integer()],non_neg_integer(),
-    'infinity' | non_neg_integer()) -> reply().
+    'infinity' | non_neg_integer()) -> reply()
+    | {'signal', integer()} | {'error', 'timedout'}.
 
 % Check the mailbox for processed events
 event(Port, Pids, Type, Timeout) when is_integer(Type) ->
@@ -83,7 +86,7 @@ event_1(Port, [], Type, Timeout) ->
             binary_to_term(Reply)
     after
         Timeout ->
-            false
+            {error, timedout}
     end;
 
 % Reply from a child process.
@@ -118,7 +121,7 @@ event_1(Port, [Pid0] = Pids, Type, Timeout) ->
                 <<?UINT16(Len), ?UINT16(Type1), Reply/binary>>)
     after
         Timeout ->
-            false
+            {error, timedout}
     end;
 event_1(Port, [Pid0,Pid1] = Pids, Type, Timeout) ->
     receive
@@ -142,7 +145,7 @@ event_1(Port, [Pid0,Pid1] = Pids, Type, Timeout) ->
                 <<?UINT16(Len), ?UINT16(Type1), Reply/binary>>)
     after
         Timeout ->
-            false
+            {error, timedout}
     end;
 event_1(Port, [Pid0,Pid1,Pid2] = Pids, Type, Timeout) ->
     receive
@@ -166,7 +169,7 @@ event_1(Port, [Pid0,Pid1,Pid2] = Pids, Type, Timeout) ->
                 <<?UINT16(Len), ?UINT16(Type1), Reply/binary>>)
     after
         Timeout ->
-            false
+            {error, timedout}
     end;
 event_1(Port, [Pid0,Pid1,Pid2,Pid3] = Pids, Type, Timeout) ->
     receive
@@ -190,7 +193,7 @@ event_1(Port, [Pid0,Pid1,Pid2,Pid3] = Pids, Type, Timeout) ->
                 <<?UINT16(Len), ?UINT16(Type1), Reply/binary>>)
     after
         Timeout ->
-            false
+            {error, timedout}
     end;
 event_1(Port, [Pid0,Pid1,Pid2,Pid3,Pid4] = Pids, Type, Timeout) ->
     receive
@@ -214,7 +217,7 @@ event_1(Port, [Pid0,Pid1,Pid2,Pid3,Pid4] = Pids, Type, Timeout) ->
                 <<?UINT16(Len), ?UINT16(Type1), Reply/binary>>)
     after
         Timeout ->
-            false
+            {error, timedout}
     end.
 
 events(Port, Pids, Type, Reply) ->
