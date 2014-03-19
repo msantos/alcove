@@ -85,20 +85,20 @@ msg({_, Port, Child}) ->
 
     Reply = alcove_drv:events(Port, [Child], ?ALCOVE_MSG_CALL, Msg),
 
-    Sig1 = alcove:event(Port, [Child], ?ALCOVE_MSG_EVENT, 0),
-    Sig2 = alcove:event(Port, [Child], ?ALCOVE_MSG_EVENT, 0),
-    Sig3 = alcove:event(Port, [Child], ?ALCOVE_MSG_EVENT, 0),
-    Sig4 = alcove:event(Port, [Child], ?ALCOVE_MSG_EVENT, 0),
-    Sig5 = alcove:event(Port, [Child], ?ALCOVE_MSG_EVENT, 0),
+    Sig1 = alcove:event(Port, [Child], 0),
+    Sig2 = alcove:event(Port, [Child], 0),
+    Sig3 = alcove:event(Port, [Child], 0),
+    Sig4 = alcove:event(Port, [Child], 0),
+    Sig5 = alcove:event(Port, [Child], 0),
 
     [
-        ?_assertEqual(<<"0.2.0">>, Reply),
+        ?_assertEqual({alcove_call,[Child],<<"0.2.0">>}, Reply),
 
         ?_assertEqual({signal,17}, Sig1),
         ?_assertEqual({signal,17}, Sig2),
         ?_assertEqual({signal,17}, Sig3),
         ?_assertEqual({signal,17}, Sig4),
-        ?_assertEqual({error,timedout}, Sig5)
+        ?_assertEqual(false, Sig5)
     ].
 
 version({_, Port, _Child}) ->
@@ -355,7 +355,7 @@ stderr({{unix,freebsd}, Port, Child}) ->
 
 waitpid(Port, Pids, Child) ->
     SIGCHLD = alcove:signal_define(Port, chld),
-    case alcove:event(Port, Pids, ?ALCOVE_MSG_EVENT, 5000) of
+    case alcove:event(Port, Pids, 5000) of
         {signal, SIGCHLD} ->
             waitpid_1(Port, Pids, Child);
         false ->

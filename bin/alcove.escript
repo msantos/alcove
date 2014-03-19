@@ -159,7 +159,7 @@ static_exports() ->
      {stdin,2}, {stdin,3},
      {stdout,1}, {stdout,2}, {stdout,3},
      {stderr,1}, {stderr,2}, {stderr,3},
-     {event,2}, {event,3}, {event,4},
+     {event,1}, {event,2}, {event,3},
      {encode,3},
      {command,1},
      {call,2},
@@ -234,20 +234,25 @@ stderr(Port, Pids, Timeout) ->
     alcove_drv:stderr(Port, Pids, Timeout).
 ";
 
+static({event,1}) ->
+"
+event(Port) ->
+    event(Port, [], 0).
+";
 static({event,2}) ->
 "
-event(Port, Type) ->
-    event(Port, [], Type, 0).
+event(Port, Pids) ->
+    event(Port, Pids, 0).
 ";
 static({event,3}) ->
 "
-event(Port, Pids, Type) ->
-    event(Port, Pids, Type, 0).
-";
-static({event,4}) ->
-"
-event(Port, Pids, Type, Timeout) ->
-    alcove_drv:event(Port, Pids, Type, Timeout).
+event(Port, Pids, Timeout) ->
+    case alcove_drv:event(Port, Pids, ?ALCOVE_MSG_EVENT, Timeout) of
+        false ->
+            false;
+        {alcove_event, Pids, Event} ->
+            Event
+    end.
 ";
 
 static({encode,3}) ->

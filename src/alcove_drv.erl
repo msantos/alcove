@@ -49,10 +49,16 @@ call(Port, Data) ->
 call(Port, Pids, Data) ->
     call(Port, Pids, Data, 5000).
 
--spec call(port(),[integer()],iodata(),'infinity' | non_neg_integer()) -> reply().
+-spec call(port(),[integer()],iodata(),'infinity' | non_neg_integer()) ->
+    reply().
 call(Port, Pids, Data, Timeout) ->
     true = send(Port, Data, iolist_size(Data)),
-    event(Port, Pids, ?ALCOVE_MSG_CALL, Timeout).
+    case event(Port, Pids, ?ALCOVE_MSG_CALL, Timeout) of
+        false ->
+            false;
+        {alcove_call, Pids, Event} ->
+            Event
+    end.
 
 -spec cast(port(),iodata()) -> any().
 cast(Port, Data) ->
@@ -63,15 +69,15 @@ send(Port, Data, Size) when is_port(Port), Size < 16#ffff ->
     erlang:port_command(Port, Data).
 
 -spec event(port(),[integer()],non_neg_integer(),
-    'infinity' | non_neg_integer()) -> reply()
-    | {'signal', integer()} | {'error', 'timedout'}.
-
+    'infinity' | non_neg_integer()) -> 'false' |
+    {'alcove_call' | 'alcove_event',
+        [integer()], reply() | {'signal', integer()}}.
 % Check the mailbox for processed events
 event(Port, Pids, Type, Timeout) when is_integer(Type) ->
     Tag = type_to_atom(Type),
     receive
-        {Port, {Tag, Pids, Data}} ->
-            Data
+        {Port, {Tag, Pids, _Data} = Event} ->
+            Event
     after
         0 ->
             event_1(Port, Pids, Type, Timeout)
@@ -83,10 +89,10 @@ event(Port, Pids, Type, Timeout) when is_integer(Type) ->
 event_1(Port, [], Type, Timeout) ->
     receive
         {Port, {data, <<?UINT16(Type), Reply/binary>>}} ->
-            binary_to_term(Reply)
+            {type_to_atom(Type), [], binary_to_term(Reply)}
     after
         Timeout ->
-            {error, timedout}
+            false
     end;
 
 % Reply from a child process.
@@ -105,7 +111,7 @@ event_1(Port, [Pid0] = Pids, Type, Timeout) ->
                 ?ALCOVE_HDR(?ALCOVE_MSG_STDOUT, Pid0),
                 ?UINT16(Len), ?UINT16(Type), Reply/binary
             >>}} when Len =:= 2 + byte_size(Reply) ->
-            binary_to_term(Reply);
+            {type_to_atom(Type), Pids, binary_to_term(Reply)};
         {Port, {data, <<
                 ?ALCOVE_HDR(?ALCOVE_MSG_STDOUT, Pid0),
                 ?UINT16(Len), ?UINT16(Type1), Reply/binary
@@ -121,7 +127,7 @@ event_1(Port, [Pid0] = Pids, Type, Timeout) ->
                 <<?UINT16(Len), ?UINT16(Type1), Reply/binary>>)
     after
         Timeout ->
-            {error, timedout}
+            false
     end;
 event_1(Port, [Pid0,Pid1] = Pids, Type, Timeout) ->
     receive
@@ -129,7 +135,7 @@ event_1(Port, [Pid0,Pid1] = Pids, Type, Timeout) ->
                 ?ALCOVE_HDR(?ALCOVE_MSG_STDOUT, Pid0, Pid1),
                 ?UINT16(Len), ?UINT16(Type), Reply/binary
             >>}} when Len =:= 2 + byte_size(Reply) ->
-            binary_to_term(Reply);
+            {type_to_atom(Type), Pids, binary_to_term(Reply)};
         {Port, {data, <<
                 ?ALCOVE_HDR(?ALCOVE_MSG_STDOUT, Pid0, Pid1),
                 ?UINT16(Len), ?UINT16(Type1), Reply/binary
@@ -145,7 +151,7 @@ event_1(Port, [Pid0,Pid1] = Pids, Type, Timeout) ->
                 <<?UINT16(Len), ?UINT16(Type1), Reply/binary>>)
     after
         Timeout ->
-            {error, timedout}
+            false
     end;
 event_1(Port, [Pid0,Pid1,Pid2] = Pids, Type, Timeout) ->
     receive
@@ -153,7 +159,7 @@ event_1(Port, [Pid0,Pid1,Pid2] = Pids, Type, Timeout) ->
                 ?ALCOVE_HDR(?ALCOVE_MSG_STDOUT, Pid0, Pid1, Pid2),
                 ?UINT16(Len), ?UINT16(Type), Reply/binary
             >>}} when Len =:= 2 + byte_size(Reply) ->
-            binary_to_term(Reply);
+            {type_to_atom(Type), Pids, binary_to_term(Reply)};
         {Port, {data, <<
                 ?ALCOVE_HDR(?ALCOVE_MSG_STDOUT, Pid0, Pid1, Pid2),
                 ?UINT16(Len), ?UINT16(Type1), Reply/binary
@@ -169,7 +175,7 @@ event_1(Port, [Pid0,Pid1,Pid2] = Pids, Type, Timeout) ->
                 <<?UINT16(Len), ?UINT16(Type1), Reply/binary>>)
     after
         Timeout ->
-            {error, timedout}
+            false
     end;
 event_1(Port, [Pid0,Pid1,Pid2,Pid3] = Pids, Type, Timeout) ->
     receive
@@ -177,7 +183,7 @@ event_1(Port, [Pid0,Pid1,Pid2,Pid3] = Pids, Type, Timeout) ->
                 ?ALCOVE_HDR(?ALCOVE_MSG_STDOUT, Pid0, Pid1, Pid2, Pid3),
                 ?UINT16(Len), ?UINT16(Type), Reply/binary
             >>}} when Len =:= 2 + byte_size(Reply) ->
-            binary_to_term(Reply);
+            {type_to_atom(Type), Pids, binary_to_term(Reply)};
         {Port, {data, <<
                 ?ALCOVE_HDR(?ALCOVE_MSG_STDOUT, Pid0, Pid1, Pid2, Pid3),
                 ?UINT16(Len), ?UINT16(Type1), Reply/binary
@@ -193,7 +199,7 @@ event_1(Port, [Pid0,Pid1,Pid2,Pid3] = Pids, Type, Timeout) ->
                 <<?UINT16(Len), ?UINT16(Type1), Reply/binary>>)
     after
         Timeout ->
-            {error, timedout}
+            false
     end;
 event_1(Port, [Pid0,Pid1,Pid2,Pid3,Pid4] = Pids, Type, Timeout) ->
     receive
@@ -201,7 +207,7 @@ event_1(Port, [Pid0,Pid1,Pid2,Pid3,Pid4] = Pids, Type, Timeout) ->
                 ?ALCOVE_HDR(?ALCOVE_MSG_STDOUT, Pid0, Pid1, Pid2, Pid3, Pid4),
                 ?UINT16(Len), ?UINT16(Type), Reply/binary
             >>}} when Len =:= 2 + byte_size(Reply) ->
-            binary_to_term(Reply);
+            {type_to_atom(Type), Pids, binary_to_term(Reply)};
         {Port, {data, <<
                 ?ALCOVE_HDR(?ALCOVE_MSG_STDOUT, Pid0, Pid1, Pid2, Pid3, Pid4),
                 ?UINT16(Len), ?UINT16(Type1), Reply/binary
@@ -217,7 +223,7 @@ event_1(Port, [Pid0,Pid1,Pid2,Pid3,Pid4] = Pids, Type, Timeout) ->
                 <<?UINT16(Len), ?UINT16(Type1), Reply/binary>>)
     after
         Timeout ->
-            {error, timedout}
+            false
     end.
 
 events(Port, Pids, Type, Reply) ->
@@ -233,8 +239,8 @@ events(Port, _Pids, ReqType, <<>>, Acc0) ->
     case Event of
         false ->
             false;
-        {Tag, _, Data} ->
-            Data
+        Event ->
+            Event
     end;
 events(Port, Pids, ReqType,
     <<?UINT16(Len), ?UINT16(Type), Reply/binary>>, Acc) ->
