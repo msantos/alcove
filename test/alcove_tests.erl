@@ -55,7 +55,7 @@ run(State) ->
     ].
 
 start() ->
-    Port = alcove_drv:start([{exec, "sudo"}, {maxchild, 16}]),
+    Port = alcove_drv:start([{exec, "sudo"}, {maxchild, 8}]),
     case os:type() of
         {unix,linux} = OS ->
             Flags = alcove:define(Port, clone, [

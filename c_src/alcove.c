@@ -24,8 +24,7 @@
 #define ALCOVE_MSG_STDOUT (htons(3))
 #define ALCOVE_MSG_STDERR (htons(4))
 
-#define PIPE_READ 0
-#define PIPE_WRITE 1
+#define ALCOVE_CHILD_EXEC -2
 
 #ifdef __linux__
 #pragma message "Support for namespaces using clone(2) enabled"
@@ -92,8 +91,8 @@ main(int argc, char *argv[])
     if (sigaction(SIGCHLD, &act, NULL) < 0)
         erl_err_sys("sigaction");
 
-    /* 3 pipes per child */
-    ap->maxchild = FD_SETSIZE / 3 - 3;
+    /* 4 pipes per child */
+    ap->maxchild = FD_SETSIZE / 4 - 3;
 
     while ( (ch = getopt(argc, argv, "am:hv")) != -1) {
         switch (ch) {
@@ -429,6 +428,11 @@ set_pid(alcove_child_t *c, void *arg1, void *arg2)
     fd_set *rfds = arg1;
     int *fdmax = arg2;
 
+    if (c->fdctl > -1) {
+        FD_SET(c->fdctl, rfds);
+        *fdmax = MAX(*fdmax, c->fdctl);
+    }
+
     if (c->fdout > -1) {
         FD_SET(c->fdout, rfds);
         *fdmax = MAX(*fdmax, c->fdout);
@@ -466,6 +470,20 @@ write_to_pid(alcove_child_t *c, void *arg1, void *arg2)
 read_from_pid(alcove_child_t *c, void *arg1, void *arg2)
 {
     fd_set *rfds = arg1;
+
+    if (FD_ISSET(c->fdctl, rfds)) {
+        unsigned char buf;
+        switch (read(c->fdctl, &buf, sizeof(buf))) {
+            case 0:
+                (void)close(c->fdctl);
+                c->fdctl = ALCOVE_CHILD_EXEC;
+                break;
+            default:
+                (void)close(c->fdctl);
+                c->fdctl = -1;
+                break;
+        }
+    }
 
     if (FD_ISSET(c->fdout, rfds)) {
         switch (alcove_child_stdio(c->fdout, c->pid, ALCOVE_MSG_STDOUT)) {

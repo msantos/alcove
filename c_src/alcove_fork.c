@@ -36,6 +36,7 @@ typedef struct {
 } alcove_arg_t;
 
 static int alcove_stdio(alcove_fd_t *fd);
+static int alcove_set_cloexec(int fd);
 static void alcove_close_pipe(int fd[2]);
 static int alcove_child_fun(void *arg);
 static int alcove_parent_fd(alcove_state_t *ap, alcove_fd_t *fd, pid_t pid);
@@ -243,9 +244,19 @@ BADARG:
     int
 alcove_stdio(alcove_fd_t *fd)
 {
+    if (socketpair(AF_UNIX, SOCK_STREAM, 0, fd->ctl) < 0)
+        return -1;
+
+    if ( (alcove_set_cloexec(fd->ctl[0]) < 0)
+         || (alcove_set_cloexec(fd->ctl[0]) < 0)) {
+        alcove_close_pipe(fd->ctl);
+        return -1;
+    }
+
     if ( (pipe(fd->in) < 0)
             || (pipe(fd->out) < 0)
             || (pipe(fd->err) < 0)) {
+        alcove_close_pipe(fd->ctl);
         alcove_close_pipe(fd->in);
         alcove_close_pipe(fd->out);
         alcove_close_pipe(fd->err);
@@ -253,6 +264,18 @@ alcove_stdio(alcove_fd_t *fd)
     }
 
     return 0;
+}
+
+    static int
+alcove_set_cloexec(int fd)
+{
+    int flags = 0;
+
+    flags = fcntl(fd, F_GETFD, 0);
+    if (flags < 0)
+        return -1;
+
+    return fcntl(fd, F_SETFD, flags | FD_CLOEXEC);
 }
 
     static void
@@ -275,7 +298,8 @@ alcove_child_fun(void *arg)
     long maxfd = sysconf(_SC_OPEN_MAX);
     int n = 0;
 
-    if ( (close(fd->in[PIPE_WRITE]) < 0)
+    if ( (close(fd->ctl[PIPE_WRITE]) < 0)
+            || (close(fd->in[PIPE_WRITE]) < 0)
             || (close(fd->out[PIPE_READ]) < 0)
             || (close(fd->err[PIPE_READ]) < 0))
         return -1;
@@ -287,7 +311,8 @@ alcove_child_fun(void *arg)
 
     /* Close all other fd's inherited from the parent. */
     for (n = 0; n < maxfd; n++) {
-        if ( (n != STDIN_FILENO)
+        if ( (n != fd->ctl[PIPE_READ])
+                && (n != STDIN_FILENO)
                 && (n != STDOUT_FILENO)
                 && (n != STDERR_FILENO))
             (void)close(n);
@@ -307,9 +332,10 @@ alcove_parent_fd(alcove_state_t *ap, alcove_fd_t *fd, pid_t pid)
      * return errno or exit (the child will be forced to exit as well
      * when stdin is closed).
      */
-    if ( (close(fd->in[PIPE_READ]) < 0)
-            || (close(fd->out[PIPE_WRITE]) < 0) ||
-            (close(fd->err[PIPE_WRITE]) < 0))
+    if ( (close(fd->ctl[PIPE_READ]) < 0)
+            || (close(fd->in[PIPE_READ]) < 0)
+            || (close(fd->out[PIPE_WRITE]) < 0)
+            || (close(fd->err[PIPE_WRITE]) < 0))
         erl_err_sys("alcove_parent_fd:close");
 
     return pid_foreach(ap, 0, fd, &pid, pid_equal, stdio_pid);
@@ -332,6 +358,7 @@ stdio_pid(alcove_child_t *c, void *arg1, void *arg2)
     pid_t *pid = arg2;
 
     c->pid = *pid;
+    c->fdctl = fd->ctl[PIPE_WRITE];
     c->fdin = fd->in[PIPE_WRITE];
     c->fdout = fd->out[PIPE_READ];
     c->fderr = fd->err[PIPE_READ];
