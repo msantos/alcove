@@ -32,23 +32,23 @@
     ?UINT16(Type), ?UINT32(Pid0)).
 
 -define(ALCOVE_HDR(Type, Pid0, Pid1),
-    ?UINT16(Type), ?UINT32(Pid0),
+    ?UINT16(?ALCOVE_MSG_STDOUT), ?UINT32(Pid0),
     ?UINT16(_), ?UINT16(Type), ?UINT32(Pid1)).
 
 -define(ALCOVE_HDR(Type, Pid0, Pid1, Pid2),
-    ?UINT16(Type), ?UINT32(Pid0),
-    ?UINT16(_), ?UINT16(Type), ?UINT32(Pid1),
+    ?UINT16(?ALCOVE_MSG_STDOUT), ?UINT32(Pid0),
+    ?UINT16(_), ?UINT16(?ALCOVE_MSG_STDOUT), ?UINT32(Pid1),
     ?UINT16(_), ?UINT16(Type), ?UINT32(Pid2)).
 
 -define(ALCOVE_HDR(Type, Pid0, Pid1, Pid2, Pid3),
-    ?UINT16(Type), ?UINT32(Pid0),
-    ?UINT16(_), ?UINT16(Type), ?UINT32(Pid1),
-    ?UINT16(_), ?UINT16(Type), ?UINT32(Pid2),
+    ?UINT16(?ALCOVE_MSG_STDOUT), ?UINT32(Pid0),
+    ?UINT16(_), ?UINT16(?ALCOVE_MSG_STDOUT), ?UINT32(Pid1),
+    ?UINT16(_), ?UINT16(?ALCOVE_MSG_STDOUT), ?UINT32(Pid2),
     ?UINT16(_), ?UINT16(Type), ?UINT32(Pid3)).
 
 -define(ALCOVE_HDR(Type, Pid0, Pid1, Pid2, Pid3, Pid4),
-    ?UINT16(Type), ?UINT32(Pid0),
-    ?UINT16(_), ?UINT16(Type), ?UINT32(Pid1),
-    ?UINT16(_), ?UINT16(Type), ?UINT32(Pid2),
-    ?UINT16(_), ?UINT16(Type), ?UINT32(Pid3),
+    ?UINT16(?ALCOVE_MSG_STDOUT), ?UINT32(Pid0),
+    ?UINT16(_), ?UINT16(?ALCOVE_MSG_STDOUT), ?UINT32(Pid1),
+    ?UINT16(_), ?UINT16(?ALCOVE_MSG_STDOUT), ?UINT32(Pid2),
+    ?UINT16(_), ?UINT16(?ALCOVE_MSG_STDOUT), ?UINT32(Pid3),
     ?UINT16(_), ?UINT16(Type), ?UINT32(Pid4)).
