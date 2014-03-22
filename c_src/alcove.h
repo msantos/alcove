@@ -20,6 +20,7 @@
 #include <sys/resource.h>
 #include <sys/types.h>
 #include <signal.h>
+#include <sys/socket.h>
 
 #include <arpa/inet.h>
 #include <stdint.h>
