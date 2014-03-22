@@ -108,21 +108,23 @@ event_1(Port, [], Type, Timeout) ->
 event_1(Port, [Pid0] = Pids, Type, Timeout) ->
     receive
         {Port, {data, <<
-                ?ALCOVE_HDR(?ALCOVE_MSG_STDOUT, Pid0),
+                ?ALCOVE_HDR(?ALCOVE_MSG_PROXY, Pid0),
                 ?UINT16(Len), ?UINT16(Type), Reply/binary
             >>}} when Len =:= 2 + byte_size(Reply) ->
             {type_to_atom(Type), Pids, binary_to_term(Reply)};
         {Port, {data, <<
-                ?ALCOVE_HDR(?ALCOVE_MSG_STDOUT, Pid0),
+                ?ALCOVE_HDR(?ALCOVE_MSG_PROXY, Pid0),
                 ?UINT16(Len), ?UINT16(Type1), Reply/binary
-            >>}} when Len =:= 2 + byte_size(Reply) ->
+            >>}} when Len =:= 2 + byte_size(Reply),
+            Type1 =:= ?ALCOVE_MSG_CALL orelse Type1 =:= ?ALCOVE_MSG_EVENT ->
             events(Port, Pids, Type,
                 <<?UINT16(Len), ?UINT16(Type1), Reply/binary>>),
             event_1(Port, Pids, Type, Timeout);
         {Port, {data, <<
-                ?ALCOVE_HDR(?ALCOVE_MSG_STDOUT, Pid0),
+                ?ALCOVE_HDR(?ALCOVE_MSG_PROXY, Pid0),
                 ?UINT16(Len), ?UINT16(Type1), Reply/binary
-            >>}} ->
+            >>}} when Type1 =:= ?ALCOVE_MSG_CALL
+                orelse Type1 =:= ?ALCOVE_MSG_EVENT ->
             events(Port, Pids, Type,
                 <<?UINT16(Len), ?UINT16(Type1), Reply/binary>>)
     after
@@ -132,21 +134,23 @@ event_1(Port, [Pid0] = Pids, Type, Timeout) ->
 event_1(Port, [Pid0,Pid1] = Pids, Type, Timeout) ->
     receive
         {Port, {data, <<
-                ?ALCOVE_HDR(?ALCOVE_MSG_STDOUT, Pid0, Pid1),
+                ?ALCOVE_HDR(?ALCOVE_MSG_PROXY, Pid0, Pid1),
                 ?UINT16(Len), ?UINT16(Type), Reply/binary
             >>}} when Len =:= 2 + byte_size(Reply) ->
             {type_to_atom(Type), Pids, binary_to_term(Reply)};
         {Port, {data, <<
-                ?ALCOVE_HDR(?ALCOVE_MSG_STDOUT, Pid0, Pid1),
+                ?ALCOVE_HDR(?ALCOVE_MSG_PROXY, Pid0, Pid1),
                 ?UINT16(Len), ?UINT16(Type1), Reply/binary
-            >>}} when Len =:= 2 + byte_size(Reply) ->
+            >>}} when Len =:= 2 + byte_size(Reply),
+            Type1 =:= ?ALCOVE_MSG_CALL orelse Type1 =:= ?ALCOVE_MSG_EVENT ->
             events(Port, Pids, Type,
                 <<?UINT16(Len), ?UINT16(Type1), Reply/binary>>),
             event_1(Port, Pids, Type, Timeout);
         {Port, {data, <<
-                ?ALCOVE_HDR(?ALCOVE_MSG_STDOUT, Pid0, Pid1),
+                ?ALCOVE_HDR(?ALCOVE_MSG_PROXY, Pid0, Pid1),
                 ?UINT16(Len), ?UINT16(Type1), Reply/binary
-            >>}} ->
+            >>}} when Type1 =:= ?ALCOVE_MSG_CALL
+                orelse Type1 =:= ?ALCOVE_MSG_EVENT ->
             events(Port, Pids, Type,
                 <<?UINT16(Len), ?UINT16(Type1), Reply/binary>>)
     after
@@ -156,21 +160,23 @@ event_1(Port, [Pid0,Pid1] = Pids, Type, Timeout) ->
 event_1(Port, [Pid0,Pid1,Pid2] = Pids, Type, Timeout) ->
     receive
         {Port, {data, <<
-                ?ALCOVE_HDR(?ALCOVE_MSG_STDOUT, Pid0, Pid1, Pid2),
+                ?ALCOVE_HDR(?ALCOVE_MSG_PROXY, Pid0, Pid1, Pid2),
                 ?UINT16(Len), ?UINT16(Type), Reply/binary
             >>}} when Len =:= 2 + byte_size(Reply) ->
             {type_to_atom(Type), Pids, binary_to_term(Reply)};
         {Port, {data, <<
-                ?ALCOVE_HDR(?ALCOVE_MSG_STDOUT, Pid0, Pid1, Pid2),
+                ?ALCOVE_HDR(?ALCOVE_MSG_PROXY, Pid0, Pid1, Pid2),
                 ?UINT16(Len), ?UINT16(Type1), Reply/binary
-            >>}} when Len =:= 2 + byte_size(Reply) ->
+            >>}} when Len =:= 2 + byte_size(Reply),
+            Type1 =:= ?ALCOVE_MSG_CALL orelse Type1 =:= ?ALCOVE_MSG_EVENT ->
             events(Port, Pids, Type,
                 <<?UINT16(Len), ?UINT16(Type1), Reply/binary>>),
             event_1(Port, Pids, Type, Timeout);
         {Port, {data, <<
-                ?ALCOVE_HDR(?ALCOVE_MSG_STDOUT, Pid0, Pid1, Pid2),
+                ?ALCOVE_HDR(?ALCOVE_MSG_PROXY, Pid0, Pid1, Pid2),
                 ?UINT16(Len), ?UINT16(Type1), Reply/binary
-            >>}} ->
+            >>}} when Type1 =:= ?ALCOVE_MSG_CALL
+                orelse Type1 =:= ?ALCOVE_MSG_EVENT ->
             events(Port, Pids, Type,
                 <<?UINT16(Len), ?UINT16(Type1), Reply/binary>>)
     after
@@ -180,21 +186,23 @@ event_1(Port, [Pid0,Pid1,Pid2] = Pids, Type, Timeout) ->
 event_1(Port, [Pid0,Pid1,Pid2,Pid3] = Pids, Type, Timeout) ->
     receive
         {Port, {data, <<
-                ?ALCOVE_HDR(?ALCOVE_MSG_STDOUT, Pid0, Pid1, Pid2, Pid3),
+                ?ALCOVE_HDR(?ALCOVE_MSG_PROXY, Pid0, Pid1, Pid2, Pid3),
                 ?UINT16(Len), ?UINT16(Type), Reply/binary
             >>}} when Len =:= 2 + byte_size(Reply) ->
             {type_to_atom(Type), Pids, binary_to_term(Reply)};
         {Port, {data, <<
-                ?ALCOVE_HDR(?ALCOVE_MSG_STDOUT, Pid0, Pid1, Pid2, Pid3),
+                ?ALCOVE_HDR(?ALCOVE_MSG_PROXY, Pid0, Pid1, Pid2, Pid3),
                 ?UINT16(Len), ?UINT16(Type1), Reply/binary
-            >>}} when Len =:= 2 + byte_size(Reply) ->
+            >>}} when Len =:= 2 + byte_size(Reply),
+            Type1 =:= ?ALCOVE_MSG_CALL orelse Type1 =:= ?ALCOVE_MSG_EVENT ->
             events(Port, Pids, Type,
                 <<?UINT16(Len), ?UINT16(Type1), Reply/binary>>),
             event_1(Port, Pids, Type, Timeout);
         {Port, {data, <<
-                ?ALCOVE_HDR(?ALCOVE_MSG_STDOUT, Pid0, Pid1, Pid2, Pid3),
+                ?ALCOVE_HDR(?ALCOVE_MSG_PROXY, Pid0, Pid1, Pid2, Pid3),
                 ?UINT16(Len), ?UINT16(Type1), Reply/binary
-            >>}} ->
+            >>}} when Type1 =:= ?ALCOVE_MSG_CALL
+                orelse Type1 =:= ?ALCOVE_MSG_EVENT ->
             events(Port, Pids, Type,
                 <<?UINT16(Len), ?UINT16(Type1), Reply/binary>>)
     after
@@ -204,21 +212,23 @@ event_1(Port, [Pid0,Pid1,Pid2,Pid3] = Pids, Type, Timeout) ->
 event_1(Port, [Pid0,Pid1,Pid2,Pid3,Pid4] = Pids, Type, Timeout) ->
     receive
         {Port, {data, <<
-                ?ALCOVE_HDR(?ALCOVE_MSG_STDOUT, Pid0, Pid1, Pid2, Pid3, Pid4),
+                ?ALCOVE_HDR(?ALCOVE_MSG_PROXY, Pid0, Pid1, Pid2, Pid3, Pid4),
                 ?UINT16(Len), ?UINT16(Type), Reply/binary
             >>}} when Len =:= 2 + byte_size(Reply) ->
             {type_to_atom(Type), Pids, binary_to_term(Reply)};
         {Port, {data, <<
-                ?ALCOVE_HDR(?ALCOVE_MSG_STDOUT, Pid0, Pid1, Pid2, Pid3, Pid4),
+                ?ALCOVE_HDR(?ALCOVE_MSG_PROXY, Pid0, Pid1, Pid2, Pid3, Pid4),
                 ?UINT16(Len), ?UINT16(Type1), Reply/binary
-            >>}} when Len =:= 2 + byte_size(Reply) ->
+            >>}} when Len =:= 2 + byte_size(Reply),
+            Type1 =:= ?ALCOVE_MSG_CALL orelse Type1 =:= ?ALCOVE_MSG_EVENT ->
             events(Port, Pids, Type,
                 <<?UINT16(Len), ?UINT16(Type1), Reply/binary>>),
             event_1(Port, Pids, Type, Timeout);
         {Port, {data, <<
-                ?ALCOVE_HDR(?ALCOVE_MSG_STDOUT, Pid0, Pid1, Pid2, Pid3, Pid4),
+                ?ALCOVE_HDR(?ALCOVE_MSG_PROXY, Pid0, Pid1, Pid2, Pid3, Pid4),
                 ?UINT16(Len), ?UINT16(Type1), Reply/binary
-            >>}} ->
+            >>}} when Type1 =:= ?ALCOVE_MSG_CALL
+                orelse Type1 =:= ?ALCOVE_MSG_EVENT ->
             events(Port, Pids, Type,
                 <<?UINT16(Len), ?UINT16(Type1), Reply/binary>>)
     after
@@ -400,13 +410,15 @@ atom_to_type(alcove_call) -> ?ALCOVE_MSG_CALL;
 atom_to_type(alcove_event) -> ?ALCOVE_MSG_EVENT;
 atom_to_type(alcove_stdin) -> ?ALCOVE_MSG_STDIN;
 atom_to_type(alcove_stdout) -> ?ALCOVE_MSG_STDOUT;
-atom_to_type(alcove_stderr) -> ?ALCOVE_MSG_STDERR.
+atom_to_type(alcove_stderr) -> ?ALCOVE_MSG_STDERR;
+atom_to_type(alcove_proxy) -> ?ALCOVE_MSG_PROXY.
 
 type_to_atom(?ALCOVE_MSG_CALL) -> alcove_call;
 type_to_atom(?ALCOVE_MSG_EVENT) -> alcove_event;
 type_to_atom(?ALCOVE_MSG_STDIN) -> alcove_stdin;
 type_to_atom(?ALCOVE_MSG_STDOUT) -> alcove_stdout;
-type_to_atom(?ALCOVE_MSG_STDERR) -> alcove_stderr.
+type_to_atom(?ALCOVE_MSG_STDERR) -> alcove_stderr;
+type_to_atom(?ALCOVE_MSG_PROXY) -> alcove_proxy.
 
 basedir(Module) ->
     case code:priv_dir(Module) of

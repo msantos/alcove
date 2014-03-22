@@ -23,8 +23,12 @@
 #define ALCOVE_MSG_STDIN (htons(2))
 #define ALCOVE_MSG_STDOUT (htons(3))
 #define ALCOVE_MSG_STDERR (htons(4))
+#define ALCOVE_MSG_PROXY (htons(5))
 
 #define ALCOVE_CHILD_EXEC -2
+
+#define ALCOVE_MSG_TYPE(s) \
+    ((s->fdctl == ALCOVE_CHILD_EXEC) ? ALCOVE_MSG_STDOUT : ALCOVE_MSG_PROXY)
 
 #ifdef __linux__
 #pragma message "Support for namespaces using clone(2) enabled"
@@ -32,27 +36,34 @@
 #pragma message "Support for namespaces using clone(2) disabled"
 #endif
 
+#define MAXMSGLEN   60000
 typedef struct {
     u_int16_t len;
     u_int16_t type;
     pid_t pid;
-    unsigned char buf[65535 - (sizeof(u_int16_t)*2+sizeof(pid_t))];
+    unsigned char buf[MAXMSGLEN];
 } alcove_msg_stdio_t;
 
 typedef struct {
     u_int16_t len;
     u_int16_t type;
-    unsigned char buf[65535 - (sizeof(u_int16_t)*2)];
+    unsigned char buf[MAXMSGLEN];
 } alcove_msg_call_t;
 
 static int alcove_stdin(alcove_state_t *ap);
 static ssize_t alcove_msg_call(alcove_state_t *ap, int fd, u_int16_t len);
 static alcove_msg_t *alcove_msg_read(int fd, u_int16_t len);
 
-static ssize_t alcove_child_stdio(int fdin, pid_t pid, u_int16_t type);
+static ssize_t alcove_child_stdio(int fdin, alcove_child_t *c, u_int16_t type);
 static ssize_t alcove_send(u_int16_t, ETERM *);
+static ssize_t alcove_call_stdio(pid_t pid, u_int16_t type, ETERM *t);
 static ssize_t alcove_write(void *data, size_t len);
 static ssize_t alcove_read(int, void *, ssize_t);
+
+static alcove_msg_stdio_t * alcove_alloc_hdr_stdio(pid_t pid, u_int16_t type,
+        void *buf, size_t *len);
+static alcove_msg_call_t * alcove_alloc_hdr_call(u_int16_t type, ETERM *t,
+        size_t *len);
 
 static int exited_pid(alcove_child_t *c, void *arg1, void *arg2);
 static int set_pid(alcove_child_t *c, void *arg1, void *arg2);
@@ -304,54 +315,142 @@ BADARG:
 }
 
     static ssize_t
-alcove_child_stdio(int fdin, pid_t pid, u_int16_t type)
+alcove_child_stdio(int fdin, alcove_child_t *c, u_int16_t type)
 {
     ssize_t n = 0;
-    u_int16_t len = 0;
-    alcove_msg_stdio_t msg = {0};
+    alcove_msg_stdio_t *msg = NULL;
+    unsigned char buf[MAXMSGLEN] = {0};
+    ssize_t rv = 0;
 
     errno = 0;
-    n = read(fdin, msg.buf, sizeof(msg.buf));
+    if (c->fdctl == ALCOVE_CHILD_EXEC) {
+        n = read(fdin, buf, sizeof(buf));
 
-    if (n <= 0) {
-        if (errno == 0)
-            return 0;
+        if (n <= 0) {
+            if (errno == 0)
+                return 0;
 
-        return -1;
+            return -1;
+        }
+    }
+    else {
+        if (read(fdin, buf, 2) != 2) {
+            if (errno == 0)
+                return 0;
+
+            return -1;
+        }
+
+        n = buf[0] << 8 | buf[1];
+
+        if (read(fdin, buf+2, n) != n)
+            return -1;
+
+        n += 2;
     }
 
-    len = sizeof(type) + sizeof(pid) + n;
+    msg = alcove_alloc_hdr_stdio(c->pid, type, buf, (size_t *)&n);
+    if (!msg)
+        return -1;
 
-    msg.len = htons(len);
-    msg.type = type;
-    msg.pid = htonl(pid);
+    rv = alcove_write(msg, n);
 
-    return alcove_write(&msg, sizeof(msg.len)+len);
+    free(msg);
+
+    return rv;
 }
 
     static ssize_t
 alcove_send(u_int16_t type, ETERM *t)
 {
-    int term_len = 0;
-    u_int16_t len = 0;
-    alcove_msg_call_t msg = {0};
+    alcove_msg_call_t *msg = NULL;
+    size_t len = 0;
+    ssize_t n = 0;
 
-    term_len = erl_term_len(t);
-    len = sizeof(msg.type) + term_len;
+    msg = alcove_alloc_hdr_call(type, t, &len);
+    if (!msg)
+        return -1;
 
-    if (term_len < 0 || len > sizeof(msg.buf))
+    n = alcove_write(msg, len);
+
+    free(msg);
+
+    return n;
+}
+
+    static ssize_t
+alcove_call_stdio(pid_t pid, u_int16_t type, ETERM *t)
+{
+    alcove_msg_call_t *call = NULL;
+    alcove_msg_stdio_t *msg = NULL;
+    size_t len = 0;
+    ssize_t n = -1;
+
+    call = alcove_alloc_hdr_call(type, t, &len);
+    if (!call)
+        return -1;
+
+    msg = alcove_alloc_hdr_stdio(pid, ALCOVE_MSG_PROXY, call, &len);
+    if (!msg)
         goto ERR;
 
-    msg.len = htons(len);
-    msg.type = type;
-
-    if (erl_encode(t, msg.buf) < 1)
-        goto ERR;
-
-    return alcove_write(&msg, sizeof(msg.len)+len);
+    n = alcove_write(msg, len);
 
 ERR:
-    return -1;
+    free(call);
+    free(msg);
+
+    return n;
+}
+
+    static alcove_msg_stdio_t *
+alcove_alloc_hdr_stdio(pid_t pid, u_int16_t type, void *buf, size_t *len)
+{
+    alcove_msg_stdio_t *msg = NULL;
+    size_t msg_len = 0;
+
+    if (*len > sizeof(msg->buf))
+        return NULL;
+
+    msg = alcove_malloc(sizeof(alcove_msg_stdio_t));
+    (void)memcpy(msg->buf, buf, *len);
+
+    msg_len = sizeof(msg->type) + sizeof(msg->pid) + *len;
+    msg->len = htons(msg_len);
+    msg->type = type;
+    msg->pid = htonl(pid);
+
+    *len = sizeof(msg->len) + msg_len;
+
+    return msg;
+}
+
+    static alcove_msg_call_t *
+alcove_alloc_hdr_call(u_int16_t type, ETERM *t, size_t *len)
+{
+    alcove_msg_call_t *msg = NULL;
+    int term_len = 0;
+
+    msg = alcove_malloc(sizeof(alcove_msg_call_t));
+
+    term_len = erl_term_len(t);
+    if (term_len < 0 || term_len > sizeof(msg->buf))
+        goto ERR;
+
+    if (erl_encode(t, msg->buf) < 1)
+        goto ERR;
+
+    msg->len = htons(sizeof(msg->type) + term_len);
+    msg->type = type;
+
+    *len = sizeof(msg->len) + sizeof(msg->type) + term_len;
+
+    return msg;
+
+ERR:
+    free(msg);
+
+    return NULL;
 }
 
     static ssize_t
@@ -471,12 +570,16 @@ read_from_pid(alcove_child_t *c, void *arg1, void *arg2)
 {
     fd_set *rfds = arg1;
 
-    if (FD_ISSET(c->fdctl, rfds)) {
+    if (c->fdctl > -1 && FD_ISSET(c->fdctl, rfds)) {
         unsigned char buf;
+
         switch (read(c->fdctl, &buf, sizeof(buf))) {
             case 0:
                 (void)close(c->fdctl);
                 c->fdctl = ALCOVE_CHILD_EXEC;
+                if (alcove_call_stdio(c->pid, ALCOVE_MSG_CALL,
+                            erl_mk_atom("ok")) < 0)
+                    return -1;
                 break;
             default:
                 (void)close(c->fdctl);
@@ -485,8 +588,8 @@ read_from_pid(alcove_child_t *c, void *arg1, void *arg2)
         }
     }
 
-    if (FD_ISSET(c->fdout, rfds)) {
-        switch (alcove_child_stdio(c->fdout, c->pid, ALCOVE_MSG_STDOUT)) {
+    if (c->fdout > -1 && FD_ISSET(c->fdout, rfds)) {
+        switch (alcove_child_stdio(c->fdout, c, ALCOVE_MSG_TYPE(c))) {
             case -1:
             case 0:
                 (void)close(c->fdout);
@@ -497,8 +600,8 @@ read_from_pid(alcove_child_t *c, void *arg1, void *arg2)
         }
     }
 
-    if (FD_ISSET(c->fderr, rfds)) {
-        switch (alcove_child_stdio(c->fderr, c->pid, ALCOVE_MSG_STDERR)) {
+    if (c->fderr > -1 && FD_ISSET(c->fderr, rfds)) {
+        switch (alcove_child_stdio(c->fderr, c, ALCOVE_MSG_STDERR)) {
             case -1:
             case 0:
                 (void)close(c->fderr);
