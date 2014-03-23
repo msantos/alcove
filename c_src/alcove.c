@@ -320,30 +320,31 @@ alcove_child_stdio(int fdin, alcove_child_t *c, u_int16_t type)
     ssize_t n = 0;
     alcove_msg_stdio_t *msg = NULL;
     unsigned char buf[MAXMSGLEN] = {0};
+    size_t read_len = 2;
     ssize_t rv = 0;
 
     errno = 0;
-    if (c->fdctl == ALCOVE_CHILD_EXEC) {
-        n = read(fdin, buf, sizeof(buf));
 
-        if (n <= 0) {
-            if (errno == 0)
-                return 0;
+    /* If the child has called exec(), treat the data as a stream.
+     *
+     * Otherwise, read in the length header and do an exact read.
+     */
+    if (c->fdctl == ALCOVE_CHILD_EXEC)
+        read_len = MAXMSGLEN;
 
-            return -1;
-        }
+    n = read(fdin, buf, read_len);
+
+    if (n <= 0) {
+        if (errno == 0)
+            return 0;
+
+        return -1;
     }
-    else {
-        if (read(fdin, buf, 2) != 2) {
-            if (errno == 0)
-                return 0;
 
-            return -1;
-        }
-
+    if (c->fdctl != ALCOVE_CHILD_EXEC) {
         n = buf[0] << 8 | buf[1];
 
-        if (read(fdin, buf+2, n) != n)
+        if (alcove_read(fdin, buf+2, n) != n)
             return -1;
 
         n += 2;
