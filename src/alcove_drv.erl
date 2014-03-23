@@ -19,7 +19,7 @@
 -export([call/2, call/3, call/4, cast/2, encode/2, encode/3]).
 -export([stdin/3, stdout/3, stderr/3, event/4]).
 -export([atom_to_type/1, type_to_atom/1]).
--export([msg/2, events/4]).
+-export([msg/2, events/4, decode/1]).
 -export([getopts/1]).
 
 -export_type([reply/0]).
@@ -53,12 +53,7 @@ call(Port, Pids, Data) ->
     reply().
 call(Port, Pids, Data, Timeout) ->
     true = send(Port, Data, iolist_size(Data)),
-    case event(Port, Pids, ?ALCOVE_MSG_CALL, Timeout) of
-        false ->
-            false;
-        {alcove_call, Pids, Event} ->
-            Event
-    end.
+    event_data(Port, Pids, ?ALCOVE_MSG_CALL, Timeout).
 
 -spec cast(port(),iodata()) -> any().
 cast(Port, Data) ->
@@ -68,25 +63,21 @@ cast(Port, Data) ->
 send(Port, Data, Size) when is_port(Port), Size < 16#ffff ->
     erlang:port_command(Port, Data).
 
+event_data(Port, Pids, Type, Timeout) ->
+    Tag = type_to_atom(Type),
+    case event(Port, Pids, Type, Timeout) of
+        false ->
+            false;
+        {Tag, Pids, Event} ->
+            Event
+    end.
+
 -spec event(port(),[integer()],non_neg_integer(),
     'infinity' | non_neg_integer()) -> 'false' |
     {'alcove_call' | 'alcove_event',
         [integer()], reply() | {'signal', integer()}}.
 % Check the mailbox for processed events
-event(Port, Pids, Type, Timeout) when is_integer(Type) ->
-    Tag = type_to_atom(Type),
-    receive
-        {Port, {Tag, Pids, _Data} = Event} ->
-            Event
-    after
-        0 ->
-            event_1(Port, Pids, Type, Timeout)
-    end.
-
-% Check for messages from the port
-
-% Reply from the port: no message length
-event_1(Port, [], Type, Timeout) ->
+event(Port, [], Type, Timeout) when is_integer(Type) ->
     receive
         {Port, {data, <<?UINT16(Type), Reply/binary>>}} ->
             {type_to_atom(Type), [], binary_to_term(Reply)}
@@ -94,6 +85,15 @@ event_1(Port, [], Type, Timeout) ->
         Timeout ->
             false
     end;
+event(Port, Pids, Type, Timeout) when is_integer(Type) ->
+    Tag = type_to_atom(Type),
+    receive
+        {Port, {Tag, Pids, _Data} = Event} ->
+            Event
+    after
+        0 ->
+            events(Port, Pids, Type, Timeout)
+    end.
 
 % Reply from a child process.
 %
@@ -105,160 +105,30 @@ event_1(Port, [], Type, Timeout) ->
 % Work around this by converting the reply into a list of messages. The
 % first message matching the requested type is returned to the caller. The
 % remaining messages are pushed back into the process' mailbox.
-event_1(Port, [Pid0] = Pids, Type, Timeout) ->
+events(Port, Pids, Type, Timeout) ->
     receive
-        {Port, {data, <<
-                ?ALCOVE_HDR(?ALCOVE_MSG_PROXY, Pid0),
-                ?UINT16(Len), ?UINT16(Type), Reply/binary
-            >>}} when Len =:= 2 + byte_size(Reply) ->
-            {type_to_atom(Type), Pids, binary_to_term(Reply)};
-        {Port, {data, <<
-                ?ALCOVE_HDR(?ALCOVE_MSG_PROXY, Pid0),
-                ?UINT16(Len), ?UINT16(Type1), Reply/binary
-            >>}} when Len =:= 2 + byte_size(Reply),
-            Type1 =:= ?ALCOVE_MSG_CALL orelse Type1 =:= ?ALCOVE_MSG_EVENT ->
-            events(Port, Pids, Type,
-                <<?UINT16(Len), ?UINT16(Type1), Reply/binary>>),
-            event_1(Port, Pids, Type, Timeout);
-        {Port, {data, <<
-                ?ALCOVE_HDR(?ALCOVE_MSG_PROXY, Pid0),
-                ?UINT16(Len), ?UINT16(Type1), Reply/binary
-            >>}} when Type1 =:= ?ALCOVE_MSG_CALL
-                orelse Type1 =:= ?ALCOVE_MSG_EVENT ->
-            events(Port, Pids, Type,
-                <<?UINT16(Len), ?UINT16(Type1), Reply/binary>>)
-    after
-        Timeout ->
-            false
-    end;
-event_1(Port, [Pid0,Pid1] = Pids, Type, Timeout) ->
-    receive
-        {Port, {data, <<
-                ?ALCOVE_HDR(?ALCOVE_MSG_PROXY, Pid0, Pid1),
-                ?UINT16(Len), ?UINT16(Type), Reply/binary
-            >>}} when Len =:= 2 + byte_size(Reply) ->
-            {type_to_atom(Type), Pids, binary_to_term(Reply)};
-        {Port, {data, <<
-                ?ALCOVE_HDR(?ALCOVE_MSG_PROXY, Pid0, Pid1),
-                ?UINT16(Len), ?UINT16(Type1), Reply/binary
-            >>}} when Len =:= 2 + byte_size(Reply),
-            Type1 =:= ?ALCOVE_MSG_CALL orelse Type1 =:= ?ALCOVE_MSG_EVENT ->
-            events(Port, Pids, Type,
-                <<?UINT16(Len), ?UINT16(Type1), Reply/binary>>),
-            event_1(Port, Pids, Type, Timeout);
-        {Port, {data, <<
-                ?ALCOVE_HDR(?ALCOVE_MSG_PROXY, Pid0, Pid1),
-                ?UINT16(Len), ?UINT16(Type1), Reply/binary
-            >>}} when Type1 =:= ?ALCOVE_MSG_CALL
-                orelse Type1 =:= ?ALCOVE_MSG_EVENT ->
-            events(Port, Pids, Type,
-                <<?UINT16(Len), ?UINT16(Type1), Reply/binary>>)
-    after
-        Timeout ->
-            false
-    end;
-event_1(Port, [Pid0,Pid1,Pid2] = Pids, Type, Timeout) ->
-    receive
-        {Port, {data, <<
-                ?ALCOVE_HDR(?ALCOVE_MSG_PROXY, Pid0, Pid1, Pid2),
-                ?UINT16(Len), ?UINT16(Type), Reply/binary
-            >>}} when Len =:= 2 + byte_size(Reply) ->
-            {type_to_atom(Type), Pids, binary_to_term(Reply)};
-        {Port, {data, <<
-                ?ALCOVE_HDR(?ALCOVE_MSG_PROXY, Pid0, Pid1, Pid2),
-                ?UINT16(Len), ?UINT16(Type1), Reply/binary
-            >>}} when Len =:= 2 + byte_size(Reply),
-            Type1 =:= ?ALCOVE_MSG_CALL orelse Type1 =:= ?ALCOVE_MSG_EVENT ->
-            events(Port, Pids, Type,
-                <<?UINT16(Len), ?UINT16(Type1), Reply/binary>>),
-            event_1(Port, Pids, Type, Timeout);
-        {Port, {data, <<
-                ?ALCOVE_HDR(?ALCOVE_MSG_PROXY, Pid0, Pid1, Pid2),
-                ?UINT16(Len), ?UINT16(Type1), Reply/binary
-            >>}} when Type1 =:= ?ALCOVE_MSG_CALL
-                orelse Type1 =:= ?ALCOVE_MSG_EVENT ->
-            events(Port, Pids, Type,
-                <<?UINT16(Len), ?UINT16(Type1), Reply/binary>>)
-    after
-        Timeout ->
-            false
-    end;
-event_1(Port, [Pid0,Pid1,Pid2,Pid3] = Pids, Type, Timeout) ->
-    receive
-        {Port, {data, <<
-                ?ALCOVE_HDR(?ALCOVE_MSG_PROXY, Pid0, Pid1, Pid2, Pid3),
-                ?UINT16(Len), ?UINT16(Type), Reply/binary
-            >>}} when Len =:= 2 + byte_size(Reply) ->
-            {type_to_atom(Type), Pids, binary_to_term(Reply)};
-        {Port, {data, <<
-                ?ALCOVE_HDR(?ALCOVE_MSG_PROXY, Pid0, Pid1, Pid2, Pid3),
-                ?UINT16(Len), ?UINT16(Type1), Reply/binary
-            >>}} when Len =:= 2 + byte_size(Reply),
-            Type1 =:= ?ALCOVE_MSG_CALL orelse Type1 =:= ?ALCOVE_MSG_EVENT ->
-            events(Port, Pids, Type,
-                <<?UINT16(Len), ?UINT16(Type1), Reply/binary>>),
-            event_1(Port, Pids, Type, Timeout);
-        {Port, {data, <<
-                ?ALCOVE_HDR(?ALCOVE_MSG_PROXY, Pid0, Pid1, Pid2, Pid3),
-                ?UINT16(Len), ?UINT16(Type1), Reply/binary
-            >>}} when Type1 =:= ?ALCOVE_MSG_CALL
-                orelse Type1 =:= ?ALCOVE_MSG_EVENT ->
-            events(Port, Pids, Type,
-                <<?UINT16(Len), ?UINT16(Type1), Reply/binary>>)
-    after
-        Timeout ->
-            false
-    end;
-event_1(Port, [Pid0,Pid1,Pid2,Pid3,Pid4] = Pids, Type, Timeout) ->
-    receive
-        {Port, {data, <<
-                ?ALCOVE_HDR(?ALCOVE_MSG_PROXY, Pid0, Pid1, Pid2, Pid3, Pid4),
-                ?UINT16(Len), ?UINT16(Type), Reply/binary
-            >>}} when Len =:= 2 + byte_size(Reply) ->
-            {type_to_atom(Type), Pids, binary_to_term(Reply)};
-        {Port, {data, <<
-                ?ALCOVE_HDR(?ALCOVE_MSG_PROXY, Pid0, Pid1, Pid2, Pid3, Pid4),
-                ?UINT16(Len), ?UINT16(Type1), Reply/binary
-            >>}} when Len =:= 2 + byte_size(Reply),
-            Type1 =:= ?ALCOVE_MSG_CALL orelse Type1 =:= ?ALCOVE_MSG_EVENT ->
-            events(Port, Pids, Type,
-                <<?UINT16(Len), ?UINT16(Type1), Reply/binary>>),
-            event_1(Port, Pids, Type, Timeout);
-        {Port, {data, <<
-                ?ALCOVE_HDR(?ALCOVE_MSG_PROXY, Pid0, Pid1, Pid2, Pid3, Pid4),
-                ?UINT16(Len), ?UINT16(Type1), Reply/binary
-            >>}} when Type1 =:= ?ALCOVE_MSG_CALL
-                orelse Type1 =:= ?ALCOVE_MSG_EVENT ->
-            events(Port, Pids, Type,
-                <<?UINT16(Len), ?UINT16(Type1), Reply/binary>>)
+        {Port, {data, Data}} ->
+            Tag = type_to_atom(Type),
+            Msg = decode(Data),
+            Event = case [ {A,B,C} || {A,B,C} <- Msg, A =:= Tag, B =:= Pids ] of
+                [] -> false;
+                [N|_] -> N
+            end,
+            Events = lists:delete(Event, Msg),
+
+            Self = self(),
+            [ Self ! {Port, E} || E <- Events ],
+
+            case Event of
+                false ->
+                    events(Port, Pids, Type, Timeout);
+                _ ->
+                    Event
+            end
     after
         Timeout ->
             false
     end.
-
-events(Port, Pids, Type, Reply) ->
-    events(Port, Pids, Type, Reply, []).
-
-events(Port, _Pids, ReqType, <<>>, Acc0) ->
-    Tag = type_to_atom(ReqType),
-    Acc = lists:reverse(Acc0),
-    Event = lists:keyfind(Tag, 1, Acc),
-    Events = lists:keydelete(Tag, 1, Acc),
-    Self = self(),
-    [ Self ! {Port, E} || E <- Events ],
-    case Event of
-        false ->
-            false;
-        Event ->
-            Event
-    end;
-events(Port, Pids, ReqType,
-    <<?UINT16(Len), ?UINT16(Type), Reply/binary>>, Acc) ->
-    % length includes the message type field
-    Bytes = Len - 2,
-    <<Bin:Bytes/binary, Rest/binary>> = Reply,
-    events(Port, Pids, ReqType, Rest,
-        [{type_to_atom(Type), Pids, binary_to_term(Bin)}|Acc]).
 
 -spec stdin(port(),[integer()],iodata()) -> 'true'.
 stdin(Port, [], Data) ->
@@ -270,80 +140,12 @@ stdin(Port, Pids, Data) ->
 -spec stdout(port(),[integer()],'infinity' | non_neg_integer()) ->
     'false' | binary().
 stdout(Port, Pids, Timeout) ->
-    stdio(Port, Pids, ?ALCOVE_MSG_STDOUT, Timeout).
+    event_data(Port, Pids, ?ALCOVE_MSG_STDOUT, Timeout).
 
 -spec stderr(port(),[integer()],'infinity' | non_neg_integer()) ->
     'false' | binary().
 stderr(Port, Pids, Timeout) ->
-    stdio(Port, Pids, ?ALCOVE_MSG_STDERR, Timeout).
-
--spec stdio(port(),[integer()],integer(),'infinity' | non_neg_integer()) ->
-    'false' | binary().
-stdio(Port, [], _Type, Timeout) ->
-    receive
-        {Port, {data, <<
-                Reply/binary
-                >>}} ->
-            Reply
-    after
-        Timeout ->
-            false
-    end;
-stdio(Port, [Pid0], Type, Timeout) ->
-    receive
-        {Port, {data, <<
-                ?ALCOVE_HDR(Type, Pid0),
-                Reply/binary
-                >>}} ->
-            Reply
-    after
-        Timeout ->
-            false
-    end;
-stdio(Port, [Pid0, Pid1], Type, Timeout) ->
-    receive
-        {Port, {data, <<
-                ?ALCOVE_HDR(Type, Pid0, Pid1),
-                Reply/binary
-                >>}} ->
-            Reply
-    after
-        Timeout ->
-            false
-    end;
-stdio(Port, [Pid0, Pid1, Pid2], Type, Timeout) ->
-    receive
-        {Port, {data, <<
-                ?ALCOVE_HDR(Type, Pid0, Pid1, Pid2),
-                Reply/binary
-                >>}} ->
-            Reply
-    after
-        Timeout ->
-            false
-    end;
-stdio(Port, [Pid0, Pid1, Pid2, Pid3], Type, Timeout) ->
-    receive
-        {Port, {data, <<
-                ?ALCOVE_HDR(Type, Pid0, Pid1, Pid2, Pid3),
-                Reply/binary
-                >>}} ->
-            Reply
-    after
-        Timeout ->
-            false
-    end;
-stdio(Port, [Pid0, Pid1, Pid2, Pid3, Pid4], Type, Timeout) ->
-    receive
-        {Port, {data, <<
-                ?ALCOVE_HDR(Type, Pid0, Pid1, Pid2, Pid3, Pid4),
-                Reply/binary
-                >>}} ->
-            Reply
-    after
-        Timeout ->
-            false
-    end.
+    event_data(Port, Pids, ?ALCOVE_MSG_STDERR, Timeout).
 
 msg([], Data) ->
     Data;
@@ -361,6 +163,52 @@ encode(Command, Arg) when is_integer(Command), is_list(Arg) ->
     encode(?ALCOVE_MSG_CALL, Command, Arg).
 encode(Type, Command, Arg) when is_integer(Type), is_integer(Command), is_list(Arg) ->
     <<?UINT16(Type), ?UINT16(Command), (term_to_binary(Arg))/binary>>.
+
+
+decode(Msg) ->
+    % Re-add the message length stripped off by open_port
+    Len = byte_size(Msg),
+    decode(<<?UINT16(Len), Msg/binary>>, [], [], []).
+
+decode(<<>>, _Pids, Msg, Acc) ->
+    lists:flatten(lists:reverse([Msg|Acc]));
+
+decode(<<?UINT16(Len), ?UINT16(?ALCOVE_MSG_PROXY), ?UINT32(Pid),
+    Rest/binary>>, Pids, [], Acc) when Len =:= 2 + 4 + byte_size(Rest) ->
+    decode(Rest, [Pid|Pids], [], Acc);
+decode(<<?UINT16(Len), ?UINT16(?ALCOVE_MSG_PROXY), ?UINT32(Pid),
+    Rest/binary>>, _Pids, Msg, Acc) when Len =:= 2 + 4 + byte_size(Rest) ->
+    decode(Rest, [Pid], [], [lists:reverse(Msg)|Acc]);
+
+decode(<<?UINT16(Len), ?UINT16(?ALCOVE_MSG_STDOUT), ?UINT32(Pid),
+    Bin/binary>>, Pids, Msg, Acc) ->
+    Bytes = Len - (2 + 4),
+    <<Reply:Bytes/bytes, Rest/binary>> = Bin,
+    decode(Rest, Pids,
+        [{alcove_stdout, lists:reverse([Pid|Pids]), Reply}|Msg], Acc);
+
+decode(<<?UINT16(Len), ?UINT16(?ALCOVE_MSG_STDERR), ?UINT32(Pid),
+    Bin/binary>>, Pids, Msg, Acc) ->
+    Bytes = Len - (2 + 4),
+    <<Reply:Bytes/bytes, Rest/binary>> = Bin,
+    decode(Rest, Pids,
+        [{alcove_stderr, lists:reverse([Pid|Pids]), Reply}|Msg], Acc);
+
+decode(<<?UINT16(Len), ?UINT16(?ALCOVE_MSG_CALL),
+    Bin/binary>>, Pids, Msg, Acc) ->
+    Bytes = Len - 2,
+    <<Reply:Bytes/bytes, Rest/binary>> = Bin,
+    decode(Rest, Pids,
+        [{alcove_call, lists:reverse(Pids), binary_to_term(Reply)}|Msg],
+        Acc);
+
+decode(<<?UINT16(Len), ?UINT16(?ALCOVE_MSG_EVENT),
+    Bin/binary>>, Pids, Msg, Acc) ->
+    Bytes = Len - 2,
+    <<Reply:Bytes/bytes, Rest/binary>> = Bin,
+    decode(Rest, Pids,
+        [{alcove_event, lists:reverse(Pids), binary_to_term(Reply)}|Msg],
+        Acc).
 
 stop(Port) when is_port(Port) ->
     erlang:port_close(Port).

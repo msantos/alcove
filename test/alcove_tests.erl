@@ -76,31 +76,25 @@ start() ->
 stop({_, Port, _Child}) ->
     alcove_drv:stop(Port).
 
-msg({_, Port, Child}) ->
+msg({_, _Port, _Child}) ->
     % Length, Message type, Term
-    Msg = <<0,16, 0,1, 131,104,2,100,0,6,115,105,103,110,97,108,97,17,
-            0,16, 0,1, 131,104,2,100,0,6,115,105,103,110,97,108,97,17,
-            0,16, 0,1, 131,104,2,100,0,6,115,105,103,110,97,108,97,17,
-            0,13, 0,0, 131,109,0,0,0,5,48,46,50,46,48,
-            0,16, 0,1, 131,104,2,100,0,6,115,105,103,110,97,108,97,17>>,
+    % The length of the first message is stripped off by erlang
+    Msg = <<
+              0,5, 0,0,1,39,
+        0,47, 0,5, 0,0,2,39,
+        0,39, 0,5, 0,0,3,39,
+        0,13, 0,0, 131,109,0,0,0,5,48,46,50,46,48,
+        0,16, 0,5, 0,0,3,46,
+        0,8,  0,0, 131,100,0,2,111,107
+        >>,
 
-    Reply = alcove_drv:events(Port, [Child], ?ALCOVE_MSG_CALL, Msg),
+    Reply = alcove_drv:decode(Msg),
 
-    Sig1 = alcove:event(Port, [Child], 0),
-    Sig2 = alcove:event(Port, [Child], 0),
-    Sig3 = alcove:event(Port, [Child], 0),
-    Sig4 = alcove:event(Port, [Child], 0),
-    Sig5 = alcove:event(Port, [Child], 0),
-
-    [
-        ?_assertEqual({alcove_call,[Child],<<"0.2.0">>}, Reply),
-
-        ?_assertEqual({signal,17}, Sig1),
-        ?_assertEqual({signal,17}, Sig2),
-        ?_assertEqual({signal,17}, Sig3),
-        ?_assertEqual({signal,17}, Sig4),
-        ?_assertEqual(false, Sig5)
-    ].
+    ?_assertEqual(
+        [{alcove_call,[295,551,807],<<"0.2.0">>},
+            {alcove_call,[814],ok}],
+        Reply
+    ).
 
 version({_, Port, _Child}) ->
     Version = alcove:version(Port),
