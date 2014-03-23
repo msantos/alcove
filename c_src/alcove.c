@@ -571,24 +571,6 @@ read_from_pid(alcove_child_t *c, void *arg1, void *arg2)
 {
     fd_set *rfds = arg1;
 
-    if (c->fdctl > -1 && FD_ISSET(c->fdctl, rfds)) {
-        unsigned char buf;
-
-        switch (read(c->fdctl, &buf, sizeof(buf))) {
-            case 0:
-                (void)close(c->fdctl);
-                c->fdctl = ALCOVE_CHILD_EXEC;
-                if (alcove_call_stdio(c->pid, ALCOVE_MSG_CALL,
-                            erl_mk_atom("ok")) < 0)
-                    return -1;
-                break;
-            default:
-                (void)close(c->fdctl);
-                c->fdctl = -1;
-                break;
-        }
-    }
-
     if (c->fdout > -1 && FD_ISSET(c->fdout, rfds)) {
         switch (alcove_child_stdio(c->fdout, c, ALCOVE_MSG_TYPE(c))) {
             case -1:
@@ -610,6 +592,23 @@ read_from_pid(alcove_child_t *c, void *arg1, void *arg2)
                 break;
             default:
                 break;
+        }
+    }
+
+    if (c->fdctl > -1 && FD_ISSET(c->fdctl, rfds)) {
+        unsigned char buf;
+        ssize_t n;
+
+        n = read(c->fdctl, &buf, sizeof(buf));
+        (void)close(c->fdctl);
+        c->fdctl = -1;
+
+        if (n == 0 && !c->exited && c->fdin > -1 && c->fdout > -1
+                && c->fderr > -1) {
+            c->fdctl = ALCOVE_CHILD_EXEC;
+            if (alcove_call_stdio(c->pid, ALCOVE_MSG_CALL,
+                        erl_mk_atom("ok")) < 0)
+                return -1;
         }
     }
 
