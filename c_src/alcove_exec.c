@@ -63,3 +63,64 @@ BADARG:
     alcove_free_argv(argv);
     return erl_mk_atom("badarg");
 }
+
+/*
+ * execve(2)
+ *
+ */
+    ETERM *
+alcove_execve(alcove_state_t *ap, ETERM *arg)
+{
+    ETERM *hd = NULL;
+    char *filename = NULL;
+    char **argv = NULL;
+    char **envp = NULL;
+    int errnum = 0;
+
+    /* filename */
+    arg = alcove_list_head(&hd, arg);
+    if (!hd || !ALCOVE_IS_IOLIST(hd))
+        goto BADARG;
+
+    if (erl_iolist_length(hd) > 0)
+        filename = erl_iolist_to_string(hd);
+
+    if (!filename)
+        goto BADARG;
+
+    /* argv */
+    arg = alcove_list_head(&hd, arg);
+    if (!hd || !ERL_IS_LIST(hd))
+        goto BADARG;
+
+    if (!ERL_IS_EMPTY_LIST(hd)) {
+        argv = alcove_list_to_argv(hd);
+        if (!argv)
+            goto BADARG;
+    }
+
+    /* envp */
+    arg = alcove_list_head(&hd, arg);
+    if (!hd || !ERL_IS_LIST(hd))
+        goto BADARG;
+
+    if (!ERL_IS_EMPTY_LIST(hd)) {
+        envp = alcove_list_to_argv(hd);
+        if (!envp)
+            goto BADARG;
+    }
+
+    execve(filename, argv, envp);
+
+    errnum = errno;
+
+    erl_free(filename);
+    alcove_free_argv(argv);
+
+    return alcove_errno(errnum);
+
+BADARG:
+    erl_free(filename);
+    alcove_free_argv(argv);
+    return erl_mk_atom("badarg");
+}

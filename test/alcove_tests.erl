@@ -51,7 +51,8 @@ run(State) ->
         prctl(State),
         execvp(State),
         stdout(State),
-        stderr(State)
+        stderr(State),
+        execve(State)
     ].
 
 start() ->
@@ -351,6 +352,26 @@ stderr({{unix,freebsd}, Port, Child}) ->
     [
         ?_assertEqual(true, Reply),
         ?_assertEqual(<<"nonexistent: not found\n">>, Stderr)
+    ].
+
+execve({_, Port, _Child}) ->
+    {ok, Child0} = alcove:fork(Port),
+    {ok, Child1} = alcove:fork(Port),
+
+    Reply0 = alcove:execve(Port, [Child0], "/usr/bin/env",
+        ["/usr/bin/env"], ["FOO=bar", "BAR=1234567"]),
+    Reply1 = alcove:execve(Port, [Child1], "/usr/bin/env",
+        ["/usr/bin/env"], []),
+
+    Stdout0 = alcove:stdout(Port, [Child0], 5000),
+    Stdout1 = alcove:stdout(Port, [Child1], 5000),
+
+    [
+        ?_assertEqual(ok, Reply0),
+        ?_assertEqual(ok, Reply1),
+
+        ?_assertEqual(<<"FOO=bar\nBAR=1234567\n">>, Stdout0),
+        ?_assertEqual(false, Stdout1)
     ].
 
 waitpid(Port, Pids, Child) ->
