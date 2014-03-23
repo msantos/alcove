@@ -516,9 +516,20 @@ pid_not_equal(pid_t p1, pid_t p2)
     static int
 exited_pid(alcove_child_t *c, void *arg1, void *arg2)
 {
+    int *status = arg1;
+
+    c->exited = 1 << 0;
+
+    if (WIFEXITED(*status) && WEXITSTATUS(*status) != 0) {
+        c->exited |= 1 << 1;
+    }
+
+    if (WIFSIGNALED(*status)) {
+        c->exited |= 1 << 2;
+    }
+
     (void)close(c->fdin);
     c->fdin = -1;
-    c->exited = 1;
     return 0;
 }
 
@@ -571,6 +582,22 @@ read_from_pid(alcove_child_t *c, void *arg1, void *arg2)
 {
     fd_set *rfds = arg1;
 
+    if (c->fdctl > -1 && FD_ISSET(c->fdctl, rfds)) {
+        unsigned char buf;
+        ssize_t n;
+
+        n = read(c->fdctl, &buf, sizeof(buf));
+        (void)close(c->fdctl);
+        c->fdctl = -1;
+
+        if (n == 0) {
+            c->fdctl = ALCOVE_CHILD_EXEC;
+            if (alcove_call_stdio(c->pid, ALCOVE_MSG_CALL,
+                        erl_mk_atom("ok")) < 0)
+                return -1;
+        }
+    }
+
     if (c->fdout > -1 && FD_ISSET(c->fdout, rfds)) {
         switch (alcove_child_stdio(c->fdout, c, ALCOVE_MSG_TYPE(c))) {
             case -1:
@@ -595,23 +622,6 @@ read_from_pid(alcove_child_t *c, void *arg1, void *arg2)
         }
     }
 
-    if (c->fdctl > -1 && FD_ISSET(c->fdctl, rfds)) {
-        unsigned char buf;
-        ssize_t n;
-
-        n = read(c->fdctl, &buf, sizeof(buf));
-        (void)close(c->fdctl);
-        c->fdctl = -1;
-
-        if (n == 0 && !c->exited && c->fdin > -1 && c->fdout > -1
-                && c->fderr > -1) {
-            c->fdctl = ALCOVE_CHILD_EXEC;
-            if (alcove_call_stdio(c->pid, ALCOVE_MSG_CALL,
-                        erl_mk_atom("ok")) < 0)
-                return -1;
-        }
-    }
-
     return 1;
 }
 
@@ -619,6 +629,7 @@ read_from_pid(alcove_child_t *c, void *arg1, void *arg2)
 alcove_handle_signal(alcove_state_t *ap) {
     int signum = 0;
     ETERM *reply = NULL;
+    int status = 0;
     int rv = -1;
 
     if (!sigcaught)
@@ -633,7 +644,7 @@ alcove_handle_signal(alcove_state_t *ap) {
 
             for ( ; ; ) {
                 errno = 0;
-                pid = waitpid(-1, 0, WNOHANG);
+                pid = waitpid(-1, &status, WNOHANG);
 
                 if (errno == ECHILD || pid == 0)
                     break;
@@ -641,7 +652,8 @@ alcove_handle_signal(alcove_state_t *ap) {
                 if (pid < 0)
                     return -1;
 
-                (void)pid_foreach(ap, pid, NULL, NULL, pid_equal, exited_pid);
+                (void)pid_foreach(ap, pid, &status, NULL,
+                        pid_equal, exited_pid);
             }
         }
 
