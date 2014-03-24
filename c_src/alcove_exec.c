@@ -123,5 +123,6 @@ alcove_execve(alcove_state_t *ap, ETERM *arg)
 BADARG:
     erl_free(filename);
     alcove_free_argv(argv);
+    alcove_free_argv(envp);
     return erl_mk_atom("badarg");
 }
