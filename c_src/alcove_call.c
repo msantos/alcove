@@ -88,6 +88,9 @@ alcove_setopt(alcove_state_t *ap, ETERM *arg)
             ap->opt | alcove_opt_exit_status :
             ap->opt & ~alcove_opt_exit_status;
     }
+    else if (!strncmp(opt, "maxchild", 8)) {
+        ap->maxchild = val > MAXCHILD ? MAXCHILD : val;
+    }
     else if (!strncmp(opt, "termsig", 7)) {
         ap->opt = val ?
             ap->opt | alcove_opt_termsig :

@@ -102,8 +102,7 @@ main(int argc, char *argv[])
     if (sigaction(SIGCHLD, &act, NULL) < 0)
         erl_err_sys("sigaction");
 
-    /* 4 pipes per child */
-    ap->maxchild = FD_SETSIZE / 4 - 3;
+    ap->maxchild = MAXCHILD;
 
     while ( (ch = getopt(argc, argv, "am:hv")) != -1) {
         switch (ch) {

@@ -34,6 +34,9 @@
 #include "erl_errno.h"
 #include "alcove_version.h"
 
+/* 4 pipes per child */
+#define MAXCHILD (FD_SETSIZE / 4 - 3)
+
 enum {
     alcove_opt_exit_status = 1 << 0,   /* Report child exit status */
     alcove_opt_termsig = 1 << 1,       /* Report child termination signal */
