@@ -58,6 +58,50 @@ alcove_pid(alcove_state_t *ap, ETERM *arg)
     return t;
 }
 
+/* Set port options. */
+    ETERM *
+alcove_setopt(alcove_state_t *ap, ETERM *arg)
+{
+    ETERM *hd = NULL;
+    char *opt = NULL;
+    int val = 0;
+
+    /* opt */
+    arg = alcove_list_head(&hd, arg);
+    if (!hd || !ERL_IS_ATOM(hd))
+        goto BADARG;
+
+    opt = ERL_ATOM_PTR(hd);
+
+    /* val */
+    arg = alcove_list_head(&hd, arg);
+    if (!hd || !ERL_IS_INTEGER(hd))
+        goto BADARG;
+
+    val = ERL_INT_VALUE(hd);
+
+    if (!strncmp(opt, "verbose", 7)) {
+        ap->verbose = val;
+    }
+    else if (!strncmp(opt, "exit_status", 11)) {
+        ap->opt = val ?
+            ap->opt | alcove_opt_exit_status :
+            ap->opt & ~alcove_opt_exit_status;
+    }
+    else if (!strncmp(opt, "termsig", 7)) {
+        ap->opt = val ?
+            ap->opt | alcove_opt_termsig :
+            ap->opt & ~alcove_opt_termsig;
+    }
+    else
+        goto BADARG;
+
+    return erl_mk_atom("ok");
+
+BADARG:
+    return erl_mk_atom("badarg");
+}
+
 /*
  * Utility functions
  */

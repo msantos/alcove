@@ -35,8 +35,8 @@
 #include "alcove_version.h"
 
 enum {
-    alcove_opt_daemonize = 1 << 0,           /* Run the process as a daemon */
-    alcove_opt_closeallfds = 1 << 1,         /* Close fd's associated with the process */
+    alcove_opt_exit_status = 1 << 0,   /* Report child exit status */
+    alcove_opt_termsig = 1 << 1,       /* Report child termination signal */
 };
 
 typedef struct {

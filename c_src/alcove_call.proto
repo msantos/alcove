@@ -21,6 +21,7 @@ rlimit_define/1
 setgid/1
 sethostname/1
 setns/1
+setopt/2
 setrlimit/2
 setuid/1
 sigaction/2
