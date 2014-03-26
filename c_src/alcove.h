@@ -37,6 +37,8 @@
 /* 4 pipes per child */
 #define MAXCHILD (FD_SETSIZE / 4 - 3)
 
+#define ALCOVE_DEFINE(x) {#x, x}
+
 enum {
     alcove_opt_exit_status = 1 << 0,   /* Report child exit status */
     alcove_opt_termsig = 1 << 1,       /* Report child termination signal */
@@ -63,6 +65,11 @@ typedef struct {
     unsigned char *arg;
 } alcove_msg_t;
 
+typedef struct {
+    char *name;
+    long long val;
+} alcove_define_t;
+
 void sighandler(int sig);
 
 void alcove_ctl(alcove_state_t *ap);
@@ -82,6 +89,7 @@ ETERM *alcove_error(const char *);
 ETERM *alcove_ok(ETERM *);
 ETERM *alcove_bool(bool);
 ETERM *alcove_bin(const char *);
+ETERM *alcove_define(char *name, alcove_define_t *constants);
 
 ETERM *alcove_call(alcove_state_t *, u_int32_t, ETERM *);
 

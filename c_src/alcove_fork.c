@@ -19,6 +19,7 @@
 
 #include "alcove.h"
 #include "alcove_call.h"
+#include "alcove_fork.h"
 
 #define PIPE_READ 0
 #define PIPE_WRITE 1
@@ -223,13 +224,7 @@ alcove_clone_define(alcove_state_t *ap, ETERM *arg)
 
     flag = ERL_ATOM_PTR(hd);
 
-    if      (!strncmp(flag, "newns", 5))    return erl_mk_int(CLONE_NEWNS);
-    else if (!strncmp(flag, "newuts", 6))   return erl_mk_int(CLONE_NEWUTS);
-    else if (!strncmp(flag, "newipc", 6))   return erl_mk_int(CLONE_NEWIPC);
-    else if (!strncmp(flag, "newuser", 7))  return erl_mk_int(CLONE_NEWUSER);
-    else if (!strncmp(flag, "newpid", 6))   return erl_mk_int(CLONE_NEWPID);
-    else if (!strncmp(flag, "newnet", 6))   return erl_mk_int(CLONE_NEWNET);
-    else return erl_mk_atom("false");
+    return alcove_define(flag, alcove_clone_constants);
 
 BADARG:
     return erl_mk_atom("badarg");

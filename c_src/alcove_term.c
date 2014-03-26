@@ -83,3 +83,16 @@ alcove_malloc(ssize_t size)
 
     return buf;
 }
+
+    ETERM *
+alcove_define(char *name, alcove_define_t *constants)
+{
+    alcove_define_t *dp = NULL;
+
+    for (dp = constants; dp->name != NULL; dp++) {
+        if (!strncmp(name, dp->name, strlen(dp->name)))
+            return erl_mk_ulonglong(dp->val);
+    }
+
+    return erl_mk_atom("false");
+}

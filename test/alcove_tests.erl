@@ -60,11 +60,11 @@ start() ->
     case os:type() of
         {unix,linux} = OS ->
             Flags = alcove:define(Port, clone, [
-                    newipc,
-                    newnet,
-                    newns,
-                    newpid,
-                    newuts
+                    'CLONE_NEWIPC',
+                    'CLONE_NEWNET',
+                    'CLONE_NEWNS',
+                    'CLONE_NEWPID',
+                    'CLONE_NEWUTS'
                 ]),
             {ok, Child} = alcove:clone(Port, Flags),
             {OS, Port, Child};
@@ -136,7 +136,8 @@ setns({_, _Port, _Child}) ->
 
 unshare({{unix,linux}, Port, _Child}) ->
     {ok, Child1} = alcove:fork(Port),
-    ok = alcove:unshare(Port, [Child1], alcove:clone_define(Port, newuts)),
+    ok = alcove:unshare(Port, [Child1],
+        alcove:clone_define(Port, 'CLONE_NEWUTS')),
     Reply = alcove:sethostname(Port, [Child1], "unshare"),
     Hostname = alcove:gethostname(Port, [Child1]),
     [?_assertEqual(ok, Reply),
@@ -145,7 +146,11 @@ unshare({_, _Port, _Child}) ->
     ?_assertEqual(ok,ok).
 
 mount({{unix,linux}, Port, Child}) ->
-    Flags = alcove:define(Port, mount, [bind,rdonly,noexec]),
+    Flags = alcove:define(Port, mount, [
+            'MS_BIND',
+            'MS_RDONLY',
+            'MS_NOEXEC'
+            ]),
     Mount = alcove:mount(Port, [Child], "/tmp", "/mnt", "", Flags, ""),
     Umount = alcove:umount(Port, [Child], "/mnt"),
     [
@@ -156,7 +161,7 @@ mount({_, _Port, _Child}) ->
     ?_assertEqual(ok,ok).
 
 tmpfs({{unix,linux}, Port, Child}) ->
-    Flags = alcove:define(Port, mount, [noexec]),
+    Flags = alcove:define(Port, mount, ['MS_NOEXEC']),
     Mount = alcove:mount(Port, [Child], "tmpfs", "/mnt", "tmpfs", Flags, <<"size=16M", 0>>),
     Umount = alcove:umount(Port, [Child], "/mnt"),
     [
@@ -182,7 +187,7 @@ chdir({_, Port, Child}) ->
     ].
 
 setrlimit({_, Port, Child}) ->
-    RLIMIT_NOFILE = alcove:rlimit_define(Port, nofile),
+    RLIMIT_NOFILE = alcove:rlimit_define(Port, 'RLIMIT_NOFILE'),
     Reply = alcove:setrlimit(Port, [Child], RLIMIT_NOFILE, #rlimit{cur = 64, max = 64}),
     Rlimit = alcove:getrlimit(Port, [Child], RLIMIT_NOFILE),
     [
@@ -231,7 +236,7 @@ fork({_, Port, Child}) ->
 signal({_, Port, _Child}) ->
     {ok, Child1} = alcove:fork(Port),
 
-    TERM = alcove:signal_define(Port, term),
+    TERM = alcove:signal_define(Port, 'SIGTERM'),
 
     SA0 = alcove:sigaction(Port, [Child1], TERM, ign),
     Kill0 = alcove:kill(Port, Child1, TERM),
@@ -277,32 +282,32 @@ forkchain({_, Port, _Child}) ->
 
     ?_assertEqual(Pid, Child4).
 
-prctl({linux, Port, _Child}) ->
+prctl({{unix,linux}, Port, _Child}) ->
     {ok, Fork} = alcove:fork(Port),
 
     % capability is set:
     %   returns 0 | 1 in function result, arg2 = int
-    PR_CAPBSET_READ = alcove:prctl_define(Port, capbset_read),
+    PR_CAPBSET_READ = alcove:prctl_define(Port, 'PR_CAPBSET_READ'),
     Reply0 = alcove:prctl(Port, [Fork], PR_CAPBSET_READ, 0, 0,0,0),
 
     % set process name:
     %   arg2 = char *, up to 16 bytes, NULL terminated
-    PR_SET_NAME = alcove:prctl_define(Port, set_name),
+    PR_SET_NAME = alcove:prctl_define(Port, 'PR_SET_NAME'),
     Reply1 = alcove:prctl(Port, [Fork], PR_SET_NAME, <<"test",0>>, 0,0,0),
 
     % get process name
     %   value returned in arg2 = char *, up to 16 bytes
-    PR_GET_NAME = alcove:prctl_define(Port, get_name),
+    PR_GET_NAME = alcove:prctl_define(Port, 'PR_GET_NAME'),
     Reply2 = alcove:prctl(Port, [Fork], PR_GET_NAME, <<0:(17*8)>>, 0,0,0),
 
     % set parent death signal
     %  arg2 = signal
-    PR_SET_PDEATHSIG = alcove:prctl_define(Port, set_pdeathsig),
+    PR_SET_PDEATHSIG = alcove:prctl_define(Port, 'PR_SET_PDEATHSIG'),
     Reply3 = alcove:prctl(Port, [Fork], PR_SET_PDEATHSIG, 9, 0,0,0),
 
     % get parent death signal
     %  arg2 = int *
-    PR_GET_PDEATHSIG = alcove:prctl_define(Port, get_pdeathsig),
+    PR_GET_PDEATHSIG = alcove:prctl_define(Port, 'PR_GET_PDEATHSIG'),
     Reply4 = alcove:prctl(Port, [Fork], PR_GET_PDEATHSIG, <<0:32>>, 0,0,0),
 
     [
@@ -369,7 +374,7 @@ execve({_, Port, _Child}) ->
     ].
 
 waitpid(Port, Pids, Child) ->
-    SIGCHLD = alcove:signal_define(Port, chld),
+    SIGCHLD = alcove:signal_define(Port, 'SIGCHLD'),
     case alcove:event(Port, Pids, 5000) of
         {signal, SIGCHLD} ->
             waitpid_1(Port, Pids, Child);

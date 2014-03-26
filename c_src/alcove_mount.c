@@ -16,6 +16,8 @@
 #include "alcove_call.h"
 
 #include <sys/mount.h>
+#include "alcove_mount.h"
+
 
 /*
  * mount(2)
@@ -145,100 +147,16 @@ BADARG:
 alcove_mount_define(alcove_state_t *ap, ETERM *arg)
 {
     ETERM *hd = NULL;
-    char *flag = NULL;
+    char *name = NULL;
 
     /* flag */
     arg = alcove_list_head(&hd, arg);
     if (!hd || !ERL_IS_ATOM(hd))
         goto BADARG;
 
-    flag = ERL_ATOM_PTR(hd);
+    name = ERL_ATOM_PTR(hd);
 
-#ifdef MS_RDONLY
-    if      (!strncmp(flag, "rdonly", 6))           return erl_mk_int(MS_RDONLY);
-#elif MNT_RDONLY
-    if      (!strncmp(flag, "rdonly", 6))           return erl_mk_int(MNT_RDONLY);
-#endif
-#ifdef MS_NOSUID
-    else if (!strncmp(flag, "nosuid", 6))           return erl_mk_int(MS_NOSUID);
-#elif MNT_NOSUID
-    else if (!strncmp(flag, "nosuid", 6))           return erl_mk_int(MNT_NOSUID);
-#endif
-#ifdef MS_NODEV
-    else if (!strncmp(flag, "nodev", 5))            return erl_mk_int(MS_NODEV);
-#endif
-#ifdef MS_NOEXEC
-    else if (!strncmp(flag, "noexec", 6))           return erl_mk_int(MS_NOEXEC);
-#elif MNT_NOEXEC
-    else if (!strncmp(flag, "noexec", 6))           return erl_mk_int(MNT_NOEXEC);
-#endif
-#ifdef MS_SYNCHRONOUS
-    else if (!strncmp(flag, "synchronous", 11))     return erl_mk_int(MS_SYNCHRONOUS);
-#endif
-#ifdef MS_REMOUNT
-    else if (!strncmp(flag, "remount", 7))          return erl_mk_int(MS_REMOUNT);
-#endif
-#ifdef MS_MANDLOCK
-    else if (!strncmp(flag, "mandlock", 8))         return erl_mk_int(MS_MANDLOCK);
-#endif
-#ifdef MS_DIRSYNC
-    else if (!strncmp(flag, "dirsync", 7))          return erl_mk_int(MS_DIRSYNC);
-#endif
-#ifdef MS_NOATIME
-    else if (!strncmp(flag, "noatime", 7))          return erl_mk_int(MS_NOATIME);
-#endif
-#ifdef MS_NODIRATIME
-    else if (!strncmp(flag, "nodiratime", 10))      return erl_mk_int(MS_NODIRATIME);
-#endif
-#ifdef MS_BIND
-    else if (!strncmp(flag, "bind", 4))             return erl_mk_int(MS_BIND);
-#endif
-#ifdef MS_MOVE
-    else if (!strncmp(flag, "move", 4))             return erl_mk_int(MS_MOVE);
-#endif
-#ifdef MS_REC
-    else if (!strncmp(flag, "rec", 3))              return erl_mk_int(MS_REC);
-#endif
-#ifdef MS_SILENT
-    else if (!strncmp(flag, "silent", 6))           return erl_mk_int(MS_SILENT);
-#endif
-#ifdef MS_POSIXACL
-    else if (!strncmp(flag, "posixacl", 8))         return erl_mk_int(MS_POSIXACL);
-#endif
-#ifdef MS_UNBINDABLE
-    else if (!strncmp(flag, "unbindable", 10))      return erl_mk_int(MS_UNBINDABLE);
-#endif
-#ifdef MS_PRIVATE
-    else if (!strncmp(flag, "private", 7))          return erl_mk_int(MS_PRIVATE);
-#endif
-#ifdef MS_SLAVE
-    else if (!strncmp(flag, "slave", 5))            return erl_mk_int(MS_SLAVE);
-#endif
-#ifdef MS_SHARED
-    else if (!strncmp(flag, "shared", 6))           return erl_mk_int(MS_SHARED);
-#endif
-#ifdef MS_REALTIME
-    else if (!strncmp(flag, "realtime", 8))         return erl_mk_int(MS_REALTIME);
-#endif
-#ifdef MS_RELATIME
-    else if (!strncmp(flag, "relatime", 8))         return erl_mk_int(MS_RELATIME);
-#endif
-#ifdef MS_KERNMOUNT
-    else if (!strncmp(flag, "kernmount", 9))        return erl_mk_int(MS_KERNMOUNT);
-#endif
-#ifdef MS_I_VERSION
-    else if (!strncmp(flag, "i_version", 9))        return erl_mk_int(MS_I_VERSION);
-#endif
-#ifdef MS_STRICTATIME
-    else if (!strncmp(flag, "strictatime", 11))     return erl_mk_int(MS_STRICTATIME);
-#endif
-#ifdef MS_ACTIVE
-    else if (!strncmp(flag, "active", 6))           return erl_mk_int(MS_ACTIVE);
-#endif
-#ifdef MS_NOUSER
-    else if (!strncmp(flag, "nouser", 6))           return erl_mk_int(MS_NOUSER);
-#endif
-    else return erl_mk_atom("false");
+    return alcove_define(name, alcove_mount_constants);
 
 BADARG:
     return erl_mk_atom("badarg");

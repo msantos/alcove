@@ -16,6 +16,7 @@
 #include "alcove_call.h"
 
 #include <signal.h>
+#include "alcove_signal.h"
 
 /*
  * kill(2)
@@ -110,126 +111,16 @@ BADARG:
 alcove_signal_define(alcove_state_t *ap, ETERM *arg)
 {
     ETERM *hd = NULL;
-    char *constant = NULL;
+    char *name = NULL;
 
     /* constant */
     arg = alcove_list_head(&hd, arg);
     if (!hd || !ERL_IS_ATOM(hd))
         goto BADARG;
 
-    constant = ERL_ATOM_PTR(hd);
+    name = ERL_ATOM_PTR(hd);
 
-    if (!strncmp(constant, "hup", 3)) return erl_mk_int(SIGHUP);
-#ifdef SIGINT
-    else if (!strncmp(constant, "int", 3)) return erl_mk_int(SIGINT);
-#endif
-#ifdef SIGQUIT
-    else if (!strncmp(constant, "quit", 4)) return erl_mk_int(SIGQUIT);
-#endif
-#ifdef SIGILL
-    else if (!strncmp(constant, "ill", 3)) return erl_mk_int(SIGILL);
-#endif
-#ifdef SIGTRAP
-    else if (!strncmp(constant, "trap", 4)) return erl_mk_int(SIGTRAP);
-#endif
-#ifdef SIGABRT
-    else if (!strncmp(constant, "abrt", 4)) return erl_mk_int(SIGABRT);
-#endif
-#ifdef SIGIOT
-    else if (!strncmp(constant, "iot", 3)) return erl_mk_int(SIGIOT);
-#endif
-#ifdef SIGBUS
-    else if (!strncmp(constant, "bus", 3)) return erl_mk_int(SIGBUS);
-#endif
-#ifdef SIGFPE
-    else if (!strncmp(constant, "fpe", 3)) return erl_mk_int(SIGFPE);
-#endif
-#ifdef SIGKILL
-    else if (!strncmp(constant, "kill", 4)) return erl_mk_int(SIGKILL);
-#endif
-#ifdef SIGUSR1
-    else if (!strncmp(constant, "usr1", 4)) return erl_mk_int(SIGUSR1);
-#endif
-#ifdef SIGSEGV
-    else if (!strncmp(constant, "segv", 4)) return erl_mk_int(SIGSEGV);
-#endif
-#ifdef SIGUSR2
-    else if (!strncmp(constant, "usr2", 4)) return erl_mk_int(SIGUSR2);
-#endif
-#ifdef SIGPIPE
-    else if (!strncmp(constant, "pipe", 4)) return erl_mk_int(SIGPIPE);
-#endif
-#ifdef SIGALRM
-    else if (!strncmp(constant, "alrm", 4)) return erl_mk_int(SIGALRM);
-#endif
-#ifdef SIGTERM
-    else if (!strncmp(constant, "term", 4)) return erl_mk_int(SIGTERM);
-#endif
-#ifdef SIGSTKFLT
-    else if (!strncmp(constant, "stkflt", 6)) return erl_mk_int(SIGSTKFLT);
-#endif
-#ifdef SIGCHLD
-    else if (!strncmp(constant, "chld", 4)) return erl_mk_int(SIGCHLD);
-#endif
-#ifdef SIGCONT
-    else if (!strncmp(constant, "cont", 4)) return erl_mk_int(SIGCONT);
-#endif
-#ifdef SIGSTOP
-    else if (!strncmp(constant, "stop", 4)) return erl_mk_int(SIGSTOP);
-#endif
-#ifdef SIGTSTP
-    else if (!strncmp(constant, "tstp", 4)) return erl_mk_int(SIGTSTP);
-#endif
-#ifdef SIGTTIN
-    else if (!strncmp(constant, "ttin", 4)) return erl_mk_int(SIGTTIN);
-#endif
-#ifdef SIGTTOU
-    else if (!strncmp(constant, "ttou", 4)) return erl_mk_int(SIGTTOU);
-#endif
-#ifdef SIGURG
-    else if (!strncmp(constant, "urg", 3)) return erl_mk_int(SIGURG);
-#endif
-#ifdef SIGXCPU
-    else if (!strncmp(constant, "xcpu", 4)) return erl_mk_int(SIGXCPU);
-#endif
-#ifdef SIGXFSZ
-    else if (!strncmp(constant, "xfsz", 4)) return erl_mk_int(SIGXFSZ);
-#endif
-#ifdef SIGVTALRM
-    else if (!strncmp(constant, "vtalrm", 6)) return erl_mk_int(SIGVTALRM);
-#endif
-#ifdef SIGPROF
-    else if (!strncmp(constant, "prof", 4)) return erl_mk_int(SIGPROF);
-#endif
-#ifdef SIGWINCH
-    else if (!strncmp(constant, "winch", 5)) return erl_mk_int(SIGWINCH);
-#endif
-#ifdef SIGIO
-    else if (!strncmp(constant, "io", 2)) return erl_mk_int(SIGIO);
-#endif
-#ifdef SIGPOLL
-    else if (!strncmp(constant, "poll", 4)) return erl_mk_int(SIGPOLL);
-#endif
-#ifdef SIGLOST
-    else if (!strncmp(constant, "lost", 4)) return erl_mk_int(SIGLOST);
-#endif
-#ifdef SIGPWR
-    else if (!strncmp(constant, "pwr", 3)) return erl_mk_int(SIGPWR);
-#endif
-#ifdef SIGSYS
-    else if (!strncmp(constant, "sys", 3)) return erl_mk_int(SIGSYS);
-#endif
-#ifdef SIGRTMIN
-    else if (!strncmp(constant, "rtmin", 5)) return erl_mk_int(SIGRTMIN);
-#endif
-#ifdef SIGRTMAX
-    else if (!strncmp(constant, "rtmax", 5)) return erl_mk_int(SIGRTMAX);
-#endif
-#ifdef SIGSTKSZ
-    else if (!strncmp(constant, "stksz", 5)) return erl_mk_int(SIGSTKSZ);
-#endif
-
-    return erl_mk_atom("false");
+    return alcove_define(name, alcove_signal_constants);
 
 BADARG:
     return erl_mk_atom("badarg");
