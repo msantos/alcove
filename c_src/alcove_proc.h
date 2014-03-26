@@ -31,6 +31,7 @@ typedef struct {
                     ETERM *bin = NULL; \
                     bin = erl_iolist_to_binary(_term); \
                     _arg.type = 1; \
+                    _arg.len = ERL_BIN_SIZE(bin); \
                     _arg.data = alcove_malloc(_arg.len); \
                     (void)memcpy(_arg.data, ERL_BIN_PTR(bin), \
                             ERL_BIN_SIZE(bin)); \
