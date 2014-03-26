@@ -119,7 +119,7 @@ alcove_define_t alcove_mount_constants[] = {
     {"rdonly", MNT_RDONLY},
     ALCOVE_DEFINE(MNT_RDONLY),
 #endif
-#ifdef MNT_EXEC
+#ifdef MNT_NOEXEC
     {"noexec", MNT_NOEXEC},
     ALCOVE_DEFINE(MNT_NOEXEC),
 #endif
