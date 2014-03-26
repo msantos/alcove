@@ -108,9 +108,7 @@ main(int argc, char *argv[])
         switch (ch) {
             case 'm': {
                 u_int16_t n = (u_int16_t)atoi(optarg);
-
-                if (n < ap->maxchild)
-                    ap->maxchild = n;
+                ap->maxchild = n > MAXCHILD ? MAXCHILD : n;
             }
             case 'v':
                 ap->verbose++;
