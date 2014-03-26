@@ -14,15 +14,18 @@
  */
 alcove_define_t alcove_mount_constants[] = {
 #ifdef MS_RDONLY
+    {"rdonly", MS_RDONLY},
     ALCOVE_DEFINE(MS_RDONLY),
 #endif
 #ifdef MS_NOSUID
+    {"nosuid", MS_NOSUID},
     ALCOVE_DEFINE(MS_NOSUID),
 #endif
 #ifdef MS_NODEV
     ALCOVE_DEFINE(MS_NODEV),
 #endif
 #ifdef MS_NOEXEC
+    {"noexec", MS_NOEXEC},
     ALCOVE_DEFINE(MS_NOEXEC),
 #endif
 #ifdef MS_SYNCHRONOUS
@@ -38,6 +41,7 @@ alcove_define_t alcove_mount_constants[] = {
     ALCOVE_DEFINE(MS_DIRSYNC),
 #endif
 #ifdef MS_NOATIME
+    {"noatime", MS_NOATIME},
     ALCOVE_DEFINE(MS_NOATIME),
 #endif
 #ifdef MS_NODIRATIME
@@ -106,5 +110,23 @@ alcove_define_t alcove_mount_constants[] = {
 #ifdef MNT_EXPIRE
     ALCOVE_DEFINE(MNT_EXPIRE),
 #endif
+
+#ifdef MNT_NOATIME
+    {"noatime", MNT_NOATIME},
+    ALCOVE_DEFINE(MNT_NOATIME),
+#endif
+#ifdef MNT_RDONLY
+    {"rdonly", MNT_RDONLY},
+    ALCOVE_DEFINE(MNT_RDONLY),
+#endif
+#ifdef MNT_EXEC
+    {"noexec", MNT_NOEXEC},
+    ALCOVE_DEFINE(MNT_NOEXEC),
+#endif
+#ifdef MNT_NOSUID
+    {"nosuid", MNT_NOSUID},
+    ALCOVE_DEFINE(MNT_NOSUID),
+#endif
+
     {NULL, 0}
 };

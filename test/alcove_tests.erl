@@ -36,6 +36,7 @@ run(State) ->
         sethostname(State),
         setns(State),
         unshare(State),
+        mount_define(State),
         mount(State),
         tmpfs(State),
         chroot(State),
@@ -144,6 +145,15 @@ unshare({{unix,linux}, Port, _Child}) ->
         ?_assertEqual({ok, <<"unshare">>}, Hostname)];
 unshare({_, _Port, _Child}) ->
     ?_assertEqual(ok,ok).
+
+mount_define({_, Port, _Child}) ->
+    Flags = alcove:define(Port, mount, [
+            rdonly,
+            nosuid,
+            noexec,
+            noatime
+        ]),
+    ?_assertEqual(true, is_integer(Flags)).
 
 mount({{unix,linux}, Port, Child}) ->
     Flags = alcove:define(Port, mount, [
