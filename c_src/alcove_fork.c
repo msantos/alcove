@@ -110,7 +110,7 @@ alcove_clone(alcove_state_t *ap, ETERM *arg)
     if (!hd || !ERL_IS_INTEGER(hd))
         goto BADARG;
 
-    flags = ERL_INT_UVALUE(hd);
+    flags = ERL_INT_VALUE(hd);
 
     child_stack = calloc(stack_size, 1);
     if (!child_stack)
