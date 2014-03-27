@@ -22,12 +22,12 @@
 -define(UINT16(N), N:2/unsigned-integer-unit:8).
 -define(UINT32(N), N:4/unsigned-integer-unit:8).
 
--define(ALCOVE_MSG_CALL, 0).
--define(ALCOVE_MSG_EVENT, 1).
--define(ALCOVE_MSG_STDIN, 2).
--define(ALCOVE_MSG_STDOUT, 3).
--define(ALCOVE_MSG_STDERR, 4).
--define(ALCOVE_MSG_PROXY, 5).
+-define(ALCOVE_MSG_STDIN, 0).
+-define(ALCOVE_MSG_STDOUT, 1).
+-define(ALCOVE_MSG_STDERR, 2).
+-define(ALCOVE_MSG_PROXY, 3).
+-define(ALCOVE_MSG_CALL, 4).
+-define(ALCOVE_MSG_EVENT, 5).
 
 -define(ALCOVE_HDR(Type, Pid0),
     ?UINT16(Type), ?UINT32(Pid0)).

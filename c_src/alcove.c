@@ -18,12 +18,12 @@
 #include <sys/select.h>
 #include <sys/wait.h>
 
-#define ALCOVE_MSG_CALL  0
-#define ALCOVE_MSG_EVENT (htons(1))
-#define ALCOVE_MSG_STDIN (htons(2))
-#define ALCOVE_MSG_STDOUT (htons(3))
-#define ALCOVE_MSG_STDERR (htons(4))
-#define ALCOVE_MSG_PROXY (htons(5))
+#define ALCOVE_MSG_STDIN    0
+#define ALCOVE_MSG_STDOUT   (htons(1))
+#define ALCOVE_MSG_STDERR   (htons(2))
+#define ALCOVE_MSG_PROXY    (htons(3))
+#define ALCOVE_MSG_CALL     (htons(4))
+#define ALCOVE_MSG_EVENT    (htons(5))
 
 #define ALCOVE_CHILD_EXEC -2
 
