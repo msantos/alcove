@@ -103,13 +103,16 @@ main(int argc, char *argv[])
         erl_err_sys("sigaction");
 
     ap->maxchild = MAXCHILD;
+    ap->maxforkdepth = MAXFORKDEPTH;
 
-    while ( (ch = getopt(argc, argv, "am:hv")) != -1) {
+    while ( (ch = getopt(argc, argv, "am:M:hv")) != -1) {
         switch (ch) {
             case 'm': {
                 u_int16_t n = (u_int16_t)atoi(optarg);
                 ap->maxchild = n > MAXCHILD ? MAXCHILD : n;
             }
+            case 'M':
+                ap->maxforkdepth = (int16_t)atoi(optarg);
             case 'v':
                 ap->verbose++;
                 break;
@@ -695,6 +698,7 @@ usage(alcove_state_t *ap)
     (void)fprintf(stderr,
             "usage: %s <options>\n"
             "   -m <num>        max children\n"
+            "   -M <num>        max fork depth\n"
             "   -v              verbose mode\n",
             __progname
             );

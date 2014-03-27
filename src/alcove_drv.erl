@@ -236,6 +236,7 @@ getopts(Options) when is_list(Options) ->
 
 optarg({verbose, Arg})          -> switch(string:copies("v", Arg));
 optarg({maxchild, Arg})         -> switch("m", Arg);
+optarg({maxforkdepth, Arg})     -> switch("M", Arg);
 optarg(_)                       -> "".
 
 switch(Switch) ->

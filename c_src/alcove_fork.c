@@ -55,6 +55,9 @@ alcove_fork(alcove_state_t *ap, ETERM *arg)
     alcove_fd_t fd = {{0}};
     pid_t pid = 0;
 
+    if (ap->depth >= ap->maxforkdepth)
+        return alcove_errno(EAGAIN);
+
     if (pid_foreach(ap, 0, NULL, NULL, pid_equal, avail_pid) != 0)
         return alcove_errno(EAGAIN);
 
@@ -95,6 +98,9 @@ alcove_clone(alcove_state_t *ap, ETERM *arg)
     char *child_stack = NULL;
     int flags = 0;
     pid_t pid = 0;
+
+    if (ap->depth >= ap->maxforkdepth)
+        return alcove_errno(EAGAIN);
 
     if (pid_foreach(ap, 0, NULL, NULL, pid_equal, avail_pid) != 0)
         return alcove_errno(EAGAIN);
@@ -313,6 +319,7 @@ alcove_child_fun(void *arg)
             (void)close(n);
     }
 
+    ap->depth++;
     alcove_ctl(ap);
 
     return 0;
