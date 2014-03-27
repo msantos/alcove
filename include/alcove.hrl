@@ -29,6 +29,15 @@
 -define(ALCOVE_MSG_CALL, 4).
 -define(ALCOVE_MSG_EVENT, 5).
 
+-define(ALCOVE_STDOUT(Pid),
+    ?UINT16(?ALCOVE_MSG_STDOUT), ?UINT32(Pid)).
+-define(ALCOVE_STDERR(Pid),
+    ?UINT16(?ALCOVE_MSG_STDERR), ?UINT32(Pid)).
+-define(ALCOVE_CALL(Pid),
+    ?UINT16(?ALCOVE_MSG_CALL), ?UINT32(Pid)).
+-define(ALCOVE_EVENT(Pid),
+    ?UINT16(?ALCOVE_MSG_EVENT), ?UINT32(Pid)).
+
 -define(ALCOVE_HDR(Type, Pid0),
     ?UINT16(Type), ?UINT32(Pid0)).
 
