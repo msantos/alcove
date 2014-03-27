@@ -59,8 +59,8 @@ typedef struct {
     u_int32_t opt;
     u_int8_t verbose;
     u_int16_t maxchild;
-    int16_t maxforkdepth;
-    int16_t depth;
+    u_int16_t maxforkdepth;
+    u_int16_t depth;
     alcove_child_t *child;
 } alcove_state_t;
 
