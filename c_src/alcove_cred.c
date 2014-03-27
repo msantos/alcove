@@ -48,7 +48,7 @@ alcove_setgid(alcove_state_t *ap, ETERM *arg)
 
     /* uid */
     arg = alcove_list_head(&hd, arg);
-    if (!hd || !ERL_IS_INTEGER(hd))
+    if (!hd || !ALCOVE_IS_UNSIGNED_INTEGER(hd))
         goto BADARG;
 
     gid = ERL_INT_UVALUE(hd);
@@ -74,7 +74,7 @@ alcove_setuid(alcove_state_t *ap, ETERM *arg)
 
     /* uid */
     arg = alcove_list_head(&hd, arg);
-    if (!hd || !ERL_IS_INTEGER(hd))
+    if (!hd || !ALCOVE_IS_UNSIGNED_INTEGER(hd))
         goto BADARG;
 
     uid = ERL_INT_UVALUE(hd);

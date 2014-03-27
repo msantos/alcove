@@ -24,8 +24,8 @@ typedef struct {
         erl_mk_ulonglong(x.arg))
 
 #define PROPT(_term, _arg) do { \
-        if (ERL_IS_INTEGER(_term)) { \
-                    _arg.arg = ERL_INT_UVALUE(_term); \
+        if (ALCOVE_IS_UNSIGNED_LONG(_term)) { \
+                    _arg.arg = ALCOVE_LL_UVALUE(_term); \
                 } \
         else if (ALCOVE_IS_IOLIST(_term)) { \
                     ETERM *bin = NULL; \

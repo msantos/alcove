@@ -41,6 +41,28 @@
 
 #define ALCOVE_DEFINE(x) {#x, x}
 
+#define ALCOVE_IS_UNSIGNED_INTEGER(x) \
+    (ERL_IS_INTEGER(x) || ERL_IS_UNSIGNED_INTEGER(x))
+
+#define ALCOVE_IS_UNSIGNED_LONG(x) \
+    (ERL_IS_INTEGER(x) || ERL_IS_UNSIGNED_INTEGER(x) \
+     || ERL_IS_LONGLONG(x) || ERL_IS_UNSIGNED_LONGLONG(x))
+
+#define ALCOVE_IS_UNSIGNED_LONGLONG(x) \
+    (ERL_IS_INTEGER(x) || ERL_IS_UNSIGNED_INTEGER(x) \
+     || ERL_IS_LONGLONG(x) || ERL_IS_UNSIGNED_LONGLONG(x))
+
+#define ALCOVE_IS_LONG(x) \
+    (ERL_IS_INTEGER(x) || ERL_IS_LONGLONG(x))
+
+#define ALCOVE_IS_LONGLONG(x) \
+    (ERL_IS_INTEGER(x) || ERL_IS_LONGLONG(x))
+
+#define ALCOVE_LL_UVALUE(x) \
+    ((ERL_IS_INTEGER(x) || ERL_IS_UNSIGNED_INTEGER(x)) \
+        ? ERL_INT_UVALUE(x) \
+        : ERL_LL_UVALUE(x))
+
 enum {
     alcove_opt_exit_status = 1 << 0,   /* Report child exit status */
     alcove_opt_termsig = 1 << 1,       /* Report child termination signal */

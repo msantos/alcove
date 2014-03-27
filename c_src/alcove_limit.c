@@ -70,7 +70,6 @@ alcove_setrlimit(alcove_state_t *ap, ETERM *arg)
 
     resource = ERL_INT_VALUE(hd);
 
-    /* XXX rlim_cur/rlim_max may be uint64_t */
     /* {rlimit, rlim_cur, rlim_max} */
 
     arg = alcove_list_head(&hd, arg);
@@ -84,17 +83,17 @@ alcove_setrlimit(alcove_state_t *ap, ETERM *arg)
 
     /* rlim_cur: soft limit */
     t = erl_element(2, hd);
-    if (!t || !ERL_IS_INTEGER(t))
+    if (!t || !ALCOVE_IS_LONGLONG(t))
         goto BADARG;
 
-    cur = ERL_INT_UVALUE(t);
+    cur = ALCOVE_LL_UVALUE(t);
 
     /* rlim_max: hard limit */
     t = erl_element(3, hd);
-    if (!t || !ERL_IS_INTEGER(t))
+    if (!t || !ALCOVE_IS_LONGLONG(t))
         goto BADARG;
 
-    max = ERL_INT_UVALUE(t);
+    max = ALCOVE_LL_UVALUE(t);
 
     rlim.rlim_cur = cur;
     rlim.rlim_max = max;
