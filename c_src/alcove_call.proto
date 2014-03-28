@@ -8,6 +8,7 @@ fork/0
 getcwd/0
 getgid/0
 gethostname/0
+getopt/1
 getpid/0
 getrlimit/1
 getuid/0
