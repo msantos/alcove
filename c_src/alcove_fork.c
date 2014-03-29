@@ -320,7 +320,7 @@ alcove_child_fun(void *arg)
     }
 
     ap->depth++;
-    alcove_ctl(ap);
+    alcove_event_loop(ap);
 
     return 0;
 }

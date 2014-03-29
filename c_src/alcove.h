@@ -98,7 +98,7 @@ typedef struct {
 
 void sighandler(int sig);
 
-void alcove_ctl(alcove_state_t *ap);
+void alcove_event_loop(alcove_state_t *ap);
 
 int pid_foreach(alcove_state_t *ap, pid_t pid, void *arg1, void *arg2,
         int (*comp)(pid_t, pid_t), int (*fp)(alcove_child_t *, void *, void *));

@@ -128,12 +128,12 @@ main(int argc, char *argv[])
     if (!ap->child)
         erl_err_sys("calloc");
 
-    alcove_ctl(ap);
+    alcove_event_loop(ap);
     exit(0);
 }
 
     void
-alcove_ctl(alcove_state_t *ap)
+alcove_event_loop(alcove_state_t *ap)
 {
     fd_set rfds;
     int fdmax = 0;
