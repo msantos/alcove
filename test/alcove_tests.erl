@@ -36,6 +36,7 @@ run(State) ->
         setopt(State),
         event(State),
         sethostname(State),
+        env(State),
         setns(State),
         unshare(State),
         mount_define(State),
@@ -159,6 +160,25 @@ sethostname({{unix,linux}, Port, Child}) ->
 sethostname({_, Port, Child}) ->
     Hostname = alcove:gethostname(Port, [Child]),
     ?_assertMatch({ok, <<_/binary>>}, Hostname).
+
+env({_, Port, Child}) ->
+    Reply0 = alcove:getenv(Port, [Child], "ALCOVE"),
+    Reply1 = alcove:setenv(Port, [Child], "ALCOVE", "12345", 0),
+    Reply2 = alcove:getenv(Port, [Child], "ALCOVE"),
+    Reply3 = alcove:setenv(Port, [Child], "ALCOVE", "abcd", 1),
+    Reply4 = alcove:getenv(Port, [Child], "ALCOVE"),
+    Reply5 = alcove:unsetenv(Port, [Child], "ALCOVE"),
+    Reply6 = alcove:getenv(Port, [Child], "ALCOVE"),
+
+    [
+        ?_assertEqual(false, Reply0),
+        ?_assertEqual(ok, Reply1),
+        ?_assertEqual(<<"12345">>, Reply2),
+        ?_assertEqual(ok, Reply3),
+        ?_assertEqual(<<"abcd">>, Reply4),
+        ?_assertEqual(ok, Reply5),
+        ?_assertEqual(false, Reply6)
+    ].
 
 setns({{unix,linux}, Port, Child}) ->
     {ok, Child1} = alcove:fork(Port),

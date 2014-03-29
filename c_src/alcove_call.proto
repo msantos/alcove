@@ -7,6 +7,7 @@ execvp/2
 exit/1
 fork/0
 getcwd/0
+getenv/1
 getgid/0
 gethostname/0
 getopt/1
@@ -20,6 +21,7 @@ pid/0
 prctl/5
 prctl_define/1
 rlimit_define/1
+setenv/3
 setgid/1
 sethostname/1
 setns/1
@@ -30,5 +32,6 @@ sigaction/2
 signal_constant/1
 signal_define/1
 umount/1
+unsetenv/1
 unshare/1
 version/0
