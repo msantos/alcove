@@ -39,7 +39,16 @@ start() ->
 -spec start(proplists:proplist()) -> port().
 start(Options) ->
     [Cmd|Argv] = getopts(Options),
-    open_port({spawn_executable, Cmd}, [{args, Argv}, {packet, 2}, binary]).
+    PortOpt = lists:filter(fun
+            (stderr_to_stdout) -> true;
+            ({env,_}) -> true;
+            (_) -> false
+        end, Options),
+    open_port({spawn_executable, Cmd}, [
+            {args, Argv},
+            {packet, 2},
+            binary
+        ] ++ PortOpt).
 
 -spec call(port(),iodata()) -> reply().
 call(Port, Data) ->
