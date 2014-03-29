@@ -148,7 +148,7 @@ event({_, Port, _Child}) ->
     [
         ?_assertEqual(ok, Reply0),
         ?_assertEqual(false, Reply1),
-        ?_assertEqual({signal,17}, Reply2)
+        ?_assertMatch({signal,_}, Reply2)
     ].
 
 sethostname({{unix,linux}, Port, Child}) ->
