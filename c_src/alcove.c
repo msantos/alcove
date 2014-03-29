@@ -110,9 +110,11 @@ main(int argc, char *argv[])
             case 'm': {
                 u_int16_t n = (u_int16_t)atoi(optarg);
                 ap->maxchild = n > MAXCHILD ? MAXCHILD : n;
-            }
+                }
+                break;
             case 'M':
-                ap->maxforkdepth = (int16_t)atoi(optarg);
+                ap->maxforkdepth = (u_int16_t)atoi(optarg);
+                break;
             case 'v':
                 ap->verbose++;
                 break;
