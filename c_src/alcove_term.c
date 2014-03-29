@@ -96,3 +96,16 @@ alcove_define(char *name, alcove_define_t *constants)
 
     return erl_mk_atom("false");
 }
+
+    ETERM *
+alcove_constant(u_int64_t val, alcove_define_t *constants)
+{
+    alcove_define_t *dp = NULL;
+
+    for (dp = constants; dp->name != NULL; dp++) {
+        if (val == dp->val)
+            return erl_mk_atom(dp->name);
+    }
+
+    return erl_mk_atom("false");
+}

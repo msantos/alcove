@@ -127,145 +127,26 @@ BADARG:
 }
 
     ETERM *
+alcove_signal_constant(alcove_state_t *ap, ETERM *arg)
+{
+    ETERM *hd = NULL;
+    long long signum = 0;
+
+    /* signum */
+    arg = alcove_list_head(&hd, arg);
+    if (!hd || !ERL_IS_INTEGER(hd))
+        goto BADARG;
+
+    signum = ERL_INT_VALUE(hd);
+
+    return signum_to_atom(signum);
+
+BADARG:
+    return erl_mk_atom("badarg");
+}
+
+    ETERM *
 signum_to_atom(int signum)
 {
-    switch (signum) {
-#ifdef SIGHUP
-        case SIGHUP:
-            return erl_mk_atom("hup");
-#endif
-#ifdef SIGINT
-        case SIGINT:
-            return erl_mk_atom("int");
-#endif
-#ifdef SIGQUIT
-        case SIGQUIT:
-            return erl_mk_atom("quit");
-#endif
-#ifdef SIGILL
-        case SIGILL:
-            return erl_mk_atom("ill");
-#endif
-#ifdef SIGTRAP
-        case SIGTRAP:
-            return erl_mk_atom("trap");
-#endif
-#ifdef SIGABRT
-        case SIGABRT:
-            return erl_mk_atom("abrt");
-#endif
-#ifdef SIGBUS
-        case SIGBUS:
-            return erl_mk_atom("bus");
-#endif
-#ifdef SIGFPE
-        case SIGFPE:
-            return erl_mk_atom("fpe");
-#endif
-#ifdef SIGKILL
-        case SIGKILL:
-            return erl_mk_atom("kill");
-#endif
-#ifdef SIGUSR1
-        case SIGUSR1:
-            return erl_mk_atom("usr1");
-#endif
-#ifdef SIGSEGV
-        case SIGSEGV:
-            return erl_mk_atom("segv");
-#endif
-#ifdef SIGUSR2
-        case SIGUSR2:
-            return erl_mk_atom("usr2");
-#endif
-#ifdef SIGPIPE
-        case SIGPIPE:
-            return erl_mk_atom("pipe");
-#endif
-#ifdef SIGALRM
-        case SIGALRM:
-            return erl_mk_atom("alrm");
-#endif
-#ifdef SIGTERM
-        case SIGTERM:
-            return erl_mk_atom("term");
-#endif
-#ifdef SIGSTKFLT
-        case SIGSTKFLT:
-            return erl_mk_atom("stkflt");
-#endif
-#ifdef SIGCHLD
-        case SIGCHLD:
-            return erl_mk_atom("chld");
-#endif
-#ifdef SIGCONT
-        case SIGCONT:
-            return erl_mk_atom("cont");
-#endif
-#ifdef SIGSTOP
-        case SIGSTOP:
-            return erl_mk_atom("stop");
-#endif
-#ifdef SIGTSTP
-        case SIGTSTP:
-            return erl_mk_atom("tstp");
-#endif
-#ifdef SIGTTIN
-        case SIGTTIN:
-            return erl_mk_atom("ttin");
-#endif
-#ifdef SIGTTOU
-        case SIGTTOU:
-            return erl_mk_atom("ttou");
-#endif
-#ifdef SIGURG
-        case SIGURG:
-            return erl_mk_atom("urg");
-#endif
-#ifdef SIGXCPU
-        case SIGXCPU:
-            return erl_mk_atom("xcpu");
-#endif
-#ifdef SIGXFSZ
-        case SIGXFSZ:
-            return erl_mk_atom("xfsz");
-#endif
-#ifdef SIGVTALRM
-        case SIGVTALRM:
-            return erl_mk_atom("vtalrm");
-#endif
-#ifdef SIGPROF
-        case SIGPROF:
-            return erl_mk_atom("prof");
-#endif
-#ifdef SIGWINCH
-        case SIGWINCH:
-            return erl_mk_atom("winch");
-#endif
-#ifdef SIGIO
-        case SIGIO:
-            return erl_mk_atom("io");
-#endif
-#ifdef SIGLOST
-        case SIGLOST:
-            return erl_mk_atom("lost");
-#endif
-#ifdef SIGPWR
-        case SIGPWR:
-            return erl_mk_atom("pwr");
-#endif
-#ifdef SIGSYS
-        case SIGSYS:
-            return erl_mk_atom("sys");
-#endif
-#ifdef SIGSTKSZ
-        case SIGSTKSZ:
-            return erl_mk_atom("stksz");
-#endif
-        default:
-            return alcove_tuple2(
-                    erl_mk_atom("unknown"),
-                    erl_mk_int(signum)
-                    );
-    }
+    return alcove_constant(signum, alcove_signal_constants);
 }

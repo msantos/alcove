@@ -116,6 +116,7 @@ ETERM *alcove_ok(ETERM *);
 ETERM *alcove_bool(bool);
 ETERM *alcove_bin(const char *);
 ETERM *alcove_define(char *name, alcove_define_t *constants);
+ETERM *alcove_constant(u_int64_t val, alcove_define_t *constants);
 
 ETERM *alcove_call(alcove_state_t *, u_int32_t, ETERM *);
 
