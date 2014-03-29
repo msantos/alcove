@@ -105,7 +105,7 @@ main(int argc, char *argv[])
     ap->maxchild = MAXCHILD;
     ap->maxforkdepth = MAXFORKDEPTH;
 
-    while ( (ch = getopt(argc, argv, "am:M:hv")) != -1) {
+    while ( (ch = getopt(argc, argv, "am:M:hsSv")) != -1) {
         switch (ch) {
             case 'm': {
                 u_int16_t n = (u_int16_t)atoi(optarg);
@@ -114,6 +114,12 @@ main(int argc, char *argv[])
                 break;
             case 'M':
                 ap->maxforkdepth = (u_int16_t)atoi(optarg);
+                break;
+            case 's':
+                ap->opt |= alcove_opt_exit_status;
+                break;
+            case 'S':
+                ap->opt |= alcove_opt_termsig;
                 break;
             case 'v':
                 ap->verbose++;
@@ -521,19 +527,33 @@ pid_not_equal(pid_t p1, pid_t p2)
 exited_pid(alcove_child_t *c, void *arg1, void *arg2)
 {
     int *status = arg1;
+    int *opt = arg2;
+    ETERM *t = NULL;
 
-    c->exited = 1 << 0;
-
-    if (WIFEXITED(*status) && WEXITSTATUS(*status) != 0) {
-        c->exited |= 1 << 1;
-    }
-
-    if (WIFSIGNALED(*status)) {
-        c->exited |= 1 << 2;
-    }
-
+    c->exited = 1;
     (void)close(c->fdin);
     c->fdin = -1;
+
+    if (WIFEXITED(*status) && (*opt & alcove_opt_exit_status)) {
+        t = alcove_tuple2(
+                erl_mk_atom("exit_status"),
+                erl_mk_int(WEXITSTATUS(*status))
+                );
+
+        if (alcove_call_stdio(c->pid, ALCOVE_MSG_EVENT, t))
+            return -1;
+    }
+
+    if (WIFSIGNALED(*status) && (*opt & alcove_opt_termsig)) {
+        t = alcove_tuple2(
+                erl_mk_atom("termsig"),
+                erl_mk_int(WTERMSIG(*status))
+                );
+
+        if (alcove_call_stdio(c->pid, ALCOVE_MSG_EVENT, t) < 0)
+            return -1;
+    }
+
     return 0;
 }
 
@@ -656,7 +676,7 @@ alcove_handle_signal(alcove_state_t *ap) {
                 if (pid < 0)
                     return -1;
 
-                (void)pid_foreach(ap, pid, &status, NULL,
+                (void)pid_foreach(ap, pid, &status, &ap->opt,
                         pid_equal, exited_pid);
             }
         }
@@ -703,6 +723,8 @@ usage(alcove_state_t *ap)
             "usage: %s <options>\n"
             "   -m <num>        max children\n"
             "   -M <num>        max fork depth\n"
+            "   -s              child exit status\n"
+            "   -S              child termination signal\n"
             "   -v              verbose mode\n",
             __progname
             );
