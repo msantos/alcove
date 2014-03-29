@@ -116,17 +116,17 @@ getpid({_, Port, Child}) ->
 
 setopt({_, Port, _Child}) ->
     {ok, Fork} = alcove:fork(Port),
-%    ok = alcove:setopt(Port, [Fork], maxchild, 32),
+    ok = alcove:setopt(Port, [Fork], exit_status, 0),
     ok = alcove:setopt(Port, [Fork], maxforkdepth, 0),
 
-%    Opt1 = alcove:getopt(Port, [Fork], maxchild),
+    Opt1 = alcove:getopt(Port, [Fork], exit_status),
     Opt2 = alcove:getopt(Port, [], maxforkdepth),
     Opt3 = alcove:getopt(Port, [Fork], maxforkdepth),
     Reply = alcove:fork(Port, [Fork]),
     alcove:kill(Port, Fork, 9),
 
     [
-%        ?_assertEqual(32, Opt1),
+        ?_assertEqual(0, Opt1),
         ?_assertNotEqual(0, Opt2),
         ?_assertEqual(0, Opt3),
         ?_assertEqual({error,eagain}, Reply)
