@@ -331,7 +331,8 @@ alcove_child_stdio(int fdin, alcove_child_t *c, u_int16_t type)
      *
      * Otherwise, read in the length header and do an exact read.
      */
-    if (c->fdctl == ALCOVE_CHILD_EXEC)
+    if ( (c->fdctl == ALCOVE_CHILD_EXEC)
+            || type == ALCOVE_MSG_STDERR)
         read_len = MAXMSGLEN;
 
     n = read(fdin, buf, read_len);
@@ -343,7 +344,8 @@ alcove_child_stdio(int fdin, alcove_child_t *c, u_int16_t type)
         return -1;
     }
 
-    if (c->fdctl != ALCOVE_CHILD_EXEC) {
+    if ( (c->fdctl != ALCOVE_CHILD_EXEC)
+            && (type != ALCOVE_MSG_STDERR)) {
         n = buf[0] << 8 | buf[1];
 
         if (alcove_read(fdin, buf+2, n) != n)

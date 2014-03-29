@@ -123,13 +123,19 @@ setopt({_, Port, _Child}) ->
     Opt2 = alcove:getopt(Port, [], maxforkdepth),
     Opt3 = alcove:getopt(Port, [Fork], maxforkdepth),
     Reply = alcove:fork(Port, [Fork]),
+
+    ok = alcove:setopt(Port, [Fork], verbose, 2),
+    Fork = alcove:getpid(Port, [Fork]),
+    Stderr = alcove:stderr(Port, [Fork]),
+
     alcove:kill(Port, Fork, 9),
 
     [
         ?_assertEqual(0, Opt1),
         ?_assertNotEqual(0, Opt2),
         ?_assertEqual(0, Opt3),
-        ?_assertEqual({error,eagain}, Reply)
+        ?_assertEqual({error,eagain}, Reply),
+        ?_assertNotEqual(false, Stderr)
     ].
 
 sethostname({{unix,linux}, Port, Child}) ->
