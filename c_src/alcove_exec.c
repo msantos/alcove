@@ -126,3 +126,26 @@ BADARG:
     alcove_free_argv(envp);
     return erl_mk_atom("badarg");
 }
+
+/*
+ * exit(3)
+ *
+ */
+    ETERM *
+alcove_exit(alcove_state_t *ap, ETERM *arg)
+{
+    ETERM *hd = NULL;
+    int status = 0;
+
+    /* status */
+    arg = alcove_list_head(&hd, arg);
+    if (!hd || !ERL_IS_INTEGER(hd))
+        goto BADARG;
+
+    status = ERL_INT_VALUE(hd);
+
+    exit(status);
+
+BADARG:
+    return erl_mk_atom("badarg");
+}

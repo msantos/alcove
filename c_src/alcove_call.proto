@@ -4,6 +4,7 @@ clone/1
 clone_define/1
 execve/3
 execvp/2
+exit/1
 fork/0
 getcwd/0
 getgid/0

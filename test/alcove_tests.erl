@@ -34,6 +34,7 @@ run(State) ->
         pid(State),
         getpid(State),
         setopt(State),
+        event(State),
         sethostname(State),
         setns(State),
         unshare(State),
@@ -136,6 +137,18 @@ setopt({_, Port, _Child}) ->
         ?_assertEqual(0, Opt3),
         ?_assertEqual({error,eagain}, Reply),
         ?_assertNotEqual(false, Stderr)
+    ].
+
+event({_, Port, _Child}) ->
+    {ok, Fork} = alcove:fork(Port),
+    Reply0 = alcove:exit(Port, [Fork], 0),
+    Reply1 = alcove:event(Port, [Fork]),
+    Reply2 = alcove:event(Port, []),
+
+    [
+        ?_assertEqual(ok, Reply0),
+        ?_assertEqual(false, Reply1),
+        ?_assertEqual({signal,17}, Reply2)
     ].
 
 sethostname({{unix,linux}, Port, Child}) ->

@@ -17,7 +17,7 @@
 %% API
 -export([start/0, start/1, stop/1]).
 -export([call/2, call/3, call/4, cast/2, encode/2, encode/3]).
--export([stdin/3, stdout/3, stderr/3, event/4]).
+-export([stdin/3, stdout/3, stderr/3, event/4, event_data/4]).
 -export([atom_to_type/1, type_to_atom/1]).
 -export([msg/2, events/4, decode/1]).
 -export([getopts/1]).
@@ -74,11 +74,17 @@ send(Port, Data, Size) when is_port(Port), Size < 16#ffff ->
 
 event_data(Port, Pids, Type, Timeout) ->
     Tag = type_to_atom(Type),
-    case event(Port, Pids, Type, Timeout) of
-        false ->
-            false;
-        {Tag, Pids, Event} ->
+    receive
+        {Port, {Tag, Pids, Event}} ->
             Event
+    after
+        0 ->
+            case event(Port, Pids, Type, Timeout) of
+                false ->
+                    false;
+                {Tag, Pids, Event} ->
+                    Event
+            end
     end.
 
 -spec event(port(),[integer()],non_neg_integer(),

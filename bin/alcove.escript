@@ -247,12 +247,7 @@ event(Port, Pids) ->
 static({event,3}) ->
 "
 event(Port, Pids, Timeout) ->
-    case alcove_drv:event(Port, Pids, ?ALCOVE_MSG_EVENT, Timeout) of
-        false ->
-            false;
-        {alcove_event, Pids, Event} ->
-            Event
-    end.
+    alcove_drv:event_data(Port, Pids, ?ALCOVE_MSG_EVENT, Timeout).
 ";
 
 static({encode,3}) ->
