@@ -15,6 +15,24 @@
 #include "alcove.h"
 #include "alcove_call.h"
 
+extern char **environ;
+
+/*
+ * environ(7)
+ *
+ */
+    ETERM *
+alcove_environ(alcove_state_t *ap, ETERM *arg)
+{
+    char **envp = environ;
+    ETERM *t = erl_mk_empty_list();
+
+    for ( ; envp && *envp; envp++)
+        t = erl_cons(erl_mk_binary(*envp, strlen(*envp)), t);
+
+    return t;
+}
+
 /*
  * getenv(3)
  *
@@ -145,4 +163,28 @@ alcove_unsetenv(alcove_state_t *ap, ETERM *arg)
 BADARG:
     erl_free(name);
     return erl_mk_atom("badarg");
+}
+
+/*
+ * clearenv(3)
+ *
+ */
+    ETERM *
+alcove_clearenv(alcove_state_t *ap, ETERM *arg)
+{
+#ifdef __linux__
+    int rv = 0;
+    int errnum = 0;
+
+    rv = clearenv();
+
+    errnum = errno;
+
+    return (rv < 0)
+        ? alcove_errno(errnum)
+        : erl_mk_atom("ok");
+#else
+    environ = NULL;
+    return erl_mk_atom("ok");
+#endif
 }

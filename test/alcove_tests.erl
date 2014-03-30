@@ -170,6 +170,10 @@ env({_, Port, Child}) ->
     Reply5 = alcove:unsetenv(Port, [Child], "ALCOVE"),
     Reply6 = alcove:getenv(Port, [Child], "ALCOVE"),
 
+    Reply7 = alcove:environ(Port, [Child]),
+    Reply8 = alcove:clearenv(Port, [Child]),
+    Reply9 = alcove:environ(Port, [Child]),
+
     [
         ?_assertEqual(false, Reply0),
         ?_assertEqual(ok, Reply1),
@@ -177,7 +181,11 @@ env({_, Port, Child}) ->
         ?_assertEqual(ok, Reply3),
         ?_assertEqual(<<"abcd">>, Reply4),
         ?_assertEqual(ok, Reply5),
-        ?_assertEqual(false, Reply6)
+        ?_assertEqual(false, Reply6),
+
+        ?_assertNotEqual(0, length(Reply7)),
+        ?_assertEqual(ok, Reply8),
+        ?_assertEqual(0, length(Reply9))
     ].
 
 setns({{unix,linux}, Port, Child}) ->

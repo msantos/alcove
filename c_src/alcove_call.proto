@@ -1,7 +1,9 @@
 chdir/1
 chroot/1
+clearenv/0
 clone/1
 clone_define/1
+environ/0
 execve/3
 execvp/2
 exit/1
