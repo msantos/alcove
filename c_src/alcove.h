@@ -35,9 +35,9 @@
 #include "alcove_version.h"
 
 /* 4 pipes per child */
-#define MAXCHILD (FD_SETSIZE / 4 - 3)
-
-#define MAXFORKDEPTH 16
+#define MAXCHILD        (FD_SETSIZE / 4 - 3)
+#define MAXFORKDEPTH    16
+#define MAXMSGLEN       60000
 
 #define ALCOVE_DEFINE(x) {#x, x}
 

@@ -36,7 +36,6 @@
 #pragma message "Support for namespaces using clone(2) disabled"
 #endif
 
-#define MAXMSGLEN   60000
 typedef struct {
     u_int16_t len;
     u_int16_t type;
@@ -133,6 +132,13 @@ main(int argc, char *argv[])
     ap->child = calloc(ap->maxchild, sizeof(alcove_child_t));
     if (!ap->child)
         erl_err_sys("calloc");
+
+    /* Unlike the child processes, the port does not use a control fd.
+     * An fd is acquired and leaked here to prevent calls to open()
+     * at the port level from returning an uncloseable fd.
+     */
+    if (open("/dev/null", O_RDWR) != 3)
+        erl_err_quit("could not acquire ctl fd");
 
     alcove_event_loop(ap);
     exit(0);

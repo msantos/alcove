@@ -180,6 +180,15 @@ define(Port, clone, Constants) when is_list(Constants) ->
                         A bxor N
                 end
         end, 0, Constants);
+define(Port, file, Constants) when is_list(Constants) ->
+    lists:foldl(fun(Constant,A) ->
+                case alcove:file_define(Port, Constant) of
+                    false ->
+                        erlang:error(badarg, [Constant]);
+                    N ->
+                        A bxor N
+                end
+        end, 0, Constants);
 define(Port, mount, Constants) when is_list(Constants) ->
     lists:foldl(fun(Constant,A) ->
                 case alcove:mount_define(Port, Constant) of

@@ -3,10 +3,12 @@ chroot/1
 clearenv/0
 clone/1
 clone_define/1
+close/1
 environ/0
 execve/3
 execvp/2
 exit/1
+file_define/1
 fork/0
 getcwd/0
 getenv/1
@@ -20,9 +22,11 @@ kill/2
 mkdir/2
 mount/5
 mount_define/1
+open/3
 pid/0
 prctl/5
 prctl_define/1
+read/2
 rlimit_define/1
 rmdir/1
 setenv/3
@@ -39,3 +43,4 @@ umount/1
 unsetenv/1
 unshare/1
 version/0
+write/2
