@@ -127,6 +127,7 @@ alcove_read(alcove_state_t *ap, ETERM *arg)
     int fd = -1;
     size_t count = 0;
     char buf[MAXMSGLEN] = {0};
+    size_t maxlen = 0;
     int rv = 0;
 
     /* fd */
@@ -147,8 +148,10 @@ alcove_read(alcove_state_t *ap, ETERM *arg)
 
     count = ALCOVE_LL_UVALUE(hd);
 
-    if (count > MAXMSGLEN)
-        goto BADARG;
+    /* Silently truncate too large values of count */
+    maxlen = ALCOVE_MSGLEN(ap->depth, sizeof(buf));
+    if (count > maxlen)
+        count = maxlen;
 
     rv = read(fd, buf, count);
 

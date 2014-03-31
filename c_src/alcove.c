@@ -53,7 +53,7 @@ static int alcove_stdin(alcove_state_t *ap);
 static ssize_t alcove_msg_call(alcove_state_t *ap, int fd, u_int16_t len);
 static alcove_msg_t *alcove_msg_read(int fd, u_int16_t len);
 
-static ssize_t alcove_child_stdio(int fdin, alcove_child_t *c, u_int16_t type);
+static ssize_t alcove_child_stdio(int fdin, u_int16_t depth, alcove_child_t *c, u_int16_t type);
 static ssize_t alcove_send(u_int16_t, ETERM *);
 static ssize_t alcove_call_stdio(pid_t pid, u_int16_t type, ETERM *t);
 static ssize_t alcove_write(void *data, size_t len);
@@ -188,7 +188,7 @@ alcove_event_loop(alcove_state_t *ap)
             }
         }
 
-        pid_foreach(ap, 0, &rfds, NULL, pid_not_equal, read_from_pid);
+        pid_foreach(ap, 0, &rfds, &ap->depth, pid_not_equal, read_from_pid);
 
         if (ap->verbose > 1)
             alcove_stats(ap);
@@ -201,7 +201,7 @@ alcove_stdin(alcove_state_t *ap)
     u_int16_t bufsz = 0;
     u_int16_t type = 0;
     pid_t pid = 0;
-    char buf[65535] = {0};
+    unsigned char buf[65535] = {0};
 
     errno = 0;
 
@@ -329,7 +329,7 @@ BADARG:
 }
 
     static ssize_t
-alcove_child_stdio(int fdin, alcove_child_t *c, u_int16_t type)
+alcove_child_stdio(int fdin, u_int16_t depth, alcove_child_t *c, u_int16_t type)
 {
     ssize_t n = 0;
     alcove_msg_stdio_t *msg = NULL;
@@ -337,16 +337,15 @@ alcove_child_stdio(int fdin, alcove_child_t *c, u_int16_t type)
     size_t read_len = 2;
     ssize_t rv = 0;
 
-    errno = 0;
-
     /* If the child has called exec(), treat the data as a stream.
      *
      * Otherwise, read in the length header and do an exact read.
      */
     if ( (c->fdctl == ALCOVE_CHILD_EXEC)
-            || type == ALCOVE_MSG_STDERR)
-        read_len = MAXMSGLEN;
+            || (type == ALCOVE_MSG_STDERR))
+        read_len = ALCOVE_MSGLEN(depth, sizeof(buf));
 
+    errno = 0;
     n = read(fdin, buf, read_len);
 
     if (n <= 0) {
@@ -359,6 +358,9 @@ alcove_child_stdio(int fdin, alcove_child_t *c, u_int16_t type)
     if ( (c->fdctl != ALCOVE_CHILD_EXEC)
             && (type != ALCOVE_MSG_STDERR)) {
         n = buf[0] << 8 | buf[1];
+
+        if (n > sizeof(buf) - 2)
+            return -1;
 
         if (alcove_read(fdin, buf+2, n) != n)
             return -1;
@@ -611,6 +613,7 @@ write_to_pid(alcove_child_t *c, void *arg1, void *arg2)
 read_from_pid(alcove_child_t *c, void *arg1, void *arg2)
 {
     fd_set *rfds = arg1;
+    u_int16_t *depth = arg2;
 
     if (c->fdctl > -1 && FD_ISSET(c->fdctl, rfds)) {
         unsigned char buf;
@@ -629,7 +632,7 @@ read_from_pid(alcove_child_t *c, void *arg1, void *arg2)
     }
 
     if (c->fdout > -1 && FD_ISSET(c->fdout, rfds)) {
-        switch (alcove_child_stdio(c->fdout, c, ALCOVE_MSG_TYPE(c))) {
+        switch (alcove_child_stdio(c->fdout, *depth, c, ALCOVE_MSG_TYPE(c))) {
             case -1:
             case 0:
                 (void)close(c->fdout);
@@ -641,7 +644,7 @@ read_from_pid(alcove_child_t *c, void *arg1, void *arg2)
     }
 
     if (c->fderr > -1 && FD_ISSET(c->fderr, rfds)) {
-        switch (alcove_child_stdio(c->fderr, c, ALCOVE_MSG_STDERR)) {
+        switch (alcove_child_stdio(c->fderr, *depth, c, ALCOVE_MSG_STDERR)) {
             case -1:
             case 0:
                 (void)close(c->fderr);
