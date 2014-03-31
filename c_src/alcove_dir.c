@@ -15,6 +15,8 @@
 #include "alcove.h"
 #include "alcove_call.h"
 
+#include <sys/stat.h>
+
 /*
  * chdir(2)
  *
@@ -45,6 +47,86 @@ alcove_chdir(alcove_state_t *ap, ETERM *arg)
 
 BADARG:
     erl_free(path);
+    return erl_mk_atom("badarg");
+}
+
+/*
+ * mkdir(2)
+ *
+ */
+    ETERM *
+alcove_mkdir(alcove_state_t *ap, ETERM *arg)
+{
+    ETERM *hd = NULL;
+    char *pathname = NULL;
+    mode_t mode = {0};
+    int rv = 0;
+    int errnum = 0;
+
+    /* pathname */
+    arg = alcove_list_head(&hd, arg);
+    if (!hd || !ALCOVE_IS_IOLIST(hd))
+        goto BADARG;
+
+    if (erl_iolist_length(hd) > 0)
+        pathname = erl_iolist_to_string(hd);
+
+    if (!pathname)
+        goto BADARG;
+
+    /* mode */
+    arg = alcove_list_head(&hd, arg);
+    if (!hd || !ALCOVE_IS_UNSIGNED_INTEGER(hd))
+        goto BADARG;
+
+    mode = ERL_INT_UVALUE(hd);
+
+    rv = mkdir(pathname, mode);
+
+    errnum = errno;
+
+    erl_free(pathname);
+
+    return ( (rv < 0) ? alcove_errno(errnum) : erl_mk_atom("ok"));
+
+BADARG:
+    erl_free(pathname);
+    return erl_mk_atom("badarg");
+}
+
+/*
+ * rmdir(2)
+ *
+ */
+    ETERM *
+alcove_rmdir(alcove_state_t *ap, ETERM *arg)
+{
+    ETERM *hd = NULL;
+    char *pathname = NULL;
+    int rv = 0;
+    int errnum = 0;
+
+    /* pathname */
+    arg = alcove_list_head(&hd, arg);
+    if (!hd || !ALCOVE_IS_IOLIST(hd))
+        goto BADARG;
+
+    if (erl_iolist_length(hd) > 0)
+        pathname = erl_iolist_to_string(hd);
+
+    if (!pathname)
+        goto BADARG;
+
+    rv = rmdir(pathname);
+
+    errnum = errno;
+
+    erl_free(pathname);
+
+    return ( (rv < 0) ? alcove_errno(errnum) : erl_mk_atom("ok"));
+
+BADARG:
+    erl_free(pathname);
     return erl_mk_atom("badarg");
 }
 
