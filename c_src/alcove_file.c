@@ -204,7 +204,7 @@ alcove_write(alcove_state_t *ap, ETERM *arg)
 
     return (rv < 0)
         ? alcove_errno(errnum)
-        : erl_mk_atom("ok");
+        : alcove_ok(erl_mk_longlong(rv));
 
 BADARG:
     erl_free(buf);
