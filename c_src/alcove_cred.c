@@ -55,7 +55,7 @@ alcove_setgid(alcove_state_t *ap, ETERM *arg)
 
     rv = setgid(gid);
 
-    return ( (rv < 0) ? alcove_errno(errno) : erl_mk_atom("ok"));
+    return (rv < 0) ? alcove_errno(errno) : erl_mk_atom("ok");
 
 BADARG:
     return erl_mk_atom("badarg");
@@ -81,7 +81,7 @@ alcove_setuid(alcove_state_t *ap, ETERM *arg)
 
     rv = setuid(uid);
 
-    return ( (rv < 0) ? alcove_errno(errno) : erl_mk_atom("ok"));
+    return (rv < 0) ? alcove_errno(errno) : erl_mk_atom("ok");
 
 BADARG:
     return erl_mk_atom("badarg");

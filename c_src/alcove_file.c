@@ -95,7 +95,6 @@ alcove_close(alcove_state_t *ap, ETERM *arg)
 {
     ETERM *hd = NULL;
     int fd = 0;
-    int errnum = 0;
 
     /* fd */
     arg = alcove_list_head(&hd, arg);
@@ -109,7 +108,7 @@ alcove_close(alcove_state_t *ap, ETERM *arg)
         return alcove_errno(EBADF);
 
     return (close(fd) < 0)
-        ? alcove_errno(errnum)
+        ? alcove_errno(errno)
         : erl_mk_atom("ok");
 
 BADARG:

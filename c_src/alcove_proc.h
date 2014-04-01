@@ -19,23 +19,27 @@ typedef struct {
     size_t len;
 } alcove_prctl_arg_t;
 
-#define PRARG(x) ((x.type) ? (unsigned long)x.data : x.arg)
-#define PRVAL(x) ((x.type) ? erl_mk_binary(x.data, x.len) : \
-        erl_mk_ulonglong(x.arg))
+#define PRARG(x) (((x).type) ? (unsigned long)(x).data : (x).arg)
+#define PRVAL(x) (((x).type) ? erl_mk_binary((x).data, (x).len) : \
+        erl_mk_ulonglong((x).arg))
 
 #define PROPT(_term, _arg) do { \
         if (ALCOVE_IS_UNSIGNED_LONG(_term)) { \
                     _arg.arg = ALCOVE_LL_UVALUE(_term); \
                 } \
         else if (ALCOVE_IS_IOLIST(_term)) { \
-                    ETERM *bin = NULL; \
-                    bin = erl_iolist_to_binary(_term); \
+                    ETERM *bin = erl_iolist_to_binary(_term); \
                     _arg.type = 1; \
                     _arg.len = ERL_BIN_SIZE(bin); \
                     _arg.data = alcove_malloc(_arg.len); \
                     (void)memcpy(_arg.data, ERL_BIN_PTR(bin), \
                             ERL_BIN_SIZE(bin)); \
+                    erl_free(bin); \
                 } \
+} while (0)
+
+#define PRFREE(x) do { \
+    if ((x).type) { free((x).data); } \
 } while (0)
 
 alcove_define_t alcove_prctl_constants[] = {

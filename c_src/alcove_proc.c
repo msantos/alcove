@@ -104,9 +104,18 @@ alcove_prctl(alcove_state_t *ap, ETERM *arg)
     t[4] = PRVAL(arg4);
     t[5] = PRVAL(arg5);
 
+    PRFREE(arg2);
+    PRFREE(arg3);
+    PRFREE(arg4);
+    PRFREE(arg5);
+
     return erl_mk_tuple(t, 6);
 
 BADARG:
+    PRFREE(arg2);
+    PRFREE(arg3);
+    PRFREE(arg4);
+    PRFREE(arg5);
     return erl_mk_atom("badarg");
 #else
     return alcove_error("unsupported");

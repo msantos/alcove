@@ -27,6 +27,7 @@ alcove_chdir(alcove_state_t *ap, ETERM *arg)
     ETERM *hd = NULL;
     char *path = NULL;
     int rv = 0;
+    int errnum = 0;
 
     /* path */
     arg = alcove_list_head(&hd, arg);
@@ -41,9 +42,11 @@ alcove_chdir(alcove_state_t *ap, ETERM *arg)
 
     rv = chdir(path);
 
+    errnum = errno;
+
     erl_free(path);
 
-    return ( (rv < 0) ? alcove_errno(errno) : erl_mk_atom("ok"));
+    return (rv < 0) ? alcove_errno(errnum) : erl_mk_atom("ok");
 
 BADARG:
     erl_free(path);
@@ -123,7 +126,7 @@ alcove_rmdir(alcove_state_t *ap, ETERM *arg)
 
     erl_free(pathname);
 
-    return ( (rv < 0) ? alcove_errno(errnum) : erl_mk_atom("ok"));
+    return (rv < 0) ? alcove_errno(errnum) : erl_mk_atom("ok");
 
 BADARG:
     erl_free(pathname);
@@ -140,6 +143,7 @@ alcove_chroot(alcove_state_t *ap, ETERM *arg)
     ETERM *hd = NULL;
     char *path = NULL;
     int rv = 0;
+    int errnum = 0;
 
     /* path */
     arg = alcove_list_head(&hd, arg);
@@ -154,9 +158,11 @@ alcove_chroot(alcove_state_t *ap, ETERM *arg)
 
     rv = chroot(path);
 
+    errnum = errno;
+
     erl_free(path);
 
-    return ( (rv < 0) ? alcove_errno(errno) : erl_mk_atom("ok"));
+    return ( (rv < 0) ? alcove_errno(errnum) : erl_mk_atom("ok"));
 
 BADARG:
     erl_free(path);

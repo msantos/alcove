@@ -98,6 +98,7 @@ alcove_clone(alcove_state_t *ap, ETERM *arg)
     char *child_stack = NULL;
     int flags = 0;
     pid_t pid = 0;
+    int errnum = 0;
 
     if (ap->depth >= ap->maxforkdepth)
         return alcove_errno(EAGAIN);
@@ -117,7 +118,7 @@ alcove_clone(alcove_state_t *ap, ETERM *arg)
         return alcove_errno(errno);
 
     if (alcove_stdio(&fd) < 0)
-        return alcove_errno(errno);
+        goto ERR;
 
     child_arg.ap = ap;
     child_arg.fd = &fd;
@@ -125,7 +126,7 @@ alcove_clone(alcove_state_t *ap, ETERM *arg)
     pid = clone(alcove_child_fun, child_stack + stack_size, flags | SIGCHLD, &child_arg);
 
     if (pid < 0)
-        return alcove_errno(errno);
+        goto ERR;
 
     free(child_stack);
 
@@ -136,6 +137,11 @@ alcove_clone(alcove_state_t *ap, ETERM *arg)
 
 BADARG:
     return erl_mk_atom("badarg");
+
+ERR:
+    errnum = errno;
+    free(child_stack);
+    return alcove_errno(errnum);
 #else
     return alcove_error("unsupported");
 #endif
@@ -152,7 +158,7 @@ alcove_setns(alcove_state_t *ap, ETERM *arg)
     ETERM *hd = NULL;
     char *path = NULL;
     int fd = -1;
-    int rv = 0;
+    int errnum = 0;
 
     /* path */
     arg = alcove_list_head(&hd, arg);
@@ -167,16 +173,24 @@ alcove_setns(alcove_state_t *ap, ETERM *arg)
 
     fd = open(path, O_RDONLY);
     if (fd < 0)
-        return alcove_errno(errno);
+        goto ERR;
 
-    rv = setns(fd, 0);
+    if (setns(fd, 0) < 0)
+        goto ERR;
 
     (void)close(fd);
+    erl_free(path);
 
-    return ( (rv < 0) ? alcove_errno(errno) : erl_mk_atom("ok"));
+    return erl_mk_atom("ok");
 
 BADARG:
     return erl_mk_atom("badarg");
+
+ERR:
+    errnum = errno;
+    erl_free(path);
+    (void)close(fd);
+    return alcove_errno(errnum);
 #else
     return alcove_error("unsupported");
 #endif
@@ -203,7 +217,7 @@ alcove_unshare(alcove_state_t *ap, ETERM *arg)
 
     rv = unshare(flags);
 
-    return ( (rv < 0) ? alcove_errno(errno) : erl_mk_atom("ok"));
+    return (rv < 0) ? alcove_errno(errno) : erl_mk_atom("ok");
 
 BADARG:
     return erl_mk_atom("badarg");

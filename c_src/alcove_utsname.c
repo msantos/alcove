@@ -46,6 +46,7 @@ alcove_sethostname(alcove_state_t *ap, ETERM *arg)
     ETERM *hd = NULL;
     char *name = NULL;
     int rv = 0;
+    int errnum = 0;
 
     /* hostname */
     arg = alcove_list_head(&hd, arg);
@@ -60,9 +61,13 @@ alcove_sethostname(alcove_state_t *ap, ETERM *arg)
 
     rv = sethostname(name, strlen(name)+1);
 
+    errnum = errno;
+
     erl_free(name);
 
-    return ( (rv < 0) ? alcove_errno(errno) : erl_mk_atom("ok"));
+    return (rv < 0)
+        ? alcove_errno(errnum)
+        : erl_mk_atom("ok");
 
 BADARG:
     erl_free(name);

@@ -119,9 +119,7 @@ alcove_setenv(alcove_state_t *ap, ETERM *arg)
     erl_free(name);
     erl_free(value);
 
-    return (rv < 0)
-        ? alcove_errno(errnum)
-        : erl_mk_atom("ok");
+    return (rv < 0) ? alcove_errno(errnum) : erl_mk_atom("ok");
 
 BADARG:
     erl_free(name);
@@ -154,11 +152,11 @@ alcove_unsetenv(alcove_state_t *ap, ETERM *arg)
 
     rv = unsetenv(name);
 
+    errnum = errno;
+
     erl_free(name);
 
-    return (rv < 0)
-        ? alcove_errno(errnum)
-        : erl_mk_atom("ok");
+    return (rv < 0) ? alcove_errno(errnum) : erl_mk_atom("ok");
 
 BADARG:
     erl_free(name);
@@ -180,9 +178,7 @@ alcove_clearenv(alcove_state_t *ap, ETERM *arg)
 
     errnum = errno;
 
-    return (rv < 0)
-        ? alcove_errno(errnum)
-        : erl_mk_atom("ok");
+    return (rv < 0) ? alcove_errno(errnum) : erl_mk_atom("ok");
 #else
     environ = NULL;
     return erl_mk_atom("ok");

@@ -34,6 +34,7 @@ alcove_mount(alcove_state_t *ap, ETERM *arg)
     void *data = NULL;
 
     int rv = 0;
+    int errnum = 0;
 
     /* source */
     arg = alcove_list_head(&hd, arg);
@@ -86,12 +87,14 @@ alcove_mount(alcove_state_t *ap, ETERM *arg)
     rv = mount(filesystemtype, target, mountflags, data);
 #endif
 
+    errnum = errno;
+
     erl_free(source);
     erl_free(target);
     erl_free(filesystemtype);
     erl_free(data);
 
-    return ( (rv < 0) ? alcove_errno(errno) : erl_mk_atom("ok"));
+    return (rv < 0) ? alcove_errno(errnum) : erl_mk_atom("ok");
 
 BADARG:
     erl_free(source);
@@ -112,6 +115,7 @@ alcove_umount(alcove_state_t *ap, ETERM *arg)
     char *source = NULL;
 
     int rv = 0;
+    int errnum = 0;
 
     /* source */
     arg = alcove_list_head(&hd, arg);
@@ -130,9 +134,11 @@ alcove_umount(alcove_state_t *ap, ETERM *arg)
     rv = unmount(source, 0);
 #endif
 
+    errnum = errno;
+
     erl_free(source);
 
-    return ( (rv < 0) ? alcove_errno(errno) : erl_mk_atom("ok"));
+    return (rv < 0) ? alcove_errno(errnum) : erl_mk_atom("ok");
 
 BADARG:
     erl_free(source);

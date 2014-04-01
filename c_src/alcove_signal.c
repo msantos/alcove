@@ -46,7 +46,7 @@ alcove_kill(alcove_state_t *ap, ETERM *arg)
 
     rv = kill(pid, sig);
 
-    return (rv < 0 ? alcove_errno(errno) : erl_mk_atom("ok"));
+    return (rv < 0) ? alcove_errno(errno) : erl_mk_atom("ok");
 
 BADARG:
     return erl_mk_atom("badarg");
@@ -97,7 +97,7 @@ alcove_sigaction(alcove_state_t *ap, ETERM *arg)
 
     rv = sigaction(signum, &act, NULL);
 
-    return (rv < 0 ? alcove_errno(errno) : erl_mk_atom("ok"));
+    return (rv < 0) ? alcove_errno(errno) : erl_mk_atom("ok");
 
 BADARG:
     return erl_mk_atom("badarg");

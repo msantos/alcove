@@ -37,13 +37,13 @@ alcove_getrlimit(alcove_state_t *ap, ETERM *arg)
 
     rv = getrlimit(resource, &rlim);
 
-    return ( (rv < 0)
+    return (rv < 0)
             ? alcove_errno(errno)
             : alcove_ok(alcove_tuple3(
                     erl_mk_atom("rlimit"),
                     erl_mk_ulonglong(rlim.rlim_cur),
                     erl_mk_ulonglong(rlim.rlim_max)
-                    )));
+                    ));
 
 BADARG:
     return erl_mk_atom("badarg");
@@ -100,7 +100,7 @@ alcove_setrlimit(alcove_state_t *ap, ETERM *arg)
 
     rv = setrlimit(resource, &rlim);
 
-    return ( (rv < 0) ? alcove_errno(errno) : erl_mk_atom("ok"));
+    return (rv < 0) ? alcove_errno(errno) : erl_mk_atom("ok");
 
 BADARG:
     return erl_mk_atom("badarg");
