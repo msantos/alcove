@@ -34,7 +34,6 @@ typedef struct {
                     _arg.data = alcove_malloc(_arg.len); \
                     (void)memcpy(_arg.data, ERL_BIN_PTR(bin), \
                             ERL_BIN_SIZE(bin)); \
-                    erl_free(bin); \
                 } \
 } while (0)
 
