@@ -75,6 +75,9 @@ alcove_getopt(alcove_state_t *ap, ETERM *arg)
     if (!strncmp(opt, "verbose", 7)) {
         return erl_mk_uint(ap->verbose);
     }
+    else if (!strncmp(opt, "childlimit", 10)) {
+        return erl_mk_uint(ap->fdsetsize);
+    }
     else if (!strncmp(opt, "exit_status", 11)) {
         return erl_mk_uint(ap->opt & alcove_opt_exit_status ? 1 : 0);
     }
@@ -123,6 +126,9 @@ alcove_setopt(alcove_state_t *ap, ETERM *arg)
         ap->opt = val ?
             ap->opt | alcove_opt_exit_status :
             ap->opt & ~alcove_opt_exit_status;
+    }
+    else if (!strncmp(opt, "maxchild", 8)) {
+        ap->maxchild = (val > MAXCHILD) ? MAXCHILD : val;
     }
     else if (!strncmp(opt, "maxforkdepth", 12)) {
         ap->maxforkdepth = val;

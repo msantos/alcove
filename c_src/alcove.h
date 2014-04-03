@@ -35,7 +35,7 @@
 #include "alcove_version.h"
 
 /* 4 pipes per child */
-#define MAXCHILD        (FD_SETSIZE / 4 - 3)
+#define MAXCHILD        (FD_SETSIZE / 4 - 4)
 #define MAXFORKDEPTH    16
 #define MAXMSGLEN       65535
 #define MAXHDRLEN       8 /* 2 bytes length + 2 bytes type + 4 bytes PID */
@@ -86,6 +86,7 @@ typedef struct {
     u_int8_t verbose;
     u_int16_t maxchild;
     u_int16_t maxforkdepth;
+    u_int16_t fdsetsize;
     u_int16_t depth;
     alcove_child_t *child;
 } alcove_state_t;

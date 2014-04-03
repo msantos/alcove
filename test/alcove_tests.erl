@@ -118,24 +118,36 @@ getpid({_, Port, Child}) ->
 
 setopt({_, Port, _Child}) ->
     {ok, Fork} = alcove:fork(Port),
+
+    ok = alcove:setopt(Port, [Fork], maxchild, 128),
+
+    {ok, Fork1} = alcove:fork(Port, [Fork]),
+
+    Opt1 = alcove:getopt(Port, [Fork], maxchild),
+    Opt2 = alcove:getopt(Port, [Fork, Fork1], maxchild),
+
+    alcove:exit(Port, [Fork, Fork1], 0),
+
     ok = alcove:setopt(Port, [Fork], exit_status, 0),
     ok = alcove:setopt(Port, [Fork], maxforkdepth, 0),
 
-    Opt1 = alcove:getopt(Port, [Fork], exit_status),
-    Opt2 = alcove:getopt(Port, [], maxforkdepth),
-    Opt3 = alcove:getopt(Port, [Fork], maxforkdepth),
+    Opt3 = alcove:getopt(Port, [Fork], exit_status),
+    Opt4 = alcove:getopt(Port, [], maxforkdepth),
+    Opt5 = alcove:getopt(Port, [Fork], maxforkdepth),
     Reply = alcove:fork(Port, [Fork]),
 
     ok = alcove:setopt(Port, [Fork], verbose, 2),
     Fork = alcove:getpid(Port, [Fork]),
     Stderr = alcove:stderr(Port, [Fork]),
 
-    alcove:kill(Port, Fork, 9),
+    alcove:exit(Port, [Fork], 0),
 
     [
-        ?_assertEqual(0, Opt1),
-        ?_assertNotEqual(0, Opt2),
+        ?_assertEqual(128, Opt1),
+        ?_assertEqual(128, Opt2),
         ?_assertEqual(0, Opt3),
+        ?_assertNotEqual(0, Opt4),
+        ?_assertEqual(0, Opt5),
         ?_assertEqual({error,eagain}, Reply),
         ?_assertNotEqual(false, Stderr)
     ].

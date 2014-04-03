@@ -129,7 +129,9 @@ main(int argc, char *argv[])
         }
     }
 
-    ap->child = calloc(ap->maxchild, sizeof(alcove_child_t));
+    ap->fdsetsize = ap->maxchild;
+
+    ap->child = calloc(ap->fdsetsize, sizeof(alcove_child_t));
     if (!ap->child)
         erl_err_sys("calloc");
 
@@ -152,7 +154,17 @@ alcove_event_loop(alcove_state_t *ap)
 
     erl_init(NULL, 0);
 
-    (void)memset(ap->child, 0, sizeof(alcove_child_t) * ap->maxchild);
+    if (ap->fdsetsize != ap->maxchild) {
+        ap->fdsetsize = ap->maxchild;
+        ap->child = realloc(ap->child,
+                sizeof(alcove_child_t) * ap->fdsetsize);
+
+        if (!ap->child)
+            erl_err_sys("realloc");
+    }
+
+    (void)memset(ap->child, 0, sizeof(alcove_child_t) * ap->fdsetsize);
+
     sigcaught = 0;
 
     for ( ; ; ) {
@@ -506,7 +518,7 @@ pid_foreach(alcove_state_t *ap, pid_t pid, void *arg1, void *arg2,
     int i = 0;
     int rv = 0;
 
-    for (i = 0; i < ap->maxchild; i++) {
+    for (i = 0; i < ap->fdsetsize; i++) {
         if ((*comp)(ap->child[i].pid, pid) == 0)
             continue;
 
