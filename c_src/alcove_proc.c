@@ -88,12 +88,6 @@ alcove_prctl(alcove_state_t *ap, ETERM *arg)
 
     rv = prctl(option, PRARG(arg2), PRARG(arg3), PRARG(arg4), PRARG(arg5));
 
-    /* XXX On  success,  PR_GET_DUMPABLE,  PR_GET_KEEPCAPS,  PR_CAPBSET_READ,
-     * XXX PR_GET_TIMING,  PR_GET_SECUREBITS, PR_MCE_KILL_GET, and (if it
-     * XXX returns) PR_GET_SECCOMP return the nonnegative values described
-     * XXX above.  All other option values return 0 on success.  On error,
-     * XXX -1 is returned,  and errno is set appropriately.
-     */
     if (rv < 0)
         return alcove_errno(errno);
 
