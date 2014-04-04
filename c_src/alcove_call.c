@@ -123,9 +123,7 @@ alcove_setopt(alcove_state_t *ap, ETERM *arg)
         ap->verbose = val;
     }
     else if (!strncmp(opt, "exit_status", 11)) {
-        ap->opt = val ?
-            ap->opt | alcove_opt_exit_status :
-            ap->opt & ~alcove_opt_exit_status;
+        ALCOVE_SETOPT(ap, alcove_opt_exit_status, val);
     }
     else if (!strncmp(opt, "maxchild", 8)) {
         ap->maxchild = (val > MAXCHILD) ? MAXCHILD : val;
@@ -134,9 +132,7 @@ alcove_setopt(alcove_state_t *ap, ETERM *arg)
         ap->maxforkdepth = val;
     }
     else if (!strncmp(opt, "termsig", 7)) {
-        ap->opt = val ?
-            ap->opt | alcove_opt_termsig :
-            ap->opt & ~alcove_opt_termsig;
+        ALCOVE_SETOPT(ap, alcove_opt_termsig, val);
     }
     else
         goto BADARG;

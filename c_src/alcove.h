@@ -67,6 +67,9 @@
         ? ERL_INT_UVALUE(x) \
         : ERL_LL_UVALUE(x))
 
+#define ALCOVE_SETOPT(x,k,v) \
+    (x)->opt = (v) ? (x)->opt | (k) : (x)->opt & ~(k)
+
 enum {
     alcove_opt_exit_status = 1 << 0,   /* Report child exit status */
     alcove_opt_termsig = 1 << 1,       /* Report child termination signal */
