@@ -155,7 +155,7 @@ b2i(N) when is_binary(N) ->
     list_to_integer(binary_to_list(N)).
 
 static_exports() ->
-    [{define,3},
+    [{define,2},
      {stdin,2}, {stdin,3},
      {stdout,1}, {stdout,2}, {stdout,3},
      {stderr,1}, {stderr,2}, {stderr,3},
@@ -169,35 +169,38 @@ static_exports() ->
 static() ->
     [ static({Fun, Arity}) || {Fun, Arity} <- static_exports() ].
 
-static({define,3}) ->
+static({define,2}) ->
 "
-define(Port, clone, Constants) when is_list(Constants) ->
-    lists:foldl(fun(Constant,A) ->
-                case alcove:clone_define(Port, Constant) of
-                    false ->
-                        erlang:error(badarg, [Constant]);
-                    N ->
-                        A bxor N
-                end
-        end, 0, Constants);
-define(Port, file, Constants) when is_list(Constants) ->
-    lists:foldl(fun(Constant,A) ->
-                case alcove:file_define(Port, Constant) of
-                    false ->
-                        erlang:error(badarg, [Constant]);
-                    N ->
-                        A bxor N
-                end
-        end, 0, Constants);
-define(Port, mount, Constants) when is_list(Constants) ->
-    lists:foldl(fun(Constant,A) ->
-                case alcove:mount_define(Port, Constant) of
-                    false ->
-                        erlang:error(badarg, [Constant]);
-                    N ->
-                        A bxor N
-                end
-        end, 0, Constants).
+define(Port, Const) when is_atom(Const) ->
+    define(Port, [Const]);
+define(Port, Consts) when is_list(Consts) ->
+    lists:foldl(fun(Const,A) ->
+                N = case atom_to_list(Const) of
+                    \"CLONE_\" ++ _ ->
+                        alcove:clone_define(Port, Const);
+                    \"MS_\" ++ _ ->
+                        alcove:mount_define(Port, Const);
+                    \"MNT_\" ++ _ ->
+                        alcove:mount_define(Port, Const);
+                    \"O_\" ++ _ ->
+                        alcove:file_define(Port, Const);
+                    \"PR_\" ++ _ ->
+                        alcove:prctl_define(Port, Const);
+                    \"RLIMIT_\" ++ _ ->
+                        alcove:rlimit_define(Port, Const);
+                    \"SIG\" ++ _ ->
+                        alcove:signal_define(Port, Const);
+                    Flag when
+                        Flag =:= \"rdonly\";
+                        Flag =:= \"nosuid\";
+                        Flag =:= \"noexec\";
+                        Flag =:= \"noatime\" ->
+                            alcove:mount_define(Port, Const)
+                end,
+                N bxor A
+        end,
+        0,
+        Consts).
 ";
 
 static({stdin,2}) ->
@@ -318,7 +321,7 @@ specs() ->
 -spec clone_define(port(),atom()) -> 'false' | non_neg_integer().
 -spec clone_define(port(),[integer()],atom()) -> 'false' | non_neg_integer().
 
--spec define(port(),'clone' | 'mount',[atom()]) -> integer().
+-spec define(port(),atom() | [atom()]) -> integer().
 
 -spec execvp(port(),iodata(),iodata()) -> 'ok'.
 -spec execvp(port(),list(integer()),iodata(),iodata()) -> 'ok'.

@@ -63,7 +63,7 @@ start() ->
     Port = alcove_drv:start([{exec, "sudo"}, {maxchild, 8}]),
     case os:type() of
         {unix,linux} = OS ->
-            Flags = alcove:define(Port, clone, [
+            Flags = alcove:define(Port, [
                     'CLONE_NEWIPC',
                     'CLONE_NEWNET',
                     'CLONE_NEWNS',
@@ -225,7 +225,7 @@ unshare({_, _Port, _Child}) ->
     ?_assertEqual(ok,ok).
 
 mount_define({_, Port, _Child}) ->
-    Flags = alcove:define(Port, mount, [
+    Flags = alcove:define(Port, [
             rdonly,
             nosuid,
             noexec,
@@ -234,7 +234,7 @@ mount_define({_, Port, _Child}) ->
     ?_assertEqual(true, is_integer(Flags)).
 
 mount({{unix,linux}, Port, Child}) ->
-    Flags = alcove:define(Port, mount, [
+    Flags = alcove:define(Port, [
             'MS_BIND',
             'MS_RDONLY',
             'MS_NOEXEC'
@@ -249,7 +249,7 @@ mount({_, _Port, _Child}) ->
     ?_assertEqual(ok,ok).
 
 tmpfs({{unix,linux}, Port, Child}) ->
-    Flags = alcove:define(Port, mount, ['MS_NOEXEC']),
+    Flags = alcove:define(Port, ['MS_NOEXEC']),
     Mount = alcove:mount(Port, [Child], "tmpfs", "/mnt", "tmpfs", Flags, <<"size=16M", 0>>),
     Umount = alcove:umount(Port, [Child], "/mnt"),
     [
