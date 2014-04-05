@@ -73,6 +73,7 @@
 enum {
     alcove_opt_exit_status = 1 << 0,   /* Report child exit status */
     alcove_opt_termsig = 1 << 1,       /* Report child termination signal */
+    alcove_opt_sigchld = 1 << 2,       /* Report SIGCHLD */
 };
 
 typedef struct {

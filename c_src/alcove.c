@@ -104,8 +104,14 @@ main(int argc, char *argv[])
     ap->maxchild = MAXCHILD;
     ap->maxforkdepth = MAXFORKDEPTH;
 
-    while ( (ch = getopt(argc, argv, "am:M:hs:S:v")) != -1) {
+    /* SIGCHLD notification enabled by default */
+    ALCOVE_SETOPT(ap, alcove_opt_sigchld, 1);
+
+    while ( (ch = getopt(argc, argv, "ae:m:M:hs:S:v")) != -1) {
         switch (ch) {
+            case 'e':
+                ALCOVE_SETOPT(ap, alcove_opt_exit_status, atoi(optarg));
+                break;
             case 'm': {
                 u_int16_t n = (u_int16_t)atoi(optarg);
                 ap->maxchild = n > MAXCHILD ? MAXCHILD : n;
@@ -115,7 +121,7 @@ main(int argc, char *argv[])
                 ap->maxforkdepth = (u_int16_t)atoi(optarg);
                 break;
             case 's':
-                ALCOVE_SETOPT(ap, alcove_opt_exit_status, atoi(optarg));
+                ALCOVE_SETOPT(ap, alcove_opt_sigchld, atoi(optarg));
                 break;
             case 'S':
                 ALCOVE_SETOPT(ap, alcove_opt_termsig, atoi(optarg));
@@ -684,6 +690,8 @@ alcove_handle_signal(alcove_state_t *ap) {
         if (!(sigcaught & (1 << signum)))
             continue;
 
+        sigcaught &= ~(1 << signum);
+
         if (signum == SIGCHLD) {
             pid_t pid = 0;
 
@@ -700,6 +708,9 @@ alcove_handle_signal(alcove_state_t *ap) {
                 (void)pid_foreach(ap, pid, &status, &ap->opt,
                         pid_equal, exited_pid);
             }
+
+            if (!(ap->opt & alcove_opt_sigchld))
+                continue;
         }
 
         reply = alcove_tuple2(
@@ -713,8 +724,6 @@ alcove_handle_signal(alcove_state_t *ap) {
         }
 
         erl_free_compound(reply);
-
-        sigcaught &= ~(1 << signum);
     }
 
     rv = 0;
@@ -744,7 +753,8 @@ usage(alcove_state_t *ap)
             "usage: %s <options>\n"
             "   -m <num>        max children\n"
             "   -M <num>        max fork depth\n"
-            "   -s <0|1>        child exit status\n"
+            "   -e <0|1>        child exit status\n"
+            "   -s <0|1>        sigchld\n"
             "   -S <0|1>        child termination signal\n"
             "   -v              verbose mode\n",
             __progname

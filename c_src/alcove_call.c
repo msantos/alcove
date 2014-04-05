@@ -87,6 +87,9 @@ alcove_getopt(alcove_state_t *ap, ETERM *arg)
     else if (!strncmp(opt, "maxforkdepth", 12)) {
         return erl_mk_uint(ap->maxforkdepth);
     }
+    else if (!strncmp(opt, "sigchld", 7)) {
+        return erl_mk_uint(ap->opt & alcove_opt_sigchld ? 1 : 0);
+    }
     else if (!strncmp(opt, "termsig", 7)) {
         return erl_mk_uint(ap->opt & alcove_opt_termsig ? 1 : 0);
     }
@@ -130,6 +133,9 @@ alcove_setopt(alcove_state_t *ap, ETERM *arg)
     }
     else if (!strncmp(opt, "maxforkdepth", 12)) {
         ap->maxforkdepth = val;
+    }
+    else if (!strncmp(opt, "sigchld", 7)) {
+        ALCOVE_SETOPT(ap, alcove_opt_sigchld, val);
     }
     else if (!strncmp(opt, "termsig", 7)) {
         ALCOVE_SETOPT(ap, alcove_opt_termsig, val);
