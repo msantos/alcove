@@ -27,6 +27,7 @@ pid/0
 prctl/5
 prctl_define/1
 read/2
+readdir/1
 rlimit_define/1
 rmdir/1
 setenv/3

@@ -16,6 +16,7 @@
 #include "alcove_call.h"
 
 #include <sys/stat.h>
+#include <dirent.h>
 
 /*
  * chdir(2)
@@ -182,4 +183,62 @@ alcove_getcwd(alcove_state_t *ap, ETERM *arg)
         return alcove_errno(errno);
 
     return alcove_ok(erl_mk_binary(buf, strlen(buf)));
+}
+
+/*
+ * readdir(3)
+ *
+ */
+    ETERM *
+alcove_readdir(alcove_state_t *ap, ETERM *arg)
+{
+    ETERM *hd = NULL;
+    char *name = NULL;
+    DIR *dirp = NULL;
+    struct dirent *dent = NULL;
+    ETERM *t = erl_mk_empty_list();
+    int errnum = 0;
+
+    /* name */
+    arg = alcove_list_head(&hd, arg);
+    if (!hd || !ALCOVE_IS_IOLIST(hd))
+        goto BADARG;
+
+    if (erl_iolist_length(hd) > 0)
+        name = erl_iolist_to_string(hd);
+
+    if (!name)
+        goto BADARG;
+
+    dirp = opendir(name);
+
+    if (!dirp)
+        goto ERR;
+
+    errno = 0;
+    while ( (dent = readdir(dirp))) {
+        if (!strcmp(dent->d_name, ".") || !strcmp(dent->d_name, ".."))
+            continue;
+
+        t = erl_cons(erl_mk_binary(dent->d_name, strlen(dent->d_name)), t);
+    }
+
+    if (errno != 0)
+        goto ERR;
+
+    if (closedir(dirp) < 0)
+        goto ERR;
+
+    return alcove_ok(t);
+
+BADARG:
+    erl_free(name);
+    erl_free(t);
+    return erl_mk_atom("badarg");
+
+ERR:
+    errnum = errno;
+    erl_free(name);
+    erl_free(t);
+    return alcove_errno(errnum);
 }
