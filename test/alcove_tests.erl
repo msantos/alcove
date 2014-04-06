@@ -491,7 +491,7 @@ forkstress_1(_Port, _Child, 0) ->
     ok;
 forkstress_1(Port, Child, N) ->
     {ok, Fork} = alcove:fork(Port, [Child]),
-    ok = alcove:kill(Port, [Child], Fork, 15),
+    ok = alcove:exit(Port, [Child,Fork], 0),
     case alcove:version(Port, [Child]) of
         {error, timedout} ->
             fail;
