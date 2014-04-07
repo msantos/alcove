@@ -162,24 +162,28 @@ mounts(Port) ->
     mounts(Port, []).
 mounts(Port, Pids) ->
     Flags = alcove:define(Port, 'O_RDONLY'),
-    {ok, Fd} = alcove:open(Port, Pids, "/proc/mounts", Flags, 0),
-    Reply = case readbuf(Port, Pids, Fd) of
-        {ok, Buf} ->
-            {ok, fsentry(Buf)};
-        Error ->
-            Error
-    end,
-    alcove:close(Port, Pids, Fd),
-    Reply.
+    case alcove:open(Port, Pids, "/proc/mounts", Flags, 0) of
+        {ok, FD} ->
+            Reply = case readbuf(Port, Pids, FD) of
+                {ok, Buf} ->
+                    {ok, fsentry(Buf)};
+                Error ->
+                    Error
+            end,
+            alcove:close(Port, Pids, FD),
+            Reply;
+        _ ->
+            {ok, []}
+    end.
 
-readbuf(Port, Pids, Fd) ->
-    readbuf(Port, Pids, Fd, []).
-readbuf(Port, Pids, Fd, Acc) ->
-    case alcove:read(Port, Pids, Fd, 1024) of
+readbuf(Port, Pids, FD) ->
+    readbuf(Port, Pids, FD, []).
+readbuf(Port, Pids, FD, Acc) ->
+    case alcove:read(Port, Pids, FD, 1024) of
         {ok, <<>>} ->
             {ok, list_to_binary(lists:reverse(Acc))};
         {ok, Buf} ->
-            readbuf(Port, Pids, Fd, [Buf|Acc]);
+            readbuf(Port, Pids, FD, [Buf|Acc]);
         Error ->
             Error
     end.
