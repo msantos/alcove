@@ -200,7 +200,7 @@ is_dir(Port, Pids, Path) ->
     end.
 
 is_file(Port, Pids, File) ->
-    Flags = alcove:define(Port, file, ['O_RDONLY']),
+    Flags = alcove:define(Port, ['O_RDONLY']),
     case alcove:open(Port, Pids, File, Flags, 0) of
         {ok, FH} ->
             alcove:close(Port, FH),
