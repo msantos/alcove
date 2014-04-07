@@ -145,7 +145,7 @@ main(int argc, char *argv[])
      * An fd is acquired and leaked here to prevent calls to open()
      * at the port level from returning an uncloseable fd.
      */
-    if (open("/dev/null", O_RDWR) != 3)
+    if (open("/dev/null", O_RDWR) != ALCOVE_FDCTL)
         erl_err_quit("could not acquire ctl fd");
 
     alcove_event_loop(ap);

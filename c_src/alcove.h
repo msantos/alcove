@@ -34,6 +34,8 @@
 #include "erl_errno.h"
 #include "alcove_version.h"
 
+#define ALCOVE_FDCTL 3
+
 /* 4 pipes per child */
 #define MAXCHILD        (FD_SETSIZE / 4 - 4)
 #define MAXFORKDEPTH    16

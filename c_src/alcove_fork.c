@@ -262,12 +262,6 @@ alcove_stdio(alcove_fd_t *fd)
     if (socketpair(AF_UNIX, SOCK_STREAM, 0, fd->ctl) < 0)
         return -1;
 
-    if ( (alcove_set_cloexec(fd->ctl[0]) < 0)
-         || (alcove_set_cloexec(fd->ctl[0]) < 0)) {
-        alcove_close_pipe(fd->ctl);
-        return -1;
-    }
-
     if ( (pipe(fd->in) < 0)
             || (pipe(fd->out) < 0)
             || (pipe(fd->err) < 0)) {
@@ -321,17 +315,21 @@ alcove_child_fun(void *arg)
 
     if ( (dup2(fd->in[PIPE_READ], STDIN_FILENO) < 0)
             || (dup2(fd->out[PIPE_WRITE], STDOUT_FILENO) < 0)
-            || (dup2(fd->err[PIPE_WRITE], STDERR_FILENO) < 0))
+            || (dup2(fd->err[PIPE_WRITE], STDERR_FILENO) < 0)
+            || (dup2(fd->ctl[PIPE_READ], ALCOVE_FDCTL) < 0))
         return -1;
 
     /* Close all other fd's inherited from the parent. */
     for (n = 0; n < maxfd; n++) {
-        if ( (n != fd->ctl[PIPE_READ])
+        if ( (n != ALCOVE_FDCTL)
                 && (n != STDIN_FILENO)
                 && (n != STDOUT_FILENO)
                 && (n != STDERR_FILENO))
             (void)close(n);
     }
+
+    if (alcove_set_cloexec(ALCOVE_FDCTL) < 0)
+        return -1;
 
     ap->depth++;
     alcove_event_loop(ap);
