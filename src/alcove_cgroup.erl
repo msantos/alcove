@@ -27,8 +27,10 @@ supported(Port, Pids) ->
     foreach([
         fun() -> {unix,linux} =:= os:type() end,
         fun() -> [] =/= cgroup(Port, Pids) end,
-        fun() -> ok =:= element(1, get(Port, Pids, <<"cpuset">>, <<>>,
-                        <<"notify_on_release">>)) end
+        fun() -> Val = get(Port, Pids, <<"cpuset">>, <<>>,
+                    <<"notify_on_release">>),
+                is_tuple(Val) andalso ok =:= element(1, Val)
+        end
     ]).
 
 %% These functions perform file operations in the port rather than using
