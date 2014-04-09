@@ -72,19 +72,19 @@ destroy(Port, Pids, Namespace) ->
     end,
     fold(Port, <<>>, <<>>, Fun, []).
 
-set(Port, Pids, Type, Namespace, Key, Value) ->
+set(Port, Pids, MntOpt, Namespace, Key, Value) ->
     Fun = fun(Cgroup, _Acc) ->
             File = join(Cgroup, Key),
             write(Port, Pids, File, Value)
     end,
-    fold(Port, Type, Namespace, Fun, []).
+    fold(Port, MntOpt, Namespace, Fun, []).
 
-get(Port, Pids, Type, Namespace, Key) ->
+get(Port, Pids, MntOpt, Namespace, Key) ->
     Fun = fun(Cgroup, _Acc) ->
             File = join(Cgroup, Key),
             read(Port, Pids, File)
     end,
-    fold(Port, Type, Namespace, Fun, []).
+    fold(Port, MntOpt, Namespace, Fun, []).
 
 write(Port, Pids, File, Bytes) ->
     Flags = alcove:define(Port, 'O_WRONLY'),
@@ -110,30 +110,26 @@ read(Port, Pids, File) ->
     end,
     Reply.
 
-fold(Port, Type, Namespace, Fun, AccIn) ->
-    fold(Port, [], Type, Namespace, Fun, AccIn).
+fold(Port, MntOpt, Namespace, Fun, AccIn) ->
+    fold(Port, [], MntOpt, Namespace, Fun, AccIn).
 
-fold(Port, Pids, Type, Namespace, Fun, AccIn) ->
+fold(Port, Pids, MntOpt, Namespace, Fun, AccIn) ->
     Cgroups = lists:foldl(fun({Cgroup, Opt}, Acc) ->
                 Path = join(Cgroup, Namespace),
-                case is_dir(Port, Pids, Path) of
-                    true ->
-                        case {Type, lists:member(Type,Opt)} of
-                            {_, true} -> [Path|Acc];
-                            {<<>>, _} -> [Path|Acc];
-                            {_, false} -> Acc
-                        end;
-                    false ->
-                        Acc
+                IsCgroup = (MntOpt =:= <<>> orelse lists:member(MntOpt,Opt))
+                    andalso is_dir(Port, Pids, Path),
+                case IsCgroup of
+                    true -> [Path|Acc];
+                    false -> Acc
                 end
         end, [], cgroup(Port, Pids)),
 
     lists:foldl(Fun, AccIn, Cgroups).
 
-fold_files(Port, Type, Namespace, RegExp, Fun, AccIn) ->
-    fold_files(Port, [], Type, Namespace, RegExp, Fun, AccIn).
+fold_files(Port, MntOpt, Namespace, RegExp, Fun, AccIn) ->
+    fold_files(Port, [], MntOpt, Namespace, RegExp, Fun, AccIn).
 
-fold_files(Port, Pids, Type, Namespace, RegExp, CallerFun, AccIn) ->
+fold_files(Port, Pids, MntOpt, Namespace, RegExp, CallerFun, AccIn) ->
     {ok, MP} = re:compile(RegExp),
 
     Fun = fun(Dir, Acc) ->
@@ -149,7 +145,7 @@ fold_files(Port, Pids, Type, Namespace, RegExp, CallerFun, AccIn) ->
             lists:foldl(CallerFun, Acc, Filtered)
         end,
 
-    fold(Port, Pids, Type, Namespace, Fun, AccIn).
+    fold(Port, Pids, MntOpt, Namespace, Fun, AccIn).
 
 cgroup(Port) ->
     cgroup(Port, []).
