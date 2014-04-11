@@ -1,5 +1,6 @@
 chdir/1
 chmod/2
+chown/3
 chroot/1
 clearenv/0
 clone/1

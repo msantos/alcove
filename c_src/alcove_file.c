@@ -256,6 +256,56 @@ BADARG:
     return erl_mk_atom("badarg");
 }
 
+/*
+ * chown(2)
+ *
+ */
+    ETERM *
+alcove_chown(alcove_state_t *ap, ETERM *arg)
+{
+    ETERM *hd = NULL;
+    char *path = NULL;
+    uid_t owner = {0};
+    gid_t group = {0};
+    int rv = 0;
+    int errnum = 0;
+
+    /* path */
+    arg = alcove_list_head(&hd, arg);
+    if (!hd || !ALCOVE_IS_IOLIST(hd))
+        goto BADARG;
+
+    if (erl_iolist_length(hd) > 0)
+        path = erl_iolist_to_string(hd);
+
+    if (!path)
+        goto BADARG;
+
+    /* owner */
+    arg = alcove_list_head(&hd, arg);
+    if (!hd || !ALCOVE_IS_UNSIGNED_INTEGER(hd))
+        goto BADARG;
+
+    owner = ERL_INT_UVALUE(hd);
+
+    /* group */
+    arg = alcove_list_head(&hd, arg);
+    if (!hd || !ALCOVE_IS_UNSIGNED_INTEGER(hd))
+        goto BADARG;
+
+    group = ERL_INT_UVALUE(hd);
+
+    rv = chown(path, owner, group);
+
+    errnum = errno;
+
+    erl_free(path);
+
+    return (rv < 0) ? alcove_errno(errnum) : erl_mk_atom("ok");
+
+BADARG:
+    return erl_mk_atom("badarg");
+}
 
 /*
  * file flags
