@@ -39,7 +39,7 @@
 /* 4 pipes per child */
 #define MAXCHILD        (FD_SETSIZE / 4 - 4)
 #define MAXFORKDEPTH    16
-#define MAXMSGLEN       65535
+#define MAXMSGLEN       UINT16_MAX
 #define MAXHDRLEN       8 /* 2 bytes length + 2 bytes type + 4 bytes PID */
 
 #define ALCOVE_MSGLEN(x,n) \

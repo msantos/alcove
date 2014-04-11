@@ -222,7 +222,7 @@ alcove_stdin(alcove_state_t *ap)
     u_int16_t bufsz = 0;
     u_int16_t type = 0;
     pid_t pid = 0;
-    unsigned char buf[65535] = {0};
+    unsigned char buf[UINT16_MAX] = {0};
 
     errno = 0;
 
