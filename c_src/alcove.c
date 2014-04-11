@@ -53,7 +53,8 @@ static int alcove_stdin(alcove_state_t *ap);
 static ssize_t alcove_msg_call(alcove_state_t *ap, int fd, u_int16_t len);
 static alcove_msg_t *alcove_msg_read(int fd, u_int16_t len);
 
-static ssize_t alcove_child_stdio(int fdin, u_int16_t depth, alcove_child_t *c, u_int16_t type);
+static ssize_t alcove_child_stdio(int fdin, u_int16_t depth,
+        alcove_child_t *c, u_int16_t type);
 static ssize_t alcove_send(u_int16_t, ETERM *);
 static ssize_t alcove_call_stdio(pid_t pid, u_int16_t type, ETERM *t);
 static ssize_t alcove_write(void *data, size_t len);
@@ -161,9 +162,11 @@ alcove_event_loop(alcove_state_t *ap)
     erl_init(NULL, 0);
 
     if (ap->fdsetsize != ap->maxchild) {
+        /* the array may be shrinking */
+        (void)memset(ap->child, 0, sizeof(alcove_child_t) * ap->fdsetsize);
+
         ap->fdsetsize = ap->maxchild;
-        ap->child = realloc(ap->child,
-                sizeof(alcove_child_t) * ap->fdsetsize);
+        ap->child = realloc(ap->child, sizeof(alcove_child_t) * ap->fdsetsize);
 
         if (!ap->child)
             erl_err_sys("realloc");
