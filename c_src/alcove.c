@@ -65,10 +65,10 @@ static alcove_msg_stdio_t * alcove_alloc_hdr_stdio(pid_t pid, u_int16_t type,
 static alcove_msg_call_t * alcove_alloc_hdr_call(u_int16_t type, ETERM *t,
         size_t *len);
 
-static int exited_pid(alcove_child_t *c, void *arg1, void *arg2);
-static int set_pid(alcove_child_t *c, void *arg1, void *arg2);
-static int write_to_pid(alcove_child_t *c, void *arg1, void *arg2);
-static int read_from_pid(alcove_child_t *c, void *arg1, void *arg2);
+static int exited_pid(alcove_state_t *ap, alcove_child_t *c, void *arg1, void *arg2);
+static int set_pid(alcove_state_t *ap, alcove_child_t *c, void *arg1, void *arg2);
+static int write_to_pid(alcove_state_t *ap, alcove_child_t *c, void *arg1, void *arg2);
+static int read_from_pid(alcove_state_t *ap, alcove_child_t *c, void *arg1, void *arg2);
 
 static int alcove_handle_signal(alcove_state_t *ap);
 
@@ -209,7 +209,7 @@ alcove_event_loop(alcove_state_t *ap)
             }
         }
 
-        pid_foreach(ap, 0, &rfds, &ap->depth, pid_not_equal, read_from_pid);
+        pid_foreach(ap, 0, &rfds, NULL, pid_not_equal, read_from_pid);
 
         if (ap->verbose > 1)
             alcove_stats(ap);
@@ -522,7 +522,8 @@ alcove_read(int fd, void *buf, ssize_t len)
 
     int
 pid_foreach(alcove_state_t *ap, pid_t pid, void *arg1, void *arg2,
-        int (*comp)(pid_t, pid_t), int (*fp)(alcove_child_t *, void *, void *))
+        int (*comp)(pid_t, pid_t),
+        int (*fp)(alcove_state_t *ap, alcove_child_t *, void *, void *))
 {
     int i = 0;
     int rv = 0;
@@ -531,7 +532,7 @@ pid_foreach(alcove_state_t *ap, pid_t pid, void *arg1, void *arg2,
         if ((*comp)(ap->child[i].pid, pid) == 0)
             continue;
 
-        rv = (*fp)(&(ap->child[i]), arg1, arg2);
+        rv = (*fp)(ap, &(ap->child[i]), arg1, arg2);
 
         if (rv <= 0)
             return rv;
@@ -553,17 +554,16 @@ pid_not_equal(pid_t p1, pid_t p2)
 }
 
     static int
-exited_pid(alcove_child_t *c, void *arg1, void *arg2)
+exited_pid(alcove_state_t *ap, alcove_child_t *c, void *arg1, void *arg2)
 {
     int *status = arg1;
-    int *opt = arg2;
     ETERM *t = NULL;
 
     c->exited = 1;
     (void)close(c->fdin);
     c->fdin = -1;
 
-    if (WIFEXITED(*status) && (*opt & alcove_opt_exit_status)) {
+    if (WIFEXITED(*status) && (ap->opt & alcove_opt_exit_status)) {
         t = alcove_tuple2(
                 erl_mk_atom("exit_status"),
                 erl_mk_int(WEXITSTATUS(*status))
@@ -573,7 +573,7 @@ exited_pid(alcove_child_t *c, void *arg1, void *arg2)
             return -1;
     }
 
-    if (WIFSIGNALED(*status) && (*opt & alcove_opt_termsig)) {
+    if (WIFSIGNALED(*status) && (ap->opt & alcove_opt_termsig)) {
         t = alcove_tuple2(
                 erl_mk_atom("termsig"),
                 erl_mk_int(WTERMSIG(*status))
@@ -587,7 +587,7 @@ exited_pid(alcove_child_t *c, void *arg1, void *arg2)
 }
 
     static int
-set_pid(alcove_child_t *c, void *arg1, void *arg2)
+set_pid(alcove_state_t *ap, alcove_child_t *c, void *arg1, void *arg2)
 {
     fd_set *rfds = arg1;
     int *fdmax = arg2;
@@ -616,7 +616,7 @@ set_pid(alcove_child_t *c, void *arg1, void *arg2)
 }
 
     static int
-write_to_pid(alcove_child_t *c, void *arg1, void *arg2)
+write_to_pid(alcove_state_t *ap, alcove_child_t *c, void *arg1, void *arg2)
 {
     char *buf = arg1;
     u_int16_t *bufsz = arg2;
@@ -631,10 +631,9 @@ write_to_pid(alcove_child_t *c, void *arg1, void *arg2)
 }
 
     static int
-read_from_pid(alcove_child_t *c, void *arg1, void *arg2)
+read_from_pid(alcove_state_t *ap, alcove_child_t *c, void *arg1, void *arg2)
 {
     fd_set *rfds = arg1;
-    u_int16_t *depth = arg2;
 
     if (c->fdctl > -1 && FD_ISSET(c->fdctl, rfds)) {
         unsigned char buf;
@@ -653,7 +652,8 @@ read_from_pid(alcove_child_t *c, void *arg1, void *arg2)
     }
 
     if (c->fdout > -1 && FD_ISSET(c->fdout, rfds)) {
-        switch (alcove_child_stdio(c->fdout, *depth, c, ALCOVE_MSG_TYPE(c))) {
+        switch (alcove_child_stdio(c->fdout, ap->depth,
+                    c, ALCOVE_MSG_TYPE(c))) {
             case -1:
             case 0:
                 (void)close(c->fdout);
@@ -665,7 +665,8 @@ read_from_pid(alcove_child_t *c, void *arg1, void *arg2)
     }
 
     if (c->fderr > -1 && FD_ISSET(c->fderr, rfds)) {
-        switch (alcove_child_stdio(c->fderr, *depth, c, ALCOVE_MSG_STDERR)) {
+        switch (alcove_child_stdio(c->fderr, ap->depth,
+                    c, ALCOVE_MSG_STDERR)) {
             case -1:
             case 0:
                 (void)close(c->fderr);
@@ -708,7 +709,7 @@ alcove_handle_signal(alcove_state_t *ap) {
                 if (pid < 0)
                     return -1;
 
-                (void)pid_foreach(ap, pid, &status, &ap->opt,
+                (void)pid_foreach(ap, pid, &status, NULL,
                         pid_equal, exited_pid);
             }
 

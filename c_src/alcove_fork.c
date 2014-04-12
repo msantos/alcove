@@ -41,8 +41,8 @@ static int alcove_set_cloexec(int fd);
 static void alcove_close_pipe(int fd[2]);
 static int alcove_child_fun(void *arg);
 static int alcove_parent_fd(alcove_state_t *ap, alcove_fd_t *fd, pid_t pid);
-static int avail_pid(alcove_child_t *c, void *arg1, void *arg2);
-static int stdio_pid(alcove_child_t *c, void *arg1, void *arg2);
+static int avail_pid(alcove_state_t *ap, alcove_child_t *c, void *arg1, void *arg2);
+static int stdio_pid(alcove_state_t *ap, alcove_child_t *c, void *arg1, void *arg2);
 
 /*
  * fork(2)
@@ -356,7 +356,7 @@ alcove_parent_fd(alcove_state_t *ap, alcove_fd_t *fd, pid_t pid)
 }
 
     static int
-avail_pid(alcove_child_t *c, void *arg1, void *arg2)
+avail_pid(alcove_state_t *ap, alcove_child_t *c, void *arg1, void *arg2)
 {
     /* slot found */
     if (c->pid == 0)
@@ -366,7 +366,7 @@ avail_pid(alcove_child_t *c, void *arg1, void *arg2)
 }
 
     static int
-stdio_pid(alcove_child_t *c, void *arg1, void *arg2)
+stdio_pid(alcove_state_t *ap, alcove_child_t *c, void *arg1, void *arg2)
 {
     alcove_fd_t *fd = arg1;
     pid_t *pid = arg2;

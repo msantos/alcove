@@ -112,7 +112,8 @@ void sighandler(int sig);
 void alcove_event_loop(alcove_state_t *ap);
 
 int pid_foreach(alcove_state_t *ap, pid_t pid, void *arg1, void *arg2,
-        int (*comp)(pid_t, pid_t), int (*fp)(alcove_child_t *, void *, void *));
+        int (*comp)(pid_t, pid_t),
+        int (*fp)(alcove_state_t *, alcove_child_t *, void *, void *));
 int pid_equal(pid_t p1, pid_t p2);
 int pid_not_equal(pid_t p1, pid_t p2);
 

@@ -26,7 +26,8 @@
 
 #include <sys/types.h>
 
-static int cons_pid(alcove_child_t *c, void *arg1, void *arg2);
+static int cons_pid(alcove_state_t *ap, alcove_child_t *c,
+        void *arg1, void *arg2);
 
     ETERM *
 alcove_call(alcove_state_t *ap, u_int32_t call, ETERM *arg)
@@ -201,7 +202,7 @@ alcove_free_argv(char **argv)
 }
 
     static int
-cons_pid(alcove_child_t *c, void *arg1, void *arg2)
+cons_pid(alcove_state_t *ap, alcove_child_t *c, void *arg1, void *arg2)
 {
     ETERM **t = arg1;
     *t = erl_cons(erl_mk_int(c->pid), *t);
