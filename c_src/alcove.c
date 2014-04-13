@@ -14,8 +14,7 @@
  */
 #include "alcove.h"
 
-#include <signal.h>
-#include <sys/select.h>
+#include <poll.h>
 #include <sys/wait.h>
 
 #define ALCOVE_MSG_STDIN    0
@@ -156,10 +155,9 @@ main(int argc, char *argv[])
     void
 alcove_event_loop(alcove_state_t *ap)
 {
-    fd_set rfds;
-    int fdmax = 0;
-
     erl_init(NULL, 0);
+
+    sigcaught = 0;
 
     if (ap->fdsetsize != ap->maxchild) {
         /* the array may be shrinking */
@@ -174,45 +172,56 @@ alcove_event_loop(alcove_state_t *ap)
 
     (void)memset(ap->child, 0, sizeof(alcove_child_t) * ap->fdsetsize);
 
-    sigcaught = 0;
-
     for ( ; ; ) {
+        long maxfd = sysconf(_SC_OPEN_MAX);
+        struct pollfd *fds = NULL;
+        int i = 0;
+        nfds_t nfds = STDIN_FILENO;
+
+        fds = alcove_malloc(sizeof(struct pollfd) * maxfd);
+
         if (alcove_handle_signal(ap) < 0)
             erl_err_sys("alcove_handle_signal");
 
-        FD_ZERO(&rfds);
-        FD_SET(STDIN_FILENO, &rfds);
+        for (i = 0; i < maxfd; i++) {
+            fds[i].fd = -1;
+            fds[i].revents = 0;
+        }
 
-        fdmax = STDIN_FILENO;
+        fds[STDIN_FILENO].fd = STDIN_FILENO;
+        fds[STDIN_FILENO].events = POLLIN;
 
-        (void)pid_foreach(ap, 0, &rfds, &fdmax, pid_not_equal, set_pid);
+        (void)pid_foreach(ap, 0, fds, &nfds, pid_not_equal, set_pid);
 
-        if (select(fdmax+1, &rfds, NULL, NULL, NULL) < 0) {
+        if (poll(fds, nfds+1, -1) < 0) {
             switch (errno) {
-                case EAGAIN:
                 case EINTR:
+                    free(fds);
                     continue;
                 default:
                     break;
             }
         }
 
-        if (FD_ISSET(STDIN_FILENO, &rfds)) {
+        if (fds[STDIN_FILENO].revents & (POLLIN|POLLERR|POLLHUP)) {
             switch (alcove_stdin(ap)) {
                 case -1:
                     erl_err_sys("alcove_stdin");
                 case 1:
                     /* EOF */
+                    free(fds);
                     return;
                 case 0:
                     break;
             }
         }
 
-        pid_foreach(ap, 0, &rfds, NULL, pid_not_equal, read_from_pid);
+        pid_foreach(ap, 0, fds, NULL, pid_not_equal, read_from_pid);
 
         if (ap->verbose > 1)
             alcove_stats(ap);
+
+        free(fds);
     }
 }
 
@@ -589,22 +598,25 @@ exited_pid(alcove_state_t *ap, alcove_child_t *c, void *arg1, void *arg2)
     static int
 set_pid(alcove_state_t *ap, alcove_child_t *c, void *arg1, void *arg2)
 {
-    fd_set *rfds = arg1;
-    int *fdmax = arg2;
+    struct pollfd *fds = arg1;
+    nfds_t *nfds = arg2;
 
     if (c->fdctl > -1) {
-        FD_SET(c->fdctl, rfds);
-        *fdmax = MAX(*fdmax, c->fdctl);
+        fds[c->fdctl].fd = c->fdctl;
+        fds[c->fdctl].events = POLLIN;
+        *nfds = MAX(*nfds, c->fdctl);
     }
 
     if (c->fdout > -1) {
-        FD_SET(c->fdout, rfds);
-        *fdmax = MAX(*fdmax, c->fdout);
+        fds[c->fdout].fd = c->fdout;
+        fds[c->fdout].events = POLLIN;
+        *nfds = MAX(*nfds, c->fdout);
     }
 
     if (c->fderr > -1) {
-        FD_SET(c->fderr, rfds);
-        *fdmax = MAX(*fdmax, c->fderr);
+        fds[c->fderr].fd = c->fderr;
+        fds[c->fderr].events = POLLIN;
+        *nfds = MAX(*nfds, c->fderr);
     }
 
     if (c->exited && c->fdout == -1 && c->fderr == -1) {
@@ -633,9 +645,9 @@ write_to_pid(alcove_state_t *ap, alcove_child_t *c, void *arg1, void *arg2)
     static int
 read_from_pid(alcove_state_t *ap, alcove_child_t *c, void *arg1, void *arg2)
 {
-    fd_set *rfds = arg1;
+    struct pollfd *fds = arg1;
 
-    if (c->fdctl > -1 && FD_ISSET(c->fdctl, rfds)) {
+    if (c->fdctl > -1 && (fds[c->fdctl].revents & (POLLIN|POLLERR|POLLHUP))) {
         unsigned char buf;
         ssize_t n;
 
@@ -651,7 +663,7 @@ read_from_pid(alcove_state_t *ap, alcove_child_t *c, void *arg1, void *arg2)
         }
     }
 
-    if (c->fdout > -1 && FD_ISSET(c->fdout, rfds)) {
+    if (c->fdout > -1 && (fds[c->fdout].revents & (POLLIN|POLLERR|POLLHUP))) {
         switch (alcove_child_stdio(c->fdout, ap->depth,
                     c, ALCOVE_MSG_TYPE(c))) {
             case -1:
@@ -664,7 +676,7 @@ read_from_pid(alcove_state_t *ap, alcove_child_t *c, void *arg1, void *arg2)
         }
     }
 
-    if (c->fderr > -1 && FD_ISSET(c->fderr, rfds)) {
+    if (c->fderr > -1 && (fds[c->fderr].revents & (POLLIN|POLLERR|POLLHUP))) {
         switch (alcove_child_stdio(c->fderr, ap->depth,
                     c, ALCOVE_MSG_STDERR)) {
             case -1:

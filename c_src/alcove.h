@@ -37,7 +37,7 @@
 #define ALCOVE_FDCTL 3
 
 /* 4 pipes per child */
-#define MAXCHILD        (FD_SETSIZE / 4 - 4)
+#define MAXCHILD        255
 #define MAXFORKDEPTH    16
 #define MAXMSGLEN       UINT16_MAX
 #define MAXHDRLEN       8 /* 2 bytes length + 2 bytes type + 4 bytes PID */
