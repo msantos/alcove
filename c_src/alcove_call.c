@@ -130,7 +130,7 @@ alcove_setopt(alcove_state_t *ap, ETERM *arg)
         ALCOVE_SETOPT(ap, alcove_opt_exit_status, val);
     }
     else if (!strncmp(opt, "maxchild", 8)) {
-        ap->maxchild = (val > MAXCHILD) ? MAXCHILD : val;
+        ap->maxchild = val;
     }
     else if (!strncmp(opt, "maxforkdepth", 12)) {
         ap->maxforkdepth = val;

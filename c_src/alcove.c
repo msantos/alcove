@@ -92,6 +92,7 @@ main(int argc, char *argv[])
     alcove_state_t *ap = NULL;
     int ch = 0;
     struct sigaction act = {{0}};
+    long maxfd = sysconf(_SC_OPEN_MAX);
 
     ap = calloc(1, sizeof(alcove_state_t));
     if (!ap)
@@ -101,7 +102,7 @@ main(int argc, char *argv[])
     if (sigaction(SIGCHLD, &act, NULL) < 0)
         erl_err_sys("sigaction");
 
-    ap->maxchild = MAXCHILD;
+    ap->maxchild = maxfd / 4 - 4;
     ap->maxforkdepth = MAXFORKDEPTH;
 
     /* SIGCHLD notification enabled by default */
@@ -112,10 +113,8 @@ main(int argc, char *argv[])
             case 'e':
                 ALCOVE_SETOPT(ap, alcove_opt_exit_status, atoi(optarg));
                 break;
-            case 'm': {
-                u_int16_t n = (u_int16_t)atoi(optarg);
-                ap->maxchild = n > MAXCHILD ? MAXCHILD : n;
-                }
+            case 'm':
+                ap->maxchild = (u_int16_t)atoi(optarg);
                 break;
             case 'M':
                 ap->maxforkdepth = (u_int16_t)atoi(optarg);
