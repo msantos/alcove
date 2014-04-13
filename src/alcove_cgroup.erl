@@ -18,6 +18,7 @@
 -export([create/1, create/2, create/3, destroy/1, destroy/2, destroy/3]).
 -export([cgroup/1, cgroup/2, fold/5, fold/6, fold_files/6, fold_files/7]).
 -export([get/5, set/6]).
+-export([is_file/3, is_dir/3]).
 -export([mounts/1, mounts/2]).
 
 supported(Port) ->
@@ -133,7 +134,7 @@ fold_files(Port, Pids, MntOpt, Namespace, RegExp, CallerFun, AccIn) ->
     {ok, MP} = re:compile(RegExp),
 
     Fun = fun(Dir, Acc) ->
-            {ok, Fs} = alcove:readdir(Port, Dir),
+            {ok, Fs} = alcove:readdir(Port, Pids, Dir),
             Filtered = lists:filter(fun(File) ->
                         case re:run(File, MP) of
                             nomatch ->

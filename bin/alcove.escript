@@ -312,8 +312,17 @@ specs() ->
 -spec chdir(port(),iodata()) -> 'ok' | {'error', file:posix()}.
 -spec chdir(port(),list(integer()),iodata()) -> 'ok' | {'error', file:posix()}.
 
+-spec chmod(port(),iodata(),integer()) -> 'ok' | {'error', file:posix()}.
+-spec chmod(port(),[integer()],iodata(),integer()) -> 'ok' | {'error', file:posix()}.
+
+-spec chown(port(),iodata(),non_neg_integer(),non_neg_integer()) -> 'ok' | {'error', file:posix()}.
+-spec chown(port(),[integer()],iodata(),non_neg_integer(),non_neg_integer()) -> 'ok' | {'error', file:posix()}.
+
 -spec chroot(port(),iodata()) -> 'ok' | {'error', file:posix()}.
 -spec chroot(port(),list(integer()),iodata()) -> 'ok' | {'error', file:posix()}.
+
+-spec clearenv(port()) -> 'ok' | {'error', file:posix()}.
+-spec clearenv(port(),[integer()]) -> 'ok' | {'error', file:posix()}.
 
 -spec clone(port(),non_neg_integer()) -> {'ok', non_neg_integer()} | {'error', file:posix()}.
 -spec clone(port(),[integer()],non_neg_integer()) -> {'ok', non_neg_integer()} | {'error', file:posix()}.
@@ -321,16 +330,31 @@ specs() ->
 -spec clone_define(port(),atom()) -> 'false' | non_neg_integer().
 -spec clone_define(port(),[integer()],atom()) -> 'false' | non_neg_integer().
 
+-spec close(port(),integer()) -> 'ok' | {'error', file:posix()}.
+-spec close(port(),[integer()],integer()) -> 'ok' | {'error', file:posix()}.
+
 -spec define(port(),atom() | [atom()]) -> integer().
 
--spec execvp(port(),iodata(),iodata()) -> 'ok'.
--spec execvp(port(),list(integer()),iodata(),iodata()) -> 'ok'.
+-spec environ(port()) -> [binary()].
+-spec environ(port(),[integer()]) -> [binary()].
+
+-spec execve(port(),iodata(),[iodata()],[iodata()]) -> 'ok'.
+-spec execve(port(),list(integer()),iodata(),[iodata()],[iodata()]) -> 'ok'.
+
+-spec execvp(port(),iodata(),[iodata()]) -> 'ok'.
+-spec execvp(port(),list(integer()),iodata(),[iodata()]) -> 'ok'.
+
+-spec exit(port(),integer()) -> 'ok'.
+-spec exit(port(),list(integer()),integer()) -> 'ok'.
 
 -spec fork(port()) -> {'ok', non_neg_integer()} | {'error', file:posix()}.
 -spec fork(port(),[integer()]) -> {'ok', non_neg_integer()} | {'error', file:posix()}.
 
 -spec getcwd(port()) -> {'ok', binary()} | {'error', file:posix()}.
 -spec getcwd(port(),list(integer())) -> {'ok', binary()} | {'error', file:posix()}.
+
+-spec getenv(port(),iodata()) -> binary() | 'false'.
+-spec getenv(port(),list(integer()),iodata()) -> binary() | 'false'.
 
 -spec getgid(port()) -> non_neg_integer().
 -spec getgid(port(),list(integer())) -> non_neg_integer().
@@ -350,11 +374,17 @@ specs() ->
 -spec kill(port(), integer(), integer()) -> 'ok' | {'error', file:posix()}.
 -spec kill(port(), [integer()], integer(), integer()) -> 'ok' | {'error', file:posix()}.
 
--spec mount(port(),iodata(),iodata(),iodata(),integer(),iodata()) -> 'ok' | {'ok', file:posix()}.
--spec mount(port(),[integer()],iodata(),iodata(),iodata(),integer(),iodata()) -> 'ok' | {'ok', file:posix()}.
+-spec mkdir(port(),iodata(),integer()) -> 'ok' | {'error', file:posix()}.
+-spec mkdir(port(),[integer()],iodata(),integer()) -> 'ok' | {'error', file:posix()}.
+
+-spec mount(port(),iodata(),iodata(),iodata(),integer(),iodata()) -> 'ok' | {'error', file:posix()}.
+-spec mount(port(),[integer()],iodata(),iodata(),iodata(),integer(),iodata()) -> 'ok' | {'error', file:posix()}.
 
 -spec mount_define(port(),atom()) -> 'false' | non_neg_integer().
 -spec mount_define(port(),[integer()],atom()) -> 'false' | non_neg_integer().
+
+-spec open(port(),iodata(),integer(),integer()) -> {'ok',integer()} | {'error', file:posix()}.
+-spec open(port(),[integer()],iodata(),integer(),integer()) -> {'ok',integer()} | {'error', file:posix()}.
 
 -spec pid(port()) -> [integer()].
 -spec pid(port(),[integer()]) -> [integer()].
@@ -368,8 +398,17 @@ specs() ->
 -spec prctl_define(port(),atom()) -> 'false' | non_neg_integer().
 -spec prctl_define(port(),[integer()],atom()) -> 'false' | non_neg_integer().
 
+-spec read(port(),integer(),non_neg_integer()) -> {'ok', binary()} | {'error', file:posix()}.
+-spec read(port(),[integer()],integer(),non_neg_integer()) -> {'ok', binary()} | {'error', file:posix()}.
+
+-spec readdir(port(),iodata()) -> {'ok', [binary()]} | {'error', file:posix()}.
+-spec readdir(port(),[integer()],iodata()) -> {'ok', [binary()]} | {'error', file:posix()}.
+
 -spec rlimit_define(port(),atom()) -> 'false' | non_neg_integer().
 -spec rlimit_define(port(),[integer()],atom()) -> 'false' | non_neg_integer().
+
+-spec setenv(port(),iodata(),iodata(),integer()) -> 'ok' | {'error', file:posix()}.
+-spec setenv(port(),list(integer()),iodata(),iodata(),integer()) -> 'ok' | {'error', file:posix()}.
 
 -spec setgid(port(),non_neg_integer()) -> 'ok' | {'error', file:posix()}.
 -spec setgid(port(),list(integer()),non_neg_integer()) -> 'ok' | {'error', file:posix()}.
@@ -399,8 +438,14 @@ specs() ->
 -spec umount(port(),iodata()) -> 'ok' | {error, file:posix()}.
 -spec umount(port(),[integer()],iodata()) -> 'ok' | {error, file:posix()}.
 
+-spec unsetenv(port(),iodata()) -> 'ok' | {error, file:posix()}.
+-spec unsetenv(port(),[integer()],iodata()) -> 'ok' | {error, file:posix()}.
+
 -spec unshare(port(),non_neg_integer()) -> 'ok' | {'error', file:posix()}.
 -spec unshare(port(),[integer()],non_neg_integer()) -> 'ok' | {'error', file:posix()}.
+
+-spec write(port(),integer(),iodata()) -> 'ok' | {'error', file:posix()}.
+-spec write(port(),[integer()],integer(),iodata()) -> 'ok' | {'error', file:posix()}.
 
 -spec version(port()) -> binary() | {'error', 'timedout'}.
 -spec version(port(),list(integer())) -> binary() | {'error', 'timedout'}.

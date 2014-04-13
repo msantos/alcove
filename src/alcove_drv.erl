@@ -22,16 +22,6 @@
 -export([msg/2, events/4, decode/1]).
 -export([getopts/1]).
 
--export_type([reply/0]).
-
--type prctl_val() :: binary() | non_neg_integer().
-
--type reply() :: 'badarg' | 'ok' | boolean() | binary()
-    | non_neg_integer() | [integer()]
-    | {'ok', binary() | non_neg_integer() | #rlimit{} | 'unsupported'}
-    | {'error', file:posix()}
-    | {'ok',integer(),prctl_val(), prctl_val(), prctl_val(), prctl_val()}.
-
 -spec start() -> port().
 start() ->
     start([]).
@@ -50,16 +40,16 @@ start(Options) ->
             binary
         ] ++ PortOpt).
 
--spec call(port(),iodata()) -> reply().
+-spec call(port(),iodata()) -> any().
 call(Port, Data) ->
     call(Port, [], Data, 5000).
 
--spec call(port(),[integer()],iodata()) -> reply().
+-spec call(port(),[integer()],iodata()) -> any().
 call(Port, Pids, Data) ->
     call(Port, Pids, Data, 5000).
 
 -spec call(port(),[integer()],iodata(),'infinity' | non_neg_integer()) ->
-    reply().
+    any().
 call(Port, Pids, Data, Timeout) ->
     true = send(Port, Data, iolist_size(Data)),
     event_data(Port, Pids, ?ALCOVE_MSG_CALL, Timeout).
@@ -90,7 +80,7 @@ event_data(Port, Pids, Type, Timeout) ->
 -spec event(port(),[integer()],non_neg_integer(),
     'infinity' | non_neg_integer()) -> 'false' |
     {'alcove_call' | 'alcove_event',
-        [integer()], reply() | {'signal', integer()}}.
+        [integer()], any() | {'signal', integer()}}.
 % Check the mailbox for processed events
 event(Port, [], Type, Timeout) when is_integer(Type) ->
     receive
