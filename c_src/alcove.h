@@ -88,6 +88,7 @@ typedef struct {
 typedef struct {
     u_int32_t opt;
     u_int8_t verbose;
+    long maxfd;
     u_int16_t maxchild;
     u_int16_t maxforkdepth;
     u_int16_t fdsetsize;

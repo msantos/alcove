@@ -92,7 +92,6 @@ main(int argc, char *argv[])
     alcove_state_t *ap = NULL;
     int ch = 0;
     struct sigaction act = {{0}};
-    long maxfd = sysconf(_SC_OPEN_MAX);
 
     ap = calloc(1, sizeof(alcove_state_t));
     if (!ap)
@@ -102,7 +101,8 @@ main(int argc, char *argv[])
     if (sigaction(SIGCHLD, &act, NULL) < 0)
         erl_err_sys("sigaction");
 
-    ap->maxchild = maxfd / 4 - 4;
+    ap->maxfd = sysconf(_SC_OPEN_MAX);
+    ap->maxchild = ap->maxfd / 4 - 4;
     ap->maxforkdepth = MAXFORKDEPTH;
 
     /* SIGCHLD notification enabled by default */
@@ -154,6 +154,8 @@ main(int argc, char *argv[])
     void
 alcove_event_loop(alcove_state_t *ap)
 {
+    struct pollfd *fds = NULL;
+
     erl_init(NULL, 0);
 
     sigcaught = 0;
@@ -171,16 +173,25 @@ alcove_event_loop(alcove_state_t *ap)
 
     (void)memset(ap->child, 0, sizeof(alcove_child_t) * ap->fdsetsize);
 
+    fds = calloc(sizeof(struct pollfd), ap->maxfd);
+    if (!fds)
+        erl_err_sys("calloc");
+
     for ( ; ; ) {
         long maxfd = sysconf(_SC_OPEN_MAX);
-        struct pollfd *fds = NULL;
         int i = 0;
         nfds_t nfds = STDIN_FILENO;
 
-        fds = alcove_malloc(sizeof(struct pollfd) * maxfd);
-
         if (alcove_handle_signal(ap) < 0)
             erl_err_sys("alcove_handle_signal");
+
+        if (ap->maxfd < maxfd) {
+            ap->maxfd = maxfd;
+            fds = realloc(fds, sizeof(struct pollfd) * maxfd);
+            if (!fds)
+                erl_err_sys("realloc");
+            (void)memset(fds, 0, sizeof(struct pollfd) * maxfd);
+        }
 
         for (i = 0; i < maxfd; i++) {
             fds[i].fd = -1;
@@ -195,7 +206,6 @@ alcove_event_loop(alcove_state_t *ap)
         if (poll(fds, nfds+1, -1) < 0) {
             switch (errno) {
                 case EINTR:
-                    free(fds);
                     continue;
                 default:
                     break;
@@ -219,8 +229,6 @@ alcove_event_loop(alcove_state_t *ap)
 
         if (ap->verbose > 1)
             alcove_stats(ap);
-
-        free(fds);
     }
 }
 
