@@ -93,6 +93,8 @@ main(int argc, char *argv[])
     int ch = 0;
     struct sigaction act = {{0}};
 
+    erl_init(NULL, 0);
+
     ap = calloc(1, sizeof(alcove_state_t));
     if (!ap)
         erl_err_sys("calloc");
@@ -155,8 +157,6 @@ main(int argc, char *argv[])
 alcove_event_loop(alcove_state_t *ap)
 {
     struct pollfd *fds = NULL;
-
-    erl_init(NULL, 0);
 
     sigcaught = 0;
 
@@ -455,6 +455,7 @@ alcove_call_stdio(pid_t pid, u_int16_t type, ETERM *t)
 ERR:
     free(call);
     free(msg);
+    erl_free_compound(t);
 
     return n;
 }
