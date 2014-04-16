@@ -15,6 +15,13 @@
 
 -compile(export_all).
 
+-record(state, {
+        port,
+        child,
+        os,
+        clone = false
+    }).
+
 -include_lib("eunit/include/eunit.hrl").
 -include_lib("kernel/include/file.hrl").
 -include_lib("alcove/include/alcove.hrl").
@@ -60,9 +67,21 @@ run(State) ->
     ].
 
 start() ->
-    Port = alcove_drv:start([{exec, "sudo"}, {maxchild, 8}]),
-    case os:type() of
-        {unix,linux} = OS ->
+    % export ALCOVE_TEST_EXEC="sudo valgrind --leak-check=yes --log-file=/tmp/alcove.log"
+    Exec = case os:getenv("ALCOVE_TEST_EXEC") of
+        false -> "sudo";
+        Env -> Env
+    end,
+
+    Use_fork = case os:getenv("ALCOVE_TEST_USE_FORK") of
+        false -> false;
+        _ -> true
+    end,
+
+    Port = alcove_drv:start([{exec, Exec}, {maxchild, 8}]),
+
+    case {Use_fork, os:type()} of
+        {false, {unix,linux} = OS} ->
             Flags = alcove:define(Port, [
                     'CLONE_NEWIPC',
                     'CLONE_NEWNET',
@@ -71,16 +90,25 @@ start() ->
                     'CLONE_NEWUTS'
                 ]),
             {ok, Child} = alcove:clone(Port, Flags),
-            {OS, Port, Child};
-        {unix,_} = OS ->
+            #state{
+                port = Port,
+                child = Child,
+                clone = true,
+                os = OS
+            };
+        {_, {unix,_} = OS} ->
             {ok, Child} = alcove:fork(Port),
-            {OS, Port, Child}
+            #state{
+                port = Port,
+                child = Child,
+                os = OS
+            }
     end.
 
-stop({_, Port, _Child}) ->
+stop(#state{port = Port}) ->
     alcove_drv:stop(Port).
 
-msg({_, _Port, _Child}) ->
+msg(_) ->
     % Length, Message type, Term
     % The length of the first message is stripped off by erlang
     Msg = <<
@@ -100,23 +128,23 @@ msg({_, _Port, _Child}) ->
         Reply
     ).
 
-version({_, Port, _Child}) ->
+version(#state{port = Port}) ->
     Version = alcove:version(Port),
     ?_assertEqual(true, is_binary(Version)).
 
-pid({_, Port, _Child}) ->
+pid(#state{port = Port}) ->
     Pids = alcove:pid(Port),
     ?_assertEqual(1, length(Pids)).
 
-getpid({{unix,linux}, Port, Child}) ->
+getpid(#state{clone = true, port = Port, child = Child}) ->
     % Running in a PID namespace
     PID = alcove:getpid(Port, [Child]),
     ?_assertEqual(1, PID);
-getpid({_, Port, Child}) ->
+getpid(#state{port = Port, child = Child}) ->
     PID = alcove:getpid(Port, [Child]),
     ?_assertEqual(true, PID > 0).
 
-setopt({_, Port, _Child}) ->
+setopt(#state{port = Port}) ->
     {ok, Fork} = alcove:fork(Port),
 
     ok = alcove:setopt(Port, [Fork], maxchild, 128),
@@ -152,7 +180,7 @@ setopt({_, Port, _Child}) ->
         ?_assertNotEqual(false, Stderr)
     ].
 
-event({_, Port, _Child}) ->
+event(#state{port = Port}) ->
     {ok, Fork} = alcove:fork(Port),
     Reply0 = alcove:exit(Port, [Fork], 0),
     Reply1 = alcove:event(Port, [Fork]),
@@ -164,16 +192,16 @@ event({_, Port, _Child}) ->
         ?_assertMatch({signal,_}, Reply2)
     ].
 
-sethostname({{unix,linux}, Port, Child}) ->
+sethostname(#state{clone = true, port = Port, child = Child}) ->
     Reply = alcove:sethostname(Port, [Child], "alcove"),
     Hostname = alcove:gethostname(Port, [Child]),
     [?_assertEqual(ok, Reply),
         ?_assertEqual({ok, <<"alcove">>}, Hostname)];
-sethostname({_, Port, Child}) ->
+sethostname(#state{port = Port, child = Child}) ->
     Hostname = alcove:gethostname(Port, [Child]),
     ?_assertMatch({ok, <<_/binary>>}, Hostname).
 
-env({_, Port, Child}) ->
+env(#state{port = Port, child = Child}) ->
     Reply0 = alcove:getenv(Port, [Child], "ALCOVE"),
     Reply1 = alcove:setenv(Port, [Child], "ALCOVE", "12345", 0),
     Reply2 = alcove:getenv(Port, [Child], "ALCOVE"),
@@ -200,7 +228,7 @@ env({_, Port, Child}) ->
         ?_assertEqual(0, length(Reply9))
     ].
 
-setns({{unix,linux}, Port, Child}) ->
+setns(#state{clone = true, port = Port, child = Child}) ->
     {ok, Child1} = alcove:fork(Port),
     ok = alcove:setns(Port, [Child1], [
             "/proc/",
@@ -210,10 +238,10 @@ setns({{unix,linux}, Port, Child}) ->
     Hostname0 = alcove:gethostname(Port, [Child]),
     Hostname1 = alcove:gethostname(Port, [Child1]),
     ?_assertEqual(Hostname0, Hostname1);
-setns({_, _Port, _Child}) ->
+setns(_) ->
     ?_assertEqual(ok,ok).
 
-unshare({{unix,linux}, Port, _Child}) ->
+unshare(#state{clone = true, port = Port}) ->
     {ok, Child1} = alcove:fork(Port),
     ok = alcove:unshare(Port, [Child1],
         alcove:clone_define(Port, 'CLONE_NEWUTS')),
@@ -221,10 +249,10 @@ unshare({{unix,linux}, Port, _Child}) ->
     Hostname = alcove:gethostname(Port, [Child1]),
     [?_assertEqual(ok, Reply),
         ?_assertEqual({ok, <<"unshare">>}, Hostname)];
-unshare({_, _Port, _Child}) ->
+unshare(_) ->
     ?_assertEqual(ok,ok).
 
-mount_define({_, Port, _Child}) ->
+mount_define(#state{port = Port}) ->
     Flags = alcove:define(Port, [
             rdonly,
             nosuid,
@@ -233,7 +261,7 @@ mount_define({_, Port, _Child}) ->
         ]),
     ?_assertEqual(true, is_integer(Flags)).
 
-mount({{unix,linux}, Port, Child}) ->
+mount(#state{clone = true, port = Port, child = Child}) ->
     Flags = alcove:define(Port, [
             'MS_BIND',
             'MS_RDONLY',
@@ -245,10 +273,10 @@ mount({{unix,linux}, Port, Child}) ->
         ?_assertEqual(ok, Mount),
         ?_assertEqual(ok, Umount)
     ];
-mount({_, _Port, _Child}) ->
+mount(_) ->
     ?_assertEqual(ok,ok).
 
-tmpfs({{unix,linux}, Port, Child}) ->
+tmpfs(#state{clone = true, port = Port, child = Child}) ->
     Flags = alcove:define(Port, ['MS_NOEXEC']),
     Mount = alcove:mount(Port, [Child], "tmpfs", "/mnt", "tmpfs", Flags, <<"size=16M", 0>>),
     Umount = alcove:umount(Port, [Child], "/mnt"),
@@ -256,17 +284,17 @@ tmpfs({{unix,linux}, Port, Child}) ->
         ?_assertEqual(ok, Mount),
         ?_assertEqual(ok, Umount)
     ];
-tmpfs({_, _Port, _Child}) ->
+tmpfs(_) ->
     ?_assertEqual(ok,ok).
 
-chroot({{unix,linux}, Port, Child}) ->
+chroot(#state{os = {unix,linux}, port = Port, child = Child}) ->
     Reply = alcove:chroot(Port, [Child], "/bin"),
     ?_assertEqual(ok, Reply);
-chroot({{unix,freebsd}, Port, Child}) ->
+chroot(#state{os = {unix,freebsd}, port = Port, child = Child}) ->
     Reply = alcove:chroot(Port, [Child], "/rescue"),
     ?_assertEqual(ok, Reply).
 
-chdir({_, Port, Child}) ->
+chdir(#state{port = Port, child = Child}) ->
     Reply = alcove:chdir(Port, [Child], "/"),
     CWD = alcove:getcwd(Port, [Child]),
     [
@@ -274,7 +302,7 @@ chdir({_, Port, Child}) ->
         ?_assertEqual({ok, <<"/">>}, CWD)
     ].
 
-setrlimit({_, Port, Child}) ->
+setrlimit(#state{port = Port, child = Child}) ->
     RLIMIT_NOFILE = alcove:rlimit_define(Port, 'RLIMIT_NOFILE'),
     Reply = alcove:setrlimit(Port, [Child], RLIMIT_NOFILE, #rlimit{cur = 64, max = 64}),
     Rlimit = alcove:getrlimit(Port, [Child], RLIMIT_NOFILE),
@@ -283,7 +311,7 @@ setrlimit({_, Port, Child}) ->
         ?_assertEqual({ok, #rlimit{cur = 64, max = 64}}, Rlimit)
     ].
 
-setgid({_, Port, Child}) ->
+setgid(#state{port = Port, child = Child}) ->
     Reply = alcove:setgid(Port, [Child], 65534),
     GID = alcove:getgid(Port, [Child]),
     [
@@ -291,7 +319,7 @@ setgid({_, Port, Child}) ->
         ?_assertEqual(65534, GID)
     ].
 
-setuid({_, Port, Child}) ->
+setuid(#state{port = Port, child = Child}) ->
     Reply = alcove:setuid(Port, [Child], 65534),
     UID = alcove:getuid(Port, [Child]),
     [
@@ -299,14 +327,13 @@ setuid({_, Port, Child}) ->
         ?_assertEqual(65534, UID)
     ].
 
-fork({_, Port, Child}) ->
+fork(#state{port = Port, child = Child}) ->
     Pids = [ alcove:fork(Port, [Child]) || _ <- lists:seq(1, 32) ],
     [Last|_Rest] = lists:reverse(Pids),
     Reply0 = alcove:getpid(Port, [Child]),
 
     [{ok, Child0}|_] = [ N || N <- Pids, N =/= {error,eagain} ],
-    ok = alcove:kill(Port, [Child], Child0, 15),
-    waitpid(Port, [Child], Child0),
+    ok = alcove:exit(Port, [Child, Child0], 0),
     Reply1 = alcove:fork(Port, [Child]),
     Reply2 = alcove:fork(Port, [Child]),
 
@@ -321,7 +348,7 @@ fork({_, Port, Child}) ->
         ?_assertEqual({error,eagain}, Reply2)
     ].
 
-signal({_, Port, _Child}) ->
+signal(#state{port = Port}) ->
     {ok, Child1} = alcove:fork(Port),
 
     TERM = alcove:signal_define(Port, 'SIGTERM'),
@@ -346,7 +373,7 @@ signal({_, Port, _Child}) ->
         ?_assertEqual({error,esrch}, Search)
     ].
 
-portstress({_, Port, Child}) ->
+portstress(#state{port = Port, child = Child}) ->
     Reply = [ alcove:version(Port, [Child]) || _ <- lists:seq(1,1000) ],
     Ok = lists:filter(fun
             (false) -> false;
@@ -354,12 +381,12 @@ portstress({_, Port, Child}) ->
             end, Reply),
     ?_assertEqual(Ok, Reply).
 
-forkstress({_, Port, _Child}) ->
+forkstress(#state{port = Port}) ->
     {ok, Fork} = alcove:fork(Port),
     Reply = forkstress_1(Port, Fork, 100),
     ?_assertEqual(ok, Reply).
 
-forkchain({_, Port, _Child}) ->
+forkchain(#state{port = Port}) ->
     {ok, Child0} = alcove:fork(Port),
     {ok, Child1} = alcove:fork(Port, [Child0]),
     {ok, Child2} = alcove:fork(Port, [Child0, Child1]),
@@ -370,7 +397,7 @@ forkchain({_, Port, _Child}) ->
 
     ?_assertEqual(Pid, Child4).
 
-prctl({{unix,linux}, Port, _Child}) ->
+prctl(#state{os = {unix,linux}, port = Port}) ->
     {ok, Fork} = alcove:fork(Port),
 
     % capability is set:
@@ -405,20 +432,20 @@ prctl({{unix,linux}, Port, _Child}) ->
         ?_assertMatch({ok,0,9,0,0,0}, Reply3),
         ?_assertMatch({ok,0,<<9,0,0,0>>,0,0,0}, Reply4)
     ];
-prctl({_, _Port, _Child}) ->
+prctl(_) ->
     ?_assertEqual(ok,ok).
 
 
-execvp({{unix,linux}, Port, Child}) ->
+execvp(#state{os = {unix,linux}, port = Port, child = Child}) ->
     % cwd = /, chroot'ed in /bin
     Reply = alcove:execvp(Port, [Child], "/busybox", ["/busybox", "sh"]),
     ?_assertEqual(ok, Reply);
-execvp({{unix,freebsd}, Port, Child}) ->
+execvp(#state{os = {unix,freebsd}, port = Port, child = Child}) ->
     % cwd = /, chroot'ed in /rescue
     Reply = alcove:execvp(Port, [Child], "/sh", ["/sh"]),
     ?_assertEqual(ok, Reply).
 
-stdout({_, Port, Child}) ->
+stdout(#state{port = Port, child = Child}) ->
     Reply = alcove:stdin(Port, [Child], "echo 0123456789\n"),
     Stdout = alcove:stdout(Port, [Child], 5000),
     [
@@ -426,14 +453,14 @@ stdout({_, Port, Child}) ->
         ?_assertEqual(<<"0123456789\n">>, Stdout)
     ].
 
-stderr({{unix,linux}, Port, Child}) ->
+stderr(#state{os = {unix,linux}, port = Port, child = Child}) ->
     Reply = alcove:stdin(Port, [Child], "nonexistent 0123456789\n"),
     Stderr = alcove:stderr(Port, [Child], 5000),
     [
         ?_assertEqual(true, Reply),
         ?_assertMatch(<<"sh: ", _/binary>>, Stderr)
     ];
-stderr({{unix,freebsd}, Port, Child}) ->
+stderr(#state{os = {unix,freebsd}, port = Port, child = Child}) ->
     Reply = alcove:stdin(Port, [Child], "nonexistent 0123456789\n"),
     Stderr = alcove:stderr(Port, [Child], 5000),
     [
@@ -441,7 +468,7 @@ stderr({{unix,freebsd}, Port, Child}) ->
         ?_assertEqual(<<"nonexistent: not found\n">>, Stderr)
     ].
 
-execve({_, Port, _Child}) ->
+execve(#state{port = Port}) ->
     {ok, Child0} = alcove:fork(Port),
     {ok, Child1} = alcove:fork(Port),
 
@@ -461,6 +488,9 @@ execve({_, Port, _Child}) ->
         ?_assertEqual(false, Stdout1)
     ].
 
+%%
+%% Utility functions
+%%
 waitpid(Port, Pids, Child) ->
     SIGCHLD = alcove:signal_define(Port, 'SIGCHLD'),
     case alcove:event(Port, Pids, 5000) of
