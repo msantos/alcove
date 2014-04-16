@@ -334,6 +334,7 @@ fork(#state{port = Port, child = Child}) ->
 
     [{ok, Child0}|_] = [ N || N <- Pids, N =/= {error,eagain} ],
     ok = alcove:exit(Port, [Child, Child0], 0),
+    waitpid(Port, [Child], Child0),
     Reply1 = alcove:fork(Port, [Child]),
     Reply2 = alcove:fork(Port, [Child]),
 
