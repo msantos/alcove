@@ -145,9 +145,13 @@ main(int argc, char *argv[])
     /* Unlike the child processes, the port does not use a control fd.
      * An fd is acquired and leaked here to prevent calls to open()
      * at the port level from returning an uncloseable fd.
+     *
+     * The fd may have been opened by another program. For example,
+     * valgrind will use the first available fd for the log file.
      */
-    if (open("/dev/null", O_RDWR) != ALCOVE_FDCTL)
-        erl_err_quit("could not acquire ctl fd");
+    if ( (fcntl(ALCOVE_FDCTL, F_GETFD) < 0)
+            && (open("/dev/null", O_RDWR) != ALCOVE_FDCTL))
+            erl_err_quit("could not acquire ctl fd");
 
     alcove_event_loop(ap);
     exit(0);
