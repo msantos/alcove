@@ -86,12 +86,12 @@ chmod u+s priv/alcove
 Creating a chroot
 =================
 
-The standard Unix way of sandboxing a process is by chroot(2)'ing. The
+The standard Unix way of sandboxing a process is by doing a chroot(2). The
 process usually involves:
 
 * running as root
 * setting process limits
-* changing the root directory to limit the process' view of the filesystems
+* changing the root directory to limit the process' view of the filesystem
 * changing to an unprivileged user
 * running the sandboxed code
 
@@ -104,40 +104,39 @@ We'll create a chroot using an interface like:
 sandbox(Port, ["/bin/sh", "-i"]).
 ```
 
-The function returns the system PID of the child process.
+The function returns the system PID of the child process. This would
+create an interactive shell we access through standard I/O.
 
-This would create an interactive shell we access through standard I/O. In
-order to call chroot(2), the port will need root privileges:
+In order to call chroot(2), the port will need root privileges:
 
 ```erlang
 Port = alocve_drv:start([{exec, "sudo"}]).
 ```
 
-Following the steps outline earlier, we want to set some process
+Following the steps outlined earlier, we want to set some process
 limits. In this case, we'll use setrlimit(2):
 
 ```erlang
 setlimits(Port, Child) ->
     % Convert atoms to integers defined on this platform
     RLIMIT_FSIZE = alcove:rlimit_define(Port, 'RLIMIT_FSIZE'),
-    RLIMIT_NPROC = alcove:rlimit_define(Port, 'RLIMIT_NPROC'),
     RLIMIT_NOFILE = alcove:rlimit_define(Port, 'RLIMIT_NOFILE'),
+    RLIMIT_NPROC = alcove:rlimit_define(Port, 'RLIMIT_NPROC'),
 
     % Disable creation of files
     ok = alcove:setrlimit(Port, [Child], RLIMIT_FSIZE,
             #rlimit{cur = 0, max = 0}),
 
+    ok = alcove:setrlimit(Port, [Child], RLIMIT_NOFILE,
+            #rlimit{cur = 0, max = 0}),
+
     % Limit to one process
     ok = alcove:setrlimit(Port, [Child], RLIMIT_NPROC,
-            #rlimit{cur = 1, max = 1}),
-
-    % Disable creation of new files
-    ok = alcove:setrlimit(Port, [Child], RLIMIT_NOFILE,
-            #rlimit{cur = 0, max = 0}).
+            #rlimit{cur = 1, max = 1}).
 ```
 
 Next we chroot and drop root privileges. We will set the user and group
-to a random, high UID/GID that hopefully won't conflict with a valid
+to a random, high UID/GID that is unlikely to conflict with an existing
 system user:
 
 ```erlang
@@ -153,7 +152,7 @@ id() ->
     16#f0000000 + crypto:rand_uniform(0, 16#ffff).
 ```
 
-Tieing it all together:
+Tying it all together:
 
 ```erlang
 % The default is to run the cat command. Because of the chroot, we need
@@ -180,7 +179,7 @@ argv([Arg0, Args]) ->
     {Path, Progname, Args}.
 ```
 
-We can compile and run the example:
+Compile and run the example:
 
 ```
 make eg
@@ -212,7 +211,7 @@ true
 <<"hello\n">>
 
 % Attempt to create a file
-6> alcove:stdin(Port, [Sh], "> touchme\n").
+6> alcove:stdin(Port, [Sh], "> foo\n").
 true
 7> alcove:stderr(P, [31861]).
 <<"sh: can't create foo: Too many open files\n">>
@@ -231,11 +230,11 @@ true
 Creating a Container Using Linux Namespaces
 ===========================================
 
-Namespaces are the basis for Linux Containers (LXC). Creating a new
-namespace is as simple as passing some flags to clone(2). We'll rewrite
-the chroot example to run inside a namespace and use another Linux
-feature, control groups, to limit the system resources available to
-the process.
+Namespaces are the basis for Linux Containers (LXC). Creating a
+new namespace is as simple as passing in the appropriate flags to
+clone(2). We'll rewrite the chroot example to run inside a namespace and
+use another Linux feature, control groups, to limit the system resources
+available to the process.
 
 See `examples/nsex.erl`.
 
@@ -243,7 +242,7 @@ See `examples/nsex.erl`.
 
   When the port is started, we'll create a new cgroup just for our
   application and, whenever a sandboxed process is forked, we'll add it
-  to the cgroup.
+  to this cgroup.
 
 ```erlang
 start() ->
@@ -328,9 +327,9 @@ alcove_drv
         stderr_to_stdout
 
             The behaviour of stderr from the port differs from child
-            processes. The port stderr goes to the console while stderr
-            from child processes is tagged and sent to the controlling
-            Erlang process.
+            processes. Standard error from the port goes to the console
+            while stderr from child processes is tagged and sent to the
+            controlling Erlang process.
 
             This option merges stderr and stdout from the port. Since
             stdout is used for communicating with the Erlang side and
@@ -359,8 +358,6 @@ alcove_drv
 
 alcove
 ======
-
-Functions available to the alcove event loop.
 
 If any of these functions do not include the fork path, the call is
 evaluated by the port. The following functions are equivalent:
