@@ -95,7 +95,7 @@ alcove_getopt(alcove_state_t *ap, ETERM *arg)
         return erl_mk_uint(ap->opt & alcove_opt_termsig ? 1 : 0);
     }
     else
-        goto BADARG;
+        return erl_mk_atom("false");
 
 BADARG:
     return erl_mk_atom("badarg");

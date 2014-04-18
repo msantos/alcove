@@ -46,7 +46,7 @@ alcove_setgid(alcove_state_t *ap, ETERM *arg)
     gid_t gid = {0};
     int rv = 0;
 
-    /* uid */
+    /* gid */
     arg = alcove_list_head(&hd, arg);
     if (!hd || !ALCOVE_IS_UNSIGNED_INTEGER(hd))
         goto BADARG;
