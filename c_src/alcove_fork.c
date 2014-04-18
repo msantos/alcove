@@ -41,8 +41,10 @@ static int alcove_set_cloexec(int fd);
 static void alcove_close_pipe(int fd[2]);
 static int alcove_child_fun(void *arg);
 static int alcove_parent_fd(alcove_state_t *ap, alcove_fd_t *fd, pid_t pid);
-static int avail_pid(alcove_state_t *ap, alcove_child_t *c, void *arg1, void *arg2);
-static int stdio_pid(alcove_state_t *ap, alcove_child_t *c, void *arg1, void *arg2);
+static int avail_pid(alcove_state_t *ap, alcove_child_t *c,
+        void *arg1, void *arg2);
+static int stdio_pid(alcove_state_t *ap, alcove_child_t *c,
+        void *arg1, void *arg2);
 
 /*
  * fork(2)
@@ -123,7 +125,8 @@ alcove_clone(alcove_state_t *ap, ETERM *arg)
     child_arg.ap = ap;
     child_arg.fd = &fd;
 
-    pid = clone(alcove_child_fun, child_stack + stack_size, flags | SIGCHLD, &child_arg);
+    pid = clone(alcove_child_fun, child_stack + stack_size,
+            flags | SIGCHLD, &child_arg);
 
     if (pid < 0)
         goto ERR;

@@ -56,8 +56,6 @@ alcove_prctl(alcove_state_t *ap, ETERM *arg)
 
     option = ERL_INT_VALUE(hd);
 
-    /* XXX unsigned long vs unsigned int */
-
     /* arg2 */
     arg = alcove_list_head(&hd, arg);
     if (!hd)

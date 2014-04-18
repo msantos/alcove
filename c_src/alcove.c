@@ -64,10 +64,14 @@ static alcove_msg_stdio_t * alcove_alloc_hdr_stdio(pid_t pid, u_int16_t type,
 static alcove_msg_call_t * alcove_alloc_hdr_call(u_int16_t type, ETERM *t,
         size_t *len);
 
-static int exited_pid(alcove_state_t *ap, alcove_child_t *c, void *arg1, void *arg2);
-static int set_pid(alcove_state_t *ap, alcove_child_t *c, void *arg1, void *arg2);
-static int write_to_pid(alcove_state_t *ap, alcove_child_t *c, void *arg1, void *arg2);
-static int read_from_pid(alcove_state_t *ap, alcove_child_t *c, void *arg1, void *arg2);
+static int exited_pid(alcove_state_t *ap, alcove_child_t *c,
+        void *arg1, void *arg2);
+static int set_pid(alcove_state_t *ap, alcove_child_t *c,
+        void *arg1, void *arg2);
+static int write_to_pid(alcove_state_t *ap, alcove_child_t *c,
+        void *arg1, void *arg2);
+static int read_from_pid(alcove_state_t *ap, alcove_child_t *c,
+        void *arg1, void *arg2);
 
 static int alcove_handle_signal(alcove_state_t *ap);
 
@@ -242,7 +246,7 @@ alcove_stdin(alcove_state_t *ap)
     u_int16_t bufsz = 0;
     u_int16_t type = 0;
     pid_t pid = 0;
-    unsigned char buf[UINT16_MAX] = {0};
+    unsigned char buf[MAXMSGLEN] = {0};
 
     errno = 0;
 
