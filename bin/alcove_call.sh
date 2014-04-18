@@ -29,6 +29,4 @@ done < $PROTO
 cat<< 'EOF'
 char **alcove_list_to_argv(ETERM *);
 void alcove_free_argv(char **);
-
-#define ALCOVE_IS_IOLIST(_t)  (ERL_IS_BINARY(_t) || ERL_IS_LIST(_t))
 EOF

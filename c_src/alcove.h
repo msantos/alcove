@@ -45,6 +45,8 @@
 
 #define ALCOVE_DEFINE(x) {#x, x}
 
+#define ALCOVE_IS_IOLIST(_t) (ERL_IS_BINARY(_t) || ERL_IS_LIST(_t))
+
 #define ALCOVE_IS_UNSIGNED_INTEGER(x) \
     (ERL_IS_INTEGER(x) || ERL_IS_UNSIGNED_INTEGER(x))
 
