@@ -10,13 +10,16 @@
 % WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
 % ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 % OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
--record(alcove, {
-        port :: port()
-    }).
-
 -record(rlimit, {
         cur = 0 :: non_neg_integer(),
         max = 0 :: non_neg_integer()
+    }).
+
+-record(alcove_pid, {
+        pid = 0 :: integer(),
+        stdin = -1 :: integer(),
+        stdout = -1 :: integer(),
+        stderr = -1 :: integer()
     }).
 
 -define(UINT16(N), N:2/unsigned-integer-unit:8).

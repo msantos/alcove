@@ -205,6 +205,12 @@ alcove_free_argv(char **argv)
 cons_pid(alcove_state_t *ap, alcove_child_t *c, void *arg1, void *arg2)
 {
     ETERM **t = arg1;
-    *t = erl_cons(erl_mk_int(c->pid), *t);
+    *t = erl_cons(alcove_tuple5(
+                erl_mk_atom("alcove_pid"),
+                erl_mk_int(c->pid),
+                erl_mk_int(c->fdin),
+                erl_mk_int(c->fdout),
+                erl_mk_int(c->fderr)
+                ), *t);
     return 1;
 }

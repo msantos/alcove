@@ -159,6 +159,7 @@ static_exports() ->
      {stdin,2}, {stdin,3},
      {stdout,1}, {stdout,2}, {stdout,3},
      {stderr,1}, {stderr,2}, {stderr,3},
+     {eof,2}, {eof,3},
      {event,1}, {event,2}, {event,3},
      {encode,3},
      {command,1},
@@ -244,6 +245,34 @@ static({stderr,3}) ->
 "
 stderr(Port, Pids, Timeout) ->
     alcove_drv:stderr(Port, Pids, Timeout).
+";
+
+static({eof,2}) ->
+"
+eof(Port, Pids) ->
+    eof(Port, Pids, stdin).
+";
+static({eof,3}) ->
+"
+eof(_Port, [], _Stdio) ->
+    {error,esrch};
+eof(Port, Pids0, Stdio) ->
+    [Pid|Rest] = lists:reverse(Pids0),
+    Pids = lists:reverse(Rest),
+    Proc = pid(Port, Pids),
+    case lists:keyfind(Pid, 2, Proc) of
+        false ->
+            {error,esrch};
+        N ->
+            eof_1(Port, Pids, N, Stdio)
+    end.
+
+eof_1(Port, Pids, #alcove_pid{stdin = FD}, stdin) ->
+    close(Port, Pids, FD);
+eof_1(Port, Pids, #alcove_pid{stdout = FD}, stdout) ->
+    close(Port, Pids, FD);
+eof_1(Port, Pids, #alcove_pid{stderr = FD}, stderr) ->
+    close(Port, Pids, FD).
 ";
 
 static({event,1}) ->

@@ -31,6 +31,14 @@ alcove_tuple3(ETERM *t1, ETERM *t2, ETERM *t3)
 }
 
     ETERM *
+alcove_tuple5(ETERM *t1, ETERM *t2, ETERM *t3, ETERM *t4, ETERM *t5)
+{
+    ETERM *t[5] = {t1, t2, t3, t4, t5};
+
+    return erl_mk_tuple(t, 5);
+}
+
+    ETERM *
 alcove_errno(int errnum)
 {
     return alcove_error(erl_errno_id(errnum));

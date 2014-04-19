@@ -792,6 +792,10 @@ exec(3) has been called.
 
         Read stderr from the process.
 
+    eof(Port, Pids) -> ok | {error, posix()}
+
+        Close stdin of the process.
+
 Message Format
 ==============
 
@@ -814,5 +818,3 @@ TODO
 * Support adding user fd's to the event loop
 
 * calls should have an optional timeout
-
-* eof: close stdin of a process
