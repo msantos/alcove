@@ -1,0 +1,27 @@
+case os:type() of
+    {unix,linux} ->
+        Setns = "
+#include <sched.h>
+int main(int argc, char *argv[]) {
+    (void)setns(0,0);
+    return 0;
+}",
+        file:write_file("priv/test_setns.c", Setns),
+        Retval = os:cmd("gcc -o /dev/null priv/test_setns.c > /dev/null 2>&1; printf \"%d\" $?"),
+        case Retval of
+            "0" ->
+                lists:map(fun
+                        ({port_env, Env}) ->
+                            Cflags = proplists:get_value("EXE_CFLAGS", Env, "")
+                                ++ " -DHAVE_SETNS",
+                            {port_env, lists:keyreplace("EXE_CFLAGS", 1, Env,
+                                {"EXE_CFLAGS", Cflags})};
+                        (N) ->
+                            N
+                        end, CONFIG);
+            _ ->
+                CONFIG
+        end;
+    _ ->
+        CONFIG
+end.

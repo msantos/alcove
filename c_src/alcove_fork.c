@@ -15,6 +15,9 @@
 #ifdef __linux__
 #define _GNU_SOURCE
 #include <sched.h>
+#ifndef HAVE_SETNS
+#include <syscall.h>
+#endif
 #endif
 
 #include "alcove.h"
@@ -45,6 +48,10 @@ static int avail_pid(alcove_state_t *ap, alcove_child_t *c,
         void *arg1, void *arg2);
 static int stdio_pid(alcove_state_t *ap, alcove_child_t *c,
         void *arg1, void *arg2);
+
+#ifndef HAVE_SETNS
+static int setns(int fd, int nstype);
+#endif
 
 /*
  * fork(2)
@@ -154,6 +161,19 @@ ERR:
  * setns(2)
  *
  */
+#ifndef HAVE_SETNS
+    static int
+setns(int fd, int nstype)
+{
+#ifdef __NR_setns
+    return syscall(__NR_setns, fd, nstype);
+#else
+    errno = ENOSYS;
+    return -1;
+#endif
+}
+#endif
+
     ETERM *
 alcove_setns(alcove_state_t *ap, ETERM *arg)
 {
