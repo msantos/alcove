@@ -182,6 +182,8 @@ argv([Arg0, Args]) ->
 Compile and run the example:
 
 ```
+# If alcove is in ~/src/alcove
+export ERL_LIBS=~/src
 make eg
 ./start.sh
 ```
