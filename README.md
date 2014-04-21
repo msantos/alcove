@@ -799,6 +799,27 @@ exec(3) has been called.
 Message Format
 ==============
 
+Examples
+========
+
+To compile the examples:
+
+```
+make eg
+```
+
+* GPIO
+
+`examples/gpioled.erl` is a simple example of interacting with the GPIO
+on a beaglebone black or raspberry pi that will blink an LED. The example
+works with two system processes:
+
+    * a port process which requests the GPIO pin be exported to user
+      space, forks a child into a new namespace, then drops privileges
+
+    * a child process gets a file descriptor for the GPIO, then drops
+      privileges
+
 Tests
 =====
 
