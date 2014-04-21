@@ -415,8 +415,8 @@ specs() ->
 -spec open(port(),iodata(),integer(),integer()) -> {'ok',integer()} | {'error', file:posix()}.
 -spec open(port(),[integer()],iodata(),integer(),integer()) -> {'ok',integer()} | {'error', file:posix()}.
 
--spec pid(port()) -> [integer()].
--spec pid(port(),[integer()]) -> [integer()].
+-spec pid(port()) -> [#alcove_pid{}].
+-spec pid(port(),[integer()]) -> [#alcove_pid{}].
 
 -type prctl_arg() :: iodata() | non_neg_integer().
 -type prctl_val() :: binary() | non_neg_integer().
@@ -473,8 +473,8 @@ specs() ->
 -spec unshare(port(),non_neg_integer()) -> 'ok' | {'error', file:posix()}.
 -spec unshare(port(),[integer()],non_neg_integer()) -> 'ok' | {'error', file:posix()}.
 
--spec write(port(),integer(),iodata()) -> 'ok' | {'error', file:posix()}.
--spec write(port(),[integer()],integer(),iodata()) -> 'ok' | {'error', file:posix()}.
+-spec write(port(),integer(),iodata()) -> {'ok', non_neg_integer()} | {'error', file:posix()}.
+-spec write(port(),[integer()],integer(),iodata()) -> {'ok', non_neg_integer()} | {'error', file:posix()}.
 
 -spec version(port()) -> binary() | {'error', 'timedout'}.
 -spec version(port(),list(integer())) -> binary() | {'error', 'timedout'}.
