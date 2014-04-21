@@ -220,7 +220,7 @@ alcove_event_loop(alcove_state_t *ap)
             }
         }
 
-        if (fds[STDIN_FILENO].revents & (POLLIN|POLLERR|POLLHUP)) {
+        if (fds[STDIN_FILENO].revents & (POLLIN|POLLERR|POLLHUP|POLLNVAL)) {
             switch (alcove_stdin(ap)) {
                 case -1:
                     erl_err_sys("alcove_stdin");
@@ -663,7 +663,7 @@ read_from_pid(alcove_state_t *ap, alcove_child_t *c, void *arg1, void *arg2)
 {
     struct pollfd *fds = arg1;
 
-    if (c->fdctl > -1 && (fds[c->fdctl].revents & (POLLIN|POLLERR|POLLHUP))) {
+    if (c->fdctl > -1 && (fds[c->fdctl].revents & (POLLIN|POLLERR|POLLHUP|POLLNVAL))) {
         unsigned char buf;
         ssize_t n;
 
@@ -679,7 +679,7 @@ read_from_pid(alcove_state_t *ap, alcove_child_t *c, void *arg1, void *arg2)
         }
     }
 
-    if (c->fdout > -1 && (fds[c->fdout].revents & (POLLIN|POLLERR|POLLHUP))) {
+    if (c->fdout > -1 && (fds[c->fdout].revents & (POLLIN|POLLERR|POLLHUP|POLLNVAL))) {
         switch (alcove_child_stdio(c->fdout, ap->depth,
                     c, ALCOVE_MSG_TYPE(c))) {
             case -1:
@@ -692,7 +692,7 @@ read_from_pid(alcove_state_t *ap, alcove_child_t *c, void *arg1, void *arg2)
         }
     }
 
-    if (c->fderr > -1 && (fds[c->fderr].revents & (POLLIN|POLLERR|POLLHUP))) {
+    if (c->fderr > -1 && (fds[c->fderr].revents & (POLLIN|POLLERR|POLLHUP|POLLNVAL))) {
         switch (alcove_child_stdio(c->fderr, ap->depth,
                     c, ALCOVE_MSG_STDERR)) {
             case -1:

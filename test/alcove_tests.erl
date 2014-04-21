@@ -59,6 +59,7 @@ run(State) ->
         portstress(State),
         forkstress(State),
         forkchain(State),
+        eof(State),
         prctl(State),
         execvp(State),
         stdout(State),
@@ -397,6 +398,31 @@ forkchain(#state{port = Port}) ->
     Pid = alcove:getpid(Port, [Child0, Child1, Child2, Child3, Child4]),
 
     ?_assertEqual(Pid, Child4).
+
+eof(#state{port = Port}) ->
+    {ok, Child} = alcove:fork(Port),
+    {ok, Child0} = alcove:fork(Port, [Child]),
+
+    ok = alcove:eof(Port, [Child,Child0], stderr),
+    Reply0 = alcove:eof(Port, [Child,Child0], stderr),
+
+    ok = alcove:eof(Port, [Child,Child0], stdout),
+    Reply1 = alcove:eof(Port, [Child,Child0], stdout),
+
+    ok = alcove:eof(Port, [Child,Child0]),
+    Reply2 = case alcove:eof(Port, [Child,Child0]) of
+        {error,esrch} -> ok;
+        {error,ebadf} -> ok;
+        N -> N
+    end,
+
+    alcove:exit(Port, [Child], 0),
+
+    [
+        ?_assertEqual({error,ebadf}, Reply0),
+        ?_assertEqual({error,ebadf}, Reply1),
+        ?_assertEqual(ok, Reply2)
+    ].
 
 prctl(#state{os = {unix,linux}, port = Port}) ->
     {ok, Fork} = alcove:fork(Port),
