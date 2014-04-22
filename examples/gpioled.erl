@@ -37,17 +37,17 @@
 %%
 %%  gpioled:start(11).
 %%
--define(O_WRONLY, alcove:define(Port, 'O_WRONLY')).
--define(O_RDWR, alcove:define(Port, 'O_RDWR')).
+-define(O_WRONLY, alcove:define(Drv, 'O_WRONLY')).
+-define(O_RDWR, alcove:define(Drv, 'O_RDWR')).
 
 start(GPIO) ->
     start(GPIO, 1000).
 start(GPIO, N) ->
-    Port = alcove_drv:start([{exec, "sudo"}]),
+    {ok, Drv} = alcove_drv:start([{exec, "sudo"}]),
 
-    export(Port, GPIO),
+    export(Drv, GPIO),
 
-    Flags = alcove:define(Port, [
+    Flags = alcove:define(Drv, [
             'CLONE_NEWIPC',
             'CLONE_NEWNS',
             'CLONE_NEWNET',
@@ -56,51 +56,51 @@ start(GPIO, N) ->
         ]),
 
     % Child
-    {ok, Child} = alcove:clone(Port, Flags),
-    ok = alcove:chroot(Port, [Child],
+    {ok, Child} = alcove:clone(Drv, Flags),
+    ok = alcove:chroot(Drv, [Child],
         ["/sys/class/gpio/gpio", integer_to_list(GPIO)]),
-    ok = alcove:chdir(Port, [Child], "/"),
-    {ok, FD} = alcove:open(Port, [Child], "/direction", ?O_RDWR, 0),
+    ok = alcove:chdir(Drv, [Child], "/"),
+    {ok, FD} = alcove:open(Drv, [Child], "/direction", ?O_RDWR, 0),
 
     Id = id(),
-    ok = alcove:setgid(Port, [Child], Id),
-    ok = alcove:setuid(Port, [Child], Id),
+    ok = alcove:setgid(Drv, [Child], Id),
+    ok = alcove:setuid(Drv, [Child], Id),
 
     % Drop privs in the port
-    {ok, UFD} = alcove:open(Port, "/sys/class/gpio/unexport", ?O_WRONLY, 0),
+    {ok, UFD} = alcove:open(Drv, "/sys/class/gpio/unexport", ?O_WRONLY, 0),
 
-    ok = alcove:unshare(Port, Flags),
-    ok = alcove:chroot(Port, "priv"),
-    ok = alcove:chdir(Port, "/"),
+    ok = alcove:unshare(Drv, Flags),
+    ok = alcove:chroot(Drv, "priv"),
+    ok = alcove:chdir(Drv, "/"),
 
     Id1 = id(),
-    ok = alcove:setgid(Port, Id1),
-    ok = alcove:setuid(Port, Id1),
+    ok = alcove:setgid(Drv, Id1),
+    ok = alcove:setuid(Drv, Id1),
 
-    strobe(Port, Child, FD, N),
+    strobe(Drv, Child, FD, N),
 
-    {ok, _} = alcove:write(Port, UFD, integer_to_list(GPIO)),
-    alcove:close(Port, UFD),
+    {ok, _} = alcove:write(Drv, UFD, integer_to_list(GPIO)),
+    alcove:close(Drv, UFD),
 
-    alcove_drv:stop(Port).
+    alcove_drv:stop(Drv).
 
-strobe(Port, Child, FD, 0) ->
-    alcove:write(Port, [Child], FD, <<"low">>),
-    alcove:close(Port, [Child], FD);
-strobe(Port, Child, FD, N) ->
+strobe(Drv, Child, FD, 0) ->
+    alcove:write(Drv, [Child], FD, <<"low">>),
+    alcove:close(Drv, [Child], FD);
+strobe(Drv, Child, FD, N) ->
     timer:sleep(100),
-    alcove:write(Port, [Child], FD, <<"low">>),
+    alcove:write(Drv, [Child], FD, <<"low">>),
     timer:sleep(100),
-    alcove:write(Port, [Child], FD, <<"high">>),
-    strobe(Port, Child, FD, N-1).
+    alcove:write(Drv, [Child], FD, <<"high">>),
+    strobe(Drv, Child, FD, N-1).
 
 id() ->
     16#f0000000 + crypto:rand_uniform(0, 16#ffff).
 
-export(Port, Pin) ->
-    {ok, FD} = alcove:open(Port, "/sys/class/gpio/export", ?O_WRONLY, 0),
-    case alcove:write(Port, FD, integer_to_list(Pin)) of
+export(Drv, Pin) ->
+    {ok, FD} = alcove:open(Drv, "/sys/class/gpio/export", ?O_WRONLY, 0),
+    case alcove:write(Drv, FD, integer_to_list(Pin)) of
         {ok, _} -> ok;
         {error,ebusy} -> ok
     end,
-    alcove:close(Port, FD).
+    alcove:close(Drv, FD).

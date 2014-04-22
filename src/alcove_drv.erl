@@ -12,145 +12,85 @@
 %%% ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 %%% OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 -module(alcove_drv).
+-behaviour(gen_server).
 -include_lib("alcove/include/alcove.hrl").
 
 %% API
 -export([start/0, start/1, stop/1]).
+-export([start_link/2]).
 -export([call/2, call/3, call/4, cast/2, encode/2, encode/3]).
--export([stdin/3, stdout/3, stderr/3, event/4, event_data/4]).
+-export([stdin/3, stdout/3, stderr/3, event/3]).
 -export([atom_to_type/1, type_to_atom/1]).
--export([msg/2, events/4, decode/1]).
+-export([msg/2, decode/1]).
 -export([getopts/1]).
 
--spec start() -> port().
+%% gen_server callbacks
+-export([init/1, handle_call/3, handle_cast/2, handle_info/2,
+         terminate/2, code_change/3]).
+
+-record(state, {
+        pid :: pid(),
+        port :: port()
+    }).
+
+-spec start() -> {ok, pid()}.
 start() ->
-    start([]).
+    start_link(self(), []).
 
--spec start(proplists:proplist()) -> port().
+-spec start(proplists:proplist()) -> {ok, pid()}.
 start(Options) ->
-    [Cmd|Argv] = getopts(Options),
-    PortOpt = lists:filter(fun
-            (stderr_to_stdout) -> true;
-            ({env,_}) -> true;
-            (_) -> false
-        end, Options),
-    open_port({spawn_executable, Cmd}, [
-            {args, Argv},
-            {packet, 2},
-            binary
-        ] ++ PortOpt).
+    start_link(self(), Options).
 
--spec call(port(),iodata()) -> any().
-call(Port, Data) ->
-    call(Port, [], Data, 5000).
+-spec start_link(pid(), proplists:proplist()) -> {ok, pid()}.
+start_link(Owner, Options) ->
+    gen_server:start_link(?MODULE, [Owner, Options], []).
 
--spec call(port(),[integer()],iodata()) -> any().
-call(Port, Pids, Data) ->
-    call(Port, Pids, Data, 5000).
+-spec stop(pid()) -> ok.
+stop(Drv) ->
+    gen_server:call(Drv, stop).
 
--spec call(port(),[integer()],iodata(),'infinity' | non_neg_integer()) ->
+-spec call(pid(),iodata()) -> any().
+call(Drv, Data) ->
+    call(Drv, [], Data, 5000).
+
+-spec call(pid(),[integer()],iodata()) -> any().
+call(Drv, Pids, Data) ->
+    call(Drv, Pids, Data, 5000).
+
+-spec call(pid(),[integer()],iodata(),'infinity' | non_neg_integer()) ->
     any().
-call(Port, Pids, Data, Timeout) ->
-    true = send(Port, Data, iolist_size(Data)),
-    event_data(Port, Pids, ?ALCOVE_MSG_CALL, Timeout).
+call(Drv, Pids, Data, Timeout) ->
+    true = send(Drv, Data),
+    reply(Drv, Pids, ?ALCOVE_MSG_CALL, Timeout).
 
--spec cast(port(),iodata()) -> any().
-cast(Port, Data) ->
-    send(Port, Data, iolist_size(Data)).
+-spec cast(pid(),iodata()) -> any().
+cast(Drv, Data) ->
+    send(Drv, Data).
 
--spec send(port(),iodata(),pos_integer()) -> any().
-send(Port, Data, Size) when is_port(Port), Size < 16#ffff ->
-    erlang:port_command(Port, Data).
+-spec send(pid(),iodata()) -> any().
+send(Drv, Data) ->
+    gen_server:call(Drv, {send, Data}, infinity).
 
-event_data(Port, Pids, Type, Timeout) ->
-    Tag = type_to_atom(Type),
-    receive
-        {Port, {Tag, Pids, Event}} ->
-            Event
-    after
-        0 ->
-            case event(Port, Pids, Type, Timeout) of
-                false ->
-                    false;
-                {Tag, Pids, Event} ->
-                    Event
-            end
-    end.
-
--spec event(port(),[integer()],non_neg_integer(),
-    'infinity' | non_neg_integer()) -> 'false' |
-    {'alcove_call' | 'alcove_event',
-        [integer()], any() | {'signal', integer()}}.
-% Check the mailbox for processed events
-event(Port, [], Type, Timeout) when is_integer(Type) ->
-    receive
-        {Port, {data, <<?UINT16(Type), Reply/binary>>}} ->
-            {type_to_atom(Type), [], binary_to_term(Reply)}
-    after
-        Timeout ->
-            false
-    end;
-event(Port, Pids, Type, Timeout) when is_integer(Type) ->
-    Tag = type_to_atom(Type),
-    receive
-        {Port, {Tag, Pids, _Data} = Event} ->
-            Event
-    after
-        0 ->
-            events(Port, Pids, Type, Timeout)
-    end.
-
-% Reply from a child process.
-%
-% The parent process may coalesce 2 writes from the child into 1 read. The
-% parent could read the length header then read length bytes except that
-% the child may have called execvp(). After calling exec(), the data
-% returned from the child will not contain a length header.
-%
-% Work around this by converting the reply into a list of messages. The
-% first message matching the requested type is returned to the caller. The
-% remaining messages are pushed back into the process' mailbox.
-events(Port, Pids, Type, Timeout) ->
-    receive
-        {Port, {data, Data}} ->
-            Tag = type_to_atom(Type),
-            Msg = decode(Data),
-            Event = case [ {A,B,C} || {A,B,C} <- Msg, A =:= Tag, B =:= Pids ] of
-                [] -> false;
-                [N|_] -> N
-            end,
-            Events = lists:delete(Event, Msg),
-
-            Self = self(),
-            [ Self ! {Port, E} || E <- Events ],
-
-            case Event of
-                false ->
-                    events(Port, Pids, Type, Timeout);
-                _ ->
-                    Event
-            end
-    after
-        Timeout ->
-            false
-    end.
-
--spec stdin(port(),[integer()],iodata()) -> 'true'.
-stdin(Port, [], Data) ->
-    cast(Port, Data);
-stdin(Port, Pids, Data) ->
+-spec stdin(pid(),[integer()],iodata()) -> 'true'.
+stdin(Drv, [], Data) ->
+    cast(Drv, Data);
+stdin(Drv, Pids, Data) ->
     Stdin = hdr(lists:reverse(Pids), [Data]),
-    cast(Port, Stdin).
+    cast(Drv, Stdin).
 
--spec stdout(port(),[integer()],'infinity' | non_neg_integer()) ->
+-spec stdout(pid(),[integer()],'infinity' | non_neg_integer()) ->
     'false' | binary().
-stdout(Port, Pids, Timeout) ->
-    event_data(Port, Pids, ?ALCOVE_MSG_STDOUT, Timeout).
+stdout(Drv, Pids, Timeout) ->
+    reply(Drv, Pids, ?ALCOVE_MSG_STDOUT, Timeout).
 
--spec stderr(port(),[integer()],'infinity' | non_neg_integer()) ->
+-spec stderr(pid(),[integer()],'infinity' | non_neg_integer()) ->
     'false' | binary().
-stderr(Port, Pids, Timeout) ->
-    event_data(Port, Pids, ?ALCOVE_MSG_STDERR, Timeout).
+stderr(Drv, Pids, Timeout) ->
+    reply(Drv, Pids, ?ALCOVE_MSG_STDERR, Timeout).
+
+-spec event(pid(),[integer()], 'infinity' | non_neg_integer()) -> any().
+event(Drv, Pids, Timeout) ->
+    reply(Drv, Pids, ?ALCOVE_MSG_EVENT, Timeout).
 
 msg([], Data) ->
     Data;
@@ -168,7 +108,6 @@ encode(Command, Arg) when is_integer(Command), is_list(Arg) ->
     encode(?ALCOVE_MSG_CALL, Command, Arg).
 encode(Type, Command, Arg) when is_integer(Type), is_integer(Command), is_list(Arg) ->
     <<?UINT16(Type), ?UINT16(Command), (term_to_binary(Arg))/binary>>.
-
 
 decode(Msg) ->
     % Re-add the message length stripped off by open_port
@@ -215,12 +154,89 @@ decode(<<?UINT16(Len), ?UINT16(?ALCOVE_MSG_EVENT),
         [{alcove_event, lists:reverse(Pids), binary_to_term(Reply)}|Msg],
         Acc).
 
-stop(Port) when is_port(Port) ->
-    erlang:port_close(Port).
+%%--------------------------------------------------------------------
+%%% Callbacks
+%%--------------------------------------------------------------------
+init([Owner, Options]) ->
+    process_flag(trap_exit, true),
+
+    [Cmd|Argv] = getopts(Options),
+    PortOpt = lists:filter(fun
+            (stderr_to_stdout) -> true;
+            ({env,_}) -> true;
+            (_) -> false
+        end, Options),
+
+    Port = open_port({spawn_executable, Cmd}, [
+            {args, Argv},
+            {packet, 2},
+            binary
+        ] ++ PortOpt),
+
+    {ok, #state{port = Port, pid = Owner}}.
+
+handle_call({send, Packet}, _From, #state{port = Port} = State) ->
+    Reply = try erlang:port_command(Port, Packet) of
+        true ->
+            true
+        catch
+            error:badarg ->
+                {error,closed}
+        end,
+    {reply, Reply, State};
+
+handle_call(stop, _From, State) ->
+    {stop, normal, ok, State}.
+
+handle_cast(_Msg, State) ->
+    {noreply, State}.
+
+terminate(_Reason, #state{port = Port}) ->
+    catch erlang:port_close(Port),
+    ok.
+
+code_change(_OldVsn, State, _Extra) ->
+    {ok, State}.
+
+%%--------------------------------------------------------------------
+%%% Port communication
+%%--------------------------------------------------------------------
+
+% Reply from a child process.
+%
+% The parent process may coalesce 2 writes from the child into 1 read. The
+% parent could read the length header then read length bytes except that
+% the child may have called execvp(). After calling exec(), the data
+% returned from the child will not contain a length header.
+%
+% Work around this by converting the reply into a list of messages. The
+% first message matching the requested type is returned to the caller. The
+% remaining messages are pushed back into the process' mailbox.
+handle_info({Port, {data, Data}}, #state{port = Port, pid = Pid} = State) ->
+    [ Pid ! {self(), Msg} || Msg <- decode(Data) ],
+    {noreply, State};
+
+handle_info({'EXIT', Port, Reason}, #state{port = Port} = State) ->
+    {stop, {shutdown, Reason}, State};
+
+% WTF
+handle_info(Info, State) ->
+    error_logger:error_report([{wtf, Info}]),
+    {noreply, State}.
 
 %%--------------------------------------------------------------------
 %%% Internal functions
 %%--------------------------------------------------------------------
+reply(Drv, Pids, Type, Timeout) ->
+    Tag = type_to_atom(Type),
+    receive
+        {Drv, {Tag, Pids, Event}} ->
+            Event
+    after
+        Timeout ->
+            false
+    end.
+
 -spec getopts(proplists:proplist()) -> list(string() | [string()]).
 getopts(Options) when is_list(Options) ->
     Exec = proplists:get_value(exec, Options, ""),

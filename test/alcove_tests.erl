@@ -16,7 +16,7 @@
 -compile(export_all).
 
 -record(state, {
-        port,
+        pid,
         child,
         os,
         clone = false
@@ -79,35 +79,35 @@ start() ->
         _ -> true
     end,
 
-    Port = alcove_drv:start([{exec, Exec}, {maxchild, 8}]),
+    {ok, Drv} = alcove_drv:start([{exec, Exec}, {maxchild, 8}]),
 
     case {Use_fork, os:type()} of
         {false, {unix,linux} = OS} ->
-            Flags = alcove:define(Port, [
+            Flags = alcove:define(Drv, [
                     'CLONE_NEWIPC',
                     'CLONE_NEWNET',
                     'CLONE_NEWNS',
                     'CLONE_NEWPID',
                     'CLONE_NEWUTS'
                 ]),
-            {ok, Child} = alcove:clone(Port, Flags),
+            {ok, Child} = alcove:clone(Drv, Flags),
             #state{
-                port = Port,
+                pid = Drv,
                 child = Child,
                 clone = true,
                 os = OS
             };
         {_, {unix,_} = OS} ->
-            {ok, Child} = alcove:fork(Port),
+            {ok, Child} = alcove:fork(Drv),
             #state{
-                port = Port,
+                pid = Drv,
                 child = Child,
                 os = OS
             }
     end.
 
-stop(#state{port = Port}) ->
-    alcove_drv:stop(Port).
+stop(#state{pid = Drv}) ->
+    alcove_drv:stop(Drv).
 
 msg(_) ->
     % Length, Message type, Term
@@ -129,47 +129,47 @@ msg(_) ->
         Reply
     ).
 
-version(#state{port = Port}) ->
-    Version = alcove:version(Port),
+version(#state{pid = Drv}) ->
+    Version = alcove:version(Drv),
     ?_assertEqual(true, is_binary(Version)).
 
-pid(#state{port = Port}) ->
-    Pids = alcove:pid(Port),
+pid(#state{pid = Drv}) ->
+    Pids = alcove:pid(Drv),
     ?_assertEqual(1, length(Pids)).
 
-getpid(#state{clone = true, port = Port, child = Child}) ->
+getpid(#state{clone = true, pid = Drv, child = Child}) ->
     % Running in a PID namespace
-    PID = alcove:getpid(Port, [Child]),
+    PID = alcove:getpid(Drv, [Child]),
     ?_assertEqual(1, PID);
-getpid(#state{port = Port, child = Child}) ->
-    PID = alcove:getpid(Port, [Child]),
+getpid(#state{pid = Drv, child = Child}) ->
+    PID = alcove:getpid(Drv, [Child]),
     ?_assertEqual(true, PID > 0).
 
-setopt(#state{port = Port}) ->
-    {ok, Fork} = alcove:fork(Port),
+setopt(#state{pid = Drv}) ->
+    {ok, Fork} = alcove:fork(Drv),
 
-    ok = alcove:setopt(Port, [Fork], maxchild, 128),
+    ok = alcove:setopt(Drv, [Fork], maxchild, 128),
 
-    {ok, Fork1} = alcove:fork(Port, [Fork]),
+    {ok, Fork1} = alcove:fork(Drv, [Fork]),
 
-    Opt1 = alcove:getopt(Port, [Fork], maxchild),
-    Opt2 = alcove:getopt(Port, [Fork, Fork1], maxchild),
+    Opt1 = alcove:getopt(Drv, [Fork], maxchild),
+    Opt2 = alcove:getopt(Drv, [Fork, Fork1], maxchild),
 
-    alcove:exit(Port, [Fork, Fork1], 0),
+    alcove:exit(Drv, [Fork, Fork1], 0),
 
-    ok = alcove:setopt(Port, [Fork], exit_status, 0),
-    ok = alcove:setopt(Port, [Fork], maxforkdepth, 0),
+    ok = alcove:setopt(Drv, [Fork], exit_status, 0),
+    ok = alcove:setopt(Drv, [Fork], maxforkdepth, 0),
 
-    Opt3 = alcove:getopt(Port, [Fork], exit_status),
-    Opt4 = alcove:getopt(Port, [], maxforkdepth),
-    Opt5 = alcove:getopt(Port, [Fork], maxforkdepth),
-    Reply = alcove:fork(Port, [Fork]),
+    Opt3 = alcove:getopt(Drv, [Fork], exit_status),
+    Opt4 = alcove:getopt(Drv, [], maxforkdepth),
+    Opt5 = alcove:getopt(Drv, [Fork], maxforkdepth),
+    Reply = alcove:fork(Drv, [Fork]),
 
-    ok = alcove:setopt(Port, [Fork], verbose, 2),
-    Fork = alcove:getpid(Port, [Fork]),
-    Stderr = alcove:stderr(Port, [Fork]),
+    ok = alcove:setopt(Drv, [Fork], verbose, 2),
+    Fork = alcove:getpid(Drv, [Fork]),
+    Stderr = alcove:stderr(Drv, [Fork]),
 
-    alcove:exit(Port, [Fork], 0),
+    alcove:exit(Drv, [Fork], 0),
 
     [
         ?_assertEqual(128, Opt1),
@@ -181,11 +181,11 @@ setopt(#state{port = Port}) ->
         ?_assertNotEqual(false, Stderr)
     ].
 
-event(#state{port = Port}) ->
-    {ok, Fork} = alcove:fork(Port),
-    Reply0 = alcove:exit(Port, [Fork], 0),
-    Reply1 = alcove:event(Port, [Fork]),
-    Reply2 = alcove:event(Port, []),
+event(#state{pid = Drv}) ->
+    {ok, Fork} = alcove:fork(Drv),
+    Reply0 = alcove:exit(Drv, [Fork], 0),
+    Reply1 = alcove:event(Drv, [Fork]),
+    Reply2 = alcove:event(Drv, []),
 
     [
         ?_assertEqual(ok, Reply0),
@@ -193,27 +193,27 @@ event(#state{port = Port}) ->
         ?_assertMatch({signal,_}, Reply2)
     ].
 
-sethostname(#state{clone = true, port = Port, child = Child}) ->
-    Reply = alcove:sethostname(Port, [Child], "alcove"),
-    Hostname = alcove:gethostname(Port, [Child]),
+sethostname(#state{clone = true, pid = Drv, child = Child}) ->
+    Reply = alcove:sethostname(Drv, [Child], "alcove"),
+    Hostname = alcove:gethostname(Drv, [Child]),
     [?_assertEqual(ok, Reply),
         ?_assertEqual({ok, <<"alcove">>}, Hostname)];
-sethostname(#state{port = Port, child = Child}) ->
-    Hostname = alcove:gethostname(Port, [Child]),
+sethostname(#state{pid = Drv, child = Child}) ->
+    Hostname = alcove:gethostname(Drv, [Child]),
     ?_assertMatch({ok, <<_/binary>>}, Hostname).
 
-env(#state{port = Port, child = Child}) ->
-    Reply0 = alcove:getenv(Port, [Child], "ALCOVE"),
-    Reply1 = alcove:setenv(Port, [Child], "ALCOVE", "12345", 0),
-    Reply2 = alcove:getenv(Port, [Child], "ALCOVE"),
-    Reply3 = alcove:setenv(Port, [Child], "ALCOVE", "abcd", 1),
-    Reply4 = alcove:getenv(Port, [Child], "ALCOVE"),
-    Reply5 = alcove:unsetenv(Port, [Child], "ALCOVE"),
-    Reply6 = alcove:getenv(Port, [Child], "ALCOVE"),
+env(#state{pid = Drv, child = Child}) ->
+    Reply0 = alcove:getenv(Drv, [Child], "ALCOVE"),
+    Reply1 = alcove:setenv(Drv, [Child], "ALCOVE", "12345", 0),
+    Reply2 = alcove:getenv(Drv, [Child], "ALCOVE"),
+    Reply3 = alcove:setenv(Drv, [Child], "ALCOVE", "abcd", 1),
+    Reply4 = alcove:getenv(Drv, [Child], "ALCOVE"),
+    Reply5 = alcove:unsetenv(Drv, [Child], "ALCOVE"),
+    Reply6 = alcove:getenv(Drv, [Child], "ALCOVE"),
 
-    Reply7 = alcove:environ(Port, [Child]),
-    Reply8 = alcove:clearenv(Port, [Child]),
-    Reply9 = alcove:environ(Port, [Child]),
+    Reply7 = alcove:environ(Drv, [Child]),
+    Reply8 = alcove:clearenv(Drv, [Child]),
+    Reply9 = alcove:environ(Drv, [Child]),
 
     [
         ?_assertEqual(false, Reply0),
@@ -229,32 +229,32 @@ env(#state{port = Port, child = Child}) ->
         ?_assertEqual(0, length(Reply9))
     ].
 
-setns(#state{clone = true, port = Port, child = Child}) ->
-    {ok, Child1} = alcove:fork(Port),
-    ok = alcove:setns(Port, [Child1], [
+setns(#state{clone = true, pid = Drv, child = Child}) ->
+    {ok, Child1} = alcove:fork(Drv),
+    ok = alcove:setns(Drv, [Child1], [
             "/proc/",
             integer_to_list(Child),
             "/ns/uts"
         ]),
-    Hostname0 = alcove:gethostname(Port, [Child]),
-    Hostname1 = alcove:gethostname(Port, [Child1]),
+    Hostname0 = alcove:gethostname(Drv, [Child]),
+    Hostname1 = alcove:gethostname(Drv, [Child1]),
     ?_assertEqual(Hostname0, Hostname1);
 setns(_) ->
     ?_assertEqual(ok,ok).
 
-unshare(#state{clone = true, port = Port}) ->
-    {ok, Child1} = alcove:fork(Port),
-    ok = alcove:unshare(Port, [Child1],
-        alcove:clone_define(Port, 'CLONE_NEWUTS')),
-    Reply = alcove:sethostname(Port, [Child1], "unshare"),
-    Hostname = alcove:gethostname(Port, [Child1]),
+unshare(#state{clone = true, pid = Drv}) ->
+    {ok, Child1} = alcove:fork(Drv),
+    ok = alcove:unshare(Drv, [Child1],
+        alcove:clone_define(Drv, 'CLONE_NEWUTS')),
+    Reply = alcove:sethostname(Drv, [Child1], "unshare"),
+    Hostname = alcove:gethostname(Drv, [Child1]),
     [?_assertEqual(ok, Reply),
         ?_assertEqual({ok, <<"unshare">>}, Hostname)];
 unshare(_) ->
     ?_assertEqual(ok,ok).
 
-mount_define(#state{port = Port}) ->
-    Flags = alcove:define(Port, [
+mount_define(#state{pid = Drv}) ->
+    Flags = alcove:define(Drv, [
             rdonly,
             nosuid,
             noexec,
@@ -262,14 +262,14 @@ mount_define(#state{port = Port}) ->
         ]),
     ?_assertEqual(true, is_integer(Flags)).
 
-mount(#state{clone = true, port = Port, child = Child}) ->
-    Flags = alcove:define(Port, [
+mount(#state{clone = true, pid = Drv, child = Child}) ->
+    Flags = alcove:define(Drv, [
             'MS_BIND',
             'MS_RDONLY',
             'MS_NOEXEC'
             ]),
-    Mount = alcove:mount(Port, [Child], "/tmp", "/mnt", "", Flags, ""),
-    Umount = alcove:umount(Port, [Child], "/mnt"),
+    Mount = alcove:mount(Drv, [Child], "/tmp", "/mnt", "", Flags, ""),
+    Umount = alcove:umount(Drv, [Child], "/mnt"),
     [
         ?_assertEqual(ok, Mount),
         ?_assertEqual(ok, Umount)
@@ -277,10 +277,10 @@ mount(#state{clone = true, port = Port, child = Child}) ->
 mount(_) ->
     ?_assertEqual(ok,ok).
 
-tmpfs(#state{clone = true, port = Port, child = Child}) ->
-    Flags = alcove:define(Port, ['MS_NOEXEC']),
-    Mount = alcove:mount(Port, [Child], "tmpfs", "/mnt", "tmpfs", Flags, <<"size=16M", 0>>),
-    Umount = alcove:umount(Port, [Child], "/mnt"),
+tmpfs(#state{clone = true, pid = Drv, child = Child}) ->
+    Flags = alcove:define(Drv, ['MS_NOEXEC']),
+    Mount = alcove:mount(Drv, [Child], "tmpfs", "/mnt", "tmpfs", Flags, <<"size=16M", 0>>),
+    Umount = alcove:umount(Drv, [Child], "/mnt"),
     [
         ?_assertEqual(ok, Mount),
         ?_assertEqual(ok, Umount)
@@ -288,59 +288,59 @@ tmpfs(#state{clone = true, port = Port, child = Child}) ->
 tmpfs(_) ->
     ?_assertEqual(ok,ok).
 
-chroot(#state{os = {unix,linux}, port = Port, child = Child}) ->
-    Reply = alcove:chroot(Port, [Child], "/bin"),
+chroot(#state{os = {unix,linux}, pid = Drv, child = Child}) ->
+    Reply = alcove:chroot(Drv, [Child], "/bin"),
     ?_assertEqual(ok, Reply);
-chroot(#state{os = {unix,freebsd}, port = Port, child = Child}) ->
-    Reply = alcove:chroot(Port, [Child], "/rescue"),
+chroot(#state{os = {unix,freebsd}, pid = Drv, child = Child}) ->
+    Reply = alcove:chroot(Drv, [Child], "/rescue"),
     ?_assertEqual(ok, Reply).
 
-chdir(#state{port = Port, child = Child}) ->
-    Reply = alcove:chdir(Port, [Child], "/"),
-    CWD = alcove:getcwd(Port, [Child]),
+chdir(#state{pid = Drv, child = Child}) ->
+    Reply = alcove:chdir(Drv, [Child], "/"),
+    CWD = alcove:getcwd(Drv, [Child]),
     [
         ?_assertEqual(ok, Reply),
         ?_assertEqual({ok, <<"/">>}, CWD)
     ].
 
-setrlimit(#state{port = Port, child = Child}) ->
-    RLIMIT_NOFILE = alcove:rlimit_define(Port, 'RLIMIT_NOFILE'),
-    Reply = alcove:setrlimit(Port, [Child], RLIMIT_NOFILE, #rlimit{cur = 64, max = 64}),
-    Rlimit = alcove:getrlimit(Port, [Child], RLIMIT_NOFILE),
+setrlimit(#state{pid = Drv, child = Child}) ->
+    RLIMIT_NOFILE = alcove:rlimit_define(Drv, 'RLIMIT_NOFILE'),
+    Reply = alcove:setrlimit(Drv, [Child], RLIMIT_NOFILE, #rlimit{cur = 64, max = 64}),
+    Rlimit = alcove:getrlimit(Drv, [Child], RLIMIT_NOFILE),
     [
         ?_assertEqual(ok, Reply),
         ?_assertEqual({ok, #rlimit{cur = 64, max = 64}}, Rlimit)
     ].
 
-setgid(#state{port = Port, child = Child}) ->
-    Reply = alcove:setgid(Port, [Child], 65534),
-    GID = alcove:getgid(Port, [Child]),
+setgid(#state{pid = Drv, child = Child}) ->
+    Reply = alcove:setgid(Drv, [Child], 65534),
+    GID = alcove:getgid(Drv, [Child]),
     [
         ?_assertEqual(ok, Reply),
         ?_assertEqual(65534, GID)
     ].
 
-setuid(#state{port = Port, child = Child}) ->
-    Reply = alcove:setuid(Port, [Child], 65534),
-    UID = alcove:getuid(Port, [Child]),
+setuid(#state{pid = Drv, child = Child}) ->
+    Reply = alcove:setuid(Drv, [Child], 65534),
+    UID = alcove:getuid(Drv, [Child]),
     [
         ?_assertEqual(ok, Reply),
         ?_assertEqual(65534, UID)
     ].
 
-fork(#state{port = Port, child = Child}) ->
-    Pids = [ alcove:fork(Port, [Child]) || _ <- lists:seq(1, 32) ],
+fork(#state{pid = Drv, child = Child}) ->
+    Pids = [ alcove:fork(Drv, [Child]) || _ <- lists:seq(1, 32) ],
     [Last|_Rest] = lists:reverse(Pids),
-    Reply0 = alcove:getpid(Port, [Child]),
+    Reply0 = alcove:getpid(Drv, [Child]),
 
     [{ok, Child0}|_] = [ N || N <- Pids, N =/= {error,eagain} ],
-    ok = alcove:exit(Port, [Child, Child0], 0),
-    waitpid(Port, [Child], Child0),
-    Reply1 = alcove:fork(Port, [Child]),
-    Reply2 = alcove:fork(Port, [Child]),
+    ok = alcove:exit(Drv, [Child, Child0], 0),
+    waitpid(Drv, [Child], Child0),
+    Reply1 = alcove:fork(Drv, [Child]),
+    Reply2 = alcove:fork(Drv, [Child]),
 
     % XXX discard output from killed process
-    flush(stdout, Port, [Child]),
+    flush(stdout, Drv, [Child]),
 
     [
         ?_assertEqual(true, is_integer(Reply0)),
@@ -350,20 +350,20 @@ fork(#state{port = Port, child = Child}) ->
         ?_assertEqual({error,eagain}, Reply2)
     ].
 
-signal(#state{port = Port}) ->
-    {ok, Child1} = alcove:fork(Port),
+signal(#state{pid = Drv}) ->
+    {ok, Child1} = alcove:fork(Drv),
 
-    TERM = alcove:signal_define(Port, 'SIGTERM'),
+    TERM = alcove:signal_define(Drv, 'SIGTERM'),
 
-    SA0 = alcove:sigaction(Port, [Child1], TERM, ign),
-    Kill0 = alcove:kill(Port, Child1, TERM),
-    Pid0 = alcove:getpid(Port, [Child1]),
+    SA0 = alcove:sigaction(Drv, [Child1], TERM, ign),
+    Kill0 = alcove:kill(Drv, Child1, TERM),
+    Pid0 = alcove:getpid(Drv, [Child1]),
 
-    SA1 = alcove:sigaction(Port, [Child1], TERM, dfl),
-    Kill1 = alcove:kill(Port, Child1, TERM),
-    waitpid(Port, [], Child1),
-    alcove:kill(Port, Child1, 0),
-    Search = alcove:kill(Port, Child1, 0),
+    SA1 = alcove:sigaction(Drv, [Child1], TERM, dfl),
+    Kill1 = alcove:kill(Drv, Child1, TERM),
+    waitpid(Drv, [], Child1),
+    alcove:kill(Drv, Child1, 0),
+    Search = alcove:kill(Drv, Child1, 0),
 
     [
         ?_assertEqual(ok, SA0),
@@ -375,48 +375,48 @@ signal(#state{port = Port}) ->
         ?_assertEqual({error,esrch}, Search)
     ].
 
-portstress(#state{port = Port, child = Child}) ->
-    Reply = [ alcove:version(Port, [Child]) || _ <- lists:seq(1,1000) ],
+portstress(#state{pid = Drv, child = Child}) ->
+    Reply = [ alcove:version(Drv, [Child]) || _ <- lists:seq(1,1000) ],
     Ok = lists:filter(fun
             (false) -> false;
             (_) -> true
             end, Reply),
     ?_assertEqual(Ok, Reply).
 
-forkstress(#state{port = Port}) ->
-    {ok, Fork} = alcove:fork(Port),
-    Reply = forkstress_1(Port, Fork, 100),
+forkstress(#state{pid = Drv}) ->
+    {ok, Fork} = alcove:fork(Drv),
+    Reply = forkstress_1(Drv, Fork, 100),
     ?_assertEqual(ok, Reply).
 
-forkchain(#state{port = Port}) ->
-    {ok, Child0} = alcove:fork(Port),
-    {ok, Child1} = alcove:fork(Port, [Child0]),
-    {ok, Child2} = alcove:fork(Port, [Child0, Child1]),
-    {ok, Child3} = alcove:fork(Port, [Child0, Child1, Child2]),
-    {ok, Child4} = alcove:fork(Port, [Child0, Child1, Child2, Child3]),
+forkchain(#state{pid = Drv}) ->
+    {ok, Child0} = alcove:fork(Drv),
+    {ok, Child1} = alcove:fork(Drv, [Child0]),
+    {ok, Child2} = alcove:fork(Drv, [Child0, Child1]),
+    {ok, Child3} = alcove:fork(Drv, [Child0, Child1, Child2]),
+    {ok, Child4} = alcove:fork(Drv, [Child0, Child1, Child2, Child3]),
 
-    Pid = alcove:getpid(Port, [Child0, Child1, Child2, Child3, Child4]),
+    Pid = alcove:getpid(Drv, [Child0, Child1, Child2, Child3, Child4]),
 
     ?_assertEqual(Pid, Child4).
 
-eof(#state{port = Port}) ->
-    {ok, Child} = alcove:fork(Port),
-    {ok, Child0} = alcove:fork(Port, [Child]),
+eof(#state{pid = Drv}) ->
+    {ok, Child} = alcove:fork(Drv),
+    {ok, Child0} = alcove:fork(Drv, [Child]),
 
-    ok = alcove:eof(Port, [Child,Child0], stderr),
-    Reply0 = alcove:eof(Port, [Child,Child0], stderr),
+    ok = alcove:eof(Drv, [Child,Child0], stderr),
+    Reply0 = alcove:eof(Drv, [Child,Child0], stderr),
 
-    ok = alcove:eof(Port, [Child,Child0], stdout),
-    Reply1 = alcove:eof(Port, [Child,Child0], stdout),
+    ok = alcove:eof(Drv, [Child,Child0], stdout),
+    Reply1 = alcove:eof(Drv, [Child,Child0], stdout),
 
-    ok = alcove:eof(Port, [Child,Child0]),
-    Reply2 = case alcove:eof(Port, [Child,Child0]) of
+    ok = alcove:eof(Drv, [Child,Child0]),
+    Reply2 = case alcove:eof(Drv, [Child,Child0]) of
         {error,esrch} -> ok;
         {error,ebadf} -> ok;
         N -> N
     end,
 
-    alcove:exit(Port, [Child], 0),
+    alcove:exit(Drv, [Child], 0),
 
     [
         ?_assertEqual({error,ebadf}, Reply0),
@@ -424,33 +424,33 @@ eof(#state{port = Port}) ->
         ?_assertEqual(ok, Reply2)
     ].
 
-prctl(#state{os = {unix,linux}, port = Port}) ->
-    {ok, Fork} = alcove:fork(Port),
+prctl(#state{os = {unix,linux}, pid = Drv}) ->
+    {ok, Fork} = alcove:fork(Drv),
 
     % capability is set:
     %   returns 0 | 1 in function result, arg2 = int
-    PR_CAPBSET_READ = alcove:prctl_define(Port, 'PR_CAPBSET_READ'),
-    Reply0 = alcove:prctl(Port, [Fork], PR_CAPBSET_READ, 0, 0,0,0),
+    PR_CAPBSET_READ = alcove:prctl_define(Drv, 'PR_CAPBSET_READ'),
+    Reply0 = alcove:prctl(Drv, [Fork], PR_CAPBSET_READ, 0, 0,0,0),
 
     % set process name:
     %   arg2 = char *, up to 16 bytes, NULL terminated
-    PR_SET_NAME = alcove:prctl_define(Port, 'PR_SET_NAME'),
-    Reply1 = alcove:prctl(Port, [Fork], PR_SET_NAME, <<"test",0>>, 0,0,0),
+    PR_SET_NAME = alcove:prctl_define(Drv, 'PR_SET_NAME'),
+    Reply1 = alcove:prctl(Drv, [Fork], PR_SET_NAME, <<"test",0>>, 0,0,0),
 
     % get process name
     %   value returned in arg2 = char *, up to 16 bytes
-    PR_GET_NAME = alcove:prctl_define(Port, 'PR_GET_NAME'),
-    Reply2 = alcove:prctl(Port, [Fork], PR_GET_NAME, <<0:(17*8)>>, 0,0,0),
+    PR_GET_NAME = alcove:prctl_define(Drv, 'PR_GET_NAME'),
+    Reply2 = alcove:prctl(Drv, [Fork], PR_GET_NAME, <<0:(17*8)>>, 0,0,0),
 
     % set parent death signal
     %  arg2 = signal
-    PR_SET_PDEATHSIG = alcove:prctl_define(Port, 'PR_SET_PDEATHSIG'),
-    Reply3 = alcove:prctl(Port, [Fork], PR_SET_PDEATHSIG, 9, 0,0,0),
+    PR_SET_PDEATHSIG = alcove:prctl_define(Drv, 'PR_SET_PDEATHSIG'),
+    Reply3 = alcove:prctl(Drv, [Fork], PR_SET_PDEATHSIG, 9, 0,0,0),
 
     % get parent death signal
     %  arg2 = int *
-    PR_GET_PDEATHSIG = alcove:prctl_define(Port, 'PR_GET_PDEATHSIG'),
-    Reply4 = alcove:prctl(Port, [Fork], PR_GET_PDEATHSIG, <<0:32>>, 0,0,0),
+    PR_GET_PDEATHSIG = alcove:prctl_define(Drv, 'PR_GET_PDEATHSIG'),
+    Reply4 = alcove:prctl(Drv, [Fork], PR_GET_PDEATHSIG, <<0:32>>, 0,0,0),
 
     [
         ?_assertEqual({ok,1,0,0,0,0}, Reply0),
@@ -463,49 +463,49 @@ prctl(_) ->
     ?_assertEqual(ok,ok).
 
 
-execvp(#state{os = {unix,linux}, port = Port, child = Child}) ->
+execvp(#state{os = {unix,linux}, pid = Drv, child = Child}) ->
     % cwd = /, chroot'ed in /bin
-    Reply = alcove:execvp(Port, [Child], "/busybox", ["/busybox", "sh"]),
+    Reply = alcove:execvp(Drv, [Child], "/busybox", ["/busybox", "sh"]),
     ?_assertEqual(ok, Reply);
-execvp(#state{os = {unix,freebsd}, port = Port, child = Child}) ->
+execvp(#state{os = {unix,freebsd}, pid = Drv, child = Child}) ->
     % cwd = /, chroot'ed in /rescue
-    Reply = alcove:execvp(Port, [Child], "/sh", ["/sh"]),
+    Reply = alcove:execvp(Drv, [Child], "/sh", ["/sh"]),
     ?_assertEqual(ok, Reply).
 
-stdout(#state{port = Port, child = Child}) ->
-    Reply = alcove:stdin(Port, [Child], "echo 0123456789\n"),
-    Stdout = alcove:stdout(Port, [Child], 5000),
+stdout(#state{pid = Drv, child = Child}) ->
+    Reply = alcove:stdin(Drv, [Child], "echo 0123456789\n"),
+    Stdout = alcove:stdout(Drv, [Child], 5000),
     [
         ?_assertEqual(true, Reply),
         ?_assertEqual(<<"0123456789\n">>, Stdout)
     ].
 
-stderr(#state{os = {unix,linux}, port = Port, child = Child}) ->
-    Reply = alcove:stdin(Port, [Child], "nonexistent 0123456789\n"),
-    Stderr = alcove:stderr(Port, [Child], 5000),
+stderr(#state{os = {unix,linux}, pid = Drv, child = Child}) ->
+    Reply = alcove:stdin(Drv, [Child], "nonexistent 0123456789\n"),
+    Stderr = alcove:stderr(Drv, [Child], 5000),
     [
         ?_assertEqual(true, Reply),
         ?_assertMatch(<<"sh: ", _/binary>>, Stderr)
     ];
-stderr(#state{os = {unix,freebsd}, port = Port, child = Child}) ->
-    Reply = alcove:stdin(Port, [Child], "nonexistent 0123456789\n"),
-    Stderr = alcove:stderr(Port, [Child], 5000),
+stderr(#state{os = {unix,freebsd}, pid = Drv, child = Child}) ->
+    Reply = alcove:stdin(Drv, [Child], "nonexistent 0123456789\n"),
+    Stderr = alcove:stderr(Drv, [Child], 5000),
     [
         ?_assertEqual(true, Reply),
         ?_assertEqual(<<"nonexistent: not found\n">>, Stderr)
     ].
 
-execve(#state{port = Port}) ->
-    {ok, Child0} = alcove:fork(Port),
-    {ok, Child1} = alcove:fork(Port),
+execve(#state{pid = Drv}) ->
+    {ok, Child0} = alcove:fork(Drv),
+    {ok, Child1} = alcove:fork(Drv),
 
-    Reply0 = alcove:execve(Port, [Child0], "/usr/bin/env",
+    Reply0 = alcove:execve(Drv, [Child0], "/usr/bin/env",
         ["/usr/bin/env"], ["FOO=bar", "BAR=1234567"]),
-    Reply1 = alcove:execve(Port, [Child1], "/usr/bin/env",
+    Reply1 = alcove:execve(Drv, [Child1], "/usr/bin/env",
         ["/usr/bin/env"], []),
 
-    Stdout0 = alcove:stdout(Port, [Child0], 5000),
-    Stdout1 = alcove:stdout(Port, [Child1], 5000),
+    Stdout0 = alcove:stdout(Drv, [Child0], 5000),
+    Stdout1 = alcove:stdout(Drv, [Child1], 5000),
 
     [
         ?_assertEqual(ok, Reply0),
@@ -518,40 +518,40 @@ execve(#state{port = Port}) ->
 %%
 %% Utility functions
 %%
-waitpid(Port, Pids, Child) ->
-    SIGCHLD = alcove:signal_define(Port, 'SIGCHLD'),
-    case alcove:event(Port, Pids, 5000) of
+waitpid(Drv, Pids, Child) ->
+    SIGCHLD = alcove:signal_define(Drv, 'SIGCHLD'),
+    case alcove:event(Drv, Pids, 5000) of
         {signal, SIGCHLD} ->
-            waitpid_1(Port, Pids, Child);
+            waitpid_1(Drv, Pids, Child);
         false ->
             false
     end.
 
-waitpid_1(Port, Pids, Child) ->
-    case alcove:kill(Port, Pids, Child, 0) of
+waitpid_1(Drv, Pids, Child) ->
+    case alcove:kill(Drv, Pids, Child, 0) of
         ok ->
             timer:sleep(10),
-            waitpid_1(Port, Pids, Child);
+            waitpid_1(Drv, Pids, Child);
         {error,esrch} ->
             ok
     end.
 
-flush(stdout, Port, Pids) ->
-    case alcove:stdout(Port, Pids) of
+flush(stdout, Drv, Pids) ->
+    case alcove:stdout(Drv, Pids) of
         false ->
             ok;
         _ ->
-            flush(stdout, Port, Pids)
+            flush(stdout, Drv, Pids)
     end.
 
-forkstress_1(_Port, _Child, 0) ->
+forkstress_1(_Drv, _Child, 0) ->
     ok;
-forkstress_1(Port, Child, N) ->
-    {ok, Fork} = alcove:fork(Port, [Child]),
-    ok = alcove:exit(Port, [Child,Fork], 0),
-    case alcove:version(Port, [Child]) of
+forkstress_1(Drv, Child, N) ->
+    {ok, Fork} = alcove:fork(Drv, [Child]),
+    ok = alcove:exit(Drv, [Child,Fork], 0),
+    case alcove:version(Drv, [Child]) of
         {error, timedout} ->
             fail;
         _ ->
-            forkstress_1(Port, Child, N-1)
+            forkstress_1(Drv, Child, N-1)
     end.

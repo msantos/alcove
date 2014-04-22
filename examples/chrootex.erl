@@ -22,18 +22,18 @@
 start() ->
     alcove_drv:start([{exec, "sudo"}]).
 
-sandbox(Port) ->
-    sandbox(Port, ["/bin/busybox", "cat"]).
-sandbox(Port, Argv) ->
+sandbox(Drv) ->
+    sandbox(Drv, ["/bin/busybox", "cat"]).
+sandbox(Drv, Argv) ->
     {Path, Arg0, Args} = argv(Argv),
 
-    {ok, Child} = alcove:fork(Port),
+    {ok, Child} = alcove:fork(Drv),
 
-    setlimits(Port, Child),
-    chroot(Port, Child, Path),
-    drop_privs(Port, Child, id()),
+    setlimits(Drv, Child),
+    chroot(Drv, Child, Path),
+    drop_privs(Drv, Child, id()),
 
-    ok = alcove:execvp(Port, [Child], Arg0, [Arg0, Args]),
+    ok = alcove:execvp(Drv, [Child], Arg0, [Arg0, Args]),
 
     Child.
 
@@ -42,27 +42,27 @@ argv([Arg0, Args]) ->
     Progname = filename:join(["/", filename:basename(Arg0)]),
     {Path, Progname, Args}.
 
-setlimits(Port, Child) ->
-    RLIMIT_FSIZE = alcove:rlimit_define(Port, 'RLIMIT_FSIZE'),
-    RLIMIT_NPROC = alcove:rlimit_define(Port, 'RLIMIT_NPROC'),
-    RLIMIT_NOFILE = alcove:rlimit_define(Port, 'RLIMIT_NOFILE'),
+setlimits(Drv, Child) ->
+    RLIMIT_FSIZE = alcove:rlimit_define(Drv, 'RLIMIT_FSIZE'),
+    RLIMIT_NPROC = alcove:rlimit_define(Drv, 'RLIMIT_NPROC'),
+    RLIMIT_NOFILE = alcove:rlimit_define(Drv, 'RLIMIT_NOFILE'),
 
-    ok = alcove:setrlimit(Port, [Child], RLIMIT_FSIZE,
+    ok = alcove:setrlimit(Drv, [Child], RLIMIT_FSIZE,
         #rlimit{cur = 0, max = 0}),
 
-    ok = alcove:setrlimit(Port, [Child], RLIMIT_NPROC,
+    ok = alcove:setrlimit(Drv, [Child], RLIMIT_NPROC,
         #rlimit{cur = 1, max = 1}),
 
-    ok = alcove:setrlimit(Port, [Child], RLIMIT_NOFILE,
+    ok = alcove:setrlimit(Drv, [Child], RLIMIT_NOFILE,
         #rlimit{cur = 0, max = 0}).
 
-chroot(Port, Child, Path) ->
-    ok = alcove:chroot(Port, [Child], Path),
-    ok = alcove:chdir(Port, [Child], "/").
+chroot(Drv, Child, Path) ->
+    ok = alcove:chroot(Drv, [Child], Path),
+    ok = alcove:chdir(Drv, [Child], "/").
 
-drop_privs(Port, Child, Id) ->
-    ok = alcove:setgid(Port, [Child], Id),
-    ok = alcove:setuid(Port, [Child], Id).
+drop_privs(Drv, Child, Id) ->
+    ok = alcove:setgid(Drv, [Child], Id),
+    ok = alcove:setuid(Drv, [Child], Id).
 
 id() ->
     16#f0000000 + crypto:rand_uniform(0, 16#ffff).

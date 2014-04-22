@@ -80,22 +80,22 @@ mkerl(File, Proto) ->
 
     % Generate the functions
     Functions = [ begin
-                    % name(Port, ...) -> alcove:call(Port, [], Fun, [...])
+                    % name(Drv, ...) -> alcove:call(Drv, [], Fun, [...])
                     Arg = arg("Arg", Arity),
 
-                    Pattern0 = [erl_syntax:variable("Port")|Arg],
+                    Pattern0 = [erl_syntax:variable("Drv")|Arg],
                     Body0 = erl_syntax:application(
                         erl_syntax:atom(call),
-                        [erl_syntax:variable("Port"), erl_syntax:nil(),
+                        [erl_syntax:variable("Drv"), erl_syntax:nil(),
                             erl_syntax:atom(Fun), erl_syntax:list(Arg)]
                     ),
                     Clause0 = erl_syntax:clause(Pattern0, [], [Body0]),
 
-                    % name(Port, Pids, ...) -> alcove:call(Port, Pids, Fun, [...])
-                    Pattern1 = [erl_syntax:variable("Port"), erl_syntax:variable("Pids")|Arg],
+                    % name(Drv, Pids, ...) -> alcove:call(Drv, Pids, Fun, [...])
+                    Pattern1 = [erl_syntax:variable("Drv"), erl_syntax:variable("Pids")|Arg],
                     Body1 = erl_syntax:application(
                         erl_syntax:atom(call),
-                        [erl_syntax:variable("Port"), erl_syntax:variable("Pids"),
+                        [erl_syntax:variable("Drv"), erl_syntax:variable("Pids"),
                             erl_syntax:atom(Fun), erl_syntax:list(Arg)]
                     ),
                     Clause1 = erl_syntax:clause(Pattern1, [], [Body1]),
@@ -172,31 +172,31 @@ static() ->
 
 static({define,2}) ->
 "
-define(Port, Const) when is_atom(Const) ->
-    define(Port, [Const]);
-define(Port, Consts) when is_list(Consts) ->
+define(Drv, Const) when is_atom(Const) ->
+    define(Drv, [Const]);
+define(Drv, Consts) when is_list(Consts) ->
     lists:foldl(fun(Const,A) ->
                 N = case atom_to_list(Const) of
                     \"CLONE_\" ++ _ ->
-                        alcove:clone_define(Port, Const);
+                        alcove:clone_define(Drv, Const);
                     \"MS_\" ++ _ ->
-                        alcove:mount_define(Port, Const);
+                        alcove:mount_define(Drv, Const);
                     \"MNT_\" ++ _ ->
-                        alcove:mount_define(Port, Const);
+                        alcove:mount_define(Drv, Const);
                     \"O_\" ++ _ ->
-                        alcove:file_define(Port, Const);
+                        alcove:file_define(Drv, Const);
                     \"PR_\" ++ _ ->
-                        alcove:prctl_define(Port, Const);
+                        alcove:prctl_define(Drv, Const);
                     \"RLIMIT_\" ++ _ ->
-                        alcove:rlimit_define(Port, Const);
+                        alcove:rlimit_define(Drv, Const);
                     \"SIG\" ++ _ ->
-                        alcove:signal_define(Port, Const);
+                        alcove:signal_define(Drv, Const);
                     Flag when
                         Flag =:= \"rdonly\";
                         Flag =:= \"nosuid\";
                         Flag =:= \"noexec\";
                         Flag =:= \"noatime\" ->
-                            alcove:mount_define(Port, Const)
+                            alcove:mount_define(Drv, Const)
                 end,
                 N bxor A
         end,
@@ -206,89 +206,89 @@ define(Port, Consts) when is_list(Consts) ->
 
 static({stdin,2}) ->
 "
-stdin(Port, Data) ->
-    stdin(Port, [], Data).
+stdin(Drv, Data) ->
+    stdin(Drv, [], Data).
 ";
 static({stdin,3}) ->
 "
-stdin(Port, Pids, Data) ->
-    alcove_drv:stdin(Port, Pids, Data).
+stdin(Drv, Pids, Data) ->
+    alcove_drv:stdin(Drv, Pids, Data).
 ";
 
 static({stdout,1}) ->
 "
-stdout(Port) ->
-    stdout(Port, [], 0).
+stdout(Drv) ->
+    stdout(Drv, [], 0).
 ";
 static({stdout,2}) ->
 "
-stdout(Port, Pids) ->
-    stdout(Port, Pids, 0).
+stdout(Drv, Pids) ->
+    stdout(Drv, Pids, 0).
 ";
 static({stdout,3}) ->
 "
-stdout(Port, Pids, Timeout) ->
-    alcove_drv:stdout(Port, Pids, Timeout).
+stdout(Drv, Pids, Timeout) ->
+    alcove_drv:stdout(Drv, Pids, Timeout).
 ";
 
 static({stderr,1}) ->
 "
-stderr(Port) ->
-    stderr(Port, [], 0).
+stderr(Drv) ->
+    stderr(Drv, [], 0).
 ";
 static({stderr,2}) ->
 "
-stderr(Port, Pids) ->
-    stderr(Port, Pids, 0).
+stderr(Drv, Pids) ->
+    stderr(Drv, Pids, 0).
 ";
 static({stderr,3}) ->
 "
-stderr(Port, Pids, Timeout) ->
-    alcove_drv:stderr(Port, Pids, Timeout).
+stderr(Drv, Pids, Timeout) ->
+    alcove_drv:stderr(Drv, Pids, Timeout).
 ";
 
 static({eof,2}) ->
 "
-eof(Port, Pids) ->
-    eof(Port, Pids, stdin).
+eof(Drv, Pids) ->
+    eof(Drv, Pids, stdin).
 ";
 static({eof,3}) ->
 "
-eof(_Port, [], _Stdio) ->
+eof(_Drv, [], _Stdio) ->
     {error,esrch};
-eof(Port, Pids0, Stdio) ->
+eof(Drv, Pids0, Stdio) ->
     [Pid|Rest] = lists:reverse(Pids0),
     Pids = lists:reverse(Rest),
-    Proc = pid(Port, Pids),
+    Proc = pid(Drv, Pids),
     case lists:keyfind(Pid, 2, Proc) of
         false ->
             {error,esrch};
         N ->
-            eof_1(Port, Pids, N, Stdio)
+            eof_1(Drv, Pids, N, Stdio)
     end.
 
-eof_1(Port, Pids, #alcove_pid{stdin = FD}, stdin) ->
-    close(Port, Pids, FD);
-eof_1(Port, Pids, #alcove_pid{stdout = FD}, stdout) ->
-    close(Port, Pids, FD);
-eof_1(Port, Pids, #alcove_pid{stderr = FD}, stderr) ->
-    close(Port, Pids, FD).
+eof_1(Drv, Pids, #alcove_pid{stdin = FD}, stdin) ->
+    close(Drv, Pids, FD);
+eof_1(Drv, Pids, #alcove_pid{stdout = FD}, stdout) ->
+    close(Drv, Pids, FD);
+eof_1(Drv, Pids, #alcove_pid{stderr = FD}, stderr) ->
+    close(Drv, Pids, FD).
 ";
 
 static({event,1}) ->
 "
-event(Port) ->
-    event(Port, [], 0).
+event(Drv) ->
+    event(Drv, [], 0).
 ";
 static({event,2}) ->
 "
-event(Port, Pids) ->
-    event(Port, Pids, 0).
+event(Drv, Pids) ->
+    event(Drv, Pids, 0).
 ";
 static({event,3}) ->
 "
-event(Port, Pids, Timeout) ->
-    alcove_drv:event_data(Port, Pids, ?ALCOVE_MSG_EVENT, Timeout).
+event(Drv, Pids, Timeout) ->
+    alcove_drv:event(Drv, Pids, Timeout).
 ";
 
 static({encode,3}) ->
@@ -313,20 +313,20 @@ lookup(Cmd, N, Cmds, Max) when N =< Max ->
 ";
 static({call,2}) ->
 "
-call(Port, Command) ->
-    call(Port, [], Command, []).
+call(Drv, Command) ->
+    call(Drv, [], Command, []).
 ";
 static({call,3}) ->
 "
-call(Port, Command, Options) ->
-    call(Port, [], Command, Options).
+call(Drv, Command, Options) ->
+    call(Drv, [], Command, Options).
 ";
 static({call,4}) ->
 "
-call(Port, Pids, Command, Arg) when is_port(Port), is_list(Arg) ->
-    case alcove_drv:call(Port, Pids, encode(Command, Pids, Arg)) of
+call(Drv, Pids, Command, Arg) when is_pid(Drv), is_list(Arg) ->
+    case alcove_drv:call(Drv, Pids, encode(Command, Pids, Arg)) of
         badarg ->
-            erlang:error(badarg, [Port, Command, Arg]);
+            erlang:error(badarg, [Drv, Command, Arg]);
         Reply ->
             Reply
     end.
@@ -338,144 +338,144 @@ includes(Header) ->
 % FIXME hack for hard coding typespecs
 specs() ->
 "
--spec chdir(port(),iodata()) -> 'ok' | {'error', file:posix()}.
--spec chdir(port(),list(integer()),iodata()) -> 'ok' | {'error', file:posix()}.
+-spec chdir(pid(),iodata()) -> 'ok' | {'error', file:posix()}.
+-spec chdir(pid(),list(integer()),iodata()) -> 'ok' | {'error', file:posix()}.
 
--spec chmod(port(),iodata(),integer()) -> 'ok' | {'error', file:posix()}.
--spec chmod(port(),[integer()],iodata(),integer()) -> 'ok' | {'error', file:posix()}.
+-spec chmod(pid(),iodata(),integer()) -> 'ok' | {'error', file:posix()}.
+-spec chmod(pid(),[integer()],iodata(),integer()) -> 'ok' | {'error', file:posix()}.
 
--spec chown(port(),iodata(),non_neg_integer(),non_neg_integer()) -> 'ok' | {'error', file:posix()}.
--spec chown(port(),[integer()],iodata(),non_neg_integer(),non_neg_integer()) -> 'ok' | {'error', file:posix()}.
+-spec chown(pid(),iodata(),non_neg_integer(),non_neg_integer()) -> 'ok' | {'error', file:posix()}.
+-spec chown(pid(),[integer()],iodata(),non_neg_integer(),non_neg_integer()) -> 'ok' | {'error', file:posix()}.
 
--spec chroot(port(),iodata()) -> 'ok' | {'error', file:posix()}.
--spec chroot(port(),list(integer()),iodata()) -> 'ok' | {'error', file:posix()}.
+-spec chroot(pid(),iodata()) -> 'ok' | {'error', file:posix()}.
+-spec chroot(pid(),list(integer()),iodata()) -> 'ok' | {'error', file:posix()}.
 
--spec clearenv(port()) -> 'ok' | {'error', file:posix()}.
--spec clearenv(port(),[integer()]) -> 'ok' | {'error', file:posix()}.
+-spec clearenv(pid()) -> 'ok' | {'error', file:posix()}.
+-spec clearenv(pid(),[integer()]) -> 'ok' | {'error', file:posix()}.
 
--spec clone(port(),non_neg_integer()) -> {'ok', non_neg_integer()} | {'error', file:posix()}.
--spec clone(port(),[integer()],non_neg_integer()) -> {'ok', non_neg_integer()} | {'error', file:posix()}.
+-spec clone(pid(),non_neg_integer()) -> {'ok', non_neg_integer()} | {'error', file:posix()}.
+-spec clone(pid(),[integer()],non_neg_integer()) -> {'ok', non_neg_integer()} | {'error', file:posix()}.
 
--spec clone_define(port(),atom()) -> 'false' | non_neg_integer().
--spec clone_define(port(),[integer()],atom()) -> 'false' | non_neg_integer().
+-spec clone_define(pid(),atom()) -> 'false' | non_neg_integer().
+-spec clone_define(pid(),[integer()],atom()) -> 'false' | non_neg_integer().
 
--spec close(port(),integer()) -> 'ok' | {'error', file:posix()}.
--spec close(port(),[integer()],integer()) -> 'ok' | {'error', file:posix()}.
+-spec close(pid(),integer()) -> 'ok' | {'error', file:posix()}.
+-spec close(pid(),[integer()],integer()) -> 'ok' | {'error', file:posix()}.
 
--spec define(port(),atom() | [atom()]) -> integer().
+-spec define(pid(),atom() | [atom()]) -> integer().
 
--spec environ(port()) -> [binary()].
--spec environ(port(),[integer()]) -> [binary()].
+-spec environ(pid()) -> [binary()].
+-spec environ(pid(),[integer()]) -> [binary()].
 
--spec execve(port(),iodata(),[iodata()],[iodata()]) -> 'ok'.
--spec execve(port(),list(integer()),iodata(),[iodata()],[iodata()]) -> 'ok'.
+-spec execve(pid(),iodata(),[iodata()],[iodata()]) -> 'ok'.
+-spec execve(pid(),list(integer()),iodata(),[iodata()],[iodata()]) -> 'ok'.
 
--spec execvp(port(),iodata(),[iodata()]) -> 'ok'.
--spec execvp(port(),list(integer()),iodata(),[iodata()]) -> 'ok'.
+-spec execvp(pid(),iodata(),[iodata()]) -> 'ok'.
+-spec execvp(pid(),list(integer()),iodata(),[iodata()]) -> 'ok'.
 
--spec exit(port(),integer()) -> 'ok'.
--spec exit(port(),list(integer()),integer()) -> 'ok'.
+-spec exit(pid(),integer()) -> 'ok'.
+-spec exit(pid(),list(integer()),integer()) -> 'ok'.
 
--spec fork(port()) -> {'ok', non_neg_integer()} | {'error', file:posix()}.
--spec fork(port(),[integer()]) -> {'ok', non_neg_integer()} | {'error', file:posix()}.
+-spec fork(pid()) -> {'ok', non_neg_integer()} | {'error', file:posix()}.
+-spec fork(pid(),[integer()]) -> {'ok', non_neg_integer()} | {'error', file:posix()}.
 
--spec getcwd(port()) -> {'ok', binary()} | {'error', file:posix()}.
--spec getcwd(port(),list(integer())) -> {'ok', binary()} | {'error', file:posix()}.
+-spec getcwd(pid()) -> {'ok', binary()} | {'error', file:posix()}.
+-spec getcwd(pid(),list(integer())) -> {'ok', binary()} | {'error', file:posix()}.
 
--spec getenv(port(),iodata()) -> binary() | 'false'.
--spec getenv(port(),list(integer()),iodata()) -> binary() | 'false'.
+-spec getenv(pid(),iodata()) -> binary() | 'false'.
+-spec getenv(pid(),list(integer()),iodata()) -> binary() | 'false'.
 
--spec getgid(port()) -> non_neg_integer().
--spec getgid(port(),list(integer())) -> non_neg_integer().
+-spec getgid(pid()) -> non_neg_integer().
+-spec getgid(pid(),list(integer())) -> non_neg_integer().
 
--spec gethostname(port()) -> {'ok', binary()} | {'error', file:posix()}.
--spec gethostname(port(),list(integer())) -> {'ok', binary()} | {'error', file:posix()}.
+-spec gethostname(pid()) -> {'ok', binary()} | {'error', file:posix()}.
+-spec gethostname(pid(),list(integer())) -> {'ok', binary()} | {'error', file:posix()}.
 
--spec getpid(port()) -> non_neg_integer().
--spec getpid(port(),list(integer())) -> non_neg_integer().
+-spec getpid(pid()) -> non_neg_integer().
+-spec getpid(pid(),list(integer())) -> non_neg_integer().
 
--spec getrlimit(port(),non_neg_integer()) -> {'ok', #rlimit{}} | {'error', file:posix()}.
--spec getrlimit(port(),list(integer()),non_neg_integer()) -> {'ok', #rlimit{}} | {'error', file:posix()}.
+-spec getrlimit(pid(),non_neg_integer()) -> {'ok', #rlimit{}} | {'error', file:posix()}.
+-spec getrlimit(pid(),list(integer()),non_neg_integer()) -> {'ok', #rlimit{}} | {'error', file:posix()}.
 
--spec getuid(port()) -> non_neg_integer().
--spec getuid(port(),list(integer())) -> non_neg_integer().
+-spec getuid(pid()) -> non_neg_integer().
+-spec getuid(pid(),list(integer())) -> non_neg_integer().
 
--spec kill(port(), integer(), integer()) -> 'ok' | {'error', file:posix()}.
--spec kill(port(), [integer()], integer(), integer()) -> 'ok' | {'error', file:posix()}.
+-spec kill(pid(), integer(), integer()) -> 'ok' | {'error', file:posix()}.
+-spec kill(pid(), [integer()], integer(), integer()) -> 'ok' | {'error', file:posix()}.
 
--spec mkdir(port(),iodata(),integer()) -> 'ok' | {'error', file:posix()}.
--spec mkdir(port(),[integer()],iodata(),integer()) -> 'ok' | {'error', file:posix()}.
+-spec mkdir(pid(),iodata(),integer()) -> 'ok' | {'error', file:posix()}.
+-spec mkdir(pid(),[integer()],iodata(),integer()) -> 'ok' | {'error', file:posix()}.
 
--spec mount(port(),iodata(),iodata(),iodata(),integer(),iodata()) -> 'ok' | {'error', file:posix()}.
--spec mount(port(),[integer()],iodata(),iodata(),iodata(),integer(),iodata()) -> 'ok' | {'error', file:posix()}.
+-spec mount(pid(),iodata(),iodata(),iodata(),integer(),iodata()) -> 'ok' | {'error', file:posix()}.
+-spec mount(pid(),[integer()],iodata(),iodata(),iodata(),integer(),iodata()) -> 'ok' | {'error', file:posix()}.
 
--spec mount_define(port(),atom()) -> 'false' | non_neg_integer().
--spec mount_define(port(),[integer()],atom()) -> 'false' | non_neg_integer().
+-spec mount_define(pid(),atom()) -> 'false' | non_neg_integer().
+-spec mount_define(pid(),[integer()],atom()) -> 'false' | non_neg_integer().
 
--spec open(port(),iodata(),integer(),integer()) -> {'ok',integer()} | {'error', file:posix()}.
--spec open(port(),[integer()],iodata(),integer(),integer()) -> {'ok',integer()} | {'error', file:posix()}.
+-spec open(pid(),iodata(),integer(),integer()) -> {'ok',integer()} | {'error', file:posix()}.
+-spec open(pid(),[integer()],iodata(),integer(),integer()) -> {'ok',integer()} | {'error', file:posix()}.
 
--spec pid(port()) -> [#alcove_pid{}].
--spec pid(port(),[integer()]) -> [#alcove_pid{}].
+-spec pid(pid()) -> [#alcove_pid{}].
+-spec pid(pid(),[integer()]) -> [#alcove_pid{}].
 
 -type prctl_arg() :: iodata() | non_neg_integer().
 -type prctl_val() :: binary() | non_neg_integer().
 
--spec prctl(port(),integer(),prctl_arg(),prctl_arg(),prctl_arg(),prctl_arg()) -> {'ok',integer(),prctl_val(),prctl_val(),prctl_val(),prctl_val()}.
--spec prctl(port(),[integer()],integer(),prctl_arg(),prctl_arg(),prctl_arg(),prctl_arg()) -> {'ok',integer(),prctl_val(),prctl_val(),prctl_val(),prctl_val()}.
+-spec prctl(pid(),integer(),prctl_arg(),prctl_arg(),prctl_arg(),prctl_arg()) -> {'ok',integer(),prctl_val(),prctl_val(),prctl_val(),prctl_val()}.
+-spec prctl(pid(),[integer()],integer(),prctl_arg(),prctl_arg(),prctl_arg(),prctl_arg()) -> {'ok',integer(),prctl_val(),prctl_val(),prctl_val(),prctl_val()}.
 
--spec prctl_define(port(),atom()) -> 'false' | non_neg_integer().
--spec prctl_define(port(),[integer()],atom()) -> 'false' | non_neg_integer().
+-spec prctl_define(pid(),atom()) -> 'false' | non_neg_integer().
+-spec prctl_define(pid(),[integer()],atom()) -> 'false' | non_neg_integer().
 
--spec read(port(),integer(),non_neg_integer()) -> {'ok', binary()} | {'error', file:posix()}.
--spec read(port(),[integer()],integer(),non_neg_integer()) -> {'ok', binary()} | {'error', file:posix()}.
+-spec read(pid(),integer(),non_neg_integer()) -> {'ok', binary()} | {'error', file:posix()}.
+-spec read(pid(),[integer()],integer(),non_neg_integer()) -> {'ok', binary()} | {'error', file:posix()}.
 
--spec readdir(port(),iodata()) -> {'ok', [binary()]} | {'error', file:posix()}.
--spec readdir(port(),[integer()],iodata()) -> {'ok', [binary()]} | {'error', file:posix()}.
+-spec readdir(pid(),iodata()) -> {'ok', [binary()]} | {'error', file:posix()}.
+-spec readdir(pid(),[integer()],iodata()) -> {'ok', [binary()]} | {'error', file:posix()}.
 
--spec rlimit_define(port(),atom()) -> 'false' | non_neg_integer().
--spec rlimit_define(port(),[integer()],atom()) -> 'false' | non_neg_integer().
+-spec rlimit_define(pid(),atom()) -> 'false' | non_neg_integer().
+-spec rlimit_define(pid(),[integer()],atom()) -> 'false' | non_neg_integer().
 
--spec setenv(port(),iodata(),iodata(),integer()) -> 'ok' | {'error', file:posix()}.
--spec setenv(port(),list(integer()),iodata(),iodata(),integer()) -> 'ok' | {'error', file:posix()}.
+-spec setenv(pid(),iodata(),iodata(),integer()) -> 'ok' | {'error', file:posix()}.
+-spec setenv(pid(),list(integer()),iodata(),iodata(),integer()) -> 'ok' | {'error', file:posix()}.
 
--spec setgid(port(),non_neg_integer()) -> 'ok' | {'error', file:posix()}.
--spec setgid(port(),list(integer()),non_neg_integer()) -> 'ok' | {'error', file:posix()}.
+-spec setgid(pid(),non_neg_integer()) -> 'ok' | {'error', file:posix()}.
+-spec setgid(pid(),list(integer()),non_neg_integer()) -> 'ok' | {'error', file:posix()}.
 
--spec sethostname(port(),iodata()) -> 'ok' | {'error', file:posix()}.
--spec sethostname(port(),list(integer()),iodata()) -> 'ok' | {'error', file:posix()}.
+-spec sethostname(pid(),iodata()) -> 'ok' | {'error', file:posix()}.
+-spec sethostname(pid(),list(integer()),iodata()) -> 'ok' | {'error', file:posix()}.
 
--spec setns(port(),iodata()) -> 'ok' | {'error', file:posix()}.
--spec setns(port(),list(integer()),iodata()) -> 'ok' | {'error', file:posix()}.
+-spec setns(pid(),iodata()) -> 'ok' | {'error', file:posix()}.
+-spec setns(pid(),list(integer()),iodata()) -> 'ok' | {'error', file:posix()}.
 
--spec setrlimit(port(),non_neg_integer(),#rlimit{}) -> 'ok' | {'error', file:posix()}.
--spec setrlimit(port(),list(integer()),non_neg_integer(),#rlimit{}) -> 'ok' | {'error', file:posix()}.
+-spec setrlimit(pid(),non_neg_integer(),#rlimit{}) -> 'ok' | {'error', file:posix()}.
+-spec setrlimit(pid(),list(integer()),non_neg_integer(),#rlimit{}) -> 'ok' | {'error', file:posix()}.
 
--spec setuid(port(),non_neg_integer()) -> 'ok' | {'error', file:posix()}.
--spec setuid(port(),list(integer()),non_neg_integer()) -> 'ok' | {'error', file:posix()}.
+-spec setuid(pid(),non_neg_integer()) -> 'ok' | {'error', file:posix()}.
+-spec setuid(pid(),list(integer()),non_neg_integer()) -> 'ok' | {'error', file:posix()}.
 
--spec sigaction(port(),integer(),atom()) -> 'ok' | {'error', file:posix()}.
--spec sigaction(port(),[integer()],integer(),atom()) -> 'ok' | {'error', file:posix()}.
+-spec sigaction(pid(),integer(),atom()) -> 'ok' | {'error', file:posix()}.
+-spec sigaction(pid(),[integer()],integer(),atom()) -> 'ok' | {'error', file:posix()}.
 
--spec signal_define(port(),atom()) -> 'false' | non_neg_integer().
--spec signal_define(port(),[integer()],atom()) -> 'false' | non_neg_integer().
+-spec signal_define(pid(),atom()) -> 'false' | non_neg_integer().
+-spec signal_define(pid(),[integer()],atom()) -> 'false' | non_neg_integer().
 
--spec stderr(port(),list(integer()),'infinity' | non_neg_integer()) -> 'false' | binary().
--spec stdin(port(),list(integer()),iodata()) -> 'true'.
--spec stdout(port(),list(integer()),'infinity' | non_neg_integer()) -> 'false' | binary().
+-spec stderr(pid(),list(integer()),'infinity' | non_neg_integer()) -> 'false' | binary().
+-spec stdin(pid(),list(integer()),iodata()) -> 'true'.
+-spec stdout(pid(),list(integer()),'infinity' | non_neg_integer()) -> 'false' | binary().
 
--spec umount(port(),iodata()) -> 'ok' | {error, file:posix()}.
--spec umount(port(),[integer()],iodata()) -> 'ok' | {error, file:posix()}.
+-spec umount(pid(),iodata()) -> 'ok' | {error, file:posix()}.
+-spec umount(pid(),[integer()],iodata()) -> 'ok' | {error, file:posix()}.
 
--spec unsetenv(port(),iodata()) -> 'ok' | {error, file:posix()}.
--spec unsetenv(port(),[integer()],iodata()) -> 'ok' | {error, file:posix()}.
+-spec unsetenv(pid(),iodata()) -> 'ok' | {error, file:posix()}.
+-spec unsetenv(pid(),[integer()],iodata()) -> 'ok' | {error, file:posix()}.
 
--spec unshare(port(),non_neg_integer()) -> 'ok' | {'error', file:posix()}.
--spec unshare(port(),[integer()],non_neg_integer()) -> 'ok' | {'error', file:posix()}.
+-spec unshare(pid(),non_neg_integer()) -> 'ok' | {'error', file:posix()}.
+-spec unshare(pid(),[integer()],non_neg_integer()) -> 'ok' | {'error', file:posix()}.
 
--spec write(port(),integer(),iodata()) -> {'ok', non_neg_integer()} | {'error', file:posix()}.
--spec write(port(),[integer()],integer(),iodata()) -> {'ok', non_neg_integer()} | {'error', file:posix()}.
+-spec write(pid(),integer(),iodata()) -> {'ok', non_neg_integer()} | {'error', file:posix()}.
+-spec write(pid(),[integer()],integer(),iodata()) -> {'ok', non_neg_integer()} | {'error', file:posix()}.
 
--spec version(port()) -> binary() | {'error', 'timedout'}.
--spec version(port(),list(integer())) -> binary() | {'error', 'timedout'}.
+-spec version(pid()) -> binary() | {'error', 'timedout'}.
+-spec version(pid(),list(integer())) -> binary() | {'error', 'timedout'}.
 ".

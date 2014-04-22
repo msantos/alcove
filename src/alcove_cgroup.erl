@@ -21,14 +21,14 @@
 -export([is_file/3, is_dir/3]).
 -export([mounts/1, mounts/2]).
 
-supported(Port) ->
-    supported(Port, []).
+supported(Drv) ->
+    supported(Drv, []).
 
-supported(Port, Pids) ->
+supported(Drv, Pids) ->
     foreach([
         fun() -> {unix,linux} =:= os:type() end,
-        fun() -> [] =/= cgroup(Port, Pids) end,
-        fun() -> Val = get(Port, Pids, <<"cpuset">>, <<>>,
+        fun() -> [] =/= cgroup(Drv, Pids) end,
+        fun() -> Val = get(Drv, Pids, <<"cpuset">>, <<>>,
                     <<"notify_on_release">>),
                 is_tuple(Val) andalso ok =:= element(1, Val)
         end
@@ -43,98 +43,98 @@ supported(Port, Pids) ->
 %%  * the process may be running in a chroot or a different mount namespace
 %%
 
-create(Port) ->
-    create(Port, []).
-create(Port, Pids) ->
-    create(Port, Pids, <<"alcove">>).
-create(Port, Pids, Namespace) ->
+create(Drv) ->
+    create(Drv, []).
+create(Drv, Pids) ->
+    create(Drv, Pids, <<"alcove">>).
+create(Drv, Pids, Namespace) ->
     Fun = fun(Cgroup, _Acc) ->
             Path = join(Cgroup, Namespace),
-            case alcove:mkdir(Port, Pids, Path, 8#755) of
+            case alcove:mkdir(Drv, Pids, Path, 8#755) of
                 ok -> ok;
                 {error,eexist} -> ok;
                 Error -> Error
             end
     end,
-    fold(Port, <<>>, <<>>, Fun, []).
+    fold(Drv, <<>>, <<>>, Fun, []).
 
-destroy(Port) ->
-    destroy(Port, []).
-destroy(Port, Pids) ->
-    destroy(Port, Pids, <<"alcove">>).
-destroy(Port, Pids, Namespace) ->
+destroy(Drv) ->
+    destroy(Drv, []).
+destroy(Drv, Pids) ->
+    destroy(Drv, Pids, <<"alcove">>).
+destroy(Drv, Pids, Namespace) ->
     Fun = fun(Cgroup, _Acc) ->
             Path = join(Cgroup, Namespace),
-            case alcove:rmdir(Port, Pids, Path) of
+            case alcove:rmdir(Drv, Pids, Path) of
                 ok -> ok;
                 {error,enoent} -> ok;
                 Error -> Error
             end
     end,
-    fold(Port, <<>>, <<>>, Fun, []).
+    fold(Drv, <<>>, <<>>, Fun, []).
 
-set(Port, Pids, MntOpt, Namespace, Key, Value) ->
+set(Drv, Pids, MntOpt, Namespace, Key, Value) ->
     Fun = fun(Cgroup, _Acc) ->
             File = join(Cgroup, Key),
-            write(Port, Pids, File, Value)
+            write(Drv, Pids, File, Value)
     end,
-    fold(Port, MntOpt, Namespace, Fun, []).
+    fold(Drv, MntOpt, Namespace, Fun, []).
 
-get(Port, Pids, MntOpt, Namespace, Key) ->
+get(Drv, Pids, MntOpt, Namespace, Key) ->
     Fun = fun(Cgroup, _Acc) ->
             File = join(Cgroup, Key),
-            read(Port, Pids, File)
+            read(Drv, Pids, File)
     end,
-    fold(Port, MntOpt, Namespace, Fun, []).
+    fold(Drv, MntOpt, Namespace, Fun, []).
 
-write(Port, Pids, File, Bytes) ->
-    Flags = alcove:define(Port, 'O_WRONLY'),
-    Reply = case alcove:open(Port, Pids, File, Flags, 0) of
+write(Drv, Pids, File, Bytes) ->
+    Flags = alcove:define(Drv, 'O_WRONLY'),
+    Reply = case alcove:open(Drv, Pids, File, Flags, 0) of
         {ok, FH} ->
-            N = alcove:write(Port, Pids, FH, Bytes),
-            alcove:close(Port, Pids, FH),
+            N = alcove:write(Drv, Pids, FH, Bytes),
+            alcove:close(Drv, Pids, FH),
             N;
         Error ->
             Error
     end,
     Reply.
 
-read(Port, Pids, File) ->
-    Flags = alcove:define(Port, 'O_RDONLY'),
-    Reply = case alcove:open(Port, Pids, File, Flags, 0) of
+read(Drv, Pids, File) ->
+    Flags = alcove:define(Drv, 'O_RDONLY'),
+    Reply = case alcove:open(Drv, Pids, File, Flags, 0) of
         {ok, FH} ->
-            N = readbuf(Port, Pids, FH),
-            alcove:close(Port, Pids, FH),
+            N = readbuf(Drv, Pids, FH),
+            alcove:close(Drv, Pids, FH),
             N;
         Error ->
             Error
     end,
     Reply.
 
-fold(Port, MntOpt, Namespace, Fun, AccIn) ->
-    fold(Port, [], MntOpt, Namespace, Fun, AccIn).
+fold(Drv, MntOpt, Namespace, Fun, AccIn) ->
+    fold(Drv, [], MntOpt, Namespace, Fun, AccIn).
 
-fold(Port, Pids, MntOpt, Namespace, Fun, AccIn) ->
+fold(Drv, Pids, MntOpt, Namespace, Fun, AccIn) ->
     Cgroups = lists:foldl(fun({Cgroup, Opt}, Acc) ->
                 Path = join(Cgroup, Namespace),
                 IsCgroup = (MntOpt =:= <<>> orelse lists:member(MntOpt,Opt))
-                    andalso is_dir(Port, Pids, Path),
+                    andalso is_dir(Drv, Pids, Path),
                 case IsCgroup of
                     true -> [Path|Acc];
                     false -> Acc
                 end
-        end, [], cgroup(Port, Pids)),
+        end, [], cgroup(Drv, Pids)),
 
     lists:foldl(Fun, AccIn, Cgroups).
 
-fold_files(Port, MntOpt, Namespace, RegExp, Fun, AccIn) ->
-    fold_files(Port, [], MntOpt, Namespace, RegExp, Fun, AccIn).
+fold_files(Drv, MntOpt, Namespace, RegExp, Fun, AccIn) ->
+    fold_files(Drv, [], MntOpt, Namespace, RegExp, Fun, AccIn).
 
-fold_files(Port, Pids, MntOpt, Namespace, RegExp, CallerFun, AccIn) ->
+fold_files(Drv, Pids, MntOpt, Namespace, RegExp, CallerFun, AccIn) ->
     {ok, MP} = re:compile(RegExp),
 
     Fun = fun(Dir, Acc) ->
-            {ok, Fs} = alcove:readdir(Port, Pids, Dir),
+            {ok, Fs} = alcove:readdir(Drv, Pids, Dir),
             Filtered = lists:filter(fun(File) ->
                         case re:run(File, MP) of
                             nomatch ->
@@ -146,41 +146,41 @@ fold_files(Port, Pids, MntOpt, Namespace, RegExp, CallerFun, AccIn) ->
             lists:foldl(CallerFun, Acc, Filtered)
         end,
 
-    fold(Port, Pids, MntOpt, Namespace, Fun, AccIn).
+    fold(Drv, Pids, MntOpt, Namespace, Fun, AccIn).
 
-cgroup(Port) ->
-    cgroup(Port, []).
-cgroup(Port, Pids) ->
-    {ok, Entries} = mounts(Port, Pids),
+cgroup(Drv) ->
+    cgroup(Drv, []).
+cgroup(Drv, Pids) ->
+    {ok, Entries} = mounts(Drv, Pids),
     [ {Dir, binary:split(MntOpts, [<<",">>], [global])} ||
         {<<"cgroup">>, Dir, <<"cgroup">>, MntOpts, _Freq, _Passno} <- Entries ].
 
-mounts(Port) ->
-    mounts(Port, []).
-mounts(Port, Pids) ->
-    Flags = alcove:define(Port, 'O_RDONLY'),
-    case alcove:open(Port, Pids, "/proc/mounts", Flags, 0) of
+mounts(Drv) ->
+    mounts(Drv, []).
+mounts(Drv, Pids) ->
+    Flags = alcove:define(Drv, 'O_RDONLY'),
+    case alcove:open(Drv, Pids, "/proc/mounts", Flags, 0) of
         {ok, FD} ->
-            Reply = case readbuf(Port, Pids, FD) of
+            Reply = case readbuf(Drv, Pids, FD) of
                 {ok, Buf} ->
                     {ok, fsentry(Buf)};
                 Error ->
                     Error
             end,
-            alcove:close(Port, Pids, FD),
+            alcove:close(Drv, Pids, FD),
             Reply;
         _ ->
             {ok, []}
     end.
 
-readbuf(Port, Pids, FD) ->
-    readbuf(Port, Pids, FD, []).
-readbuf(Port, Pids, FD, Acc) ->
-    case alcove:read(Port, Pids, FD, 1024) of
+readbuf(Drv, Pids, FD) ->
+    readbuf(Drv, Pids, FD, []).
+readbuf(Drv, Pids, FD, Acc) ->
+    case alcove:read(Drv, Pids, FD, 1024) of
         {ok, <<>>} ->
             {ok, list_to_binary(lists:reverse(Acc))};
         {ok, Buf} ->
-            readbuf(Port, Pids, FD, [Buf|Acc]);
+            readbuf(Drv, Pids, FD, [Buf|Acc]);
         Error ->
             Error
     end.
@@ -190,21 +190,21 @@ fsentry(Buf) ->
     [ list_to_tuple(binary:split(Entry, [<<"\s">>], [global])) ||
         Entry <- Entries ].
 
-is_dir(Port, Pids, Path) ->
-    Flags = alcove:define(Port, 'O_WRONLY'),
-    case alcove:open(Port, Pids, Path, Flags, 0) of
+is_dir(Drv, Pids, Path) ->
+    Flags = alcove:define(Drv, 'O_WRONLY'),
+    case alcove:open(Drv, Pids, Path, Flags, 0) of
         {error,eisdir} -> true;
         {error,_} -> false;
         {ok, FH} ->
-            alcove:close(Port, Pids, FH),
+            alcove:close(Drv, Pids, FH),
             false
     end.
 
-is_file(Port, Pids, File) ->
-    Flags = alcove:define(Port, ['O_RDONLY']),
-    case alcove:open(Port, Pids, File, Flags, 0) of
+is_file(Drv, Pids, File) ->
+    Flags = alcove:define(Drv, ['O_RDONLY']),
+    case alcove:open(Drv, Pids, File, Flags, 0) of
         {ok, FH} ->
-            alcove:close(Port, FH),
+            alcove:close(Drv, FH),
             true;
         _ ->
             false

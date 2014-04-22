@@ -20,43 +20,43 @@
     ]).
 
 start() ->
-    Port = alcove_drv:start([{exec, "sudo"}]),
-    case alcove_cgroup:supported(Port) of
+    {ok, Drv} = alcove_drv:start([{exec, "sudo"}]),
+    case alcove_cgroup:supported(Drv) of
         true ->
-            ok = alcove_cgroup:create(Port, [], <<"alcove">>),
-            {ok,1} = alcove_cgroup:set(Port, [], <<"cpuset">>, <<"alcove">>,
+            ok = alcove_cgroup:create(Drv, [], <<"alcove">>),
+            {ok,1} = alcove_cgroup:set(Drv, [], <<"cpuset">>, <<"alcove">>,
                 <<"cpuset.cpus">>, <<"0">>),
-            {ok,1} = alcove_cgroup:set(Port, [], <<"cpuset">>, <<"alcove">>,
+            {ok,1} = alcove_cgroup:set(Drv, [], <<"cpuset">>, <<"alcove">>,
                 <<"cpuset.mems">>, <<"0">>),
-            alcove_cgroup:set(Port, [], <<"memory">>, <<"alcove">>,
+            alcove_cgroup:set(Drv, [], <<"memory">>, <<"alcove">>,
                 <<"memory.memsw.limit_in_bytes">>, <<"16m">>),
-            {ok,3} = alcove_cgroup:set(Port, [], <<"memory">>, <<"alcove">>,
+            {ok,3} = alcove_cgroup:set(Drv, [], <<"memory">>, <<"alcove">>,
                 <<"memory.limit_in_bytes">>, <<"16m">>),
-            Port;
+            Drv;
         false ->
-            alcove_drv:stop(Port),
+            alcove_drv:stop(Drv),
             {error,unsupported}
     end.
 
-sandbox(Port) ->
-    sandbox(Port, ["/bin/busybox", "cat"]).
-sandbox(Port, Argv) ->
+sandbox(Drv) ->
+    sandbox(Drv, ["/bin/busybox", "cat"]).
+sandbox(Drv, Argv) ->
     {Path, Arg0, Args} = argv(Argv),
 
-    Flags = alcove:define(Port, [
+    Flags = alcove:define(Drv, [
             'CLONE_NEWIPC',
             'CLONE_NEWNET',
             'CLONE_NEWNS',
             'CLONE_NEWPID',
             'CLONE_NEWUTS'
         ]),
-    {ok, Child} = alcove:clone(Port, Flags),
+    {ok, Child} = alcove:clone(Drv, Flags),
 
-    setlimits(Port, Child),
-    chroot(Port, Child, Path),
-    drop_privs(Port, Child, id()),
+    setlimits(Drv, Child),
+    chroot(Drv, Child, Path),
+    drop_privs(Drv, Child, id()),
 
-    ok = alcove:execvp(Port, [Child], Arg0, [Arg0, Args]),
+    ok = alcove:execvp(Drv, [Child], Arg0, [Arg0, Args]),
 
     Child.
 
@@ -65,17 +65,17 @@ argv([Arg0, Args]) ->
     Progname = filename:join(["/", filename:basename(Arg0)]),
     {Path, Progname, Args}.
 
-setlimits(Port, Child) ->
-    {ok,_} = alcove_cgroup:set(Port, [], <<>>, <<"alcove">>,
+setlimits(Drv, Child) ->
+    {ok,_} = alcove_cgroup:set(Drv, [], <<>>, <<"alcove">>,
         <<"tasks">>, integer_to_list(Child)).
 
-chroot(Port, Child, Path) ->
-    ok = alcove:chroot(Port, [Child], Path),
-    ok = alcove:chdir(Port, [Child], "/").
+chroot(Drv, Child, Path) ->
+    ok = alcove:chroot(Drv, [Child], Path),
+    ok = alcove:chdir(Drv, [Child], "/").
 
-drop_privs(Port, Child, Id) ->
-    ok = alcove:setgid(Port, [Child], Id),
-    ok = alcove:setuid(Port, [Child], Id).
+drop_privs(Drv, Child, Id) ->
+    ok = alcove:setgid(Drv, [Child], Id),
+    ok = alcove:setuid(Drv, [Child], Id).
 
 id() ->
     16#f0000000 + crypto:rand_uniform(0, 16#ffff).
