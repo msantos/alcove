@@ -204,14 +204,8 @@ code_change(_OldVsn, State, _Extra) ->
 
 % Reply from a child process.
 %
-% The parent process may coalesce 2 writes from the child into 1 read. The
-% parent could read the length header then read length bytes except that
-% the child may have called execvp(). After calling exec(), the data
-% returned from the child will not contain a length header.
-%
-% Work around this by converting the reply into a list of messages. The
-% first message matching the requested type is returned to the caller. The
-% remaining messages are pushed back into the process' mailbox.
+% Several writes from the child process may be coalesced into 1 read by
+% the parent.
 handle_info({Port, {data, Data}}, #state{port = Port, pid = Pid} = State) ->
     [ Pid ! {self(), Msg} || Msg <- decode(Data) ],
     {noreply, State};
