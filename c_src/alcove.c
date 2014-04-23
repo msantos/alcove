@@ -111,9 +111,6 @@ main(int argc, char *argv[])
     ap->maxchild = ap->maxfd / 4 - 4;
     ap->maxforkdepth = MAXFORKDEPTH;
 
-    /* SIGCHLD notification enabled by default */
-    ALCOVE_SETOPT(ap, alcove_opt_sigchld, 1);
-
     while ( (ch = getopt(argc, argv, "ae:m:M:hs:S:v")) != -1) {
         switch (ch) {
             case 'e':
