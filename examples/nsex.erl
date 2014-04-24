@@ -78,4 +78,4 @@ drop_privs(Drv, Child, Id) ->
     ok = alcove:setuid(Drv, [Child], Id).
 
 id() ->
-    16#f0000000 + crypto:rand_uniform(0, 16#ffff).
+    crypto:rand_uniform(16#f0000000, 16#f000ffff).

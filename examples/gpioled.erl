@@ -95,7 +95,7 @@ strobe(Drv, Child, FD, N) ->
     strobe(Drv, Child, FD, N-1).
 
 id() ->
-    16#f0000000 + crypto:rand_uniform(0, 16#ffff).
+    crypto:rand_uniform(16#f0000000, 16#f000ffff).
 
 export(Drv, Pin) ->
     {ok, FD} = alcove:open(Drv, "/sys/class/gpio/export", ?O_WRONLY, 0),
