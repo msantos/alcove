@@ -18,8 +18,8 @@
 %% API
 -export([start/0, start/1, stop/1]).
 -export([start_link/2]).
--export([call/2, call/3, call/4, cast/2, encode/2, encode/3]).
--export([stdin/3, stdout/3, stderr/3, event/3]).
+-export([call/2, call/3, call/4, encode/2, encode/3]).
+-export([stdin/3, stdout/3, stderr/3, event/3, send/2]).
 -export([atom_to_type/1, type_to_atom/1]).
 -export([msg/2, decode/1]).
 -export([getopts/1]).
@@ -63,20 +63,16 @@ call(Drv, Pids, Data, Timeout) ->
     true = send(Drv, Data),
     reply(Drv, Pids, ?ALCOVE_MSG_CALL, Timeout).
 
--spec cast(pid(),iodata()) -> any().
-cast(Drv, Data) ->
-    send(Drv, Data).
-
 -spec send(pid(),iodata()) -> any().
 send(Drv, Data) ->
     gen_server:call(Drv, {send, Data}, infinity).
 
 -spec stdin(pid(),[integer()],iodata()) -> 'true'.
 stdin(Drv, [], Data) ->
-    cast(Drv, Data);
+    send(Drv, Data);
 stdin(Drv, Pids, Data) ->
     Stdin = hdr(lists:reverse(Pids), [Data]),
-    cast(Drv, Stdin).
+    send(Drv, Stdin).
 
 -spec stdout(pid(),[integer()],'infinity' | non_neg_integer()) ->
     'false' | binary().

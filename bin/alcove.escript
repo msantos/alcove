@@ -163,6 +163,7 @@ static_exports() ->
      {event,1}, {event,2}, {event,3},
      {encode,3},
      {command,1},
+     {cast,2}, {cast,3}, {cast,4},
      {call,2},
      {call,3},
      {call,4}].
@@ -311,6 +312,23 @@ lookup(Cmd, N, Cmds, _Max) when Cmd =:= element(N, Cmds) ->
 lookup(Cmd, N, Cmds, Max) when N =< Max ->
     lookup(Cmd, N+1, Cmds, Max).
 ";
+
+static({cast,2}) ->
+"
+cast(Drv, Command) ->
+    cast(Drv, [], Command, []).
+";
+static({cast,3}) ->
+"
+cast(Drv, Command, Options) ->
+    cast(Drv, [], Command, Options).
+";
+static({cast,4}) ->
+"
+cast(Drv, Pids, Command, Arg) when is_pid(Drv), is_list(Arg) ->
+    alcove_drv:send(Drv, encode(Command, Pids, Arg)).
+";
+
 static({call,2}) ->
 "
 call(Drv, Command) ->
