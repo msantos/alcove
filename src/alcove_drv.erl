@@ -207,7 +207,8 @@ code_change(_OldVsn, State, _Extra) ->
 % Several writes from the child process may be coalesced into 1 read by
 % the parent.
 handle_info({Port, {data, Data}}, #state{port = Port, pid = Pid} = State) ->
-    [ Pid ! {self(), Msg} || Msg <- decode(Data) ],
+    [ Pid ! {Tag, self(), Pids, Term} ||
+        {Tag, Pids, Term} <- decode(Data) ],
     {noreply, State};
 
 handle_info({'EXIT', Port, Reason}, #state{port = Port} = State) ->
@@ -224,7 +225,7 @@ handle_info(Info, State) ->
 reply(Drv, Pids, Type, Timeout) ->
     Tag = type_to_atom(Type),
     receive
-        {Drv, {Tag, Pids, Event}} ->
+        {Tag, Drv, Pids, Event} ->
             Event
     after
         Timeout ->
