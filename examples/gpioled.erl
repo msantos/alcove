@@ -45,7 +45,7 @@ start(GPIO) ->
 start(GPIO, N) ->
     {ok, Drv} = alcove_drv:start([{exec, "sudo"}]),
 
-    Export = export(Drv, GPIO),
+    export(Drv, GPIO),
 
     Flags = alcove:define(Drv, [
             'CLONE_NEWIPC',
@@ -67,6 +67,8 @@ start(GPIO, N) ->
     ok = alcove:setuid(Drv, [Child], Id),
 
     % Drop privs in the port
+    {ok, UFD} = alcove:open(Drv, "/sys/class/gpio/unexport", ?O_WRONLY, 0),
+
     ok = alcove:unshare(Drv, Flags),
     ok = alcove:chroot(Drv, "priv"),
     ok = alcove:chdir(Drv, "/"),
@@ -77,7 +79,9 @@ start(GPIO, N) ->
 
     strobe(Drv, Child, FD, N),
 
-    unexport(Drv, Export, GPIO),
+    {ok, _} = alcove:write(Drv, UFD, integer_to_list(GPIO)),
+    alcove:close(Drv, UFD),
+
     alcove_drv:stop(Drv).
 
 strobe(Drv, Child, FD, 0) ->
@@ -99,8 +103,4 @@ export(Drv, Pin) ->
         {ok, _} -> ok;
         {error,ebusy} -> ok
     end,
-    FD.
-
-unexport(Drv, FD, Pin) ->
-    {ok, _} = alcove:write(Drv, FD, integer_to_list(Pin)),
     alcove:close(Drv, FD).
