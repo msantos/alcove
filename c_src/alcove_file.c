@@ -116,6 +116,51 @@ BADARG:
 }
 
 /*
+ * lseek(2)
+ *
+ */
+    ETERM *
+alcove_lseek(alcove_state_t *ap, ETERM *arg)
+{
+    ETERM *hd = NULL;
+    int fd = 0;
+    off_t offset = 0;
+    int whence = 0;
+
+    /* fd */
+    arg = alcove_list_head(&hd, arg);
+    if (!hd || !ERL_IS_INTEGER(hd))
+        goto BADARG;
+
+    fd = ERL_INT_VALUE(hd);
+
+    /* offset */
+    arg = alcove_list_head(&hd, arg);
+    if (!hd || !ALCOVE_IS_LONGLONG(hd))
+        goto BADARG;
+
+    offset = ALCOVE_LL_VALUE(hd);
+
+    /* whence */
+    arg = alcove_list_head(&hd, arg);
+    if (!hd || !ERL_IS_INTEGER(hd))
+        goto BADARG;
+
+    offset = ERL_INT_VALUE(hd);
+
+    /* stdin, stdout, stderr, ctl are reserved */
+    if (fd < 4)
+        return alcove_errno(EBADF);
+
+    return (lseek(fd, offset, whence) == -1)
+        ? alcove_errno(errno)
+        : erl_mk_atom("ok");
+
+BADARG:
+    return erl_mk_atom("badarg");
+}
+
+/*
  * read(2)
  *
  */

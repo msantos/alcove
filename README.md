@@ -582,6 +582,13 @@ probably confuse the process.
 
         kill(2) : terminate a process
 
+    lseek(Drv, FD, Offset, Whence) -> ok | {error, posix()}
+    lseek(Drv, Pids, FD, Offset, Whence) -> ok | {error, posix()}
+
+        Types   Offset = Whence = integer()
+
+        lseek(2) : set file offset for read/write
+
     mkdir(Drv, Path, Mode) -> ok | {error, posix()}
     mkdir(Drv, Pids, Path, Mode) -> ok | {error, posix()}
 

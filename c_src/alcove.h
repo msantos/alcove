@@ -69,6 +69,11 @@
         ? ERL_INT_UVALUE(x) \
         : ERL_LL_UVALUE(x))
 
+#define ALCOVE_LL_VALUE(x) \
+    ((ERL_IS_INTEGER(x)) \
+        ? ERL_INT_VALUE(x) \
+        : ERL_LL_VALUE(x))
+
 #define ALCOVE_SETOPT(x,k,v) \
     (x)->opt = (v) ? (x)->opt | (k) : (x)->opt & ~(k)
 
