@@ -4,7 +4,7 @@ alcove
 alcove is an Erlang interface for creating application containers like
 sandboxes or Linux containers.
 
-alcove is a sort of shell supporting programmatic access to system
+alcove acts like a sort of shell supporting programmatic access to system
 primitives useful for isolating and interacting with Unix processes.
 
 Overview
@@ -387,28 +387,34 @@ These functions can be called while the process is running in the event
 loop. Using these functions after the process has called exec(3) will
 probably confuse the process.
 
+    chdir(Drv, Path) -> ok | {error, posix()}
     chdir(Drv, Pids, Path) -> ok | {error, posix()}
 
         chdir(2) : change process current working directory.
 
+    chmod(Drv, Path, Mode) -> ok | {error, posix()}
     chmod(Drv, Pids, Path, Mode) -> ok | {error, posix()}
 
         chmod(2) : change file permissions
 
+    chown(Drv, Path, Owner, Group) -> ok | {error, posix()}
     chown(Drv, Pids, Path, Owner, Group) -> ok | {error, posix()}
 
         Types   Owner = Group = non_neg_integer()
 
         chown(2) : change file ownership
 
+    chroot(Drv, Path) -> ok | {error, posix()}
     chroot(Drv, Pids, Path) -> ok | {error, posix()}
 
         chroot(2) : change root directory
 
+    clearenv(Drv) -> ok | {error, posix()}
     clearenv(Drv, Pids) -> ok | {error, posix()}
 
         clearenv(3) : zero process environment
 
+    clone(Drv, Flags) -> {ok, integer()} | {error, posix()}
     clone(Drv, Pids, Flags) -> {ok, integer()} | {error, posix()}
 
         Types   Flags = integer()
@@ -417,20 +423,24 @@ probably confuse the process.
 
         clone(2) : create a new process
 
+    clone_define(Drv, atom()) -> integer() | false
     clone_define(Drv, Pids, atom()) -> integer() | false
 
         Linux only.
 
         Map symbols to integer constants.
 
+    close(Drv, FD) -> ok | {error, posix()}
     close(Drv, Pids, FD) -> ok | {error, posix()}
 
         close(2) : close a file descriptor.
 
+    environ(Drv) -> [binary()]
     environ(Drv, Pids) -> [binary()]
 
         environ(7) : return the process environment variables
 
+    event(Drv) -> {Tag, Val} | false
     event(Drv, Pids) -> {Tag, Val} | false
 
         Types   Tag = signal
@@ -439,6 +449,7 @@ probably confuse the process.
         event/1,2 is used to retrieve async messages returned from the
         port, such as trapped signals.
 
+    execve(Drv, Arg0, [Arg0, Args], Env) -> ok | {error, posix()}
     execve(Drv, Pids, Arg0, [Arg0, Args], Env) -> ok | {error, posix()}
 
         Types   Arg0 = Args = iodata()
@@ -447,6 +458,7 @@ probably confuse the process.
         execve(2) : replace the process image, specifying the environment
         for the new process image.
 
+    execvp(Drv, Arg0, [Arg0, Args]) -> ok | {error, posix()}
     execvp(Drv, Pids, Arg0, [Arg0, Args]) -> ok | {error, posix()}
 
         Types   Arg0 = Args = iodata()
@@ -454,36 +466,44 @@ probably confuse the process.
 
         execvp(2) : replace the current process image using the search path
 
+    exit(Drv, Value) -> ok
     exit(Drv, Pids, Value) -> ok
 
         Types   Value = integer()
 
         exit(3) : cause the child process to exit
 
+    file_define(Drv, atom()) -> integer() | false
     file_define(Drv, Pids, atom()) -> integer() | false
 
         Constants for open(2).
 
+    fork(Drv) -> {ok, integer()} | {error, posix()}
     fork(Drv, Pids) -> {ok, integer()} | {error, posix()}
 
         fork(2) : create a new process
 
+    getcwd(Drv) -> {ok, binary()} | {error, posix()}
     getcwd(Drv, Pids) -> {ok, binary()} | {error, posix()}
 
         getcwd(3) : return the current working directory
 
+    getenv(Drv, iodata()) -> binary() | false
     getenv(Drv, Pids, iodata()) -> binary() | false
 
         getenv(3) : retrieve an environment variable
 
+    getgid(Drv) -> integer()
     getgid(Drv, Pids) -> integer()
 
         getgid(2) : retrieve the processes' group ID
 
+    gethostname(Drv) -> {ok, binary()} | {error, posix()}
     gethostname(Drv, Pids) -> {ok, binary()} | {error, posix()}
 
         gethostname(2) : retrieve the system hostname
 
+    getopt(Drv, Options) -> integer() | false
     getopt(Drv, Pids, Options) -> integer() | false
 
         Types   Options = verbose | childlimit | exit_status | maxchild |
@@ -532,10 +552,12 @@ probably confuse the process.
                 If a child process exits because of a signal, notify
                 the controlling Erlang process.
 
+    getpid(Drv) -> integer()
     getpid(Drv, Pids) -> integer()
 
         getpid(2) : retrieve the system PID of the process.
 
+    getrlimit(Drv, integer() -> {ok, #rlimit{}} | {error, posix()}
     getrlimit(Drv, Pids, integer() -> {ok, #rlimit{}} | {error, posix()}
 
         getrlimit(2) : tetrive the resource limits for a process. Returns
@@ -548,20 +570,24 @@ probably confuse the process.
                 max = integer()
                 }
 
+    getuid(Drv) -> integer()
     getuid(Drv, Pids) -> integer()
 
         getuid(2) : returns the process user ID
 
+    kill(Drv, Pid, Signal) -> ok | {error, posix()}
     kill(Drv, Pids, Pid, Signal) -> ok | {error, posix()}
 
         Types   Signal = integer()
 
         kill(2) : terminate a process
 
+    mkdir(Drv, Path, Mode) -> ok | {error, posix()}
     mkdir(Drv, Pids, Path, Mode) -> ok | {error, posix()}
 
         mkdir(2) : create a directory
 
+    mount(Drv, Source, Target, FSType, Flags, Data) -> ok | {error, posix()}
     mount(Drv, Pids, Source, Target, FSType, Flags, Data) -> ok
         | {error, posix()}
 
@@ -575,6 +601,7 @@ probably confuse the process.
 
             mount(FSType, Target, Flags, Data);
 
+    mount_define(Drv, Flag) -> integer() | false
     mount_define(Drv, Pids, Flag) -> integer() | false
 
         Types   Flag = rdonly | nosuid | noexec | noatime | ...
@@ -587,17 +614,21 @@ probably confuse the process.
         'rdonly' is mapped to MS_RDONLY on Linux and MNT_RDONLY on
         FreeBSD.
 
+    open(Drv, Path, Flags, Mode) -> {ok, integer()} | {error, posix()}
     open(Drv, Pids, Path, Flags, Mode) -> {ok, integer()} | {error, posix()}
 
         Types   Flags = Mode = integer()
 
         open(2) : returns a file descriptor associated with a file
 
+    pid(Drv) -> [Pid]
     pid(Drv, Pids) -> [Pid]
 
         Returns the list of child PIDs for this process.
 
     prctl(Drv, Option, Arg2, Arg3, Arg4, Arg5) ->
+        {ok, integer(), Val2, Val3, Val4, Val5} | {error, posix()}
+    prctl(Drv, Pids, Option, Arg2, Arg3, Arg4, Arg5) ->
         {ok, integer(), Val2, Val3, Val4, Val5} | {error, posix()}
 
         Types   Option = integer()
@@ -610,28 +641,34 @@ probably confuse the process.
         This function can be used to set BPF syscall filters on processes
         (seccomp mode).
 
+    prctl_define(Drv, atom()) -> integer() | false
     prctl_define(Drv, Pids, atom()) -> integer() | false
 
         Convert prctl option names to integers.
 
+    read(Drv, Fd, Count) -> {ok, binary()} | {error, posix()}
     read(Drv, Pids, Fd, Count) -> {ok, binary()} | {error, posix()}
 
         Types   Count = non_neg_integer()
 
         read(2) : read bytes from a file descriptor
 
+    readdir(Drv, Path) -> {ok, [binary()]} | {error, posix()}
     readdir(Drv, Pids, Path) -> {ok, [binary()]} | {error, posix()}
 
         readdir(3) : retrieve list of objects in a directory
 
+    rlimit_define(Drv, atom()) -> integer() | false
     rlimit_define(Drv, Pids, atom()) -> integer() | false
 
         Convert an RLIMIT_* flag to an integer().
 
+    rmdir(Drv, Path) -> ok | {error, posix()}
     rmdir(Drv, Pids, Path) -> ok | {error, posix()}
 
         rmdir(2) : delete a directory
 
+    setenv(Drv, Name, Value, Overwrite) -> ok | {error, posix()}
     setenv(Drv, Pids, Name, Value, Overwrite) -> ok | {error, posix()}
 
         Types   Name = Value = iodata()
@@ -639,12 +676,14 @@ probably confuse the process.
 
         setenv(3) : set an environment variable
 
+    setgid(Drv, Gid) -> ok | {error, posix()}
     setgid(Drv, Pids, Gid) -> ok | {error, posix()}
 
         Types   Gid = non_neg_integer()
 
         setgid(2) : set the GID of the process
 
+    sethostname(Drv, Hostname) -> ok | {error, posix()}
     sethostname(Drv, Pids, Hostname) -> ok | {error, posix()}
 
         Types   Hostname = iodata()
@@ -660,6 +699,7 @@ probably confuse the process.
             Hostname2 = alcove:gethostname(Drv, [Child]),
             Hostname1 =/= Hostname2.
 
+    setns(Drv, Path) -> ok | {error, posix()}
     setns(Drv, Pids, Path) -> ok | {error, posix()}
 
         Linux only.
@@ -689,10 +729,12 @@ probably confuse the process.
             ok = alcove:setns(Drv, [Child2],
                     ["/proc/", integer_to_list(Child1), "/ns/net"]).
 
+    setopt(Drv, Opt, Val) -> ok
     setopt(Drv, Pids, Opt, Val) -> ok
 
         Set port options. See getopt/2,3 for the list of options.
 
+    setrlimit(Drv, Resource, Limit) -> ok | {error, posix()}
     setrlimit(Drv, Pids, Resource, Limit) -> ok | {error, posix()}
 
         Types   Opt = integer()
@@ -700,12 +742,14 @@ probably confuse the process.
 
         setrlimit(2) : set a resource limit
 
+    setuid(Drv, UID) -> ok | {error, posix()}
     setuid(Drv, Pids, UID) -> ok | {error, posix()}
 
         Types   UID = non_neg_integer()
 
         setuid(2) : change UID
 
+    sigaction(Drv, Signum, Handler) -> ok | {error, posix()}
     sigaction(Drv, Pids, Signum, Handler) -> ok | {error, posix()}
 
         Types   Signum = integer()
@@ -725,24 +769,29 @@ probably confuse the process.
 
         Multiple trapped signals may be reported as one event.
 
+    signal_constant(Drv, integer()) -> atom() | false
     signal_constant(Drv, Pids, integer()) -> atom() | false
 
         Convert integers to signal names.
 
+    signal_define(Drv, atom()) -> integer() | false
     signal_define(Drv, Pids, atom()) -> integer() | false
 
         Convert signal names to integers.
 
+    umount(Drv, Path) -> ok | {error, posix()}
     umount(Drv, Pids, Path) -> ok | {error, posix()}
 
         umount(2) : unmount a filesystem
 
         On BSD systems, calls unmount(2).
 
+    unsetenv(Drv, Name) -> ok | {error, posix()}
     unsetenv(Drv, Pids, Name) -> ok | {error, posix()}
 
         unsetenv(3) : remove an environment variable
 
+    unshare(Drv, Flags) -> ok | {error, posix()}
     unshare(Drv, Pids, Flags) -> ok | {error, posix()}
 
         Types   Flags = integer()
@@ -758,10 +807,12 @@ probably confuse the process.
 
             % The port is now running in a namespace without network access.
 
+    version(Drv) -> binary()
     version(Drv, Pids) -> binary()
 
         Retrieves the alcove version.
 
+    write(Drv, FD, Buf) -> {ok, Count} | {error, posix()}
     write(Drv, Pids, FD, Buf) -> {ok, Count} | {error, posix()}
 
         Types   Buf = iodata()
