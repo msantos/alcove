@@ -26,11 +26,15 @@ supported(Drv) ->
 
 supported(Drv, Pids) ->
     foreach([
+        % running on linux?
         fun() -> {unix,linux} =:= os:type() end,
-        fun() -> [] =/= cgroup(Drv, Pids) end,
-        fun() -> Val = get(Drv, Pids, <<"cpuset">>, <<>>,
-                    <<"notify_on_release">>),
-                is_tuple(Val) andalso ok =:= element(1, Val)
+        % cgroups supported?
+        fun() -> is_file(Drv, Pids, "/proc/cgroups") end,
+        % cgroups mounted?
+        fun() ->
+            Exists = [ alcove_cgroup:is_dir(Drv, Pids, Cgroup)
+                || Cgroup <- proplists:get_keys(cgroup(Drv, Pids)) ],
+            [] =/= Exists andalso true =/= lists:member(false, Exists)
         end
     ]).
 
