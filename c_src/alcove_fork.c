@@ -32,18 +32,18 @@ typedef struct {
     int in[2];
     int out[2];
     int err[2];
-} alcove_fd_t;
+} alcove_stdio_t;
 
 typedef struct {
     alcove_state_t *ap;
-    alcove_fd_t *fd;
+    alcove_stdio_t *fd;
 } alcove_arg_t;
 
-static int alcove_stdio(alcove_fd_t *fd);
+static int alcove_stdio(alcove_stdio_t *fd);
 static int alcove_set_cloexec(int fd);
 static void alcove_close_pipe(int fd[2]);
 static int alcove_child_fun(void *arg);
-static int alcove_parent_fd(alcove_state_t *ap, alcove_fd_t *fd, pid_t pid);
+static int alcove_parent_fd(alcove_state_t *ap, alcove_stdio_t *fd, pid_t pid);
 static int avail_pid(alcove_state_t *ap, alcove_child_t *c,
         void *arg1, void *arg2);
 static int stdio_pid(alcove_state_t *ap, alcove_child_t *c,
@@ -61,7 +61,7 @@ static int setns(int fd, int nstype);
 alcove_fork(alcove_state_t *ap, ETERM *arg)
 {
     alcove_arg_t child_arg = {0};
-    alcove_fd_t fd = {{0}};
+    alcove_stdio_t fd = {{0}};
     pid_t pid = 0;
 
     if (ap->depth >= ap->maxforkdepth)
@@ -102,7 +102,7 @@ alcove_clone(alcove_state_t *ap, ETERM *arg)
 #ifdef __linux__
     ETERM *hd = NULL;
     alcove_arg_t child_arg = {0};
-    alcove_fd_t fd = {{0}};
+    alcove_stdio_t fd = {{0}};
     const size_t stack_size = 1024 * 1024;
     char *child_stack = NULL;
     int flags = 0;
@@ -280,7 +280,7 @@ BADARG:
  * Utility functions
  */
     int
-alcove_stdio(alcove_fd_t *fd)
+alcove_stdio(alcove_stdio_t *fd)
 {
     if (socketpair(AF_UNIX, SOCK_STREAM, 0, fd->ctl) < 0)
         return -1;
@@ -326,7 +326,7 @@ alcove_child_fun(void *arg)
 {
     alcove_arg_t *child_arg = arg;
     alcove_state_t *ap = child_arg->ap;
-    alcove_fd_t *fd = child_arg->fd;
+    alcove_stdio_t *fd = child_arg->fd;
     long maxfd = sysconf(_SC_OPEN_MAX);
     int n = 0;
 
@@ -361,7 +361,7 @@ alcove_child_fun(void *arg)
 }
 
     int
-alcove_parent_fd(alcove_state_t *ap, alcove_fd_t *fd, pid_t pid)
+alcove_parent_fd(alcove_state_t *ap, alcove_stdio_t *fd, pid_t pid)
 {
     /* What to do if close(2) fails here?
      *
@@ -391,7 +391,7 @@ avail_pid(alcove_state_t *ap, alcove_child_t *c, void *arg1, void *arg2)
     static int
 stdio_pid(alcove_state_t *ap, alcove_child_t *c, void *arg1, void *arg2)
 {
-    alcove_fd_t *fd = arg1;
+    alcove_stdio_t *fd = arg1;
     pid_t *pid = arg2;
 
     c->pid = *pid;
