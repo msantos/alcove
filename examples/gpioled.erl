@@ -40,6 +40,14 @@
 -define(O_WRONLY, alcove:define(Drv, 'O_WRONLY')).
 -define(O_RDWR, alcove:define(Drv, 'O_RDWR')).
 
+-record(state, {
+        drv,
+        pid,
+        gpio,
+        direction,
+        unexport
+    }).
+
 start(GPIO) ->
     start(GPIO, 1000).
 start(GPIO, N) ->
@@ -77,22 +85,28 @@ start(GPIO, N) ->
     ok = alcove:setgid(Drv, Id1),
     ok = alcove:setuid(Drv, Id1),
 
-    strobe(Drv, Child, FD, N),
+    strobe(#state{
+            drv = Drv,
+            pid = Child,
+            gpio = GPIO,
+            direction = FD,
+            unexport = UFD
+        }, N).
 
+
+strobe(#state{drv = Drv, pid = Child, direction = FD,
+        unexport = UFD, gpio = GPIO}, 0) ->
+    alcove:write(Drv, [Child], FD, <<"low">>),
+    alcove:close(Drv, [Child], FD),
     {ok, _} = alcove:write(Drv, UFD, integer_to_list(GPIO)),
     alcove:close(Drv, UFD),
-
-    alcove_drv:stop(Drv).
-
-strobe(Drv, Child, FD, 0) ->
-    alcove:write(Drv, [Child], FD, <<"low">>),
-    alcove:close(Drv, [Child], FD);
-strobe(Drv, Child, FD, N) ->
+    alcove_drv:stop(Drv);
+strobe(#state{drv = Drv, pid = Child, direction = FD} = State, N) ->
     timer:sleep(100),
     alcove:write(Drv, [Child], FD, <<"low">>),
     timer:sleep(100),
     alcove:write(Drv, [Child], FD, <<"high">>),
-    strobe(Drv, Child, FD, N-1).
+    strobe(State, N-1).
 
 id() ->
     crypto:rand_uniform(16#f0000000, 16#f000ffff).
