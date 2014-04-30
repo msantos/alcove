@@ -49,8 +49,10 @@ static int avail_pid(alcove_state_t *ap, alcove_child_t *c,
 static int stdio_pid(alcove_state_t *ap, alcove_child_t *c,
         void *arg1, void *arg2);
 
+#ifdef __linux__
 #ifndef HAVE_SETNS
 static int setns(int fd, int nstype);
+#endif
 #endif
 
 /*
@@ -161,6 +163,7 @@ ERR:
  * setns(2)
  *
  */
+#ifdef __linux__
 #ifndef HAVE_SETNS
     static int
 setns(int fd, int nstype)
@@ -172,6 +175,7 @@ setns(int fd, int nstype)
     return -1;
 #endif
 }
+#endif
 #endif
 
     ETERM *
