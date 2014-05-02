@@ -18,46 +18,21 @@ start() ->
     start([]).
 
 start(Options) ->
-    [ ok = filelib:ensure_dir(lists:concat([Dir, "/."])) || Dir <- [
-            "/tmp/tcplxc/bin",
-            "/tmp/tcplxc/dev",
-            "/tmp/tcplxc/home",
-            "/tmp/tcplxc/lib",
-            "/tmp/tcplxc/proc",
-            "/tmp/tcplxc/sbin",
-            "/tmp/tcplxc/usr/bin",
-            "/tmp/tcplxc/usr/sbin"
-        ] ],
-
     Init = spawn_link(fun() -> init(Options) end),
     Port = proplists:get_value(port, Options, 31337),
     {ok, LSock} = gen_tcp:listen(Port, [
-            inet6,
             binary,
             {active,false},
             {reuseaddr,true}
         ]),
     accept(Init, LSock).
 
-
 init(Options) ->
     {ok, Drv} = alcove_drv:start(Options ++ [{exec, "sudo"}]),
     ok = alcove:chdir(Drv, "/"),
 
-    case alcove_cgroup:supported(Drv) of
-        true ->
-            ok = alcove_cgroup:create(Drv, [], <<"alcove">>),
-            {ok,1} = alcove_cgroup:set(Drv, [], <<"cpuset">>, <<"alcove">>,
-                <<"cpuset.cpus">>, <<"0">>),
-            {ok,1} = alcove_cgroup:set(Drv, [], <<"cpuset">>, <<"alcove">>,
-                <<"cpuset.mems">>, <<"0">>),
-            alcove_cgroup:set(Drv, [], <<"memory">>, <<"alcove">>,
-                <<"memory.memsw.limit_in_bytes">>, <<"16m">>),
-            {ok,3} = alcove_cgroup:set(Drv, [], <<"memory">>, <<"alcove">>,
-                <<"memory.limit_in_bytes">>, <<"16m">>);
-        false ->
-            ok
-    end,
+    chroot_init(),
+    cgroup_init(Drv),
 
     shell(Drv, Options, dict:new()).
 
@@ -245,7 +220,7 @@ network(Init, Socket, Child) ->
     end.
 
 id() ->
-    16#f0000000 + crypto:rand_uniform(0, 16#ffff).
+    crypto:rand_uniform(16#f0000000, 16#f000ffff).
 
 mounts() ->
     {ok, FH} = file:open("/proc/mounts", [read,raw,binary]),
@@ -264,4 +239,33 @@ mountdir(FH, Acc) ->
             mountdir(FH, [Mount|Acc]);
         Error ->
             Error
+    end.
+
+chroot_init() ->
+    [ ok = filelib:ensure_dir(lists:concat([Dir, "/."])) || Dir <- [
+            "/tmp/tcplxc/bin",
+            "/tmp/tcplxc/dev",
+            "/tmp/tcplxc/home",
+            "/tmp/tcplxc/lib",
+            "/tmp/tcplxc/proc",
+            "/tmp/tcplxc/sbin",
+            "/tmp/tcplxc/usr/bin",
+            "/tmp/tcplxc/usr/sbin"
+        ] ],
+    ok.
+
+cgroup_init(Drv) ->
+    case alcove_cgroup:supported(Drv) of
+        true ->
+            ok = alcove_cgroup:create(Drv, [], <<"alcove">>),
+            alcove_cgroup:set(Drv, [], <<"cpuset">>, <<"alcove">>,
+                <<"cpuset.cpus">>, <<"0">>),
+            alcove_cgroup:set(Drv, [], <<"cpuset">>, <<"alcove">>,
+                <<"cpuset.mems">>, <<"0">>),
+            alcove_cgroup:set(Drv, [], <<"memory">>, <<"alcove">>,
+                <<"memory.memsw.limit_in_bytes">>, <<"16m">>),
+            alcove_cgroup:set(Drv, [], <<"memory">>, <<"alcove">>,
+                <<"memory.limit_in_bytes">>, <<"16m">>);
+        false ->
+            ok
     end.
