@@ -13,6 +13,7 @@
 %%% OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 -module(tcplxc).
 -export([start/0, start/1]).
+-include_lib("alcove/include/alcove.hrl").
 
 start() ->
     start([]).
@@ -163,6 +164,11 @@ clone(Drv, _Options) ->
     ok = alcove:setuid(Drv, [Child], Id),
 
     ok = alcove:chdir(Drv, [Child], "/home"),
+
+    RLIMIT_NPROC = alcove:rlimit_define(Drv, 'RLIMIT_NPROC'),
+
+    ok = alcove:setrlimit(Drv, [Child], RLIMIT_NPROC,
+                          #rlimit{cur = 16, max = 16}),
 
     ok = alcove:execve(Drv, [Child], "/bin/busybox",
         ["/bin/busybox", "sh", "-i"],
