@@ -40,11 +40,18 @@ init(Options) ->
 shell(Drv, Options, State) ->
     receive
         {create, Pid} ->
-            case catch clone(Drv, Options) of
+            case clone(Drv, Options) of
                 {ok, Child} ->
-                    Pid ! {ok, Child},
-                    erlang:monitor(process, Pid),
-                    shell(Drv, Options, dict:store(Child, Pid, State));
+                    case catch clone_init(Drv, Child, Options) of
+                        ok ->
+                            Pid ! {ok, Child},
+                            erlang:monitor(process, Pid),
+                            shell(Drv, Options, dict:store(Child, Pid, State));
+                        Error ->
+                            Pid ! Error,
+                            alcove:exit(Drv, [Child], 0),
+                            shell(Drv, Options, State)
+                    end;
                 Error ->
                     Pid ! Error,
                     shell(Drv, Options, State)
@@ -96,8 +103,9 @@ clone(Drv, _Options) ->
             'CLONE_NEWPID',
             'CLONE_NEWUTS'
         ]),
-    {ok, Child} = alcove:clone(Drv, Flags),
+    alcove:clone(Drv, Flags).
 
+clone_init(Drv, Child, _Options) ->
     case alcove_cgroup:supported(Drv) of
         true ->
             {ok,_} = alcove_cgroup:set(Drv, [], <<>>, <<"alcove">>,
@@ -133,7 +141,7 @@ clone(Drv, _Options) ->
         "/tmp/tcplxc/home", "tmpfs", HomeFlags,
         [<<"uid=">>, integer_to_binary(Id),
          <<",gid=">>, integer_to_binary(Id),
-         <<",mode=700,size=128M">>]),
+         <<",mode=700,size=16M">>]),
 
     % proc on /proc type proc (rw,noexec,nosuid,nodev)
     ProcFlags= alcove:define(Drv, [
@@ -178,7 +186,7 @@ clone(Drv, _Options) ->
             "HOSTNAME=" ++ Hostname
         ]
     ),
-    {ok, Child}.
+    ok.
 
 accept(Init, LSock) ->
     {ok, Socket} = gen_tcp:accept(LSock),
