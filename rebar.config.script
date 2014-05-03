@@ -1,13 +1,14 @@
 case os:type() of
     {unix,linux} ->
         Setns = "
+#define _GNU_SOURCE
 #include <sched.h>
 int main(int argc, char *argv[]) {
     (void)setns(0,0);
     return 0;
 }",
-        file:write_file("priv/test_setns.c", Setns),
-        Retval = os:cmd("gcc -o /dev/null priv/test_setns.c > /dev/null 2>&1; printf \"%d\" $?"),
+        file:write_file("test/test_setns.c", Setns),
+        Retval = os:cmd("gcc -o /dev/null test/test_setns.c > /dev/null 2>&1; printf \"%d\" $?"),
         case Retval of
             "0" ->
                 lists:map(fun
