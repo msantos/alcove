@@ -20,6 +20,7 @@
 -export([get/5, set/6]).
 -export([is_file/3, is_dir/3]).
 -export([mounts/1, mounts/2]).
+-export([join/2,relpath/1,expand/1]).
 
 supported(Drv) ->
     supported(Drv, []).
@@ -50,8 +51,11 @@ supported(Drv, Pids) ->
 create(Drv) ->
     create(Drv, []).
 create(Drv, Pids) ->
-    create(Drv, Pids, <<"alcove">>).
-create(Drv, Pids, Namespace) ->
+    create(Drv, Pids, [<<"alcove">>]).
+create(Drv, Pids, Namespaces) ->
+    [ create_1(Drv, Pids, Namespace) || Namespace <- expand(Namespaces) ].
+
+create_1(Drv, Pids, Namespace) ->
     Fun = fun(Cgroup, _Acc) ->
             Path = join(Cgroup, Namespace),
             case alcove:mkdir(Drv, Pids, Path, 8#755) of
@@ -60,12 +64,12 @@ create(Drv, Pids, Namespace) ->
                 Error -> Error
             end
     end,
-    fold(Drv, <<>>, <<>>, Fun, []).
+    fold(Drv, <<>>, [], Fun, []).
 
 destroy(Drv) ->
     destroy(Drv, []).
 destroy(Drv, Pids) ->
-    destroy(Drv, Pids, <<"alcove">>).
+    destroy(Drv, Pids, [<<"alcove">>]).
 destroy(Drv, Pids, Namespace) ->
     Fun = fun(Cgroup, _Acc) ->
             Path = join(Cgroup, Namespace),
@@ -75,18 +79,18 @@ destroy(Drv, Pids, Namespace) ->
                 Error -> Error
             end
     end,
-    fold(Drv, <<>>, <<>>, Fun, []).
+    fold(Drv, <<>>, [], Fun, []).
 
 set(Drv, Pids, MntOpt, Namespace, Key, Value) ->
     Fun = fun(Cgroup, _Acc) ->
-            File = join(Cgroup, Key),
+            File = join(Cgroup, [Key]),
             write(Drv, Pids, File, Value)
     end,
     fold(Drv, MntOpt, Namespace, Fun, []).
 
 get(Drv, Pids, MntOpt, Namespace, Key) ->
     Fun = fun(Cgroup, _Acc) ->
-            File = join(Cgroup, Key),
+            File = join(Cgroup, [Key]),
             read(Drv, Pids, File)
     end,
     fold(Drv, MntOpt, Namespace, Fun, []).
@@ -218,12 +222,13 @@ join(Cgroup, Path) ->
     filename:join([Cgroup|relpath(Path)]).
 
 relpath(Path) ->
-    case filename:split(Path) of
-        [Root|Rest] when Root =:= "/"; Root =:= <<"/">> ->
-            Rest;
-        Rest ->
-            Rest
-    end.
+    lists:flatmap(fun(N) -> case filename:split(maybe_binary(N)) of
+                        [Root|Rest] when Root =:= "/"; Root =:= <<"/">> ->
+                            Rest;
+                        Rest ->
+                            Rest
+                    end
+          end, Path).
 
 foreach([]) ->
     true;
@@ -232,3 +237,11 @@ foreach([Fun|Funs]) ->
         true -> foreach(Funs);
         false -> false
     end.
+
+% [<<"a">>, <<"b">>, <<"c">>] ->
+%  [[<<"a">>], [<<"a">>,<<"b">>], [<<"a">>,<<"b">>,<<"c">>]]
+expand(Path) ->
+    [ element(1, lists:split(X, Path)) || X <- lists:seq(1, length(Path)) ].
+
+maybe_binary(N) when is_binary(N) -> N;
+maybe_binary(N) when is_list(N) -> list_to_binary(N).

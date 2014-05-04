@@ -108,7 +108,7 @@ clone(Drv, _Options) ->
 clone_init(Drv, Child, _Options) ->
     case alcove_cgroup:supported(Drv) of
         true ->
-            {ok,_} = alcove_cgroup:set(Drv, [], <<>>, <<"alcove">>,
+            {ok,_} = alcove_cgroup:set(Drv, [], <<>>, [<<"alcove">>],
                 <<"tasks">>, integer_to_list(Child));
         false ->
             ok
@@ -271,14 +271,14 @@ chroot_init() ->
 cgroup_init(Drv) ->
     case alcove_cgroup:supported(Drv) of
         true ->
-            ok = alcove_cgroup:create(Drv, [], <<"alcove">>),
-            alcove_cgroup:set(Drv, [], <<"cpuset">>, <<"alcove">>,
+            [ok] = alcove_cgroup:create(Drv, [], [<<"alcove">>]),
+            alcove_cgroup:set(Drv, [], <<"cpuset">>, [<<"alcove">>],
                 <<"cpuset.cpus">>, <<"0">>),
-            alcove_cgroup:set(Drv, [], <<"cpuset">>, <<"alcove">>,
+            alcove_cgroup:set(Drv, [], <<"cpuset">>, [<<"alcove">>],
                 <<"cpuset.mems">>, <<"0">>),
-            alcove_cgroup:set(Drv, [], <<"memory">>, <<"alcove">>,
+            alcove_cgroup:set(Drv, [], <<"memory">>, [<<"alcove">>],
                 <<"memory.memsw.limit_in_bytes">>, <<"16m">>),
-            alcove_cgroup:set(Drv, [], <<"memory">>, <<"alcove">>,
+            alcove_cgroup:set(Drv, [], <<"memory">>, [<<"alcove">>],
                 <<"memory.limit_in_bytes">>, <<"16m">>);
         false ->
             ok
