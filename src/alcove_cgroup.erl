@@ -53,7 +53,8 @@ create(Drv) ->
 create(Drv, Pids) ->
     create(Drv, Pids, [<<"alcove">>]).
 create(Drv, Pids, Namespaces) ->
-    [ create_1(Drv, Pids, Namespace) || Namespace <- expand(Namespaces) ].
+    [ create_1(Drv, Pids, Namespace) || Namespace <- expand(Namespaces) ],
+    ok.
 
 create_1(Drv, Pids, Namespace) ->
     Fun = fun(Cgroup, _Acc) ->

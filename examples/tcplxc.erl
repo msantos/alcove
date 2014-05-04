@@ -33,7 +33,12 @@ init(Options) ->
     ok = alcove:chdir(Drv, "/"),
 
     chroot_init(),
-    cgroup_init(Drv),
+    cgroup_init(Drv,
+                [<<"alcove">>],
+                Options ++ [
+                            {<<"memory.memsw.limit_in_bytes">>, <<"128m">>},
+                            {<<"memory.limit_in_bytes">>, <<"128m">>}
+                           ]),
 
     shell(Drv, Options, dict:new()).
 
@@ -105,18 +110,19 @@ clone(Drv, _Options) ->
         ]),
     alcove:clone(Drv, Flags).
 
-clone_init(Drv, Child, _Options) ->
+clone_init(Drv, Child, Options) ->
+    Id = id(),
+    Hostname = lists:concat(["alcove", Id]),
+
     case alcove_cgroup:supported(Drv) of
         true ->
-            {ok,_} = alcove_cgroup:set(Drv, [], <<>>, [<<"alcove">>],
+            cgroup_init(Drv, [<<"alcove">>, Hostname], Options),
+            {ok,_} = alcove_cgroup:set(Drv, [], <<>>, [<<"alcove">>, Hostname],
                 <<"tasks">>, integer_to_list(Child));
         false ->
             ok
     end,
 
-    Id = id(),
-
-    Hostname = lists:concat(["alcove", Id]),
     ok = alcove:sethostname(Drv, [Child], Hostname),
 
     BindFlags= alcove:define(Drv, [
@@ -268,18 +274,25 @@ chroot_init() ->
         ] ],
     ok.
 
-cgroup_init(Drv) ->
+cgroup_init(Drv, Namespace, Options) ->
+    Cpus = proplists:get_value(<<"cpuset.cpus">>, Options, <<"0">>),
+    Mems = proplists:get_value(<<"cpuset.mems">>, Options, <<"0">>),
+    SWBytes = proplists:get_value(<<"memory.memsw.limit_in_bytes">>,
+                                  Options, <<"16m">>),
+    Bytes = proplists:get_value(<<"memory.limit_in_bytes">>,
+                                Options, <<"16m">>),
+
     case alcove_cgroup:supported(Drv) of
         true ->
-            [ok] = alcove_cgroup:create(Drv, [], [<<"alcove">>]),
-            alcove_cgroup:set(Drv, [], <<"cpuset">>, [<<"alcove">>],
-                <<"cpuset.cpus">>, <<"0">>),
-            alcove_cgroup:set(Drv, [], <<"cpuset">>, [<<"alcove">>],
-                <<"cpuset.mems">>, <<"0">>),
-            alcove_cgroup:set(Drv, [], <<"memory">>, [<<"alcove">>],
-                <<"memory.memsw.limit_in_bytes">>, <<"16m">>),
-            alcove_cgroup:set(Drv, [], <<"memory">>, [<<"alcove">>],
-                <<"memory.limit_in_bytes">>, <<"16m">>);
+            alcove_cgroup:create(Drv, [], Namespace),
+            alcove_cgroup:set(Drv, [], <<"cpuset">>, Namespace,
+                <<"cpuset.cpus">>, Cpus),
+            alcove_cgroup:set(Drv, [], <<"cpuset">>, Namespace,
+                <<"cpuset.mems">>, Mems),
+            alcove_cgroup:set(Drv, [], <<"memory">>, Namespace,
+                <<"memory.memsw.limit_in_bytes">>, SWBytes),
+            alcove_cgroup:set(Drv, [], <<"memory">>, Namespace,
+                <<"memory.limit_in_bytes">>, Bytes);
         false ->
             ok
     end.
