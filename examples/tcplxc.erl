@@ -29,7 +29,11 @@ start(Options) ->
     accept(Init, LSock).
 
 init(Options) ->
-    {ok, Drv} = alcove_drv:start(Options ++ [{exec, "sudo"}]),
+    {ok, Drv} = alcove_drv:start(Options ++ [
+                                             {exec, "sudo"},
+                                             {exit_status, true},
+                                             {termsig, true}
+                                            ]),
     ok = alcove:chdir(Drv, "/"),
 
     chroot_init(),
@@ -97,6 +101,10 @@ shell(Drv, Options, State) ->
                 {ok, Pid} ->
                     Pid ! {stderr, Child, Data}
             end,
+            shell(Drv, Options, State);
+        {alcove_event, Drv, [Child], Event} ->
+            error_logger:info_report([{pid, Child}, Event]),
+            cgroup_finish(Drv, Child, Options),
             shell(Drv, Options, State)
     end.
 
@@ -112,7 +120,7 @@ clone(Drv, _Options) ->
 
 clone_init(Drv, Child, Options) ->
     Id = id(),
-    Hostname = lists:concat(["alcove", Id]),
+    Hostname = lists:concat(["alcove", Child]),
 
     case alcove_cgroup:supported(Drv) of
         true ->
@@ -296,3 +304,7 @@ cgroup_init(Drv, Namespace, Options) ->
         false ->
             ok
     end.
+
+cgroup_finish(Drv, Child, _Options) ->
+    Hostname = lists:concat(["alcove", Child]),
+    alcove_cgroup:destroy(Drv, [], [<<"alcove">>, Hostname]).
