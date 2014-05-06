@@ -102,8 +102,18 @@ shell(Drv, Options, State) ->
                     Pid ! {stderr, Child, Data}
             end,
             shell(Drv, Options, State);
-        {alcove_event, Drv, [Child], Event} ->
+        {alcove_event, Drv, [Child], {termsig,_} = Event} ->
             error_logger:info_report([{pid, Child}, Event]),
+            cgroup_finish(Drv, Child, Options),
+            shell(Drv, Options, State);
+        {alcove_event, Drv, [Child], {exit_status,_} = Event} ->
+            error_logger:info_report([{pid, Child}, Event]),
+            case dict:find(Child, State) of
+                error ->
+                    ok;
+                {ok, Pid} ->
+                    Pid ! {exited, Child}
+            end,
             cgroup_finish(Drv, Child, Options),
             shell(Drv, Options, State)
     end.
@@ -239,6 +249,8 @@ network(Init, Socket, Child) ->
         {stderr, Child, Data} ->
             ok = gen_tcp:send(Socket, Data),
             network(Init, Socket, Child);
+        {exited, Child} ->
+            gen_tcp:close(Socket);
         Any ->
             error_logger:info_report([
                     {init, Init},
