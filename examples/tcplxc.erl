@@ -200,7 +200,7 @@ clone_init(Drv, Child, Options) ->
     RLIMIT_NPROC = alcove:rlimit_define(Drv, 'RLIMIT_NPROC'),
 
     ok = alcove:setrlimit(Drv, [Child], RLIMIT_NPROC,
-                          #rlimit{cur = 16, max = 16}),
+                          #alcove_rlimit{cur = 16, max = 16}),
 
     ok = alcove:execve(Drv, [Child], "/bin/busybox",
         ["/bin/busybox", "sh", "-i"],

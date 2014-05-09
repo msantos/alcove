@@ -23,7 +23,7 @@ start() ->
     {ok, Drv} = alcove_drv:start([{exec, "sudo"}]),
     case alcove_cgroup:supported(Drv) of
         true ->
-            [ok] = alcove_cgroup:create(Drv, [], [<<"alcove">>]),
+            ok = alcove_cgroup:create(Drv, [], [<<"alcove">>]),
             {ok,1} = alcove_cgroup:set(Drv, [], <<"cpuset">>, [<<"alcove">>],
                 <<"cpuset.cpus">>, <<"0">>),
             {ok,1} = alcove_cgroup:set(Drv, [], <<"cpuset">>, [<<"alcove">>],

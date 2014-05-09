@@ -48,13 +48,13 @@ setlimits(Drv, Child) ->
     RLIMIT_NOFILE = alcove:rlimit_define(Drv, 'RLIMIT_NOFILE'),
 
     ok = alcove:setrlimit(Drv, [Child], RLIMIT_FSIZE,
-        #rlimit{cur = 0, max = 0}),
+        #alcove_rlimit{cur = 0, max = 0}),
 
     ok = alcove:setrlimit(Drv, [Child], RLIMIT_NPROC,
-        #rlimit{cur = 1, max = 1}),
+        #alcove_rlimit{cur = 1, max = 1}),
 
     ok = alcove:setrlimit(Drv, [Child], RLIMIT_NOFILE,
-        #rlimit{cur = 0, max = 0}).
+        #alcove_rlimit{cur = 0, max = 0}).
 
 chroot(Drv, Child, Path) ->
     ok = alcove:chroot(Drv, [Child], Path),
