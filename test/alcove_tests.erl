@@ -307,11 +307,11 @@ chdir(#state{pid = Drv, child = Child}) ->
 
 setrlimit(#state{pid = Drv, child = Child}) ->
     RLIMIT_NOFILE = alcove:rlimit_define(Drv, 'RLIMIT_NOFILE'),
-    Reply = alcove:setrlimit(Drv, [Child], RLIMIT_NOFILE, #rlimit{cur = 64, max = 64}),
+    Reply = alcove:setrlimit(Drv, [Child], RLIMIT_NOFILE, #alcove_rlimit{cur = 64, max = 64}),
     Rlimit = alcove:getrlimit(Drv, [Child], RLIMIT_NOFILE),
     [
         ?_assertEqual(ok, Reply),
-        ?_assertEqual({ok, #rlimit{cur = 64, max = 64}}, Rlimit)
+        ?_assertEqual({ok, #alcove_rlimit{cur = 64, max = 64}}, Rlimit)
     ].
 
 setgid(#state{pid = Drv, child = Child}) ->

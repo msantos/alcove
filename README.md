@@ -125,14 +125,14 @@ setlimits(Drv, Child) ->
 
     % Disable creation of files
     ok = alcove:setrlimit(Drv, [Child], RLIMIT_FSIZE,
-            #rlimit{cur = 0, max = 0}),
+            #alcove_rlimit{cur = 0, max = 0}),
 
     ok = alcove:setrlimit(Drv, [Child], RLIMIT_NOFILE,
-            #rlimit{cur = 0, max = 0}),
+            #alcove_rlimit{cur = 0, max = 0}),
 
     % Limit to one process
     ok = alcove:setrlimit(Drv, [Child], RLIMIT_NPROC,
-            #rlimit{cur = 1, max = 1}).
+            #alcove_rlimit{cur = 1, max = 1}).
 ```
 
 Next we chroot and drop root privileges. We will set the user and group
@@ -557,15 +557,15 @@ probably confuse the process.
 
         getpid(2) : retrieve the system PID of the process.
 
-    getrlimit(Drv, integer() -> {ok, #rlimit{}} | {error, posix()}
-    getrlimit(Drv, Pids, integer() -> {ok, #rlimit{}} | {error, posix()}
+    getrlimit(Drv, integer() -> {ok, #alcove_rlimit{}} | {error, posix()}
+    getrlimit(Drv, Pids, integer() -> {ok, #alcove_rlimit{}} | {error, posix()}
 
-        getrlimit(2) : tetrive the resource limits for a process. Returns
+        getrlimit(2) : retrive the resource limits for a process. Returns
         a record:
 
             -include_lib("alcove/include/alcove.hrl").
 
-            #rlimit{
+            #alcove_rlimit{
                 cur = integer(),
                 max = integer()
                 }
@@ -745,7 +745,7 @@ probably confuse the process.
     setrlimit(Drv, Pids, Resource, Limit) -> ok | {error, posix()}
 
         Types   Opt = integer()
-                Val = #rlimit{}
+                Val = #alcove_rlimit{}
 
         setrlimit(2) : set a resource limit
 

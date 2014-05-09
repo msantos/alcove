@@ -40,7 +40,7 @@ alcove_getrlimit(alcove_state_t *ap, ETERM *arg)
     return (rv < 0)
             ? alcove_errno(errno)
             : alcove_ok(alcove_tuple3(
-                    erl_mk_atom("rlimit"),
+                    erl_mk_atom("alcove_rlimit"),
                     erl_mk_ulonglong(rlim.rlim_cur),
                     erl_mk_ulonglong(rlim.rlim_max)
                     ));
@@ -70,15 +70,15 @@ alcove_setrlimit(alcove_state_t *ap, ETERM *arg)
 
     resource = ERL_INT_VALUE(hd);
 
-    /* {rlimit, rlim_cur, rlim_max} */
+    /* {alcove_rlimit, rlim_cur, rlim_max} */
 
     arg = alcove_list_head(&hd, arg);
     if (!hd || !ERL_IS_TUPLE(hd) || erl_size(hd) != 3)
         goto BADARG;
 
-    /* 'rlimit' */
+    /* 'alcove_rlimit' */
     t = erl_element(1, hd);
-    if (!t || !ERL_IS_ATOM(t) || strncmp(ERL_ATOM_PTR(t), "rlimit", 6))
+    if (!t || !ERL_IS_ATOM(t) || strncmp(ERL_ATOM_PTR(t), "alcove_rlimit", 6))
         goto BADARG;
 
     /* rlim_cur: soft limit */
