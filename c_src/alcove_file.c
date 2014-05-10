@@ -17,8 +17,12 @@
 
 #include <sys/stat.h>
 #include <fcntl.h>
+#include <sys/select.h>
 
 #include "alcove_file.h"
+
+static fd_set *alcove_list_to_fd_set(ETERM *fdset, int *nfds);
+static void alcove_fd_isset(ETERM **t, fd_set *set);
 
 /*
  * open(2)
@@ -113,6 +117,145 @@ alcove_close(alcove_state_t *ap, ETERM *arg)
 
 BADARG:
     return erl_mk_atom("badarg");
+}
+
+/*
+ * select(2)
+ *
+ */
+    ETERM *
+alcove_select(alcove_state_t *ap, ETERM *arg)
+{
+    ETERM *hd = NULL;
+    int nfds = 0;
+    fd_set *readfds = NULL;
+    fd_set *writefds = NULL;
+    fd_set *exceptfds = NULL;
+    struct timeval *timeout = NULL;
+
+    ETERM *readterm = erl_mk_empty_list();
+    ETERM *writeterm = erl_mk_empty_list();
+    ETERM *exceptterm = erl_mk_empty_list();
+
+    int rv = 0;
+    int errnum = 0;
+
+    /* readfds */
+    arg = alcove_list_head(&hd, arg);
+    if (!hd || !ERL_IS_LIST(hd))
+        goto BADARG;
+
+    if (!ERL_IS_EMPTY_LIST(hd)) {
+        readfds = alcove_list_to_fd_set(hd, &nfds);
+        if (!readfds) {
+            errno = EBADF;
+            goto ERR;
+        }
+    }
+
+    /* writefds */
+    arg = alcove_list_head(&hd, arg);
+    if (!hd || !ERL_IS_LIST(hd))
+        goto BADARG;
+
+    if (!ERL_IS_EMPTY_LIST(hd)) {
+        writefds = alcove_list_to_fd_set(hd, &nfds);
+        if (!writefds) {
+            errno = EBADF;
+            goto ERR;
+        }
+    }
+
+    /* exceptfds */
+    arg = alcove_list_head(&hd, arg);
+    if (!hd || !ERL_IS_LIST(hd))
+        goto BADARG;
+
+    if (!ERL_IS_EMPTY_LIST(hd)) {
+        exceptfds = alcove_list_to_fd_set(hd, &nfds);
+        if (!exceptfds) {
+            errno = EBADF;
+            goto ERR;
+        }
+    }
+
+    /* timeout */
+    arg = alcove_list_head(&hd, arg);
+    if (!hd)
+        goto BADARG;
+
+    if (ERL_IS_BINARY(hd) && erl_size(hd) == 0) {
+        timeout = NULL;
+    }
+    else if (ERL_IS_TUPLE(hd) && erl_size(hd) == 3) {
+        ETERM *t = NULL;
+
+        /* {alcove_timeval, Sec, Usec} */
+        timeout = malloc(sizeof(struct timeval));
+        if (!timeout)
+            goto BADARG;
+
+        /* 'alcove_timeval' */
+        t = erl_element(1, hd);
+        if (!t || !ERL_IS_ATOM(t) || strncmp(ERL_ATOM_PTR(t), "alcove_timeval", 14))
+            goto BADARG;
+
+        /* sec */
+        t = erl_element(2, hd);
+        if (!t || !ALCOVE_IS_LONGLONG(t))
+            goto BADARG;
+
+        timeout->tv_sec = ALCOVE_LL_UVALUE(t);
+
+        /* usec */
+        t = erl_element(3, hd);
+        if (!t || !ALCOVE_IS_LONGLONG(t))
+            goto BADARG;
+
+        timeout->tv_usec = ALCOVE_LL_UVALUE(t);
+    }
+    else {
+        goto BADARG;
+    }
+
+    rv = select(nfds+1, readfds, writefds, exceptfds, timeout);
+
+    if (rv < 0)
+        goto ERR;
+
+    alcove_fd_isset(&readterm, readfds);
+    alcove_fd_isset(&writeterm, writefds);
+    alcove_fd_isset(&exceptterm, exceptfds);
+
+    free(readfds);
+    free(writefds);
+    free(exceptfds);
+    free(timeout);
+
+    return alcove_tuple4(
+            erl_mk_atom("ok"),
+            readterm,
+            writeterm,
+            exceptterm
+            );
+
+BADARG:
+    free(readfds);
+    free(writefds);
+    free(exceptfds);
+    free(timeout);
+
+    return erl_mk_atom("badarg");
+
+ERR:
+    errnum = errno;
+
+    free(readfds);
+    free(writefds);
+    free(exceptfds);
+    free(timeout);
+
+    return alcove_errno(errnum);
 }
 
 /*
@@ -373,4 +516,65 @@ alcove_file_define(alcove_state_t *ap, ETERM *arg)
 
 BADARG:
     return erl_mk_atom("badarg");
+}
+
+/*
+ * Utility functions
+ *
+ */
+    static fd_set *
+alcove_list_to_fd_set(ETERM *fdset, int *nfds)
+{
+    ETERM *hd = NULL;
+    ssize_t len = 0;
+    fd_set *set = NULL;
+    int i = 0;
+    int fd = -1;
+
+    len = erl_length(fdset);
+
+    if (len < 0 || len >= FD_SETSIZE)
+        return NULL;
+
+    set = malloc(sizeof(fd_set));
+    if (!set)
+        return NULL;
+
+    FD_ZERO(set);
+
+    for (i = 0; i < len; i++) {
+        fdset = alcove_list_head(&hd, fdset);
+
+        if (!hd || !ERL_IS_INTEGER(hd))
+            goto BADARG;
+
+        fd = ERL_INT_VALUE(hd);
+
+        /* stdin, stdout, stderr, ctl are reserved */
+        if (fd < 4 || fd >= FD_SETSIZE || fcntl(fd, F_GETFD, 0) < 0)
+            goto BADARG;
+
+        FD_SET(fd, set);
+        *nfds = MAX(fd, *nfds);
+    }
+
+    return set;
+
+BADARG:
+    free(set);
+    return NULL;
+}
+
+    static void
+alcove_fd_isset(ETERM **t, fd_set *set)
+{
+    int fd = 0;
+
+    if (!set)
+        return;
+
+    for (fd = 0; fd <= FD_SETSIZE; fd++) {
+        if (FD_ISSET(fd, set))
+            *t = erl_cons(erl_mk_int(fd), *t);
+    }
 }

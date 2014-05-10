@@ -675,6 +675,26 @@ probably confuse the process.
 
         rmdir(2) : delete a directory
 
+    select(Drv, Readfds, Writefds, Exceptfds, Timeout) -> {ok, Readfds, Writefds, Exceptfds} | {error, posix()}
+    select(Drv, Pids, Readfds, Writefds, Exceptfds, Timeout) -> {ok, Readfds, Writefds, Exceptfds} | {error, posix()}
+
+        Types   Readfds = Writefds = Exceptfds = [] | [integer()]
+                Timeout = <<>> | #alcove_timeval{}
+
+        select(2) : poll a list of file descriptor for events
+
+        select/5,6 will block until an event occurs on a file descriptor,
+        a timeout is reached or interrupted by a signal.
+
+        The Timeout value may be:
+
+            * an empty binary (<<>>) signifying no value (block forever)
+
+            * an alcove_timeval record with these fields:
+
+                sec : number of seconds to wait
+                usec : number of microseconds to wait
+
     setenv(Drv, Name, Value, Overwrite) -> ok | {error, posix()}
     setenv(Drv, Pids, Name, Value, Overwrite) -> ok | {error, posix()}
 

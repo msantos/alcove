@@ -128,6 +128,7 @@ void *alcove_malloc(ssize_t size);
 ETERM *alcove_list_head(ETERM **, ETERM *);
 ETERM *alcove_tuple2(ETERM *, ETERM *);
 ETERM *alcove_tuple3(ETERM *, ETERM *, ETERM *);
+ETERM *alcove_tuple4(ETERM *, ETERM *, ETERM *, ETERM *);
 ETERM *alcove_tuple5(ETERM *, ETERM *, ETERM *, ETERM *, ETERM *);
 ETERM *alcove_errno(int);
 ETERM *alcove_error(const char *);

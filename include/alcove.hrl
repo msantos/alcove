@@ -22,6 +22,11 @@
         stderr = -1 :: integer()
     }).
 
+-record(alcove_timeval, {
+        sec = 0 :: non_neg_integer(),
+        usec = 0 :: non_neg_integer()
+    }).
+
 -define(UINT16(N), N:2/unsigned-integer-unit:8).
 -define(UINT32(N), N:4/unsigned-integer-unit:8).
 

@@ -33,6 +33,7 @@ read/2
 readdir/1
 rlimit_define/1
 rmdir/1
+select/4
 setenv/3
 setgid/1
 sethostname/1

@@ -31,6 +31,14 @@ alcove_tuple3(ETERM *t1, ETERM *t2, ETERM *t3)
 }
 
     ETERM *
+alcove_tuple4(ETERM *t1, ETERM *t2, ETERM *t3, ETERM *t4)
+{
+    ETERM *t[4] = {t1, t2, t3, t4};
+
+    return erl_mk_tuple(t, 4);
+}
+
+    ETERM *
 alcove_tuple5(ETERM *t1, ETERM *t2, ETERM *t3, ETERM *t4, ETERM *t5)
 {
     ETERM *t[5] = {t1, t2, t3, t4, t5};
