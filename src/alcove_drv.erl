@@ -51,11 +51,11 @@ stop(Drv) ->
 
 -spec call(pid(),iodata()) -> any().
 call(Drv, Data) ->
-    call(Drv, [], Data, 5000).
+    call(Drv, [], Data, infinity).
 
 -spec call(pid(),[integer()],iodata()) -> any().
 call(Drv, Pids, Data) ->
-    call(Drv, Pids, Data, 5000).
+    call(Drv, Pids, Data, infinity).
 
 -spec call(pid(),[integer()],iodata(),'infinity' | non_neg_integer()) ->
     any().
