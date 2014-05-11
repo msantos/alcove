@@ -399,6 +399,8 @@ forkchain(#state{pid = Drv}) ->
 
     Pid = alcove:getpid(Drv, [Child0, Child1, Child2, Child3, Child4]),
 
+    alcove:exit(Drv, [Child0], 0),
+
     ?_assertEqual(Pid, Child4).
 
 eof(#state{pid = Drv}) ->
@@ -418,7 +420,8 @@ eof(#state{pid = Drv}) ->
         N -> N
     end,
 
-    alcove:exit(Drv, [Child], 0),
+    % XXX calling exit here causes the test to hang on some systems
+%    alcove:exit(Drv, [Child], 0),
 
     [
         ?_assertEqual({error,ebadf}, Reply0),
