@@ -74,10 +74,6 @@ shell(Drv, Options, State) ->
                     shell(Drv, Options, dict:erase(Child, State))
             end;
         {stdin, Child, Data} ->
-            error_logger:info_report([
-                    {child, Child},
-                    {stdin, Data}
-                ]),
             alcove:stdin(Drv, [Child], Data),
             shell(Drv, Options, State);
         {alcove_stdout, Drv, [Child], Data} ->
@@ -235,6 +231,11 @@ network(Init, Socket, Child) ->
     inet:setopts(Socket, [{active, once}]),
     receive
         {tcp, Socket, Data} ->
+            error_logger:info_report([
+                    {peer, element(2, inet:peername(Socket))},
+                    {child, Child},
+                    {stdin, Data}
+                ]),
             Init ! {stdin, Child, Data},
             network(Init, Socket, Child);
         {tcp_closed, Socket} ->
