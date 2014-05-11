@@ -573,7 +573,7 @@ alcove_fd_isset(ETERM **t, fd_set *set)
     if (!set)
         return;
 
-    for (fd = 0; fd <= FD_SETSIZE; fd++) {
+    for (fd = FD_SETSIZE - 1; fd > 3; fd--) {
         if (FD_ISSET(fd, set))
             *t = erl_cons(erl_mk_int(fd), *t);
     }
