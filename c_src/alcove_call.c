@@ -154,53 +154,6 @@ BADARG:
  * Utility functions
  */
 
-    char **
-alcove_list_to_argv(ETERM *arg)
-{
-    ETERM *hd = NULL;
-    ssize_t len = 0;
-    int i = 0;
-    char **argv = NULL;
-    long maxarg = sysconf(_SC_ARG_MAX);
-
-    len = erl_length(arg);
-
-    if (len < 0 || len >= maxarg)
-        return NULL;
-
-    /* NULL terminate */
-    argv = calloc(len + 1, sizeof(char **));
-
-    if (!argv)
-        return NULL;
-
-    for (i = 0; i < len; i++) {
-        arg = alcove_list_head(&hd, arg);
-        if (!hd)
-            return NULL;
-
-        argv[i] = erl_iolist_to_string(hd);
-        if (!argv[i])
-            return NULL;
-    }
-
-    return argv;
-}
-
-    void
-alcove_free_argv(char **argv)
-{
-    int i = 0;
-
-    if (argv == NULL)
-        return;
-
-    for (i = 0; argv[i]; i++)
-        free(argv[i]);
-
-    free(argv);
-}
-
     static int
 cons_pid(alcove_state_t *ap, alcove_child_t *c, void *arg1, void *arg2)
 {

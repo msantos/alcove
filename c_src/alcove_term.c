@@ -76,13 +76,6 @@ alcove_bin(const char *buf)
     return (buf ? erl_mk_binary(buf, strlen(buf)) : erl_mk_binary("",0));
 }
 
-    ETERM *
-alcove_list_head(ETERM **hd, ETERM *list)
-{
-    *hd = erl_hd(list);
-    return erl_tl(list);
-}
-
     void *
 alcove_malloc(ssize_t size)
 {
@@ -124,4 +117,58 @@ alcove_constant(u_int64_t val, alcove_define_t *constants)
     }
 
     return erl_mk_atom("false");
+}
+
+    ETERM *
+alcove_list_head(ETERM **hd, ETERM *list)
+{
+    *hd = erl_hd(list);
+    return erl_tl(list);
+}
+
+    char **
+alcove_list_to_argv(ETERM *arg)
+{
+    ETERM *hd = NULL;
+    ssize_t len = 0;
+    int i = 0;
+    char **argv = NULL;
+    long maxarg = sysconf(_SC_ARG_MAX);
+
+    len = erl_length(arg);
+
+    if (len < 0 || len >= maxarg)
+        return NULL;
+
+    /* NULL terminate */
+    argv = calloc(len + 1, sizeof(char **));
+
+    if (!argv)
+        return NULL;
+
+    for (i = 0; i < len; i++) {
+        arg = alcove_list_head(&hd, arg);
+        if (!hd)
+            return NULL;
+
+        argv[i] = erl_iolist_to_string(hd);
+        if (!argv[i])
+            return NULL;
+    }
+
+    return argv;
+}
+
+    void
+alcove_free_argv(char **argv)
+{
+    int i = 0;
+
+    if (argv == NULL)
+        return;
+
+    for (i = 0; argv[i]; i++)
+        free(argv[i]);
+
+    free(argv);
 }
