@@ -420,8 +420,7 @@ eof(#state{pid = Drv}) ->
         N -> N
     end,
 
-    % XXX calling exit here causes the test to hang on some systems
-%    alcove:exit(Drv, [Child], 0),
+    alcove:exit(Drv, [Child], 0),
 
     [
         ?_assertEqual({error,ebadf}, Reply0),

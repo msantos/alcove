@@ -632,7 +632,7 @@ set_pid(alcove_state_t *ap, alcove_child_t *c, void *arg1, void *arg2)
         *nfds = MAX(*nfds, c->fderr);
     }
 
-    if (c->exited && c->fdout == -1 && c->fderr == -1) {
+    if (c->exited && c->fdout == -1 && c->fderr == -1 && c->fdctl < 0) {
         c->pid = 0;
         c->exited = 0;
     }
