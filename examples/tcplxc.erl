@@ -12,8 +12,9 @@
 %%% ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 %%% OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 -module(tcplxc).
--export([start/0, start/1]).
 -include_lib("alcove/include/alcove.hrl").
+
+-export([start/0, start/1]).
 
 start() ->
     start([]).
@@ -151,11 +152,13 @@ clone_init(Drv, Child, Options) ->
             'MS_NOSUID'
         ]),
 
-    ok = alcove:mount(Drv, [Child], "/bin",
-        "/tmp/tcplxc/bin", "", BindFlags, <<>>),
-
-    ok = alcove:mount(Drv, [Child], "/dev",
-        "/tmp/tcplxc/dev", "", BindFlags, <<>>),
+    [ ok = bindmount(Drv, [Child], Src, "/tmp/tcplxc", BindFlags) || Src <- [
+            "/lib",
+            "/lib64",
+            "/sbin",
+            "/bin",
+            "/usr",
+            "/dev" ] ],
 
     ok = alcove:mount(Drv, [Child], "tmpfs",
         "/tmp/tcplxc/home", "tmpfs", HomeFlags,
@@ -169,12 +172,18 @@ clone_init(Drv, Child, Options) ->
             'MS_NOSUID',
             'MS_NODEV'
         ]),
+
     ok = alcove:mount(Drv, [Child], "proc",
         "/proc", "proc", ProcFlags, <<>>),
 
     [ alcove:umount(Drv, [Child], Dir) || Dir <- mounts(),
         Dir =/= <<"/">>,
+        Dir =/= <<"/lib">>,
         Dir =/= <<"/bin">>,
+        Dir =/= <<"/usr/bin">>,
+        Dir =/= <<"/usr/sbin">>,
+        Dir =/= <<"/usr/local/bin">>,
+        Dir =/= <<"/usr/local/sbin">>,
         Dir =/= <<"/home">>,
         Dir =/= <<"/dev">>,
         Dir =/= <<"/proc">>
@@ -198,9 +207,11 @@ clone_init(Drv, Child, Options) ->
     ok = alcove:setrlimit(Drv, [Child], RLIMIT_NPROC,
                           #alcove_rlimit{cur = 16, max = 16}),
 
-    ok = alcove:execve(Drv, [Child], "/bin/busybox",
-        ["/bin/busybox", "sh", "-i"],
+    ok = alcove:execve(Drv, [Child], "/bin/bash",
+        ["/bin/bash", "-i"],
         [
+            "PATH=/sbin:/bin:/usr/sbin:/usr/bin:/usr/local/sbin:/usr/local/bin",
+            "TERM=linux",
             "CONTAINER=alcove",
             "HOME=/home",
             "HOSTNAME=" ++ Hostname
@@ -282,16 +293,25 @@ mountdir(FH, Acc) ->
             Error
     end.
 
+bindmount(Drv, Pids, Src, DstPath, Flags) ->
+        case file:read_file_info(Src) of
+            {error,enoent} ->
+                ok;
+            {ok, _} ->
+                alcove:mount(Drv, Pids, Src, join(DstPath, Src),
+                             "", Flags, <<>>)
+        end.
+
 chroot_init() ->
     [ ok = filelib:ensure_dir(lists:concat([Dir, "/."])) || Dir <- [
             "/tmp/tcplxc/bin",
             "/tmp/tcplxc/dev",
             "/tmp/tcplxc/home",
             "/tmp/tcplxc/lib",
+            "/tmp/tcplxc/lib64",
             "/tmp/tcplxc/proc",
             "/tmp/tcplxc/sbin",
-            "/tmp/tcplxc/usr/bin",
-            "/tmp/tcplxc/usr/sbin"
+            "/tmp/tcplxc/usr"
         ] ],
     ok.
 
@@ -321,3 +341,11 @@ cgroup_init(Drv, Namespace, Options) ->
 cgroup_finish(Drv, Child, _Options) ->
     Hostname = lists:concat(["alcove", Child]),
     alcove_cgroup:destroy(Drv, [], [<<"alcove">>, Hostname]).
+
+join(Root, Path) ->
+    P1 = filename:split(Root),
+    P2 = case filename:split(Path) of
+             ["/"|Rest] -> Rest;
+             Rest -> Rest
+         end,
+    filename:join(P1 ++ P2).
