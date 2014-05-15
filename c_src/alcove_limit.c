@@ -78,7 +78,7 @@ alcove_setrlimit(alcove_state_t *ap, ETERM *arg)
 
     /* 'alcove_rlimit' */
     t = erl_element(1, hd);
-    if (!t || !ERL_IS_ATOM(t) || strncmp(ERL_ATOM_PTR(t), "alcove_rlimit", 6))
+    if (!t || !ERL_IS_ATOM(t) || strncmp(ERL_ATOM_PTR(t), "alcove_rlimit", 13))
         goto BADARG;
 
     /* rlim_cur: soft limit */
