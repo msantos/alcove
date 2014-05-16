@@ -207,16 +207,16 @@ clone_init(Drv, Child, Options) ->
     ok = alcove:setrlimit(Drv, [Child], RLIMIT_NPROC,
                           #alcove_rlimit{cur = 16, max = 16}),
 
-    ok = alcove:execve(Drv, [Child], "/bin/bash",
-        ["/bin/bash", "-i"],
-        [
+    Exe = proplists:get_value(exe, Options, ["/bin/bash", "-i"]),
+    Env = proplists:get_value(env, Options, [
             "PATH=/sbin:/bin:/usr/sbin:/usr/bin:/usr/local/sbin:/usr/local/bin",
             "TERM=linux",
             "CONTAINER=alcove",
             "HOME=/home",
             "HOSTNAME=" ++ Hostname
-        ]
-    ),
+        ]),
+
+    ok = alcove:execve(Drv, [Child], hd(Exe), Exe, Env),
     ok.
 
 accept(Init, LSock) ->
