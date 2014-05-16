@@ -202,6 +202,9 @@ clone_init(Drv, Child, Options) ->
 
     ok = alcove:chdir(Drv, [Child], "/home"),
 
+    Files = proplists:get_value(files, Options, []),
+    write_files(Drv, [Child], Files),
+
     RLIMIT_NPROC = alcove:rlimit_define(Drv, 'RLIMIT_NPROC'),
 
     ok = alcove:setrlimit(Drv, [Child], RLIMIT_NPROC,
@@ -349,3 +352,14 @@ join(Root, Path) ->
              Rest -> Rest
          end,
     filename:join(P1 ++ P2).
+
+write_files(_Drv, _Pid, []) ->
+    ok;
+write_files(Drv, Pid, [{Path, Contents, Mode}|Rest]) ->
+    Flags = alcove:define(Drv, ['O_WRONLY', 'O_CREAT']),
+    {ok, FD} = alcove:open(Drv, Pid, Path, Flags, Mode),
+    {ok, _} = alcove:write(Drv, Pid, FD, Contents),
+    ok = alcove:close(Drv, Pid, FD),
+    write_files(Drv, Pid, Rest);
+write_files(Drv, Pid, [{Path, Contents}|Rest]) ->
+    write_files(Drv, Pid, [{Path, Contents, 8#644}|Rest]).
