@@ -148,14 +148,18 @@ clone_init(Drv, Child, Options) ->
             "/usr",
             "/dev" ] ],
 
-    HomeFlags= alcove:define(Drv, [
+    TmpfsFlags= alcove:define(Drv, [
             'MS_NODEV',
             'MS_NOATIME',
             'MS_NOSUID'
         ]),
 
     ok = alcove:mount(Drv, [Child], "tmpfs",
-        "/tmp/tcplxc/home", "tmpfs", HomeFlags,
+        "/tmp/tcplxc/etc", "tmpfs", TmpfsFlags,
+        [<<"mode=755,size=16M">>]),
+
+    ok = alcove:mount(Drv, [Child], "tmpfs",
+        "/tmp/tcplxc/home", "tmpfs", TmpfsFlags,
         [<<"uid=">>, integer_to_binary(Id),
          <<",gid=">>, integer_to_binary(Id),
          <<",mode=700,size=16M">>]),
@@ -174,10 +178,7 @@ clone_init(Drv, Child, Options) ->
         Dir =/= <<"/">>,
         Dir =/= <<"/lib">>,
         Dir =/= <<"/bin">>,
-        Dir =/= <<"/usr/bin">>,
-        Dir =/= <<"/usr/sbin">>,
-        Dir =/= <<"/usr/local/bin">>,
-        Dir =/= <<"/usr/local/sbin">>,
+        Dir =/= <<"/usr">>,
         Dir =/= <<"/home">>,
         Dir =/= <<"/dev">>,
         Dir =/= <<"/proc">>
@@ -190,6 +191,14 @@ clone_init(Drv, Child, Options) ->
 
     ok = alcove:mount(Drv, [Child], "proc",
         "/proc", "proc", ProcFlags, <<>>),
+
+    SysFiles = proplists:get_value(system_files, Options, []),
+    write_files(Drv, [Child], [
+        {"/etc/passwd", lists:concat(["root:x:0:0:root:/root:/bin/bash
+alcove:x:", Id, ":", Id, ":root:/root:/bin/bash"])},
+        {"/etc/group", lists:concat(["root:x:0:
+alcove:x:", Id, ":"])}
+    ] ++ SysFiles),
 
     ok = alcove:setgid(Drv, [Child], Id),
     ok = alcove:setuid(Drv, [Child], Id),
@@ -314,6 +323,7 @@ bindmount(Drv, Pids, Src, DstPath) ->
 
 chroot_init() ->
     [ ok = filelib:ensure_dir(lists:concat([Dir, "/."])) || Dir <- [
+            "/tmp/tcplxc/etc",
             "/tmp/tcplxc/bin",
             "/tmp/tcplxc/dev",
             "/tmp/tcplxc/home",
