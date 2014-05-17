@@ -140,25 +140,19 @@ clone_init(Drv, Child, Options) ->
 
     ok = alcove:sethostname(Drv, [Child], Hostname),
 
-    BindFlags= alcove:define(Drv, [
-            'MS_BIND',
-            'MS_RDONLY',
-            'MS_NOSUID'
-        ]),
-
-    HomeFlags= alcove:define(Drv, [
-            'MS_NODEV',
-            'MS_NOATIME',
-            'MS_NOSUID'
-        ]),
-
-    [ ok = bindmount(Drv, [Child], Src, "/tmp/tcplxc", BindFlags) || Src <- [
+    [ ok = bindmount(Drv, [Child], Src, "/tmp/tcplxc") || Src <- [
             "/lib",
             "/lib64",
             "/sbin",
             "/bin",
             "/usr",
             "/dev" ] ],
+
+    HomeFlags= alcove:define(Drv, [
+            'MS_NODEV',
+            'MS_NOATIME',
+            'MS_NOSUID'
+        ]),
 
     ok = alcove:mount(Drv, [Child], "tmpfs",
         "/tmp/tcplxc/home", "tmpfs", HomeFlags,
@@ -296,14 +290,27 @@ mountdir(FH, Acc) ->
             Error
     end.
 
-bindmount(Drv, Pids, Src, DstPath, Flags) ->
-        case file:read_file_info(Src) of
-            {error,enoent} ->
-                ok;
-            {ok, _} ->
-                alcove:mount(Drv, Pids, Src, join(DstPath, Src),
-                             "", Flags, <<>>)
-        end.
+bindmount(Drv, Pids, Src, DstPath) ->
+    case file:read_file_info(Src) of
+        {error,enoent} ->
+            ok;
+        {ok, _} ->
+            BindFlags= alcove:define(Drv, [
+                'MS_BIND'
+            ]),
+
+            RemountFlags= alcove:define(Drv, [
+                'MS_REMOUNT',
+                'MS_BIND',
+                'MS_RDONLY',
+                'MS_NOSUID'
+            ]),
+
+            ok = alcove:mount(Drv, Pids, Src, join(DstPath, Src),
+                "", BindFlags, <<>>),
+            alcove:mount(Drv, Pids, Src, join(DstPath, Src),
+                "", RemountFlags, <<>>)
+    end.
 
 chroot_init() ->
     [ ok = filelib:ensure_dir(lists:concat([Dir, "/."])) || Dir <- [
