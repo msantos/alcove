@@ -214,15 +214,15 @@ alcove:x:", Id, ":"])}
                           #alcove_rlimit{cur = 16, max = 16}),
 
     Exe = proplists:get_value(exe, Options, ["/bin/bash", "-i"]),
-    Env = proplists:get_value(env, Options, [
-            "PATH=/sbin:/bin:/usr/sbin:/usr/bin:/usr/local/sbin:/usr/local/bin",
-            "TERM=linux",
-            "CONTAINER=alcove",
-            "HOME=/home",
-            "HOSTNAME=" ++ Hostname
-        ]),
+    Env = proplists:get_value(environ, Options, []),
 
-    ok = alcove:execve(Drv, [Child], hd(Exe), Exe, Env),
+    ok = alcove:execve(Drv, [Child], hd(Exe), Exe, [
+        "PATH=/sbin:/bin:/usr/sbin:/usr/bin:/usr/local/sbin:/usr/local/bin",
+        "TERM=linux",
+        "CONTAINER=alcove",
+        "HOME=/home",
+        "HOSTNAME=" ++ Hostname
+    ] ++ Env),
     ok.
 
 accept(Init, LSock) ->
