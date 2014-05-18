@@ -68,10 +68,10 @@ alcove_mount(alcove_state_t *ap, ETERM *arg)
 
     /* mountflags */
     arg = alcove_list_head(&hd, arg);
-    if (!hd || !ERL_IS_INTEGER(hd))
+    if (!hd || !ALCOVE_IS_UNSIGNED_LONG(hd))
         goto BADARG;
 
-    mountflags = ERL_INT_VALUE(hd);
+    mountflags = ALCOVE_LL_UVALUE(hd);
 
     /* data */
     arg = alcove_list_head(&hd, arg);
