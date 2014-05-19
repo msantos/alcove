@@ -181,6 +181,7 @@ clone_init(Drv, Child, Options) ->
         Dir =/= <<"/usr">>,
         Dir =/= <<"/home">>,
         Dir =/= <<"/dev">>,
+        Dir =/= <<"/dev/pts">>,
         Dir =/= <<"/proc">>
     ],
 
@@ -188,6 +189,14 @@ clone_init(Drv, Child, Options) ->
 
     ok = alcove:chroot(Drv, [Child], "/tmp/tcplxc"),
     ok = alcove:chdir(Drv, [Child], "/"),
+
+    % devpts on /dev/pts type devpts (rw,noexec,nosuid,gid=5,mode=0620)
+    PtsFlags= alcove:define(Drv, [
+            'MS_NOEXEC',
+            'MS_NOSUID'
+        ]),
+    ok = alcove:mount(Drv, [Child], "devpts",
+        "/dev/pts", "devpts", PtsFlags, [<<"mode=620,gid=5">>]),
 
     ok = alcove:mount(Drv, [Child], "proc",
         "/proc", "proc", ProcFlags, <<>>),
@@ -197,6 +206,7 @@ clone_init(Drv, Child, Options) ->
         {"/etc/passwd", lists:concat(["root:x:0:0:root:/root:/bin/bash
 alcove:x:", Id, ":", Id, ":root:/root:/bin/bash"])},
         {"/etc/group", lists:concat(["root:x:0:
+tty:x:5:
 alcove:x:", Id, ":"])}
     ] ++ SysFiles),
 
