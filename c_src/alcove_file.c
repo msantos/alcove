@@ -380,8 +380,7 @@ alcove_write(alcove_state_t *ap, ETERM *arg)
     if (!hd || !ALCOVE_IS_IOLIST(hd))
         goto BADARG;
 
-    if (erl_iolist_length(hd) > 0)
-        buf = erl_iolist_to_binary(hd);
+    buf = erl_iolist_to_binary(hd);
 
     if (!buf)
         goto BADARG;
