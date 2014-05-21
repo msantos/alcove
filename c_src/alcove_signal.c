@@ -130,7 +130,7 @@ BADARG:
 alcove_signal_constant(alcove_state_t *ap, ETERM *arg)
 {
     ETERM *hd = NULL;
-    long long signum = 0;
+    int signum = 0;
 
     /* signum */
     arg = alcove_list_head(&hd, arg);
