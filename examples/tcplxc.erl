@@ -181,7 +181,6 @@ clone_init(Drv, Child, Options) ->
         Dir =/= <<"/usr">>,
         Dir =/= <<"/home">>,
         Dir =/= <<"/dev">>,
-        Dir =/= <<"/dev/pts">>,
         Dir =/= <<"/proc">>
     ],
 
