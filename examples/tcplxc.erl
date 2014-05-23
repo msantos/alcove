@@ -230,6 +230,7 @@ alcove:x:", Id, ":"])}
         "TERM=linux",
         "CONTAINER=alcove",
         "HOME=/home",
+        "TMPDIR=/home",
         "HOSTNAME=" ++ Hostname
     ] ++ Env),
     ok.
