@@ -9,6 +9,7 @@ int main(int argc, char *argv[]) {
 }",
         file:write_file("test/test_setns.c", Setns),
         Retval = os:cmd("gcc -o /dev/null test/test_setns.c > /dev/null 2>&1; printf \"%d\" $?"),
+        file:delete("test/test_setns.c"),
         case Retval of
             "0" ->
                 lists:map(fun
