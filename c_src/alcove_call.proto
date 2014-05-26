@@ -40,6 +40,7 @@ sethostname/1
 setns/1
 setopt/2
 setrlimit/2
+setsid/0
 setuid/1
 sigaction/2
 signal_constant/1

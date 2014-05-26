@@ -140,3 +140,13 @@ BADARG:
     return erl_mk_atom("false");
 #endif
 }
+
+/*
+ * setsid(2)
+ */
+    ETERM *
+alcove_setsid(alcove_state_t *ap, ETERM *arg)
+{
+    pid_t pid = setsid();
+    return pid < 0 ? alcove_errno(errno) : erl_mk_int(setsid);
+}
