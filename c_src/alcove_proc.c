@@ -148,5 +148,5 @@ BADARG:
 alcove_setsid(alcove_state_t *ap, ETERM *arg)
 {
     pid_t pid = setsid();
-    return pid < 0 ? alcove_errno(errno) : erl_mk_int(setsid);
+    return pid < 0 ? alcove_errno(errno) : erl_mk_int(pid);
 }
