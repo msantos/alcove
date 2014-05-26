@@ -148,31 +148,28 @@ clone_init(Drv, Child, Options) ->
             "/usr",
             "/dev" ] ],
 
-    TmpfsFlags= alcove:define(Drv, [
+    ok = mount(Drv, [Child], "tmpfs", "/tmp/tcplxc/etc", "tmpfs", [
             'MS_NODEV',
             'MS_NOATIME',
             'MS_NOSUID'
-        ]),
+        ], [<<"mode=755,size=16M">>]),
 
-    ok = alcove:mount(Drv, [Child], "tmpfs",
-        "/tmp/tcplxc/etc", "tmpfs", TmpfsFlags,
-        [<<"mode=755,size=16M">>]),
-
-    ok = alcove:mount(Drv, [Child], "tmpfs",
-        "/tmp/tcplxc/home", "tmpfs", TmpfsFlags,
-        [<<"uid=">>, integer_to_binary(Id),
+    ok = mount(Drv, [Child], "tmpfs",
+        "/tmp/tcplxc/home", "tmpfs", [
+            'MS_NODEV',
+            'MS_NOATIME',
+            'MS_NOSUID'
+        ], [<<"uid=">>, integer_to_binary(Id),
          <<",gid=">>, integer_to_binary(Id),
          <<",mode=700,size=16M">>]),
 
     % proc on /proc type proc (rw,noexec,nosuid,nodev)
-    ProcFlags= alcove:define(Drv, [
+    ok = mount(Drv, [Child], "proc",
+        "/proc", "proc", [
             'MS_NOEXEC',
             'MS_NOSUID',
             'MS_NODEV'
-        ]),
-
-    ok = alcove:mount(Drv, [Child], "proc",
-        "/proc", "proc", ProcFlags, <<>>),
+        ], <<>>),
 
     [ alcove:umount(Drv, [Child], Dir) || Dir <- mounts(),
         Dir =/= <<"/">>,
@@ -190,15 +187,16 @@ clone_init(Drv, Child, Options) ->
     ok = alcove:chdir(Drv, [Child], "/"),
 
     % devpts on /dev/pts type devpts (rw,noexec,nosuid,gid=5,mode=0620)
-    PtsFlags= alcove:define(Drv, [
-            'MS_NOEXEC',
-            'MS_NOSUID'
-        ]),
-    ok = alcove:mount(Drv, [Child], "devpts",
-        "/dev/pts", "devpts", PtsFlags, [<<"mode=620,gid=5">>]),
+    ok = mount(Drv, [Child], "devpts",
+        "/dev/pts", "devpts", ['MS_NOEXEC', 'MS_NOSUID'],
+        [<<"mode=620,gid=5">>]),
 
-    ok = alcove:mount(Drv, [Child], "proc",
-        "/proc", "proc", ProcFlags, <<>>),
+    ok = mount(Drv, [Child], "proc",
+        "/proc", "proc", [
+            'MS_NOEXEC',
+            'MS_NOSUID',
+            'MS_NODEV'
+        ], <<>>),
 
     SysFiles = proplists:get_value(system_files, Options, []),
     write_files(Drv, [Child], [
@@ -290,6 +288,10 @@ network(Init, Socket, Child) ->
 id() ->
     crypto:rand_uniform(16#f0000000, 16#f000ffff).
 
+mount(Drv, Pids, Source, Target, Type, MountFlags, Data) ->
+    Flags = alcove:define(Drv, MountFlags),
+    alcove:mount(Drv, Pids, Source, Target, Type, Flags, Data).
+
 mounts() ->
     {ok, FH} = file:open("/proc/mounts", [read,raw,binary]),
     mountdir(FH).
@@ -314,21 +316,14 @@ bindmount(Drv, Pids, Src, DstPath) ->
         {error,enoent} ->
             ok;
         {ok, _} ->
-            BindFlags= alcove:define(Drv, [
-                'MS_BIND'
-            ]),
-
-            RemountFlags= alcove:define(Drv, [
-                'MS_REMOUNT',
-                'MS_BIND',
-                'MS_RDONLY',
-                'MS_NOSUID'
-            ]),
-
-            ok = alcove:mount(Drv, Pids, Src, join(DstPath, Src),
-                "", BindFlags, <<>>),
-            alcove:mount(Drv, Pids, Src, join(DstPath, Src),
-                "", RemountFlags, <<>>)
+            ok = mount(Drv, Pids, Src, join(DstPath, Src),
+                "", ['MS_BIND'], <<>>),
+            mount(Drv, Pids, Src, join(DstPath, Src), "", [
+                    'MS_REMOUNT',
+                    'MS_BIND',
+                    'MS_RDONLY',
+                    'MS_NOSUID'
+                ], <<>>)
     end.
 
 chroot_init() ->
