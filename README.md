@@ -710,6 +710,11 @@ probably confuse the process.
 
         setgid(2) : set the GID of the process
 
+    setsid(Drv) -> {ok, Pid} | {error, posix()}
+    setsid(Drv, Pids) -> {ok, Pid} | {error, posix()}
+
+        setsid(2) : create a new session
+
     sethostname(Drv, Hostname) -> ok | {error, posix()}
     sethostname(Drv, Pids, Hostname) -> ok | {error, posix()}
 
