@@ -44,9 +44,6 @@ alcove_mount(alcove_state_t *ap, ETERM *arg)
     if (erl_iolist_length(hd) > 0)
         source = erl_iolist_to_string(hd);
 
-    if (!source)
-        goto BADARG;
-
     /* target */
     arg = alcove_list_head(&hd, arg);
     if (!hd || !ALCOVE_IS_IOLIST(hd))
