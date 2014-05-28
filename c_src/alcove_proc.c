@@ -142,6 +142,31 @@ BADARG:
 }
 
 /*
+ * getsid(2)
+ */
+    ETERM *
+alcove_getsid(alcove_state_t *ap, ETERM *arg)
+{
+    ETERM *hd = NULL;
+    pid_t pid = 0;
+    pid_t rv = 0;
+
+    /* pid */
+    arg = alcove_list_head(&hd, arg);
+    if (!hd || !ERL_IS_INTEGER(hd))
+        goto BADARG;
+
+    pid = ERL_INT_VALUE(hd);
+
+    rv = getsid(pid);
+
+    return rv < 0 ? alcove_errno(errno) : alcove_ok(erl_mk_int(rv));
+
+BADARG:
+    return erl_mk_atom("badarg");
+}
+
+/*
  * setsid(2)
  */
     ETERM *

@@ -570,6 +570,11 @@ probably confuse the process.
                 max = integer()
                 }
 
+    getsid(Drv, Pid) -> {ok, integer()} | {error, posix()}
+    getsid(Drv, Pids, Pid) -> {ok, integer()} | {error, posix()}
+
+        getsid(2) : retrieve the session ID
+
     getuid(Drv) -> integer()
     getuid(Drv, Pids) -> integer()
 

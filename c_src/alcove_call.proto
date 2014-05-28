@@ -19,6 +19,7 @@ gethostname/0
 getopt/1
 getpid/0
 getrlimit/1
+getsid/1
 getuid/0
 kill/2
 lseek/3
