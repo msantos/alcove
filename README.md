@@ -552,6 +552,11 @@ probably confuse the process.
                 If a child process exits because of a signal, notify
                 the controlling Erlang process.
 
+    getpgrp(Drv) -> integer()
+    getpgrp(Drv, Pids) -> integer()
+
+        getpgrp(2) : retrieve the process group.
+
     getpid(Drv) -> integer()
     getpid(Drv, Pids) -> integer()
 

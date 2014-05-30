@@ -175,3 +175,12 @@ alcove_setsid(alcove_state_t *ap, ETERM *arg)
     pid_t pid = setsid();
     return pid < 0 ? alcove_errno(errno) : alcove_ok(erl_mk_int(pid));
 }
+
+/*
+ * getpgrp(2)
+ */
+    ETERM *
+alcove_getpgrp(alcove_state_t *ap, ETERM *arg)
+{
+    return erl_mk_int(getpgrp());
+}
