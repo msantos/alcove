@@ -188,6 +188,8 @@ define(Drv, Consts) when is_list(Consts) ->
                         alcove:file_define(Drv, Const);
                     \"PR_\" ++ _ ->
                         alcove:prctl_define(Drv, Const);
+                    \"SECCOMP_\" ++ _ ->
+                        alcove:prctl_define(Drv, Const);
                     \"RLIMIT_\" ++ _ ->
                         alcove:rlimit_define(Drv, Const);
                     \"SIG\" ++ _ ->
@@ -197,9 +199,13 @@ define(Drv, Consts) when is_list(Consts) ->
                         Flag =:= \"nosuid\";
                         Flag =:= \"noexec\";
                         Flag =:= \"noatime\" ->
-                            alcove:mount_define(Drv, Const)
+                            alcove:mount_define(Drv, Const);
+                    _ -> false
                 end,
-                N bxor A
+                if
+                    is_integer(N) -> N bxor A;
+                    true -> false
+                end
         end,
         0,
         Consts).
