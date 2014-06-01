@@ -144,19 +144,23 @@ alcove_list_to_argv(ETERM *arg)
     argv = calloc(len + 1, sizeof(char **));
 
     if (!argv)
-        return NULL;
+        erl_err_sys("calloc");
 
     for (i = 0; i < len; i++) {
         arg = alcove_list_head(&hd, arg);
         if (!hd)
-            return NULL;
+            goto ERR;
 
         argv[i] = erl_iolist_to_string(hd);
         if (!argv[i])
-            return NULL;
+            goto ERR;
     }
 
     return argv;
+
+ERR:
+    free(argv);
+    return NULL;
 }
 
     void
