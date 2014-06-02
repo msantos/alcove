@@ -29,4 +29,5 @@ done < $PROTO
 cat<< 'EOF'
 char **alcove_list_to_argv(ETERM *);
 void alcove_free_argv(char **);
+void *alcove_list_to_buf(ETERM *arg, size_t *len, alcove_alloc_t **ptr, ssize_t *nptr);
 EOF

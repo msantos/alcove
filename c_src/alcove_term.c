@@ -176,3 +176,94 @@ alcove_free_argv(char **argv)
 
     free(argv);
 }
+
+    void *
+alcove_list_to_buf(ETERM *arg, size_t *len, alcove_alloc_t **ptr, ssize_t *nptr)
+{
+    ETERM *hd = NULL;
+    ETERM *parg = arg;
+    ETERM *t = NULL;
+    ssize_t nelem = 0;
+    int i = 0;
+    char *buf = NULL;
+    char *pbuf = NULL;
+    size_t n = 0;
+    ssize_t np = 0;
+
+    *len = 0;
+    *nptr = 0;
+    nelem = erl_length(arg);
+
+    if (nelem < 0 || nelem >= 0xffff)
+        return NULL;
+
+    /* Calculate the size required */
+    for (i = 0; i < nelem; i++) {
+        parg = alcove_list_head(&hd, parg);
+        if (!hd)
+            return NULL;
+
+        if (ERL_IS_BINARY(hd)) {
+            n += erl_size(hd);
+        }
+        else if (ERL_IS_TUPLE(hd) && erl_size(hd) == 2) {
+            t = erl_element(1, hd);
+            if (!t || !ERL_IS_ATOM(t) || strncmp(ERL_ATOM_PTR(t), "ptr", 3))
+                return NULL;
+
+            t = erl_element(2, hd);
+
+            if (ALCOVE_IS_UNSIGNED_LONG(t) || ERL_IS_BINARY(t)) {
+                n += sizeof(void *);
+                np++;
+            }
+            else
+                return NULL;
+        }
+        else
+            return NULL;
+    }
+
+    buf = alcove_malloc(n);
+    *len = n;
+
+    *ptr = alcove_malloc(np * sizeof(alcove_alloc_t));
+    *nptr = np;
+
+    pbuf = buf;
+    np = 0;
+
+    /* Copy the list contents */
+    for (i = 0; i < nelem; i++) {
+        arg = alcove_list_head(&hd, arg);
+
+        if (ERL_IS_BINARY(hd)) {
+            (void)memcpy(buf, ERL_BIN_PTR(hd), ERL_BIN_SIZE(hd));
+            buf += ERL_BIN_SIZE(hd);
+        }
+        else if (ERL_IS_TUPLE(hd)) {
+            t = erl_element(2, hd);
+
+            if (ALCOVE_IS_UNSIGNED_LONG(t)) {
+                char *p = calloc(ALCOVE_LL_UVALUE(t), 1);
+                if (!p)
+                    erl_err_sys("calloc");
+
+                (void)memcpy(buf, &p, sizeof(void *));
+                buf += sizeof(void *);
+
+                (*ptr)[np].p = p;
+                (*ptr)[np++].len = ALCOVE_LL_UVALUE(t);
+            }
+            else if (ERL_IS_BINARY(t)) {
+                char *p = alcove_malloc(ERL_BIN_SIZE(t));
+                (void)memcpy(p, ERL_BIN_PTR(t), ERL_BIN_SIZE(t));
+                (void)memcpy(buf, &p, sizeof(void *));
+                (*ptr)[np].p = p;
+                (*ptr)[np++].len = ERL_BIN_SIZE(t);
+            }
+        }
+    }
+
+    return pbuf;
+}

@@ -41,6 +41,9 @@ alcove_prctl(alcove_state_t *ap, ETERM *arg)
 #ifdef __linux__
     ETERM *hd = NULL;
     int option = 0;
+    alcove_alloc_t *freed = NULL;
+    ssize_t nfreed = 0;
+    int i = 0;
 
     alcove_prctl_arg_t arg2 = {0};
     alcove_prctl_arg_t arg3 = {0};
@@ -62,28 +65,28 @@ alcove_prctl(alcove_state_t *ap, ETERM *arg)
     if (!hd)
         goto BADARG;
 
-    PROPT(hd, arg2);
+    PROPT(hd, arg2, freed, nfreed);
 
     /* arg3 */
     arg = alcove_list_head(&hd, arg);
     if (!hd)
         goto BADARG;
 
-    PROPT(hd, arg3);
+    PROPT(hd, arg3, freed, nfreed);
 
     /* arg4 */
     arg = alcove_list_head(&hd, arg);
     if (!hd)
         goto BADARG;
 
-    PROPT(hd, arg3);
+    PROPT(hd, arg3, freed, nfreed);
 
     /* arg5 */
     arg = alcove_list_head(&hd, arg);
     if (!hd)
         goto BADARG;
 
-    PROPT(hd, arg3);
+    PROPT(hd, arg3, freed, nfreed);
 
     rv = prctl(option, PRARG(arg2), PRARG(arg3), PRARG(arg4), PRARG(arg5));
 
@@ -102,6 +105,10 @@ alcove_prctl(alcove_state_t *ap, ETERM *arg)
     PRFREE(arg4);
     PRFREE(arg5);
 
+    /* XXX some calls to prctl may require the contents of the buf */
+    for (i = 0; i < nfreed; i++)
+        free(freed->p);
+
     return erl_mk_tuple(t, 6);
 
 BADARG:
@@ -109,6 +116,10 @@ BADARG:
     PRFREE(arg3);
     PRFREE(arg4);
     PRFREE(arg5);
+
+    for ( ; freed != NULL; freed++)
+        free(freed);
+
     return erl_mk_atom("badarg");
 #else
     return alcove_error("unsupported");

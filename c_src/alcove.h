@@ -113,6 +113,11 @@ typedef struct {
     long long val;
 } alcove_define_t;
 
+typedef struct {
+    void *p;
+    size_t len;
+} alcove_alloc_t;
+
 void sighandler(int sig);
 
 void alcove_event_loop(alcove_state_t *ap);

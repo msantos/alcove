@@ -23,18 +23,23 @@ typedef struct {
 #define PRVAL(x) (((x).type) ? erl_mk_binary((x).data, (x).len) : \
         erl_mk_ulonglong((x).arg))
 
-#define PROPT(_term, _arg) do { \
+#define PROPT(_term, _arg, _ptr, _nptr) do { \
         if (ALCOVE_IS_UNSIGNED_LONG(_term)) { \
-                    _arg.arg = ALCOVE_LL_UVALUE(_term); \
-                } \
-        else if (ALCOVE_IS_IOLIST(_term)) { \
-                    ETERM *bin = erl_iolist_to_binary(_term); \
-                    _arg.type = 1; \
-                    _arg.len = ERL_BIN_SIZE(bin); \
-                    _arg.data = alcove_malloc(_arg.len); \
-                    (void)memcpy(_arg.data, ERL_BIN_PTR(bin), \
-                            ERL_BIN_SIZE(bin)); \
-                } \
+            _arg.arg = ALCOVE_LL_UVALUE(_term); \
+        } \
+        else if (ERL_IS_LIST(_term)) { \
+            _arg.type = 1; \
+            _arg.data = alcove_list_to_buf(_term, &(_arg).len, &(_ptr), &(_nptr)); \
+            if (!(_arg.data)) \
+                goto BADARG; \
+        } \
+        else if (ERL_IS_BINARY(_term)) { \
+            _arg.type = 1; \
+            _arg.len = ERL_BIN_SIZE(_term); \
+            _arg.data = alcove_malloc(_arg.len); \
+            (void)memcpy(_arg.data, ERL_BIN_PTR(_term), \
+                ERL_BIN_SIZE(_term)); \
+        } \
 } while (0)
 
 #define PRFREE(x) do { \
