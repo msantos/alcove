@@ -117,8 +117,8 @@ BADARG:
     PRFREE(arg4);
     PRFREE(arg5);
 
-    for ( ; freed != NULL; freed++)
-        free(freed);
+    for (i = 0; i < nfreed; i++)
+        free(freed->p);
 
     return erl_mk_atom("badarg");
 #else
