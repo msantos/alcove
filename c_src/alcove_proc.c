@@ -79,14 +79,14 @@ alcove_prctl(alcove_state_t *ap, ETERM *arg)
     if (!hd)
         goto BADARG;
 
-    PROPT(hd, arg3, freed, nfreed);
+    PROPT(hd, arg4, freed, nfreed);
 
     /* arg5 */
     arg = alcove_list_head(&hd, arg);
     if (!hd)
         goto BADARG;
 
-    PROPT(hd, arg3, freed, nfreed);
+    PROPT(hd, arg5, freed, nfreed);
 
     rv = prctl(option, PRARG(arg2), PRARG(arg3), PRARG(arg4), PRARG(arg5));
 
