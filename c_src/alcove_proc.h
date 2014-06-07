@@ -42,11 +42,10 @@ typedef struct {
         } \
 } while (0)
 
-#define PRFREE(x,b,n) do { \
-    int i; \
-    if ((x).type) { free((x).data); } \
-    for (i = 0; i < (n); i++) \
-        free((b)->p); \
+#define PRFREE(_x,_b,_n) do { \
+    if ((_x).type) { free((_x).data); } \
+    for ( ; (_n) > 0; (_n)--) \
+        free((_b)->p); \
 } while (0)
 
 alcove_define_t alcove_prctl_constants[] = {

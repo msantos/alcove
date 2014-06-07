@@ -43,6 +43,7 @@ alcove_prctl(alcove_state_t *ap, ETERM *arg)
     int option = 0;
     alcove_alloc_t *freed[4] = {0};
     ssize_t nfreed[4] = {0};
+    int i = 0;
 
     alcove_prctl_arg_t prarg[4] = {{0}};
 
@@ -56,33 +57,14 @@ alcove_prctl(alcove_state_t *ap, ETERM *arg)
 
     option = ERL_INT_VALUE(hd);
 
-    /* arg2 */
-    arg = alcove_list_head(&hd, arg);
-    if (!hd)
-        goto BADARG;
+    /* arg2, arg3, arg4, arg5 */
+    for (i = 0; i < 4; i++) {
+        arg = alcove_list_head(&hd, arg);
+        if (!hd)
+            goto BADARG;
 
-    PROPT(hd, prarg[0], freed[0], nfreed[0]);
-
-    /* arg3 */
-    arg = alcove_list_head(&hd, arg);
-    if (!hd)
-        goto BADARG;
-
-    PROPT(hd, prarg[1], freed[1], nfreed[1]);
-
-    /* arg4 */
-    arg = alcove_list_head(&hd, arg);
-    if (!hd)
-        goto BADARG;
-
-    PROPT(hd, prarg[2], freed[2], nfreed[2]);
-
-    /* arg5 */
-    arg = alcove_list_head(&hd, arg);
-    if (!hd)
-        goto BADARG;
-
-    PROPT(hd, prarg[3], freed[3], nfreed[3]);
+        PROPT(hd, prarg[i], freed[i], nfreed[i]);
+    }
 
     rv = prctl(option, PRARG(prarg[0]), PRARG(prarg[1]),
             PRARG(prarg[2]), PRARG(prarg[3]));
@@ -92,23 +74,17 @@ alcove_prctl(alcove_state_t *ap, ETERM *arg)
 
     t[0] = erl_mk_atom("ok");
     t[1] = erl_mk_int(rv);
-    t[2] = PRVAL(prarg[0]);
-    t[3] = PRVAL(prarg[1]);
-    t[4] = PRVAL(prarg[2]);
-    t[5] = PRVAL(prarg[3]);
 
-    PRFREE(prarg[0], freed[0], nfreed[0]);
-    PRFREE(prarg[1], freed[1], nfreed[1]);
-    PRFREE(prarg[2], freed[2], nfreed[2]);
-    PRFREE(prarg[3], freed[3], nfreed[3]);
+    for (i = 0; i < 4; i++) {
+        t[i+2] = PRVAL(prarg[i]);
+        PRFREE(prarg[i], freed[i], nfreed[i]);
+    }
 
     return erl_mk_tuple(t, 6);
 
 BADARG:
-    PRFREE(prarg[0], freed[0], nfreed[0]);
-    PRFREE(prarg[1], freed[1], nfreed[1]);
-    PRFREE(prarg[2], freed[2], nfreed[2]);
-    PRFREE(prarg[3], freed[3], nfreed[3]);
+    for (i = 0; i < 4; i++)
+        PRFREE(prarg[i], freed[i], nfreed[i]);
 
     return erl_mk_atom("badarg");
 #else
