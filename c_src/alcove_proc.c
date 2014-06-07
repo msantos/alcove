@@ -45,10 +45,7 @@ alcove_prctl(alcove_state_t *ap, ETERM *arg)
     ssize_t nfreed = 0;
     int i = 0;
 
-    alcove_prctl_arg_t arg2 = {0};
-    alcove_prctl_arg_t arg3 = {0};
-    alcove_prctl_arg_t arg4 = {0};
-    alcove_prctl_arg_t arg5 = {0};
+    alcove_prctl_arg_t prarg[4] = {{0}};
 
     int rv = 0;
     ETERM *t[6] = {0};
@@ -65,45 +62,46 @@ alcove_prctl(alcove_state_t *ap, ETERM *arg)
     if (!hd)
         goto BADARG;
 
-    PROPT(hd, arg2, freed, nfreed);
+    PROPT(hd, prarg[0], freed, nfreed);
 
     /* arg3 */
     arg = alcove_list_head(&hd, arg);
     if (!hd)
         goto BADARG;
 
-    PROPT(hd, arg3, freed, nfreed);
+    PROPT(hd, prarg[1], freed, nfreed);
 
     /* arg4 */
     arg = alcove_list_head(&hd, arg);
     if (!hd)
         goto BADARG;
 
-    PROPT(hd, arg4, freed, nfreed);
+    PROPT(hd, prarg[2], freed, nfreed);
 
     /* arg5 */
     arg = alcove_list_head(&hd, arg);
     if (!hd)
         goto BADARG;
 
-    PROPT(hd, arg5, freed, nfreed);
+    PROPT(hd, prarg[3], freed, nfreed);
 
-    rv = prctl(option, PRARG(arg2), PRARG(arg3), PRARG(arg4), PRARG(arg5));
+    rv = prctl(option, PRARG(prarg[0]), PRARG(prarg[1]),
+            PRARG(prarg[2]), PRARG(prarg[3]));
 
     if (rv < 0)
         return alcove_errno(errno);
 
     t[0] = erl_mk_atom("ok");
     t[1] = erl_mk_int(rv);
-    t[2] = PRVAL(arg2);
-    t[3] = PRVAL(arg3);
-    t[4] = PRVAL(arg4);
-    t[5] = PRVAL(arg5);
+    t[2] = PRVAL(prarg[0]);
+    t[3] = PRVAL(prarg[1]);
+    t[4] = PRVAL(prarg[2]);
+    t[5] = PRVAL(prarg[3]);
 
-    PRFREE(arg2);
-    PRFREE(arg3);
-    PRFREE(arg4);
-    PRFREE(arg5);
+    PRFREE(prarg[0]);
+    PRFREE(prarg[1]);
+    PRFREE(prarg[2]);
+    PRFREE(prarg[3]);
 
     /* XXX some calls to prctl may require the contents of the buf */
     for (i = 0; i < nfreed; i++)
@@ -112,10 +110,10 @@ alcove_prctl(alcove_state_t *ap, ETERM *arg)
     return erl_mk_tuple(t, 6);
 
 BADARG:
-    PRFREE(arg2);
-    PRFREE(arg3);
-    PRFREE(arg4);
-    PRFREE(arg5);
+    PRFREE(prarg[0]);
+    PRFREE(prarg[1]);
+    PRFREE(prarg[2]);
+    PRFREE(prarg[3]);
 
     for (i = 0; i < nfreed; i++)
         free(freed->p);
