@@ -1,29 +1,68 @@
-case os:type() of
-    {unix,linux} ->
-        Setns = "
+Setns = fun(CONFIG) -> case os:type() of
+        {unix,linux} ->
+            Prog = "
 #define _GNU_SOURCE
 #include <sched.h>
 int main(int argc, char *argv[]) {
     (void)setns(0,0);
     return 0;
 }",
-        file:write_file("test/test_setns.c", Setns),
-        Retval = os:cmd("gcc -o /dev/null test/test_setns.c > /dev/null 2>&1; printf \"%d\" $?"),
-        file:delete("test/test_setns.c"),
-        case Retval of
-            "0" ->
-                lists:map(fun
-                        ({port_env, Env}) ->
-                            Cflags = proplists:get_value("EXE_CFLAGS", Env, "")
-                                ++ " -DHAVE_SETNS",
-                            {port_env, lists:keyreplace("EXE_CFLAGS", 1, Env,
-                                {"EXE_CFLAGS", Cflags})};
-                        (N) ->
-                            N
-                        end, CONFIG);
-            _ ->
-                CONFIG
-        end;
-    _ ->
-        CONFIG
-end.
+            file:write_file("test/test_setns.c", Prog),
+            Retval = os:cmd("gcc -o /dev/null test/test_setns.c > /dev/null 2>&1; printf \"%d\" $?"),
+            file:delete("test/test_setns.c"),
+            case Retval of
+                "0" ->
+                    lists:map(fun
+                            ({port_env, Env}) ->
+                                Cflags = proplists:get_value("EXE_CFLAGS", Env, "")
+                                    ++ " -DHAVE_SETNS",
+                                {port_env, lists:keyreplace("EXE_CFLAGS", 1, Env,
+                                    {"EXE_CFLAGS", Cflags})};
+                            (N) ->
+                                N
+                            end, CONFIG);
+                _ ->
+                    CONFIG
+            end;
+        _ ->
+            CONFIG
+    end
+end,
+Seccomp = fun(CONFIG) -> case os:type() of
+        {unix,linux} ->
+            Prog = "
+#include <linux/seccomp.h>
+int main(int argc, char *argv[]) {
+#ifdef SECCOMP_MODE_FILTER
+    return 0;
+#else
+    return 1;
+#endif
+}",
+            file:write_file("test/test_seccomp.c", Prog),
+            Retval = os:cmd("gcc -o /dev/null test/test_seccomp.c > /dev/null 2>&1; printf \"%d\" $?"),
+            file:delete("test/test_seccomp.c"),
+            case Retval of
+                "0" ->
+                    lists:map(fun
+                            ({port_env, Env}) ->
+                                Cflags = proplists:get_value("EXE_CFLAGS", Env, "")
+                                    ++ " -DHAVE_SECCOMP",
+                                {port_env, lists:keyreplace("EXE_CFLAGS", 1, Env,
+                                    {"EXE_CFLAGS", Cflags})};
+                            (N) ->
+                                N
+                            end, CONFIG);
+                _ ->
+                    CONFIG
+            end;
+        _ ->
+            CONFIG
+    end
+end,
+lists:foldl(fun(Fun, Cfg) ->
+        Fun(Cfg)
+    end,
+    CONFIG,
+    [Setns, Seccomp]
+).

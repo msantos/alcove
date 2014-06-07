@@ -17,7 +17,9 @@
 
 #ifdef __linux__
 #include <sys/prctl.h>
+#ifdef HAVE_SECCOMP
 #include <linux/seccomp.h>
+#endif
 #include "alcove_proc.h"
 #endif
 
