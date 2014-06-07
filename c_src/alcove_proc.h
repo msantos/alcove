@@ -42,8 +42,11 @@ typedef struct {
         } \
 } while (0)
 
-#define PRFREE(x) do { \
+#define PRFREE(x,b,n) do { \
+    int i; \
     if ((x).type) { free((x).data); } \
+    for (i = 0; i < (n); i++) \
+        free((b)->p); \
 } while (0)
 
 alcove_define_t alcove_prctl_constants[] = {
