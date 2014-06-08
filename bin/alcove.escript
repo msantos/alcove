@@ -192,6 +192,8 @@ define(Drv, Consts) when is_list(Consts) ->
                         alcove:prctl_define(Drv, Const);
                     \"RLIMIT_\" ++ _ ->
                         alcove:rlimit_define(Drv, Const);
+                    \"AUDIT_ARCH_\" ++ _ ->
+                        alcove:syscall_define(Drv, Const);
                     \"__NR_\" ++ _ ->
                         alcove:syscall_define(Drv, Const);
                     \"SYS_\" ++ Rest ->

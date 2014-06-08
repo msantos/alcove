@@ -17,6 +17,8 @@
 
 #ifdef __linux__
 #include <linux/unistd.h>
+#include <elf.h>
+#include <linux/audit.h>
 #include "alcove_syscall.h"
 #endif
 
