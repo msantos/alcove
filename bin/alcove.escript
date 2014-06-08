@@ -192,6 +192,11 @@ define(Drv, Consts) when is_list(Consts) ->
                         alcove:prctl_define(Drv, Const);
                     \"RLIMIT_\" ++ _ ->
                         alcove:rlimit_define(Drv, Const);
+                    \"__NR_\" ++ _ ->
+                        alcove:syscall_define(Drv, Const);
+                    \"SYS_\" ++ Rest ->
+                        alcove:syscall_define(Drv,
+                            list_to_atom(\"__NR_\" ++ Rest));
                     \"SIG\" ++ _ ->
                         alcove:signal_define(Drv, Const);
                     Flag when
