@@ -155,7 +155,9 @@ b2i(N) when is_binary(N) ->
     list_to_integer(binary_to_list(N)).
 
 static_exports() ->
-    [{define,2},
+    [{audit_arch,0},
+
+     {define,2},
      {stdin,2}, {stdin,3},
      {stdout,1}, {stdout,2}, {stdout,3},
      {stderr,1}, {stderr,2}, {stderr,3},
@@ -170,6 +172,22 @@ static_exports() ->
 
 static() ->
     [ static({Fun, Arity}) || {Fun, Arity} <- static_exports() ].
+
+static({audit_arch,0}) ->
+"audit_arch() ->
+    Arches = [
+        {{\"armv6l\",\"linux\",4}, 'AUDIT_ARCH_ARM'},
+        {{\"armv7l\",\"linux\",4}, 'AUDIT_ARCH_ARM'},
+        {{\"i386\",\"linux\",4}, 'AUDIT_ARCH_I386'},
+        {{\"x86_64\",\"linux\",8}, 'AUDIT_ARCH_X86_64'}
+    ],
+    [Arch,_,OS|_] = string:tokens(
+        erlang:system_info(system_architecture),
+        \"-\"
+    ),
+    Wordsize = erlang:system_info({wordsize,external}),
+    proplists:get_value({Arch,OS,Wordsize}, Arches, unsupported).
+";
 
 static({define,2}) ->
 "
