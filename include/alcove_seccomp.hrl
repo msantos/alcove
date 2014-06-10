@@ -1,4 +1,5 @@
 % Copyright (c) 2014, Michael Santos <michael.santos@gmail.com>
+%
 % Permission to use, copy, modify, and/or distribute this software for any
 % purpose with or without fee is hereby granted, provided that the above
 % copyright notice and this permission notice appear in all copies.
@@ -76,15 +77,15 @@
 %% };
 %% NOTE: the man page says k is a u_long,
 %% the header says u_int32_t.
--record(alcove_filter, {
+-record(alcove_insn, {
         code = 0 :: 0..65535,
         jt = 0 :: 0..255,
         jf = 0 :: 0..255,
         k = 0 :: non_neg_integer()
     }).
 
--define(BPF_STMT(Code, K), bpf:stmt(Code, K)).
--define(BPF_JUMP(Code, K, JT, JF), bpf:jump(Code, K, JT, JF)).
+-define(BPF_STMT(Code, K), alcove_seccomp:stmt(Code, K)).
+-define(BPF_JUMP(Code, K, JT, JF), alcove_seccomp:jump(Code, K, JT, JF)).
 
 
 % Valid values for seccomp.mode and prctl(PR_SET_SECCOMP, <mode>)
