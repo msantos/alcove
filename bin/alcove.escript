@@ -157,7 +157,7 @@ b2i(N) when is_binary(N) ->
 static_exports() ->
     [{audit_arch,0},
 
-     {define,2},
+     {define,2},{define,3},
      {stdin,2}, {stdin,3},
      {stdout,1}, {stdout,2}, {stdout,3},
      {stderr,1}, {stderr,2}, {stderr,3},
@@ -191,40 +191,45 @@ static({audit_arch,0}) ->
 
 static({define,2}) ->
 "
-define(Drv, Const) when is_atom(Const) ->
-    define(Drv, [Const]);
-define(Drv, Consts) when is_list(Consts) ->
+define(Drv, Const) ->
+    define(Drv, [], Const).
+";
+static({define,3}) ->
+"
+define(Drv, Pids, Const) when is_atom(Const) ->
+    define(Drv, Pids, [Const]);
+define(Drv, Pids, Consts) when is_list(Consts) ->
     lists:foldl(fun(Const,A) ->
                 N = case atom_to_list(Const) of
                     \"CLONE_\" ++ _ ->
-                        alcove:clone_define(Drv, Const);
+                        alcove:clone_define(Drv, Pids, Const);
                     \"MS_\" ++ _ ->
-                        alcove:mount_define(Drv, Const);
+                        alcove:mount_define(Drv, Pids, Const);
                     \"MNT_\" ++ _ ->
-                        alcove:mount_define(Drv, Const);
+                        alcove:mount_define(Drv, Pids, Const);
                     \"O_\" ++ _ ->
-                        alcove:file_define(Drv, Const);
+                        alcove:file_define(Drv, Pids, Const);
                     \"PR_\" ++ _ ->
-                        alcove:prctl_define(Drv, Const);
+                        alcove:prctl_define(Drv, Pids, Const);
                     \"SECCOMP_\" ++ _ ->
-                        alcove:prctl_define(Drv, Const);
+                        alcove:prctl_define(Drv, Pids, Const);
                     \"RLIMIT_\" ++ _ ->
-                        alcove:rlimit_define(Drv, Const);
+                        alcove:rlimit_define(Drv, Pids, Const);
                     \"AUDIT_ARCH_\" ++ _ ->
-                        alcove:syscall_define(Drv, Const);
+                        alcove:syscall_define(Drv, Pids, Const);
                     \"__NR_\" ++ _ ->
-                        alcove:syscall_define(Drv, Const);
+                        alcove:syscall_define(Drv, Pids, Const);
                     \"SYS_\" ++ Rest ->
-                        alcove:syscall_define(Drv,
+                        alcove:syscall_define(Drv, Pids,
                             list_to_atom(\"__NR_\" ++ Rest));
                     \"SIG\" ++ _ ->
-                        alcove:signal_define(Drv, Const);
+                        alcove:signal_define(Drv, Pids, Const);
                     Flag when
                         Flag =:= \"rdonly\";
                         Flag =:= \"nosuid\";
                         Flag =:= \"noexec\";
                         Flag =:= \"noatime\" ->
-                            alcove:mount_define(Drv, Const);
+                            alcove:mount_define(Drv, Pids, Const);
                     _ -> false
                 end,
                 if
