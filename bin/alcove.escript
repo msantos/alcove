@@ -472,7 +472,7 @@ specs() ->
 -spec pid(pid()) -> [#alcove_pid{}].
 -spec pid(pid(),[integer()]) -> [#alcove_pid{}].
 
--type prctl_arg() :: iodata() | non_neg_integer().
+-type prctl_arg() :: [binary() | {ptr, binary() | non_neg_integer()} ] | binary() | non_neg_integer().
 -type prctl_val() :: binary() | non_neg_integer().
 
 -spec prctl(pid(),integer(),prctl_arg(),prctl_arg(),prctl_arg(),prctl_arg()) -> {'ok',integer(),prctl_val(),prctl_val(),prctl_val(),prctl_val()}.
