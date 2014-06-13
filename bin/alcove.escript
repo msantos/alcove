@@ -451,6 +451,9 @@ specs() ->
 -spec getrlimit(pid(),non_neg_integer()) -> {'ok', #alcove_rlimit{}} | {'error', file:posix()}.
 -spec getrlimit(pid(),list(integer()),non_neg_integer()) -> {'ok', #alcove_rlimit{}} | {'error', file:posix()}.
 
+-spec getsid(pid(), integer()) -> {'ok', integer()} | {'error', file:posix()}.
+-spec getsid(pid(), [integer()], integer()) -> {'ok', integer()} | {'error', file:posix()}.
+
 -spec getuid(pid()) -> non_neg_integer().
 -spec getuid(pid(),list(integer())) -> non_neg_integer().
 
