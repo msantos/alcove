@@ -188,7 +188,6 @@ alcove_list_to_buf(ETERM *arg, size_t *len, alcove_alloc_t **ptr, ssize_t *nptr)
     char *buf = NULL;
     char *pbuf = NULL;
     size_t n = 0;
-    ssize_t np = 0;
 
     *len = 0;
     *nptr = 0;
@@ -215,7 +214,6 @@ alcove_list_to_buf(ETERM *arg, size_t *len, alcove_alloc_t **ptr, ssize_t *nptr)
 
             if (ALCOVE_IS_UNSIGNED_LONG(t) || ERL_IS_BINARY(t)) {
                 n += sizeof(void *);
-                np++;
             }
             else
                 return NULL;
@@ -227,11 +225,10 @@ alcove_list_to_buf(ETERM *arg, size_t *len, alcove_alloc_t **ptr, ssize_t *nptr)
     buf = alcove_malloc(n);
     *len = n;
 
-    *ptr = alcove_malloc(np * sizeof(alcove_alloc_t));
-    *nptr = np;
+    *ptr = alcove_malloc(nelem * sizeof(alcove_alloc_t));
+    *nptr = nelem;
 
     pbuf = buf;
-    np = 0;
 
     /* Copy the list contents */
     for (i = 0; i < nelem; i++) {
@@ -240,6 +237,8 @@ alcove_list_to_buf(ETERM *arg, size_t *len, alcove_alloc_t **ptr, ssize_t *nptr)
         if (ERL_IS_BINARY(hd)) {
             (void)memcpy(buf, ERL_BIN_PTR(hd), ERL_BIN_SIZE(hd));
             buf += ERL_BIN_SIZE(hd);
+            (*ptr)[i].p = NULL;
+            (*ptr)[i].len = ERL_BIN_SIZE(hd);
         }
         else if (ERL_IS_TUPLE(hd)) {
             t = erl_element(2, hd);
@@ -252,15 +251,16 @@ alcove_list_to_buf(ETERM *arg, size_t *len, alcove_alloc_t **ptr, ssize_t *nptr)
                 (void)memcpy(buf, &p, sizeof(void *));
                 buf += sizeof(void *);
 
-                (*ptr)[np].p = p;
-                (*ptr)[np++].len = ALCOVE_LL_UVALUE(t);
+                (*ptr)[i].p = p;
+                (*ptr)[i].len = ALCOVE_LL_UVALUE(t);
             }
             else if (ERL_IS_BINARY(t)) {
                 char *p = alcove_malloc(ERL_BIN_SIZE(t));
                 (void)memcpy(p, ERL_BIN_PTR(t), ERL_BIN_SIZE(t));
                 (void)memcpy(buf, &p, sizeof(void *));
-                (*ptr)[np].p = p;
-                (*ptr)[np++].len = ERL_BIN_SIZE(t);
+                buf += sizeof(void *);
+                (*ptr)[i].p = p;
+                (*ptr)[i].len = ERL_BIN_SIZE(t);
             }
         }
     }
