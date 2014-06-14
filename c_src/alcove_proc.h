@@ -19,22 +19,26 @@ typedef struct {
     size_t len;
 } alcove_prctl_arg_t;
 
+enum {
+    ALCOVE_PRARG_UNSIGNED_LONG,
+    ALCOVE_PRARG_CSTRUCT,
+    ALCOVE_PRARG_BINARY
+};
+
 #define PRARG(x) (((x).type) ? (unsigned long)(x).data : (x).arg)
-#define PRVAL(x) (((x).type) ? erl_mk_binary((x).data, (x).len) : \
-        erl_mk_ulonglong((x).arg))
 
 #define PROPT(_term, _arg, _ptr, _nptr) do { \
         if (ALCOVE_IS_UNSIGNED_LONG(_term)) { \
             _arg.arg = ALCOVE_LL_UVALUE(_term); \
         } \
         else if (ERL_IS_LIST(_term)) { \
-            _arg.type = 1; \
+            _arg.type = ALCOVE_PRARG_CSTRUCT; \
             _arg.data = alcove_list_to_buf(_term, &(_arg).len, &(_ptr), &(_nptr)); \
             if (!(_arg.data)) \
                 goto BADARG; \
         } \
         else if (ERL_IS_BINARY(_term)) { \
-            _arg.type = 1; \
+            _arg.type = ALCOVE_PRARG_BINARY; \
             _arg.len = ERL_BIN_SIZE(_term); \
             _arg.data = alcove_malloc(_arg.len); \
             (void)memcpy(_arg.data, ERL_BIN_PTR(_term), \

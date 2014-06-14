@@ -43,8 +43,8 @@ alcove_prctl(alcove_state_t *ap, ETERM *arg)
 #ifdef __linux__
     ETERM *hd = NULL;
     int option = 0;
-    alcove_alloc_t *freed[4] = {0};
-    ssize_t nfreed[4] = {0};
+    alcove_alloc_t *elem[4] = {0};
+    ssize_t nelem[4] = {0};
     int i = 0;
 
     alcove_prctl_arg_t prarg[4] = {{0}};
@@ -65,7 +65,7 @@ alcove_prctl(alcove_state_t *ap, ETERM *arg)
         if (!hd)
             goto BADARG;
 
-        PROPT(hd, prarg[i], freed[i], nfreed[i]);
+        PROPT(hd, prarg[i], elem[i], nelem[i]);
     }
 
     rv = prctl(option, PRARG(prarg[0]), PRARG(prarg[1]),
@@ -78,15 +78,27 @@ alcove_prctl(alcove_state_t *ap, ETERM *arg)
     t[1] = erl_mk_int(rv);
 
     for (i = 0; i < 4; i++) {
-        t[i+2] = PRVAL(prarg[i]);
-        PRFREE(prarg[i], freed[i], nfreed[i]);
+        switch (prarg[i].type) {
+            case ALCOVE_PRARG_UNSIGNED_LONG:
+                t[i+2] = erl_mk_ulonglong(prarg[i].arg);
+                break;
+            case ALCOVE_PRARG_CSTRUCT:
+                t[i+2] = alcove_buf_to_list(prarg[i].data, prarg[i].len,
+                        elem[i], nelem[i]);
+                break;
+            case ALCOVE_PRARG_BINARY:
+                t[i+2] = erl_mk_binary(prarg[i].data, prarg[i].len);
+                break;
+        }
+
+        PRFREE(prarg[i], elem[i], nelem[i]);
     }
 
     return erl_mk_tuple(t, 6);
 
 BADARG:
     for (i = 0; i < 4; i++)
-        PRFREE(prarg[i], freed[i], nfreed[i]);
+        PRFREE(prarg[i], elem[i], nelem[i]);
 
     return erl_mk_atom("badarg");
 #else

@@ -22,43 +22,24 @@ alcove_alloc(alcove_state_t *ap, ETERM *arg)
     ETERM *hd = NULL;
     char *buf = NULL;
     size_t len = 0;
-    size_t buflen = 0;
-    alcove_alloc_t *ptr = NULL;
-    ssize_t nptr = 0;
+    alcove_alloc_t *elem = NULL;
+    ssize_t nelem = 0;
     ETERM *t = NULL;
 
     arg = alcove_list_head(&hd, arg);
     if (!hd || !ERL_IS_LIST(hd))
         goto BADARG;
 
-    buf = alcove_list_to_buf(hd, &len, &ptr, &nptr);
+    buf = alcove_list_to_buf(hd, &len, &elem, &nelem);
 
     if (!buf)
         return erl_mk_atom("badarg");
 
-    buflen = len;
-
-    t = erl_mk_empty_list();
-    for (nptr-- ; nptr >= 0; nptr--) {
-        if (ptr[nptr].p) {
-            /* Allocated buffer */
-            len -= sizeof(void *);
-            t = erl_cons(alcove_tuple2(
-                        erl_mk_atom("ptr"),
-                        erl_mk_binary(ptr[nptr].p, ptr[nptr].len)
-                        ), t);
-            free(ptr[nptr].p);
-        }
-        else {
-            /* Static binary */
-            len -= ptr[nptr].len;
-            t = erl_cons(erl_mk_binary(buf+len, ptr[nptr].len), t);
-        }
-    }
+    t = alcove_buf_to_list(buf, len, elem, nelem);
 
     return alcove_tuple3(
             erl_mk_atom("ok"),
-            erl_mk_binary(buf, buflen),
+            erl_mk_binary(buf, len),
             t
             );
 
