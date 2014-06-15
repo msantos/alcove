@@ -60,6 +60,7 @@ run(State) ->
         forkstress(State),
         forkchain(State),
         eof(State),
+        alloc(State),
         prctl(State),
         execvp(State),
         stdout(State),
@@ -426,6 +427,25 @@ eof(#state{pid = Drv}) ->
         ?_assertEqual({error,ebadf}, Reply0),
         ?_assertEqual({error,ebadf}, Reply1),
         ?_assertEqual(ok, Reply2)
+    ].
+
+alloc(#state{os = {unix,linux}, pid = Drv}) ->
+    {ok, Buf, Cstruct} = alcove:alloc(Drv,
+        [<<1,2,3,4,5,6,7,8,9,10>>,
+         {ptr, 11},
+         <<11,12,13,14,15>>,
+         {ptr, <<16,17,18,19,20,21,22>>},
+         <<23,24,25>>]
+    ),
+    Size = erlang:system_info({wordsize,external}),
+    Buflen = 10 + Size + 5 + Size + 3,
+    [
+        ?_assertEqual(Buflen, byte_size(Buf)),
+        ?_assertEqual(lists:nth(1, Cstruct), <<1,2,3,4,5,6,7,8,9,10>>),
+        ?_assertEqual(lists:nth(2, Cstruct), {ptr, <<0:88>>}),
+        ?_assertEqual(lists:nth(3, Cstruct), <<11,12,13,14,15>>),
+        ?_assertEqual(lists:nth(4, Cstruct), {ptr, <<16,17,18,19,20,21,22>>}),
+        ?_assertEqual(lists:nth(5, Cstruct), <<23,24,25>>)
     ].
 
 prctl(#state{os = {unix,linux}, pid = Drv}) ->

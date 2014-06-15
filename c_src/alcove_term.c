@@ -278,10 +278,8 @@ alcove_buf_to_list(char *buf, size_t len, alcove_alloc_t *ptr, ssize_t nptr)
         if (ptr[nptr].p) {
             /* Allocated buffer */
             len -= sizeof(void *);
-            t = erl_cons(alcove_tuple2(
-                        erl_mk_atom("ptr"),
-                        erl_mk_binary(ptr[nptr].p, ptr[nptr].len)
-                        ), t);
+            t = erl_cons(alcove_tuple2(erl_mk_atom("ptr"),
+                        erl_mk_binary(ptr[nptr].p, ptr[nptr].len)), t);
             free(ptr[nptr].p);
         }
         else {
