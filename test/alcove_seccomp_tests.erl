@@ -18,8 +18,7 @@
 -record(state, {
         pid,
         child,
-        os,
-        clone = false
+        seccomp
     }).
 
 -include_lib("eunit/include/eunit.hrl").
@@ -50,7 +49,7 @@ alcove_test_() ->
         fun run/1
     }.
 
-run(#state{os = {unix,linux}} = State) ->
+run(#state{seccomp = true} = State) ->
     [
         kill(State),
         allow(State),
@@ -73,7 +72,7 @@ start() ->
 
     #state{
         pid = Drv,
-        os = os:type()
+        seccomp = alcove:define(Drv, 'SECCOMP_MODE_FILTER') =/= false
     }.
 
 stop(#state{pid = Drv}) ->
