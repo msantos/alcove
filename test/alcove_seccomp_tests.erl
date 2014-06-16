@@ -128,7 +128,11 @@ trap(#state{pid = Drv}) ->
     % Allowed: cached by process
     Reply0 = alcove:getpid(Drv, [Pid]),
     % Not allowed: SIGSYS
-    Reply1 = alcove:getcwd(Drv, [Pid]),
+    Reply1 = case alcove:getcwd(Drv, [Pid]) of
+        {error,unknown} -> true;
+        {ok,<<>>} -> true;
+        _ -> false
+    end,
 
     receive
         {alcove_event,Drv,[Pid],Event} ->
@@ -139,7 +143,7 @@ trap(#state{pid = Drv}) ->
 
     [
         ?_assertEqual(Pid, Reply0),
-        ?_assertEqual({error,unknown}, Reply1),
+        ?_assertEqual(true, Reply1),
         ?_assertEqual({signal, SIGSYS}, Event),
         ?_assertEqual(ok, Reply3)
     ].
