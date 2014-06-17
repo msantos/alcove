@@ -56,7 +56,7 @@ run(#state{seccomp = true} = State) ->
         trap(State)
     ];
 run(_) ->
-    ?_assertEqual(ok,ok).
+    [].
 
 start() ->
     Exec = case os:getenv("ALCOVE_TEST_EXEC") of
