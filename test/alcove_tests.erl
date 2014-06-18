@@ -243,7 +243,7 @@ setns(#state{clone = true, pid = Drv, child = Child}) ->
     Hostname1 = alcove:gethostname(Drv, [Child1]),
     ?_assertEqual(Hostname0, Hostname1);
 setns(_) ->
-    ?_assertEqual(ok,ok).
+    [].
 
 unshare(#state{clone = true, pid = Drv}) ->
     {ok, Child1} = alcove:fork(Drv),
@@ -254,7 +254,7 @@ unshare(#state{clone = true, pid = Drv}) ->
     [?_assertEqual(ok, Reply),
         ?_assertEqual({ok, <<"unshare">>}, Hostname)];
 unshare(_) ->
-    ?_assertEqual(ok,ok).
+    [].
 
 mount_define(#state{pid = Drv}) ->
     Flags = alcove:define(Drv, [
@@ -278,7 +278,7 @@ mount(#state{clone = true, pid = Drv, child = Child}) ->
         ?_assertEqual(ok, Umount)
     ];
 mount(_) ->
-    ?_assertEqual(ok,ok).
+    [].
 
 tmpfs(#state{clone = true, pid = Drv, child = Child}) ->
     Flags = alcove:define(Drv, ['MS_NOEXEC']),
@@ -289,7 +289,7 @@ tmpfs(#state{clone = true, pid = Drv, child = Child}) ->
         ?_assertEqual(ok, Umount)
     ];
 tmpfs(_) ->
-    ?_assertEqual(ok,ok).
+    [].
 
 chroot(#state{os = {unix,linux}, pid = Drv, child = Child}) ->
     Reply = alcove:chroot(Drv, [Child], "/bin"),
@@ -484,7 +484,7 @@ prctl(#state{os = {unix,linux}, pid = Drv}) ->
         ?_assertMatch({ok,0,<<9,0,0,0>>,0,0,0}, Reply4)
     ];
 prctl(_) ->
-    ?_assertEqual(ok,ok).
+    [].
 
 
 execvp(#state{os = {unix,linux}, pid = Drv, child = Child}) ->
