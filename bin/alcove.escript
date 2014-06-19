@@ -416,7 +416,7 @@ specs() ->
 -spec close(pid(),integer()) -> 'ok' | {'error', file:posix()}.
 -spec close(pid(),[integer()],integer()) -> 'ok' | {'error', file:posix()}.
 
--spec define(pid(),atom() | [atom()]) -> integer().
+-spec define(pid(),atom() | [atom()]) -> 'false' | integer().
 
 -spec environ(pid()) -> [binary()].
 -spec environ(pid(),[integer()]) -> [binary()].
