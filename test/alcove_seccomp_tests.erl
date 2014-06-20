@@ -25,23 +25,6 @@
 -include_lib("alcove/include/alcove.hrl").
 -include_lib("alcove/include/alcove_seccomp.hrl").
 
--define(OFFSET_SYSCALL_NR, 0).
--define(OFFSET_ARCH_NR, 4).
-
--define(VALIDATE_ARCHITECTURE(Offset_arch_nr, Arch_nr), [
-        ?BPF_STMT(?BPF_LD+?BPF_W+?BPF_ABS, Offset_arch_nr),
-        ?BPF_JUMP(?BPF_JMP+?BPF_JEQ+?BPF_K, Arch_nr, 1, 0),
-        ?BPF_STMT(?BPF_RET+?BPF_K, ?SECCOMP_RET_KILL)
-    ]).
-
--define(EXAMINE_SYSCALL(Offset_syscall_nr),
-    ?BPF_STMT(?BPF_LD+?BPF_W+?BPF_ABS, Offset_syscall_nr)).
-
--define(ALLOW_SYSCALL(Drv, Syscall), [
-        ?BPF_JUMP(?BPF_JMP+?BPF_JEQ+?BPF_K, alcove:define(Drv, Syscall), 0, 1),
-        ?BPF_STMT(?BPF_RET+?BPF_K, ?SECCOMP_RET_ALLOW)
-    ]).
-
 alcove_test_() ->
     {setup,
         fun start/0,
@@ -146,29 +129,21 @@ trap(#state{pid = Drv}) ->
         ?_assertEqual(ok, Reply3)
     ].
 
-allow_syscall(Drv, Syscall) ->
-    case alcove:define(Drv, Syscall) of
-        false -> [];
-        NR ->
-            [?BPF_JUMP(?BPF_JMP+?BPF_JEQ+?BPF_K, NR, 0, 1),
-             ?BPF_STMT(?BPF_RET+?BPF_K, ?SECCOMP_RET_ALLOW)]
-    end.
-
 filter(Drv) ->
     Arch = alcove:define(Drv, alcove:audit_arch()),
     [
-        ?VALIDATE_ARCHITECTURE(?OFFSET_ARCH_NR, Arch),
-        ?EXAMINE_SYSCALL(?OFFSET_SYSCALL_NR),
-        allow_syscall(Drv, 'SYS_rt_sigreturn'),
-        allow_syscall(Drv, 'SYS_sigreturn'),
-        allow_syscall(Drv, 'SYS_exit_group'),
-        allow_syscall(Drv, 'SYS_exit'),
-        allow_syscall(Drv, 'SYS_read'),
-        allow_syscall(Drv, 'SYS_write'),
-        allow_syscall(Drv, 'SYS_setrlimit'),
-        allow_syscall(Drv, 'SYS_getrlimit'),
-        allow_syscall(Drv, 'SYS_ugetrlimit'),
-        allow_syscall(Drv, 'SYS_poll')
+        ?VALIDATE_ARCHITECTURE(Arch),
+        ?EXAMINE_SYSCALL,
+        ?ALLOW_SYSCALL(Drv, 'SYS_rt_sigreturn'),
+        ?ALLOW_SYSCALL(Drv, 'SYS_sigreturn'),
+        ?ALLOW_SYSCALL(Drv, 'SYS_exit_group'),
+        ?ALLOW_SYSCALL(Drv, 'SYS_exit'),
+        ?ALLOW_SYSCALL(Drv, 'SYS_read'),
+        ?ALLOW_SYSCALL(Drv, 'SYS_write'),
+        ?ALLOW_SYSCALL(Drv, 'SYS_setrlimit'),
+        ?ALLOW_SYSCALL(Drv, 'SYS_getrlimit'),
+        ?ALLOW_SYSCALL(Drv, 'SYS_ugetrlimit'),
+        ?ALLOW_SYSCALL(Drv, 'SYS_poll')
     ].
 
 enforce(Drv, Pids, Filter0) ->

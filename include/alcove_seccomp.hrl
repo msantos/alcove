@@ -117,3 +117,18 @@
         instruction_pointer = 0 :: non_neg_integer(),
         args = [0,0,0,0,0,0] :: [non_neg_integer()]
     }).
+
+-define(OFFSET_SYSCALL_NR, 0).
+-define(OFFSET_ARCH_NR, 4).
+
+-define(VALIDATE_ARCHITECTURE(Arch_nr), [
+        ?BPF_STMT(?BPF_LD+?BPF_W+?BPF_ABS, ?OFFSET_ARCH_NR),
+        ?BPF_JUMP(?BPF_JMP+?BPF_JEQ+?BPF_K, Arch_nr, 1, 0),
+        ?BPF_STMT(?BPF_RET+?BPF_K, ?SECCOMP_RET_KILL)
+    ]).
+
+-define(EXAMINE_SYSCALL,
+    ?BPF_STMT(?BPF_LD+?BPF_W+?BPF_ABS, ?OFFSET_SYSCALL_NR)).
+
+-define(ALLOW_SYSCALL(Drv, Syscall),
+    alcove_seccomp:allow_syscall(Drv, Syscall)).

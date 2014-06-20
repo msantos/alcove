@@ -19,8 +19,18 @@
         insn/1,
         stmt/2,
         jump/4,
-        offset/1
+        offset/1,
+
+        allow_syscall/2
     ]).
+
+allow_syscall(Drv, Syscall) ->
+    case alcove:define(Drv, Syscall) of
+        false -> [];
+        NR ->
+            [?BPF_JUMP(?BPF_JMP+?BPF_JEQ+?BPF_K, NR, 0, 1),
+                ?BPF_STMT(?BPF_RET+?BPF_K, ?SECCOMP_RET_ALLOW)]
+    end.
 
 %%-------------------------------------------------------------------------
 %%% BPF filtering
