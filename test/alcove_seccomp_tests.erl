@@ -69,7 +69,7 @@ kill(#state{pid = Drv}) ->
     % Allowed: cached by process
     Reply0 = alcove:getpid(Drv, [Pid]),
     % Not allowed: SIGSYS
-    Reply1 = alcove:getcwd(Drv, [Pid]),
+    alcove:getcwd(Drv, [Pid]),
 
     receive
         {alcove_event,Drv,[Pid],Event} ->
