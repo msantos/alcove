@@ -130,5 +130,6 @@
 -define(EXAMINE_SYSCALL,
     ?BPF_STMT(?BPF_LD+?BPF_W+?BPF_ABS, ?OFFSET_SYSCALL_NR)).
 
--define(ALLOW_SYSCALL(Drv, Syscall),
-    alcove_seccomp:allow_syscall(Drv, Syscall)).
+-define(ALLOW_SYSCALL(Syscall),
+    [?BPF_JUMP(?BPF_JMP+?BPF_JEQ+?BPF_K, Syscall, 0, 1),
+        ?BPF_STMT(?BPF_RET+?BPF_K, ?SECCOMP_RET_ALLOW)]).

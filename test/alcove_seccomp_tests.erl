@@ -129,21 +129,27 @@ trap(#state{pid = Drv}) ->
         ?_assertEqual(ok, Reply3)
     ].
 
+allow_syscall(Drv, Syscall) ->
+    case alcove:define(Drv, Syscall) of
+        false -> [];
+        NR -> ?ALLOW_SYSCALL(NR)
+    end.
+
 filter(Drv) ->
     Arch = alcove:define(Drv, alcove:audit_arch()),
     [
         ?VALIDATE_ARCHITECTURE(Arch),
         ?EXAMINE_SYSCALL,
-        ?ALLOW_SYSCALL(Drv, 'SYS_rt_sigreturn'),
-        ?ALLOW_SYSCALL(Drv, 'SYS_sigreturn'),
-        ?ALLOW_SYSCALL(Drv, 'SYS_exit_group'),
-        ?ALLOW_SYSCALL(Drv, 'SYS_exit'),
-        ?ALLOW_SYSCALL(Drv, 'SYS_read'),
-        ?ALLOW_SYSCALL(Drv, 'SYS_write'),
-        ?ALLOW_SYSCALL(Drv, 'SYS_setrlimit'),
-        ?ALLOW_SYSCALL(Drv, 'SYS_getrlimit'),
-        ?ALLOW_SYSCALL(Drv, 'SYS_ugetrlimit'),
-        ?ALLOW_SYSCALL(Drv, 'SYS_poll')
+        allow_syscall(Drv, 'SYS_rt_sigreturn'),
+        allow_syscall(Drv, 'SYS_sigreturn'),
+        allow_syscall(Drv, 'SYS_exit_group'),
+        allow_syscall(Drv, 'SYS_exit'),
+        allow_syscall(Drv, 'SYS_read'),
+        allow_syscall(Drv, 'SYS_write'),
+        allow_syscall(Drv, 'SYS_setrlimit'),
+        allow_syscall(Drv, 'SYS_getrlimit'),
+        allow_syscall(Drv, 'SYS_ugetrlimit'),
+        allow_syscall(Drv, 'SYS_poll')
     ].
 
 enforce(Drv, Pids, Filter0) ->
