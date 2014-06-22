@@ -445,6 +445,9 @@ specs() ->
 -spec gethostname(pid()) -> {'ok', binary()} | {'error', file:posix()}.
 -spec gethostname(pid(),list(integer())) -> {'ok', binary()} | {'error', file:posix()}.
 
+-spec getpgrp(pid()) -> integer().
+-spec getpgrp(pid(),list(integer())) -> integer().
+
 -spec getpid(pid()) -> non_neg_integer().
 -spec getpid(pid(),list(integer())) -> non_neg_integer().
 
