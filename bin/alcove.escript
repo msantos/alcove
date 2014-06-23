@@ -463,6 +463,9 @@ specs() ->
 -spec kill(pid(), integer(), integer()) -> 'ok' | {'error', file:posix()}.
 -spec kill(pid(), [integer()], integer(), integer()) -> 'ok' | {'error', file:posix()}.
 
+-spec lseek(pid(),integer(),integer(),integer()) -> 'ok' | {'error', file:posix()}.
+-spec lseek(pid(),[integer()],integer(),integer(),integer()) -> 'ok' | {'error', file:posix()}.
+
 -spec mkdir(pid(),iodata(),integer()) -> 'ok' | {'error', file:posix()}.
 -spec mkdir(pid(),[integer()],iodata(),integer()) -> 'ok' | {'error', file:posix()}.
 
