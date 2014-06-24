@@ -499,6 +499,11 @@ specs() ->
 -spec rlimit_define(pid(),atom()) -> 'false' | non_neg_integer().
 -spec rlimit_define(pid(),[integer()],atom()) -> 'false' | non_neg_integer().
 
+-spec select(pid(),[integer()],[integer()],[integer()],
+    <<>> | #alcove_timeval{}) -> {ok, [integer()], [integer()], [integer()]} | {'error', file:posix()}.
+-spec select(pid(),[integer()],[integer()],[integer()],[integer()],
+    <<>> | #alcove_timeval{}) -> {ok, [integer()], [integer()], [integer()]} | {'error', file:posix()}.
+
 -spec setenv(pid(),iodata(),iodata(),integer()) -> 'ok' | {'error', file:posix()}.
 -spec setenv(pid(),list(integer()),iodata(),iodata(),integer()) -> 'ok' | {'error', file:posix()}.
 
