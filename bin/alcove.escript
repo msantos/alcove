@@ -525,6 +525,9 @@ specs() ->
 -spec sigaction(pid(),integer(),atom()) -> 'ok' | {'error', file:posix()}.
 -spec sigaction(pid(),[integer()],integer(),atom()) -> 'ok' | {'error', file:posix()}.
 
+-spec signal_constant(pid(),non_neg_integer()) -> 'false' | atom().
+-spec signal_constant(pid(),[integer()],non_neg_integer()) -> 'false' | atom().
+
 -spec signal_define(pid(),atom()) -> 'false' | non_neg_integer().
 -spec signal_define(pid(),[integer()],atom()) -> 'false' | non_neg_integer().
 
