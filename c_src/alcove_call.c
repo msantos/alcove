@@ -107,7 +107,7 @@ alcove_setopt(alcove_state_t *ap, ETERM *arg)
 {
     ETERM *hd = NULL;
     char *opt = NULL;
-    int val = 0;
+    u_int32_t val = 0;
 
     /* opt */
     arg = alcove_list_head(&hd, arg);
@@ -121,7 +121,7 @@ alcove_setopt(alcove_state_t *ap, ETERM *arg)
     if (!hd || !ERL_IS_INTEGER(hd))
         goto BADARG;
 
-    val = ERL_INT_VALUE(hd);
+    val = ERL_INT_UVALUE(hd);
 
     if (!strncmp(opt, "verbose", 7)) {
         ap->verbose = val;
@@ -142,9 +142,9 @@ alcove_setopt(alcove_state_t *ap, ETERM *arg)
         ALCOVE_SETOPT(ap, alcove_opt_termsig, val);
     }
     else
-        goto BADARG;
+        return erl_mk_atom("false");
 
-    return erl_mk_atom("ok");
+    return erl_mk_atom("true");
 
 BADARG:
     return erl_mk_atom("badarg");

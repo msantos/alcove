@@ -445,7 +445,7 @@ specs() ->
 -spec gethostname(pid()) -> {'ok', binary()} | {'error', file:posix()}.
 -spec gethostname(pid(),list(integer())) -> {'ok', binary()} | {'error', file:posix()}.
 
--spec getopt(pid(), atom()) -> 'false' | non_neg_integer().
+-spec getopt(pid(),atom()) -> 'false' | non_neg_integer().
 -spec getopt(pid(),[integer()],atom()) -> 'false' | non_neg_integer().
 
 -spec getpgrp(pid()) -> integer().
@@ -518,6 +518,9 @@ specs() ->
 
 -spec setns(pid(),iodata()) -> 'ok' | {'error', file:posix()}.
 -spec setns(pid(),list(integer()),iodata()) -> 'ok' | {'error', file:posix()}.
+
+-spec setopt(pid(),atom(), non_neg_integer()) -> boolean().
+-spec setopt(pid(),[integer()],atom(),non_neg_integer()) -> boolean().
 
 -spec setrlimit(pid(),non_neg_integer(),#alcove_rlimit{}) -> 'ok' | {'error', file:posix()}.
 -spec setrlimit(pid(),list(integer()),non_neg_integer(),#alcove_rlimit{}) -> 'ok' | {'error', file:posix()}.

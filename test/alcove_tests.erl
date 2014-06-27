@@ -82,7 +82,7 @@ start() ->
 
     {ok, Drv} = alcove_drv:start([{exec, Exec}, {maxchild, 8}]),
 
-    ok = alcove:setopt(Drv, sigchld, 1),
+    true = alcove:setopt(Drv, sigchld, 1),
 
     case {Use_fork, os:type()} of
         {false, {unix,linux} = OS} ->
@@ -151,7 +151,7 @@ getpid(#state{pid = Drv, child = Child}) ->
 setopt(#state{pid = Drv}) ->
     {ok, Fork} = alcove:fork(Drv),
 
-    ok = alcove:setopt(Drv, [Fork], maxchild, 128),
+    true = alcove:setopt(Drv, [Fork], maxchild, 128),
 
     {ok, Fork1} = alcove:fork(Drv, [Fork]),
 
@@ -160,15 +160,15 @@ setopt(#state{pid = Drv}) ->
 
     alcove:exit(Drv, [Fork, Fork1], 0),
 
-    ok = alcove:setopt(Drv, [Fork], exit_status, 0),
-    ok = alcove:setopt(Drv, [Fork], maxforkdepth, 0),
+    true = alcove:setopt(Drv, [Fork], exit_status, 0),
+    true = alcove:setopt(Drv, [Fork], maxforkdepth, 0),
 
     Opt3 = alcove:getopt(Drv, [Fork], exit_status),
     Opt4 = alcove:getopt(Drv, [], maxforkdepth),
     Opt5 = alcove:getopt(Drv, [Fork], maxforkdepth),
     Reply = alcove:fork(Drv, [Fork]),
 
-    ok = alcove:setopt(Drv, [Fork], verbose, 2),
+    true = alcove:setopt(Drv, [Fork], verbose, 2),
     Fork = alcove:getpid(Drv, [Fork]),
     Stderr = alcove:stderr(Drv, [Fork]),
 

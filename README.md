@@ -771,8 +771,8 @@ probably confuse the process.
             ok = alcove:setns(Drv, [Child2],
                     ["/proc/", integer_to_list(Child1), "/ns/net"]).
 
-    setopt(Drv, Opt, Val) -> ok
-    setopt(Drv, Pids, Opt, Val) -> ok
+    setopt(Drv, Opt, Val) -> boolean()
+    setopt(Drv, Pids, Opt, Val) -> boolean()
 
         Set port options. See getopt/2,3 for the list of options.
 
