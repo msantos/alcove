@@ -418,6 +418,9 @@ specs() ->
 
 -spec define(pid(),atom() | [atom()]) -> 'false' | integer().
 
+-spec eof(pid(),[integer()]) -> 'ok' | {'error',file:posix()}.
+-spec eof(pid(),[integer()],'stdin' | 'stdout' | 'stderr') -> 'ok' | {'error',file:posix()}.
+
 -spec environ(pid()) -> [binary()].
 -spec environ(pid(),[integer()]) -> [binary()].
 
