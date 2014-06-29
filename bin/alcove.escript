@@ -433,6 +433,9 @@ specs() ->
 -spec exit(pid(),integer()) -> 'ok'.
 -spec exit(pid(),list(integer()),integer()) -> 'ok'.
 
+-spec file_define(pid(),atom()) -> non_neg_integer() | 'false'.
+-spec file_define(pid(),[integer()],atom()) -> non_neg_integer() | 'false'.
+
 -spec fork(pid()) -> {'ok', non_neg_integer()} | {'error', file:posix()}.
 -spec fork(pid(),[integer()]) -> {'ok', non_neg_integer()} | {'error', file:posix()}.
 
