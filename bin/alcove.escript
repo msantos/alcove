@@ -505,6 +505,9 @@ specs() ->
 -spec readdir(pid(),iodata()) -> {'ok', [binary()]} | {'error', file:posix()}.
 -spec readdir(pid(),[integer()],iodata()) -> {'ok', [binary()]} | {'error', file:posix()}.
 
+-spec rmdir(pid(),iodata()) -> 'ok' | {'error', file:posix()}.
+-spec rmdir(pid(),[integer()],iodata()) -> 'ok' | {'error', file:posix()}.
+
 -spec rlimit_define(pid(),atom()) -> 'false' | non_neg_integer().
 -spec rlimit_define(pid(),[integer()],atom()) -> 'false' | non_neg_integer().
 
