@@ -546,6 +546,9 @@ specs() ->
 -spec signal_define(pid(),atom()) -> 'false' | non_neg_integer().
 -spec signal_define(pid(),[integer()],atom()) -> 'false' | non_neg_integer().
 
+-spec syscall_define(pid(),atom()) -> 'false' | non_neg_integer().
+-spec syscall_define(pid(),[integer()],atom()) -> 'false' | non_neg_integer().
+
 -spec stderr(pid(),list(integer()),'infinity' | non_neg_integer()) -> 'false' | binary().
 -spec stdin(pid(),list(integer()),iodata()) -> 'true'.
 -spec stdout(pid(),list(integer()),'infinity' | non_neg_integer()) -> 'false' | binary().
