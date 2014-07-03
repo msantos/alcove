@@ -392,6 +392,8 @@ includes(Header) ->
 % FIXME hack for hard coding typespecs
 specs() ->
 "
+-spec audit_arch() -> atom().
+
 -spec chdir(pid(),iodata()) -> 'ok' | {'error', file:posix()}.
 -spec chdir(pid(),list(integer()),iodata()) -> 'ok' | {'error', file:posix()}.
 
