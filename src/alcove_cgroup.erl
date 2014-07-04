@@ -22,9 +22,11 @@
 -export([mounts/1, mounts/2]).
 -export([join/2,relpath/1,expand/1]).
 
+-spec supported(pid()) -> boolean().
 supported(Drv) ->
     supported(Drv, []).
 
+-spec supported(pid(),[integer()]) -> boolean().
 supported(Drv, Pids) ->
     foreach([
         % running on linux?
