@@ -28,63 +28,66 @@
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2,
          terminate/2, code_change/3]).
 
+-type ref() :: pid().
+-export_type([ref/0]).
+
 -record(state, {
         pid :: pid(),
         port :: port()
     }).
 
--spec start() -> {ok, pid()}.
+-spec start() -> {ok, ref()}.
 start() ->
     start_link(self(), []).
 
--spec start(proplists:proplist()) -> {ok, pid()}.
+-spec start(proplists:proplist()) -> {ok, ref()}.
 start(Options) ->
     start_link(self(), Options).
 
--spec start_link(pid(), proplists:proplist()) -> {ok, pid()}.
+-spec start_link(pid(), proplists:proplist()) -> {ok, ref()}.
 start_link(Owner, Options) ->
     gen_server:start_link(?MODULE, [Owner, Options], []).
 
--spec stop(pid()) -> ok.
+-spec stop(ref()) -> ok.
 stop(Drv) ->
     gen_server:call(Drv, stop).
 
--spec call(pid(),iodata()) -> any().
+-spec call(ref(),iodata()) -> any().
 call(Drv, Data) ->
     call(Drv, [], Data, infinity).
 
--spec call(pid(),[integer()],iodata()) -> any().
+-spec call(ref(),[integer()],iodata()) -> any().
 call(Drv, Pids, Data) ->
     call(Drv, Pids, Data, infinity).
 
--spec call(pid(),[integer()],iodata(),'infinity' | non_neg_integer()) ->
+-spec call(ref(),[integer()],iodata(),'infinity' | non_neg_integer()) ->
     any().
 call(Drv, Pids, Data, Timeout) ->
     true = send(Drv, Data),
     reply(Drv, Pids, ?ALCOVE_MSG_CALL, Timeout).
 
--spec send(pid(),iodata()) -> any().
+-spec send(ref(),iodata()) -> any().
 send(Drv, Data) ->
     gen_server:call(Drv, {send, Data}, infinity).
 
--spec stdin(pid(),[integer()],iodata()) -> 'true'.
+-spec stdin(ref(),[integer()],iodata()) -> 'true'.
 stdin(Drv, [], Data) ->
     send(Drv, Data);
 stdin(Drv, Pids, Data) ->
     Stdin = hdr(lists:reverse(Pids), [Data]),
     send(Drv, Stdin).
 
--spec stdout(pid(),[integer()],'infinity' | non_neg_integer()) ->
+-spec stdout(ref(),[integer()],'infinity' | non_neg_integer()) ->
     'false' | binary().
 stdout(Drv, Pids, Timeout) ->
     reply(Drv, Pids, ?ALCOVE_MSG_STDOUT, Timeout).
 
--spec stderr(pid(),[integer()],'infinity' | non_neg_integer()) ->
+-spec stderr(ref(),[integer()],'infinity' | non_neg_integer()) ->
     'false' | binary().
 stderr(Drv, Pids, Timeout) ->
     reply(Drv, Pids, ?ALCOVE_MSG_STDERR, Timeout).
 
--spec event(pid(),[integer()], 'infinity' | non_neg_integer()) -> any().
+-spec event(ref(),[integer()], 'infinity' | non_neg_integer()) -> any().
 event(Drv, Pids, Timeout) ->
     reply(Drv, Pids, ?ALCOVE_MSG_EVENT, Timeout).
 
