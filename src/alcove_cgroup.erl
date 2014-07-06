@@ -26,7 +26,7 @@
 supported(Drv) ->
     supported(Drv, []).
 
--spec supported(alcove_drv:ref(),[integer()]) -> boolean().
+-spec supported(alcove_drv:ref(),alcove:fork_path()) -> boolean().
 supported(Drv, Pids) ->
     foreach([
         % running on linux?
