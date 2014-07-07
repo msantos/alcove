@@ -414,8 +414,8 @@ specs() ->
 -spec clearenv(alcove_drv:ref()) -> 'ok' | {'error', file:posix()}.
 -spec clearenv(alcove_drv:ref(),fork_path()) -> 'ok' | {'error', file:posix()}.
 
--spec clone(alcove_drv:ref(),non_neg_integer()) -> {'ok', non_neg_integer()} | {'error', file:posix()}.
--spec clone(alcove_drv:ref(),fork_path(),non_neg_integer()) -> {'ok', non_neg_integer()} | {'error', file:posix()}.
+-spec clone(alcove_drv:ref(),non_neg_integer()) -> {'ok', os_pid()} | {'error', file:posix()}.
+-spec clone(alcove_drv:ref(),fork_path(),non_neg_integer()) -> {'ok', os_pid()} | {'error', file:posix()}.
 
 -spec clone_define(alcove_drv:ref(),atom()) -> 'false' | non_neg_integer().
 -spec clone_define(alcove_drv:ref(),fork_path(),atom()) -> 'false' | non_neg_integer().
@@ -444,8 +444,8 @@ specs() ->
 -spec file_define(alcove_drv:ref(),atom()) -> non_neg_integer() | 'false'.
 -spec file_define(alcove_drv:ref(),fork_path(),atom()) -> non_neg_integer() | 'false'.
 
--spec fork(alcove_drv:ref()) -> {'ok', non_neg_integer()} | {'error', file:posix()}.
--spec fork(alcove_drv:ref(),fork_path()) -> {'ok', non_neg_integer()} | {'error', file:posix()}.
+-spec fork(alcove_drv:ref()) -> {'ok', os_pid()} | {'error', file:posix()}.
+-spec fork(alcove_drv:ref(),fork_path()) -> {'ok', os_pid()} | {'error', file:posix()}.
 
 -spec getcwd(alcove_drv:ref()) -> {'ok', binary()} | {'error', file:posix()}.
 -spec getcwd(alcove_drv:ref(),fork_path()) -> {'ok', binary()} | {'error', file:posix()}.
@@ -465,8 +465,8 @@ specs() ->
 -spec getpgrp(alcove_drv:ref()) -> integer().
 -spec getpgrp(alcove_drv:ref(),fork_path()) -> integer().
 
--spec getpid(alcove_drv:ref()) -> non_neg_integer().
--spec getpid(alcove_drv:ref(),fork_path()) -> non_neg_integer().
+-spec getpid(alcove_drv:ref()) -> os_pid().
+-spec getpid(alcove_drv:ref(),fork_path()) -> os_pid().
 
 -spec getrlimit(alcove_drv:ref(),non_neg_integer()) -> {'ok', #alcove_rlimit{}} | {'error', file:posix()}.
 -spec getrlimit(alcove_drv:ref(),fork_path(),non_neg_integer()) -> {'ok', #alcove_rlimit{}} | {'error', file:posix()}.
