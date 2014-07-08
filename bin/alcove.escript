@@ -395,6 +395,9 @@ specs() ->
 -type os_pid() :: non_neg_integer().
 -type fork_path() :: [os_pid()].
 
+-type fd() :: integer().
+-type fd_set() :: [fd()].
+
 -export_type([os_pid/0,fork_path/0]).
 
 -spec audit_arch() -> atom().
@@ -420,8 +423,8 @@ specs() ->
 -spec clone_define(alcove_drv:ref(),atom()) -> 'false' | non_neg_integer().
 -spec clone_define(alcove_drv:ref(),fork_path(),atom()) -> 'false' | non_neg_integer().
 
--spec close(alcove_drv:ref(),integer()) -> 'ok' | {'error', file:posix()}.
--spec close(alcove_drv:ref(),fork_path(),integer()) -> 'ok' | {'error', file:posix()}.
+-spec close(alcove_drv:ref(),fd()) -> 'ok' | {'error', file:posix()}.
+-spec close(alcove_drv:ref(),fork_path(),fd()) -> 'ok' | {'error', file:posix()}.
 
 -spec define(alcove_drv:ref(),atom() | [atom()]) -> 'false' | integer().
 -spec define(alcove_drv:ref(),fork_path(),atom() | [atom()]) -> 'false' | integer().
@@ -492,8 +495,8 @@ specs() ->
 -spec mount_define(alcove_drv:ref(),atom()) -> 'false' | non_neg_integer().
 -spec mount_define(alcove_drv:ref(),fork_path(),atom()) -> 'false' | non_neg_integer().
 
--spec open(alcove_drv:ref(),iodata(),integer(),integer()) -> {'ok',integer()} | {'error', file:posix()}.
--spec open(alcove_drv:ref(),fork_path(),iodata(),integer(),integer()) -> {'ok',integer()} | {'error', file:posix()}.
+-spec open(alcove_drv:ref(),iodata(),integer(),integer()) -> {'ok',fd()} | {'error', file:posix()}.
+-spec open(alcove_drv:ref(),fork_path(),iodata(),integer(),integer()) -> {'ok',fd()} | {'error', file:posix()}.
 
 -spec pid(alcove_drv:ref()) -> [#alcove_pid{}].
 -spec pid(alcove_drv:ref(),fork_path()) -> [#alcove_pid{}].
@@ -507,8 +510,8 @@ specs() ->
 -spec prctl_define(alcove_drv:ref(),atom()) -> 'false' | non_neg_integer().
 -spec prctl_define(alcove_drv:ref(),fork_path(),atom()) -> 'false' | non_neg_integer().
 
--spec read(alcove_drv:ref(),integer(),non_neg_integer()) -> {'ok', binary()} | {'error', file:posix()}.
--spec read(alcove_drv:ref(),fork_path(),integer(),non_neg_integer()) -> {'ok', binary()} | {'error', file:posix()}.
+-spec read(alcove_drv:ref(),fd(),non_neg_integer()) -> {'ok', binary()} | {'error', file:posix()}.
+-spec read(alcove_drv:ref(),fork_path(),fd(),non_neg_integer()) -> {'ok', binary()} | {'error', file:posix()}.
 
 -spec readdir(alcove_drv:ref(),iodata()) -> {'ok', [binary()]} | {'error', file:posix()}.
 -spec readdir(alcove_drv:ref(),fork_path(),iodata()) -> {'ok', [binary()]} | {'error', file:posix()}.
@@ -519,10 +522,10 @@ specs() ->
 -spec rlimit_define(alcove_drv:ref(),atom()) -> 'false' | non_neg_integer().
 -spec rlimit_define(alcove_drv:ref(),fork_path(),atom()) -> 'false' | non_neg_integer().
 
--spec select(alcove_drv:ref(),[integer()],[integer()],[integer()],
-    <<>> | #alcove_timeval{}) -> {ok, [integer()], [integer()], [integer()]} | {'error', file:posix()}.
--spec select(alcove_drv:ref(),fork_path(),[integer()],[integer()],[integer()],
-    <<>> | #alcove_timeval{}) -> {ok, [integer()], [integer()], [integer()]} | {'error', file:posix()}.
+-spec select(alcove_drv:ref(),[fd_set()],[fd_set()],[fd_set()],
+    <<>> | #alcove_timeval{}) -> {ok, [fd_set()], [fd_set()], [fd_set()]} | {'error', file:posix()}.
+-spec select(alcove_drv:ref(),fork_path(),[fd_set()],[fd_set()],[fd_set()],
+    <<>> | #alcove_timeval{}) -> {ok, [fd_set()], [fd_set()], [fd_set()]} | {'error', file:posix()}.
 
 -spec setenv(alcove_drv:ref(),iodata(),iodata(),integer()) -> 'ok' | {'error', file:posix()}.
 -spec setenv(alcove_drv:ref(),fork_path(),iodata(),iodata(),integer()) -> 'ok' | {'error', file:posix()}.
@@ -570,8 +573,8 @@ specs() ->
 -spec unshare(alcove_drv:ref(),non_neg_integer()) -> 'ok' | {'error', file:posix()}.
 -spec unshare(alcove_drv:ref(),fork_path(),non_neg_integer()) -> 'ok' | {'error', file:posix()}.
 
--spec write(alcove_drv:ref(),integer(),iodata()) -> {'ok', non_neg_integer()} | {'error', file:posix()}.
--spec write(alcove_drv:ref(),fork_path(),integer(),iodata()) -> {'ok', non_neg_integer()} | {'error', file:posix()}.
+-spec write(alcove_drv:ref(),fd(),iodata()) -> {'ok', non_neg_integer()} | {'error', file:posix()}.
+-spec write(alcove_drv:ref(),fork_path(),fd(),iodata()) -> {'ok', non_neg_integer()} | {'error', file:posix()}.
 
 -spec version(alcove_drv:ref()) -> binary() | {'error', 'timedout'}.
 -spec version(alcove_drv:ref(),fork_path()) -> binary() | {'error', 'timedout'}.
