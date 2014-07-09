@@ -573,9 +573,6 @@ forkstress_1(_Drv, _Child, 0) ->
 forkstress_1(Drv, Child, N) ->
     {ok, Fork} = alcove:fork(Drv, [Child]),
     ok = alcove:exit(Drv, [Child,Fork], 0),
-    case alcove:version(Drv, [Child]) of
-        {error, timedout} ->
-            fail;
-        _ ->
-            forkstress_1(Drv, Child, N-1)
-    end.
+    Version = alcove:version(Drv, [Child]),
+    Version = alcove:version(Drv, [Child]),
+    forkstress_1(Drv, Child, N-1).

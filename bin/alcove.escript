@@ -576,6 +576,6 @@ specs() ->
 -spec write(alcove_drv:ref(),fd(),iodata()) -> {'ok', non_neg_integer()} | {'error', file:posix()}.
 -spec write(alcove_drv:ref(),fork_path(),fd(),iodata()) -> {'ok', non_neg_integer()} | {'error', file:posix()}.
 
--spec version(alcove_drv:ref()) -> binary() | {'error', 'timedout'}.
--spec version(alcove_drv:ref(),fork_path()) -> binary() | {'error', 'timedout'}.
+-spec version(alcove_drv:ref()) -> binary().
+-spec version(alcove_drv:ref(),fork_path()) -> binary().
 ".
