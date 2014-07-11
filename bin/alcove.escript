@@ -560,6 +560,8 @@ specs() ->
 -spec syscall_define(alcove_drv:ref(),atom()) -> 'false' | non_neg_integer().
 -spec syscall_define(alcove_drv:ref(),fork_path(),atom()) -> 'false' | non_neg_integer().
 
+-spec stderr(alcove_drv:ref()) -> 'false' | binary().
+-spec stderr(alcove_drv:ref(),fork_path()) -> 'false' | binary().
 -spec stderr(alcove_drv:ref(),fork_path(),'infinity' | non_neg_integer()) -> 'false' | binary().
 -spec stdin(alcove_drv:ref(),fork_path(),iodata()) -> 'true'.
 
