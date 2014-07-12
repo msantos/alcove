@@ -563,6 +563,8 @@ specs() ->
 -spec stderr(alcove_drv:ref()) -> 'false' | binary().
 -spec stderr(alcove_drv:ref(),fork_path()) -> 'false' | binary().
 -spec stderr(alcove_drv:ref(),fork_path(),'infinity' | non_neg_integer()) -> 'false' | binary().
+
+-spec stdin(alcove_drv:ref(),iodata()) -> 'true'.
 -spec stdin(alcove_drv:ref(),fork_path(),iodata()) -> 'true'.
 
 -spec stdout(alcove_drv:ref()) -> 'false' | binary().
