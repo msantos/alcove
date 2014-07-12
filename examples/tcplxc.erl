@@ -276,13 +276,38 @@ network(Init, Socket, Child) ->
             ok = gen_tcp:send(Socket, Data),
             network(Init, Socket, Child);
         {exited, Child} ->
-            gen_tcp:close(Socket);
+            network_drain(Socket, Child);
         Any ->
             error_logger:info_report([
                     {init, Init},
                     {child, Child},
                     {unmatched, Any}
                 ])
+    end.
+
+network_drain(Socket, Child) ->
+    receive
+        {tcp, Socket, _Data} ->
+            network_drain(Socket, Child);
+        {tcp_closed, Socket} ->
+            ok;
+        {tcp_error, Socket, Error} ->
+            error_logger:error_report([{socket, Error}]),
+            ok;
+        {stdout, Child, Data} ->
+            ok = gen_tcp:send(Socket, Data),
+            network_drain(Socket, Child);
+        {stderr, Child, Data} ->
+            ok = gen_tcp:send(Socket, Data),
+            network_drain(Socket, Child);
+        Any ->
+            error_logger:info_report([
+                    {child, Child},
+                    {unmatched, Any}
+                ])
+    after
+        10 ->
+            ok
     end.
 
 id() ->
