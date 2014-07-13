@@ -432,6 +432,10 @@ specs() ->
 -spec eof(alcove_drv:ref(),fork_path()) -> 'ok' | {'error',file:posix()}.
 -spec eof(alcove_drv:ref(),fork_path(),'stdin' | 'stdout' | 'stderr') -> 'ok' | {'error',file:posix()}.
 
+-spec event(alcove_drv:ref()) -> any().
+-spec event(alcove_drv:ref(),fork_path()) -> any().
+-spec event(alcove_drv:ref(),fork_path(),'infinity' | non_neg_integer()) -> any().
+
 -spec environ(alcove_drv:ref()) -> [binary()].
 -spec environ(alcove_drv:ref(),fork_path()) -> [binary()].
 
