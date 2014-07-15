@@ -406,6 +406,10 @@ specs() ->
 -spec cast(alcove_drv:ref(),atom(),list()) -> any().
 -spec cast(alcove_drv:ref(),fork_path(),atom(),list()) -> any().
 
+-spec call(alcove_drv:ref(),atom()) -> any().
+-spec call(alcove_drv:ref(),atom(),list()) -> any().
+-spec call(alcove_drv:ref(),fork_path(),atom(),list()) -> any().
+
 -spec chdir(alcove_drv:ref(),iodata()) -> 'ok' | {'error', file:posix()}.
 -spec chdir(alcove_drv:ref(),fork_path(),iodata()) -> 'ok' | {'error', file:posix()}.
 
