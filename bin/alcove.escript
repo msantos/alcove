@@ -557,6 +557,9 @@ specs() ->
 -spec setrlimit(alcove_drv:ref(),non_neg_integer(),#alcove_rlimit{}) -> 'ok' | {'error', file:posix()}.
 -spec setrlimit(alcove_drv:ref(),fork_path(),non_neg_integer(),#alcove_rlimit{}) -> 'ok' | {'error', file:posix()}.
 
+-spec setsid(alcove_drv:ref()) -> {ok,os_pid()} | {error, file:posix()}.
+-spec setsid(alcove_drv:ref(),fork_path()) -> {ok,os_pid()} | {error, file:posix()}.
+
 -spec setuid(alcove_drv:ref(),non_neg_integer()) -> 'ok' | {'error', file:posix()}.
 -spec setuid(alcove_drv:ref(),fork_path(),non_neg_integer()) -> 'ok' | {'error', file:posix()}.
 
