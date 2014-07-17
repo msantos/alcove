@@ -50,10 +50,15 @@ supported(Drv, Pids) ->
 %%  * the process may be running in a chroot or a different mount namespace
 %%
 
+-spec create(alcove_drv:ref()) -> 'ok'.
 create(Drv) ->
     create(Drv, []).
+
+-spec create(alcove_drv:ref(),alcove:fork_path()) -> 'ok'.
 create(Drv, Pids) ->
     create(Drv, Pids, [<<"alcove">>]).
+
+-spec create(alcove_drv:ref(),alcove:fork_path(),[binary()]) -> 'ok'.
 create(Drv, Pids, Namespaces) ->
     [ create_1(Drv, Pids, Namespace) || Namespace <- expand(Namespaces) ],
     ok.
