@@ -58,7 +58,7 @@ create(Drv) ->
 create(Drv, Pids) ->
     create(Drv, Pids, [<<"alcove">>]).
 
--spec create(alcove_drv:ref(),alcove:fork_path(),[binary()]) -> 'ok'.
+-spec create(alcove_drv:ref(),alcove:fork_path(),[file:name_all()]) -> 'ok'.
 create(Drv, Pids, Namespaces) ->
     [ create_1(Drv, Pids, Namespace) || Namespace <- expand(Namespaces) ],
     ok.
@@ -74,10 +74,15 @@ create_1(Drv, Pids, Namespace) ->
     end,
     fold(Drv, <<>>, [], Fun, []).
 
+-spec destroy(alcove_drv:ref()) -> [ok | {error, file:posix()}].
 destroy(Drv) ->
     destroy(Drv, []).
+
+-spec destroy(alcove_drv:ref(),alcove:fork_path()) -> [ok | {error, file:posix()}].
 destroy(Drv, Pids) ->
     destroy(Drv, Pids, [<<"alcove">>]).
+
+-spec destroy(alcove_drv:ref(),alcove:fork_path(),[file:name_all()]) -> [ok | {error, file:posix()}].
 destroy(Drv, Pids, Namespace) ->
     Fun = fun(Cgroup, _Acc) ->
             Path = join(Cgroup, Namespace),
