@@ -429,7 +429,7 @@ eof(#state{pid = Drv}) ->
         ?_assertEqual(ok, Reply2)
     ].
 
-alloc(#state{os = {unix,linux}, pid = Drv}) ->
+alloc(#state{os = {unix,_}, pid = Drv}) ->
     {ok, Buf, Cstruct} = alcove:alloc(Drv,
         [<<1,2,3,4,5,6,7,8,9,10>>,
          {ptr, 11},
