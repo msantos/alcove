@@ -291,12 +291,14 @@ tmpfs(#state{clone = true, pid = Drv, child = Child}) ->
 tmpfs(_) ->
     [].
 
-chroot(#state{os = {unix,linux}, pid = Drv, child = Child}) ->
+chroot(#state{os = {unix,OS}, pid = Drv, child = Child}) when OS =:= linux; OS =:= openbsd ->
     Reply = alcove:chroot(Drv, [Child], "/bin"),
     ?_assertEqual(ok, Reply);
 chroot(#state{os = {unix,freebsd}, pid = Drv, child = Child}) ->
     Reply = alcove:chroot(Drv, [Child], "/rescue"),
-    ?_assertEqual(ok, Reply).
+    ?_assertEqual(ok, Reply);
+chroot(_) ->
+    [].
 
 chdir(#state{pid = Drv, child = Child}) ->
     Reply = alcove:chdir(Drv, [Child], "/"),
@@ -491,10 +493,12 @@ execvp(#state{os = {unix,linux}, pid = Drv, child = Child}) ->
     % cwd = /, chroot'ed in /bin
     Reply = alcove:execvp(Drv, [Child], "/busybox", ["/busybox", "sh"]),
     ?_assertEqual(ok, Reply);
-execvp(#state{os = {unix,freebsd}, pid = Drv, child = Child}) ->
+execvp(#state{os = {unix,OS}, pid = Drv, child = Child}) when OS =:= freebsd; OS =:= openbsd ->
     % cwd = /, chroot'ed in /rescue
     Reply = alcove:execvp(Drv, [Child], "/sh", ["/sh"]),
-    ?_assertEqual(ok, Reply).
+    ?_assertEqual(ok, Reply);
+execvp(_) ->
+    [].
 
 stdout(#state{pid = Drv, child = Child}) ->
     Reply = alcove:stdin(Drv, [Child], "echo 0123456789\n"),
@@ -517,7 +521,16 @@ stderr(#state{os = {unix,freebsd}, pid = Drv, child = Child}) ->
     [
         ?_assertEqual(true, Reply),
         ?_assertEqual(<<"nonexistent: not found\n">>, Stderr)
-    ].
+    ];
+stderr(#state{os = {unix,openbsd}, pid = Drv, child = Child}) ->
+    Reply = alcove:stdin(Drv, [Child], "nonexistent 0123456789\n"),
+    Stderr = alcove:stderr(Drv, [Child], 5000),
+    [
+        ?_assertEqual(true, Reply),
+        ?_assertMatch(<<"/sh: ", _/binary>>, Stderr)
+    ];
+stderr(_) ->
+    [].
 
 execve(#state{pid = Drv}) ->
     {ok, Child0} = alcove:fork(Drv),
