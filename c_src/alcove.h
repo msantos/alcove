@@ -15,6 +15,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <sys/uio.h>
 #include <stdbool.h>
 #include <sys/param.h>
 #include <sys/resource.h>

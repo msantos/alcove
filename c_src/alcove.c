@@ -35,19 +35,6 @@
 #pragma message "Support for namespaces using clone(2) disabled"
 #endif
 
-typedef struct {
-    u_int16_t len;
-    u_int16_t type;
-    pid_t pid;
-    unsigned char buf[MAXMSGLEN];
-} alcove_msg_stdio_t;
-
-typedef struct {
-    u_int16_t len;
-    u_int16_t type;
-    unsigned char buf[MAXMSGLEN];
-} alcove_msg_call_t;
-
 static int alcove_stdin(alcove_state_t *ap);
 static ssize_t alcove_msg_call(alcove_state_t *ap, int fd, u_int16_t len);
 static alcove_msg_t *alcove_msg_read(int fd, u_int16_t len);
@@ -56,13 +43,7 @@ static ssize_t alcove_child_stdio(int fdin, u_int16_t depth,
         alcove_child_t *c, u_int16_t type);
 static ssize_t alcove_send(u_int16_t, ETERM *);
 static ssize_t alcove_call_stdio(pid_t pid, u_int16_t type, ETERM *t);
-static ssize_t alcove_write(void *data, size_t len);
 static ssize_t alcove_read(int, void *, ssize_t);
-
-static alcove_msg_stdio_t * alcove_alloc_hdr_stdio(pid_t pid, u_int16_t type,
-        void *buf, size_t *len);
-static alcove_msg_call_t * alcove_alloc_hdr_call(u_int16_t type, ETERM *t,
-        size_t *len);
 
 static int exited_pid(alcove_state_t *ap, alcove_child_t *c,
         void *arg1, void *arg2);
@@ -375,11 +356,13 @@ BADARG:
     static ssize_t
 alcove_child_stdio(int fdin, u_int16_t depth, alcove_child_t *c, u_int16_t type)
 {
+    struct iovec iov[4];
+
     ssize_t n = 0;
-    alcove_msg_stdio_t *msg = NULL;
+    u_int16_t len = 0;
+    size_t read_len = sizeof(len);
     unsigned char buf[MAXMSGLEN] = {0};
-    size_t read_len = 2;
-    ssize_t rv = 0;
+    pid_t pidbe = htonl(c->pid);
 
     /* If the child has called exec(), treat the data as a stream.
      *
@@ -412,121 +395,95 @@ alcove_child_stdio(int fdin, u_int16_t depth, alcove_child_t *c, u_int16_t type)
         n += 2;
     }
 
-    msg = alcove_alloc_hdr_stdio(c->pid, type, buf, (size_t *)&n);
-    if (!msg)
-        return -1;
+    len = htons(sizeof(type) + sizeof(pidbe) + n);
 
-    rv = alcove_write(msg, n);
+    iov[0].iov_base = &len;
+    iov[0].iov_len = sizeof(len);
+    iov[1].iov_base = &type;
+    iov[1].iov_len = sizeof(type);
+    iov[2].iov_base = &pidbe;
+    iov[2].iov_len = sizeof(pidbe);
+    iov[3].iov_base = buf;
+    iov[3].iov_len = n;
 
-    free(msg);
-
-    return rv;
+    return writev(STDOUT_FILENO, iov, sizeof(iov)/sizeof(iov[0]));
 }
 
     static ssize_t
 alcove_send(u_int16_t type, ETERM *t)
 {
-    alcove_msg_call_t *msg = NULL;
-    size_t len = 0;
-    ssize_t n = 0;
+    struct iovec iov[3];
 
-    msg = alcove_alloc_hdr_call(type, t, &len);
-    if (!msg)
+    u_int16_t len = 0;
+    unsigned char buf[MAXMSGLEN] = {0};
+    int buflen = 0;
+
+    buflen = erl_term_len(t);
+    if (buflen < 0 || buflen > sizeof(buf))
         return -1;
 
-    n = alcove_write(msg, len);
+    if (erl_encode(t, buf) < 1)
+        return -1;
 
-    free(msg);
+    len = htons(sizeof(type) + buflen);
 
-    return n;
+    iov[0].iov_base = &len;
+    iov[0].iov_len = sizeof(len);
+    iov[1].iov_base = &type;
+    iov[1].iov_len = sizeof(type);
+    iov[2].iov_base = buf;
+    iov[2].iov_len = buflen;
+
+    return writev(STDOUT_FILENO, iov, sizeof(iov)/sizeof(iov[0]));
 }
 
     static ssize_t
 alcove_call_stdio(pid_t pid, u_int16_t type, ETERM *t)
 {
-    alcove_msg_call_t *call = NULL;
-    alcove_msg_stdio_t *msg = NULL;
-    size_t len = 0;
+    struct iovec iov[6];
+
+    u_int16_t total_len = 0;
+    u_int16_t hdr_type = ALCOVE_MSG_PROXY;
+    pid_t pidbe = htonl(pid);
+
+    u_int16_t call_len = 0;
+    unsigned char buf[MAXMSGLEN] = {0};
+    int buflen = 0;
+
     ssize_t n = -1;
 
-    call = alcove_alloc_hdr_call(type, t, &len);
-    if (!call)
+    buflen = erl_term_len(t);
+    if (buflen < 0 || buflen > sizeof(buf))
         return -1;
 
-    msg = alcove_alloc_hdr_stdio(pid, ALCOVE_MSG_PROXY, call, &len);
-    if (!msg)
-        goto ERR;
+    if (erl_encode(t, buf) < 1)
+        return -1;
 
-    n = alcove_write(msg, len);
+    total_len = htons(sizeof(hdr_type) + sizeof(pid) + sizeof(call_len) +
+            sizeof(type) + buflen);
+    call_len = htons(sizeof(type) + buflen);
 
-ERR:
-    free(call);
-    free(msg);
+    /* Proxy header */
+    iov[0].iov_base = &total_len;
+    iov[0].iov_len = sizeof(total_len);
+    iov[1].iov_base = &hdr_type;
+    iov[1].iov_len = sizeof(hdr_type);
+    iov[2].iov_base = &pidbe;
+    iov[2].iov_len = sizeof(pidbe);
+
+    /* Call */
+    iov[3].iov_base = &call_len;
+    iov[3].iov_len = sizeof(call_len);
+    iov[4].iov_base = &type;
+    iov[4].iov_len = sizeof(type);
+    iov[5].iov_base = buf;
+    iov[5].iov_len = buflen;
+
+    n = writev(STDOUT_FILENO, iov, sizeof(iov)/sizeof(iov[0]));
+
     erl_free_compound(t);
 
     return n;
-}
-
-    static alcove_msg_stdio_t *
-alcove_alloc_hdr_stdio(pid_t pid, u_int16_t type, void *buf, size_t *len)
-{
-    alcove_msg_stdio_t *msg = NULL;
-    size_t msg_len = 0;
-
-    if (*len > sizeof(msg->buf))
-        return NULL;
-
-    msg = alcove_malloc(sizeof(alcove_msg_stdio_t));
-    (void)memcpy(msg->buf, buf, *len);
-
-    msg_len = sizeof(msg->type) + sizeof(msg->pid) + *len;
-    msg->len = htons(msg_len);
-    msg->type = type;
-    msg->pid = htonl(pid);
-
-    *len = sizeof(msg->len) + msg_len;
-
-    return msg;
-}
-
-    static alcove_msg_call_t *
-alcove_alloc_hdr_call(u_int16_t type, ETERM *t, size_t *len)
-{
-    alcove_msg_call_t *msg = NULL;
-    int term_len = 0;
-
-    msg = alcove_malloc(sizeof(alcove_msg_call_t));
-
-    term_len = erl_term_len(t);
-    if (term_len < 0 || term_len > sizeof(msg->buf))
-        goto ERR;
-
-    if (erl_encode(t, msg->buf) < 1)
-        goto ERR;
-
-    msg->len = htons(sizeof(msg->type) + term_len);
-    msg->type = type;
-
-    *len = sizeof(msg->len) + sizeof(msg->type) + term_len;
-
-    return msg;
-
-ERR:
-    free(msg);
-
-    return NULL;
-}
-
-    static ssize_t
-alcove_write(void *data, size_t len)
-{
-    ssize_t n = 0;
-
-    flockfile(stdout);
-    n = write(STDOUT_FILENO, data, len);
-    funlockfile(stdout);
-
-    return (n == len ? n : -1);
 }
 
     static ssize_t

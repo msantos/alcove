@@ -146,6 +146,7 @@ filter(Drv) ->
         allow_syscall(Drv, 'SYS_exit'),
         allow_syscall(Drv, 'SYS_read'),
         allow_syscall(Drv, 'SYS_write'),
+        allow_syscall(Drv, 'SYS_writev'),
         allow_syscall(Drv, 'SYS_setrlimit'),
         allow_syscall(Drv, 'SYS_getrlimit'),
         allow_syscall(Drv, 'SYS_ugetrlimit'),
