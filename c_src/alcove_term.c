@@ -99,7 +99,7 @@ alcove_define(char *name, alcove_define_t *constants)
     alcove_define_t *dp = NULL;
 
     for (dp = constants; dp->name != NULL; dp++) {
-        if (!strncmp(name, dp->name, strlen(dp->name)))
+        if (!strncmp(name, dp->name, strlen(name)))
             return erl_mk_ulonglong(dp->val);
     }
 
