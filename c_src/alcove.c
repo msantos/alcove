@@ -276,16 +276,18 @@ alcove_stdin(alcove_state_t *ap)
             return -1;
     }
     else if (type == ALCOVE_MSG_STDIN) {
-        if (alcove_read(STDIN_FILENO, &pid, sizeof(pid)) != sizeof(pid))
+        if (bufsz < sizeof(pid))
             return -1;
 
-        pid = ntohl(pid);
         bufsz -= sizeof(pid);
+
+        if (alcove_read(STDIN_FILENO, &pid, sizeof(pid)) != sizeof(pid))
+            return -1;
 
         if (alcove_read(STDIN_FILENO, buf, bufsz) != bufsz)
             return -1;
 
-        switch (pid_foreach(ap, pid, buf, &bufsz, pid_equal, write_to_pid)) {
+        switch (pid_foreach(ap, ntohl(pid), buf, &bufsz, pid_equal, write_to_pid)) {
             case -2:
                 return -1;
             case -1:
