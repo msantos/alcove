@@ -105,11 +105,6 @@ typedef struct {
 } alcove_state_t;
 
 typedef struct {
-    u_int32_t call;
-    unsigned char *arg;
-} alcove_msg_t;
-
-typedef struct {
     char *name;
     long long val;
 } alcove_define_t;

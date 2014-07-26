@@ -37,12 +37,11 @@
 
 static int alcove_stdin(alcove_state_t *ap);
 static ssize_t alcove_msg_call(alcove_state_t *ap, int fd, u_int16_t len);
-static alcove_msg_t *alcove_msg_read(int fd, u_int16_t len);
 
 static ssize_t alcove_child_stdio(int fdin, u_int16_t depth,
         alcove_child_t *c, u_int16_t type);
-static ssize_t alcove_send(u_int16_t, ETERM *);
-static ssize_t alcove_call_stdio(pid_t pid, u_int16_t type, ETERM *t);
+static ssize_t alcove_call_reply(u_int16_t, ETERM *);
+static ssize_t alcove_call_fake_reply(pid_t pid, u_int16_t type, ETERM *t);
 static ssize_t alcove_read(int, void *, ssize_t);
 
 static int exited_pid(alcove_state_t *ap, alcove_child_t *c,
@@ -288,69 +287,38 @@ alcove_stdin(alcove_state_t *ap)
     static ssize_t
 alcove_msg_call(alcove_state_t *ap, int fd, u_int16_t len)
 {
-    alcove_msg_t *msg = NULL;
+    u_int16_t call = 0;
+    unsigned char buf[MAXMSGLEN] = {0};
     ETERM *arg = NULL;
     ETERM *reply = NULL;
     ssize_t rv = -1;
 
-    msg = alcove_msg_read(fd, len);
-    if (!msg)
+    if (len <= sizeof(call) || len + sizeof(call) > sizeof(buf))
         return -1;
 
-    arg = erl_decode(msg->arg);
+    len -= sizeof(call);
+
+    if (alcove_read(fd, &call, sizeof(call)) != sizeof(call))
+        return -1;
+
+    if (alcove_read(fd, buf, len) != len)
+        return -1;
+
+    arg = erl_decode(buf);
     if (!arg)
         goto DONE;
 
-    reply = alcove_call(ap, msg->call, arg);
+    reply = alcove_call(ap, ntohs(call), arg);
     if (!reply)
         goto DONE;
 
-    rv = alcove_send(ALCOVE_MSG_CALL, reply);
+    rv = alcove_call_reply(ALCOVE_MSG_CALL, reply);
 
 DONE:
-    free(msg->arg);
-    free(msg);
     erl_free_compound(arg);
     erl_free_compound(reply);
 
     return rv;
-}
-
-    static alcove_msg_t *
-alcove_msg_read(int fd, u_int16_t len)
-{
-    u_int16_t call = 0;
-    alcove_msg_t *msg = NULL;
-
-    if (len <= sizeof(call))
-        return NULL;
-
-    len -= sizeof(call);
-
-    /* call */
-    if (alcove_read(fd, &call, sizeof(call)) != sizeof(call))
-        return NULL;
-
-    msg = alcove_malloc(sizeof(alcove_msg_t));
-    msg->call = ntohs(call);
-
-    /* arg */
-    msg->arg = alcove_malloc(len);
-
-    if (alcove_read(fd, msg->arg, len) != len)
-        goto BADARG;
-
-    return msg;
-
-BADARG:
-    if (msg) {
-        if (msg->arg)
-            free(msg->arg);
-
-        free(msg);
-    }
-
-    return NULL;
 }
 
     static ssize_t
@@ -410,7 +378,7 @@ alcove_child_stdio(int fdin, u_int16_t depth, alcove_child_t *c, u_int16_t type)
 }
 
     static ssize_t
-alcove_send(u_int16_t type, ETERM *t)
+alcove_call_reply(u_int16_t type, ETERM *t)
 {
     struct iovec iov[3];
 
@@ -438,7 +406,7 @@ alcove_send(u_int16_t type, ETERM *t)
 }
 
     static ssize_t
-alcove_call_stdio(pid_t pid, u_int16_t type, ETERM *t)
+alcove_call_fake_reply(pid_t pid, u_int16_t type, ETERM *t)
 {
     struct iovec iov[6];
 
@@ -550,7 +518,7 @@ exited_pid(alcove_state_t *ap, alcove_child_t *c, void *arg1, void *arg2)
                 erl_mk_int(WEXITSTATUS(*status))
                 );
 
-        if (alcove_call_stdio(c->pid, ALCOVE_MSG_EVENT, t))
+        if (alcove_call_fake_reply(c->pid, ALCOVE_MSG_EVENT, t))
             return -1;
     }
 
@@ -560,7 +528,7 @@ exited_pid(alcove_state_t *ap, alcove_child_t *c, void *arg1, void *arg2)
                 erl_mk_int(WTERMSIG(*status))
                 );
 
-        if (alcove_call_stdio(c->pid, ALCOVE_MSG_EVENT, t) < 0)
+        if (alcove_call_fake_reply(c->pid, ALCOVE_MSG_EVENT, t) < 0)
             return -1;
     }
 
@@ -629,7 +597,7 @@ read_from_pid(alcove_state_t *ap, alcove_child_t *c, void *arg1, void *arg2)
 
         if (n == 0) {
             c->fdctl = ALCOVE_CHILD_EXEC;
-            if (alcove_call_stdio(c->pid, ALCOVE_MSG_CALL,
+            if (alcove_call_fake_reply(c->pid, ALCOVE_MSG_CALL,
                         erl_mk_atom("ok")) < 0)
                 return -1;
         }
@@ -706,7 +674,7 @@ alcove_handle_signal(alcove_state_t *ap) {
                 erl_mk_int(signum)
                 );
 
-        if (alcove_send(ALCOVE_MSG_EVENT, reply) < 0) {
+        if (alcove_call_reply(ALCOVE_MSG_EVENT, reply) < 0) {
             erl_free_compound(reply);
             goto DONE;
         }
