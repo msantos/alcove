@@ -357,6 +357,9 @@ alcove_child_stdio(int fdin, u_int16_t depth, alcove_child_t *c, u_int16_t type)
 
     if ( (c->fdctl != ALCOVE_CHILD_EXEC)
             && (type != ALCOVE_MSG_STDERR)) {
+        if (n < 2)
+            return -1;
+
         n = get_int16(buf);
 
         if (n > sizeof(buf) - 2)
