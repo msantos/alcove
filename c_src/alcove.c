@@ -36,8 +36,18 @@ enum {
                       (((unsigned char*) (s))[2] << 8)  | \
                       (((unsigned char*) (s))[3]))
 
+#define put_int32(i, s) do {((char*)(s))[0] = (char)((i) >> 24) & 0xff;   \
+                            ((char*)(s))[1] = (char)((i) >> 16) & 0xff;   \
+                            ((char*)(s))[2] = (char)((i) >> 8)  & 0xff;   \
+                            ((char*)(s))[3] = (char)(i)         & 0xff;} \
+                        while (0)
+
 #define get_int16(s) ((((unsigned char*)  (s))[0] << 8) | \
                       (((unsigned char*)  (s))[1]))
+
+#define put_int16(i, s) do {((char*)(s))[0] = (char)((i) >> 8) & 0xff;  \
+                            ((char*)(s))[1] = (char)(i)        & 0xff;} \
+                        while (0)
 
 #ifdef __linux__
 #pragma message "Support for namespaces using clone(2) enabled"
@@ -48,6 +58,11 @@ enum {
 static int alcove_stdin(alcove_state_t *ap);
 static ssize_t alcove_msg_call(alcove_state_t *ap, unsigned char *buf,
         u_int16_t buflen);
+
+static size_t alcove_proxy_hdr(unsigned char *hdr, size_t hdrlen,
+        u_int16_t type, pid_t pid, size_t buflen);
+static size_t alcove_call_hdr(unsigned char *hdr, size_t hdrlen,
+        u_int16_t type, size_t buflen);
 
 static ssize_t alcove_child_stdio(int fdin, u_int16_t depth,
         alcove_child_t *c, u_int16_t type);
@@ -280,7 +295,8 @@ alcove_stdin(alcove_state_t *ap)
             pbuf += 4;
             buflen -= 4;
 
-            switch (pid_foreach(ap, pid, pbuf, &buflen, pid_equal, write_to_pid)) {
+            switch (pid_foreach(ap, pid, pbuf, &buflen, pid_equal,
+                        write_to_pid)) {
                 case -2:
                     return -1;
                 case -1:
@@ -325,17 +341,41 @@ DONE:
     return rv;
 }
 
+    static size_t
+alcove_proxy_hdr(unsigned char *hdr, size_t hdrlen, u_int16_t type,
+        pid_t pid, size_t buflen)
+{
+    u_int16_t len = 0;
+
+    put_int16(sizeof(type) + sizeof(pid) + buflen, hdr); len = 2;
+    put_int16(type, hdr+len); len += 2;
+    put_int32(pid, hdr+len); len += 4;
+
+    return len;
+}
+
+    static size_t
+alcove_call_hdr(unsigned char *hdr, size_t hdrlen, u_int16_t type,
+        size_t buflen)
+{
+    u_int16_t len = 0;
+
+    put_int16(sizeof(type) + buflen, hdr); len = 2;
+    put_int16(type, hdr+len); len += 2;
+
+    return len;
+}
+
     static ssize_t
 alcove_child_stdio(int fdin, u_int16_t depth, alcove_child_t *c, u_int16_t type)
 {
-    struct iovec iov[4];
+    struct iovec iov[2];
 
     ssize_t n = 0;
-    u_int16_t len = 0;
-    size_t read_len = sizeof(len);
     unsigned char buf[MAXMSGLEN] = {0};
-    pid_t pidbe = htonl(c->pid);
-    u_int16_t typebe = htons(type);
+    unsigned char hdr[MAXHDRLEN] = {0};
+    u_int16_t hdrlen = 0;
+    size_t read_len = sizeof(hdrlen);
 
     /* If the child has called exec(), treat the data as a stream.
      *
@@ -371,16 +411,13 @@ alcove_child_stdio(int fdin, u_int16_t depth, alcove_child_t *c, u_int16_t type)
         n += 2;
     }
 
-    len = htons(sizeof(typebe) + sizeof(pidbe) + n);
 
-    iov[0].iov_base = &len;
-    iov[0].iov_len = sizeof(len);
-    iov[1].iov_base = &typebe;
-    iov[1].iov_len = sizeof(typebe);
-    iov[2].iov_base = &pidbe;
-    iov[2].iov_len = sizeof(pidbe);
-    iov[3].iov_base = buf;
-    iov[3].iov_len = n;
+    hdrlen = alcove_proxy_hdr(hdr, sizeof(hdr), type, c->pid, n);
+
+    iov[0].iov_base = hdr;
+    iov[0].iov_len = hdrlen;
+    iov[1].iov_base = buf;
+    iov[1].iov_len = n;
 
     return writev(STDOUT_FILENO, iov, sizeof(iov)/sizeof(iov[0]));
 }
@@ -388,12 +425,12 @@ alcove_child_stdio(int fdin, u_int16_t depth, alcove_child_t *c, u_int16_t type)
     static ssize_t
 alcove_call_reply(u_int16_t type, ETERM *t)
 {
-    struct iovec iov[3];
+    struct iovec iov[2];
 
-    u_int16_t len = 0;
-    u_int16_t typebe = htons(type);
     unsigned char buf[MAXMSGLEN] = {0};
     int buflen = 0;
+    unsigned char hdr[MAXHDRLEN] = {0};
+    u_int16_t hdrlen = 0;
 
     buflen = erl_term_len(t);
     if (buflen < 0 || buflen > sizeof(buf))
@@ -402,14 +439,12 @@ alcove_call_reply(u_int16_t type, ETERM *t)
     if (erl_encode(t, buf) < 1)
         return -1;
 
-    len = htons(sizeof(typebe) + buflen);
+    hdrlen = alcove_call_hdr(hdr, sizeof(hdr), type, buflen);
 
-    iov[0].iov_base = &len;
-    iov[0].iov_len = sizeof(len);
-    iov[1].iov_base = &typebe;
-    iov[1].iov_len = sizeof(typebe);
-    iov[2].iov_base = buf;
-    iov[2].iov_len = buflen;
+    iov[0].iov_base = hdr;
+    iov[0].iov_len = hdrlen;
+    iov[1].iov_base = buf;
+    iov[1].iov_len = buflen;
 
     return writev(STDOUT_FILENO, iov, sizeof(iov)/sizeof(iov[0]));
 }
@@ -417,16 +452,16 @@ alcove_call_reply(u_int16_t type, ETERM *t)
     static ssize_t
 alcove_call_fake_reply(pid_t pid, u_int16_t type, ETERM *t)
 {
-    struct iovec iov[6];
+    struct iovec iov[3];
 
-    u_int16_t total_len = 0;
-    u_int16_t hdr_type = htons(ALCOVE_MSG_PROXY);
-    pid_t pidbe = htonl(pid);
-
-    u_int16_t call_len = 0;
-    u_int16_t call_type = htons(type);
     unsigned char buf[MAXMSGLEN] = {0};
     int buflen = 0;
+
+    unsigned char proxyhdr[MAXHDRLEN] = {0};
+    u_int16_t proxyhdrlen = 0;
+
+    unsigned char callhdr[MAXHDRLEN] = {0};
+    u_int16_t callhdrlen = 0;
 
     ssize_t n = -1;
 
@@ -437,25 +472,16 @@ alcove_call_fake_reply(pid_t pid, u_int16_t type, ETERM *t)
     if (erl_encode(t, buf) < 1)
         return -1;
 
-    total_len = htons(sizeof(hdr_type) + sizeof(pid) + sizeof(call_len) +
-            sizeof(call_type) + buflen);
-    call_len = htons(sizeof(call_type) + buflen);
+    callhdrlen = alcove_call_hdr(callhdr, sizeof(callhdr), type, buflen);
+    proxyhdrlen = alcove_proxy_hdr(proxyhdr, sizeof(proxyhdr),
+            ALCOVE_MSG_PROXY, pid, callhdrlen + buflen);
 
-    /* Proxy header */
-    iov[0].iov_base = &total_len;
-    iov[0].iov_len = sizeof(total_len);
-    iov[1].iov_base = &hdr_type;
-    iov[1].iov_len = sizeof(hdr_type);
-    iov[2].iov_base = &pidbe;
-    iov[2].iov_len = sizeof(pidbe);
-
-    /* Call */
-    iov[3].iov_base = &call_len;
-    iov[3].iov_len = sizeof(call_len);
-    iov[4].iov_base = &call_type;
-    iov[4].iov_len = sizeof(call_type);
-    iov[5].iov_base = buf;
-    iov[5].iov_len = buflen;
+    iov[0].iov_base = proxyhdr;
+    iov[0].iov_len = proxyhdrlen;
+    iov[1].iov_base = callhdr;
+    iov[1].iov_len = callhdrlen;
+    iov[2].iov_base = buf;
+    iov[2].iov_len = buflen;
 
     n = writev(STDOUT_FILENO, iov, sizeof(iov)/sizeof(iov[0]));
 
