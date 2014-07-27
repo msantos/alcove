@@ -248,11 +248,11 @@ alcove_event_loop(alcove_state_t *ap)
     static int
 alcove_stdin(alcove_state_t *ap)
 {
-    u_int16_t buflen = 0;
     u_int16_t type = 0;
     pid_t pid = 0;
-    unsigned char buf[MAXMSGLEN] = {0};
-    unsigned char *pbuf = buf;
+    unsigned char msg[MAXMSGLEN] = {0};
+    unsigned char *buf = msg;
+    u_int16_t buflen = 0;
 
     errno = 0;
 
@@ -276,13 +276,13 @@ alcove_stdin(alcove_state_t *ap)
     if (alcove_read(STDIN_FILENO, buf, buflen) != buflen)
         return -1;
 
-    type = get_int16(pbuf);
-    pbuf += 2;
+    type = get_int16(buf);
+    buf += 2;
     buflen -= 2;
 
     switch (type) {
         case ALCOVE_MSG_CALL:
-            if (alcove_msg_call(ap, pbuf, buflen) < 0)
+            if (alcove_msg_call(ap, buf, buflen) < 0)
                 return -1;
 
             return 0;
@@ -291,11 +291,11 @@ alcove_stdin(alcove_state_t *ap)
             if (buflen < sizeof(pid))
                 return -1;
 
-            pid = get_int32(pbuf);
-            pbuf += 4;
+            pid = get_int32(buf);
+            buf += 4;
             buflen -= 4;
 
-            switch (pid_foreach(ap, pid, pbuf, &buflen, pid_equal,
+            switch (pid_foreach(ap, pid, buf, &buflen, pid_equal,
                         write_to_pid)) {
                 case -2:
                     return -1;
@@ -367,7 +367,8 @@ alcove_call_hdr(unsigned char *hdr, size_t hdrlen, u_int16_t type,
 }
 
     static ssize_t
-alcove_child_stdio(int fdin, u_int16_t depth, alcove_child_t *c, u_int16_t type)
+alcove_child_stdio(int fdin, u_int16_t depth, alcove_child_t *c,
+        u_int16_t type)
 {
     struct iovec iov[2];
 
@@ -427,10 +428,11 @@ alcove_call_reply(u_int16_t type, ETERM *t)
 {
     struct iovec iov[2];
 
-    unsigned char buf[MAXMSGLEN] = {0};
-    int buflen = 0;
     unsigned char hdr[MAXHDRLEN] = {0};
     u_int16_t hdrlen = 0;
+
+    unsigned char buf[MAXMSGLEN] = {0};
+    int buflen = 0;
 
     buflen = erl_term_len(t);
     if (buflen < 0 || buflen > sizeof(buf))
@@ -454,14 +456,14 @@ alcove_call_fake_reply(pid_t pid, u_int16_t type, ETERM *t)
 {
     struct iovec iov[3];
 
-    unsigned char buf[MAXMSGLEN] = {0};
-    int buflen = 0;
-
     unsigned char proxyhdr[MAXHDRLEN] = {0};
     u_int16_t proxyhdrlen = 0;
 
     unsigned char callhdr[MAXHDRLEN] = {0};
     u_int16_t callhdrlen = 0;
+
+    unsigned char buf[MAXMSGLEN] = {0};
+    int buflen = 0;
 
     ssize_t n = -1;
 
@@ -473,6 +475,7 @@ alcove_call_fake_reply(pid_t pid, u_int16_t type, ETERM *t)
         return -1;
 
     callhdrlen = alcove_call_hdr(callhdr, sizeof(callhdr), type, buflen);
+
     proxyhdrlen = alcove_proxy_hdr(proxyhdr, sizeof(proxyhdr),
             ALCOVE_MSG_PROXY, pid, callhdrlen + buflen);
 
@@ -638,7 +641,8 @@ read_from_pid(alcove_state_t *ap, alcove_child_t *c, void *arg1, void *arg2)
 {
     struct pollfd *fds = arg1;
 
-    if (c->fdctl > -1 && (fds[c->fdctl].revents & (POLLIN|POLLERR|POLLHUP|POLLNVAL))) {
+    if (c->fdctl > -1 &&
+            (fds[c->fdctl].revents & (POLLIN|POLLERR|POLLHUP|POLLNVAL))) {
         unsigned char buf;
         ssize_t n;
 
@@ -654,7 +658,8 @@ read_from_pid(alcove_state_t *ap, alcove_child_t *c, void *arg1, void *arg2)
         }
     }
 
-    if (c->fdout > -1 && (fds[c->fdout].revents & (POLLIN|POLLERR|POLLHUP|POLLNVAL))) {
+    if (c->fdout > -1 &&
+            (fds[c->fdout].revents & (POLLIN|POLLERR|POLLHUP|POLLNVAL))) {
         switch (alcove_child_stdio(c->fdout, ap->depth,
                     c, ALCOVE_MSG_TYPE(c))) {
             case -1:
@@ -667,7 +672,8 @@ read_from_pid(alcove_state_t *ap, alcove_child_t *c, void *arg1, void *arg2)
         }
     }
 
-    if (c->fderr > -1 && (fds[c->fderr].revents & (POLLIN|POLLERR|POLLHUP|POLLNVAL))) {
+    if (c->fderr > -1 &&
+            (fds[c->fderr].revents & (POLLIN|POLLERR|POLLHUP|POLLNVAL))) {
         switch (alcove_child_stdio(c->fderr, ap->depth,
                     c, ALCOVE_MSG_STDERR)) {
             case -1:
