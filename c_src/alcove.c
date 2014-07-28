@@ -31,24 +31,6 @@ enum {
 #define ALCOVE_MSG_TYPE(s) \
     ((s->fdctl == ALCOVE_CHILD_EXEC) ? ALCOVE_MSG_STDOUT : ALCOVE_MSG_PROXY)
 
-#define get_int32(s) ((((unsigned char*) (s))[0] << 24) | \
-                      (((unsigned char*) (s))[1] << 16) | \
-                      (((unsigned char*) (s))[2] << 8)  | \
-                      (((unsigned char*) (s))[3]))
-
-#define put_int32(i, s) do {((char*)(s))[0] = (char)((i) >> 24) & 0xff;   \
-                            ((char*)(s))[1] = (char)((i) >> 16) & 0xff;   \
-                            ((char*)(s))[2] = (char)((i) >> 8)  & 0xff;   \
-                            ((char*)(s))[3] = (char)(i)         & 0xff;} \
-                        while (0)
-
-#define get_int16(s) ((((unsigned char*)  (s))[0] << 8) | \
-                      (((unsigned char*)  (s))[1]))
-
-#define put_int16(i, s) do {((char*)(s))[0] = (char)((i) >> 8) & 0xff;  \
-                            ((char*)(s))[1] = (char)(i)        & 0xff;} \
-                        while (0)
-
 #ifdef __linux__
 #pragma message "Support for namespaces using clone(2) enabled"
 #else
