@@ -53,6 +53,7 @@ static ssize_t alcove_call_fake_reply(pid_t pid, u_int16_t type, ETERM *t);
 
 static int alcove_get_uint16(int fd, u_int16_t *val);
 static ssize_t alcove_read(int, void *, ssize_t);
+static ssize_t alcove_write(int fd, struct iovec *iov, int count);
 
 static int exited_pid(alcove_state_t *ap, alcove_child_t *c,
         void *arg1, void *arg2);
@@ -402,7 +403,7 @@ alcove_child_stdio(int fdin, u_int16_t depth, alcove_child_t *c,
     iov[1].iov_base = buf;
     iov[1].iov_len = n;
 
-    return writev(STDOUT_FILENO, iov, sizeof(iov)/sizeof(iov[0]));
+    return alcove_write(STDOUT_FILENO, iov, sizeof(iov)/sizeof(iov[0]));
 }
 
     static ssize_t
@@ -430,7 +431,7 @@ alcove_call_reply(u_int16_t type, ETERM *t)
     iov[1].iov_base = buf;
     iov[1].iov_len = buflen;
 
-    return writev(STDOUT_FILENO, iov, sizeof(iov)/sizeof(iov[0]));
+    return alcove_write(STDOUT_FILENO, iov, sizeof(iov)/sizeof(iov[0]));
 }
 
     static ssize_t
@@ -468,7 +469,7 @@ alcove_call_fake_reply(pid_t pid, u_int16_t type, ETERM *t)
     iov[2].iov_base = buf;
     iov[2].iov_len = buflen;
 
-    n = writev(STDOUT_FILENO, iov, sizeof(iov)/sizeof(iov[0]));
+    n = alcove_write(STDOUT_FILENO, iov, sizeof(iov)/sizeof(iov[0]));
 
     erl_free_compound(t);
 
@@ -498,11 +499,36 @@ alcove_read(int fd, void *buf, ssize_t len)
 
     do {
         if ((i = read(fd, buf + got, len - got)) <= 0)
-            return(i);
+            return i;
         got += i;
     } while (got < len);
 
     return len;
+}
+
+    static ssize_t
+alcove_write(int fd, struct iovec *iov, int count)
+{
+    ssize_t written = 0;
+    ssize_t n = 0;
+    int cur = 0;
+
+    for ( ; ; ) {
+        written = writev(fd, iov+cur, count-cur);
+        if (written <= 0)
+            return written;
+
+        n += written;
+
+        while (written >= iov[cur].iov_len)
+            written -= iov[cur++].iov_len;
+
+        if (cur == count)
+            return n;
+
+        iov[cur].iov_base = (char *)iov[cur].iov_base + written;
+        iov[cur].iov_len -= written;
+    }
 }
 
     int
