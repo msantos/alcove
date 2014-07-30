@@ -511,24 +511,24 @@ alcove_write(int fd, struct iovec *iov, int count)
 {
     ssize_t written = 0;
     ssize_t n = 0;
-    int cur = 0;
+    int offset = 0;
 
-    for ( ; ; ) {
-        written = writev(fd, iov+cur, count-cur);
+    do {
+        iov[offset].iov_base = (char *)iov[offset].iov_base + written;
+        iov[offset].iov_len -= written;
+
+        written = writev(fd, iov+offset, count-offset);
         if (written <= 0)
             return written;
 
         n += written;
 
-        while (written >= iov[cur].iov_len)
-            written -= iov[cur++].iov_len;
+        for ( ; offset < count && written >= iov[offset].iov_len; offset++)
+            written -= iov[offset].iov_len;
 
-        if (cur == count)
-            return n;
+    } while (offset < count);
 
-        iov[cur].iov_base = (char *)iov[cur].iov_base + written;
-        iov[cur].iov_len -= written;
-    }
+    return n;
 }
 
     int
