@@ -31,6 +31,8 @@ enum {
 #define ALCOVE_MSG_TYPE(s) \
     ((s->fdctl == ALCOVE_CHILD_EXEC) ? ALCOVE_MSG_STDOUT : ALCOVE_MSG_PROXY)
 
+#define ALCOVE_IOVEC_COUNT(_array) (sizeof(_array)/sizeof(_array[0]))
+
 #ifdef __linux__
 #pragma message "Support for namespaces using clone(2) enabled"
 #else
@@ -403,7 +405,7 @@ alcove_child_stdio(int fdin, u_int16_t depth, alcove_child_t *c,
     iov[1].iov_base = buf;
     iov[1].iov_len = n;
 
-    return alcove_write(STDOUT_FILENO, iov, sizeof(iov)/sizeof(iov[0]));
+    return alcove_write(STDOUT_FILENO, iov, ALCOVE_IOVEC_COUNT(iov));
 }
 
     static ssize_t
@@ -431,7 +433,7 @@ alcove_call_reply(u_int16_t type, ETERM *t)
     iov[1].iov_base = buf;
     iov[1].iov_len = buflen;
 
-    return alcove_write(STDOUT_FILENO, iov, sizeof(iov)/sizeof(iov[0]));
+    return alcove_write(STDOUT_FILENO, iov, ALCOVE_IOVEC_COUNT(iov));
 }
 
     static ssize_t
@@ -469,7 +471,7 @@ alcove_call_fake_reply(pid_t pid, u_int16_t type, ETERM *t)
     iov[2].iov_base = buf;
     iov[2].iov_len = buflen;
 
-    n = alcove_write(STDOUT_FILENO, iov, sizeof(iov)/sizeof(iov[0]));
+    n = alcove_write(STDOUT_FILENO, iov, ALCOVE_IOVEC_COUNT(iov));
 
     erl_free_compound(t);
 
