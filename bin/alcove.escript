@@ -166,9 +166,7 @@ static_exports() ->
      {encode,3},
      {command,1},
      {cast,2}, {cast,3}, {cast,4},
-     {call,2},
-     {call,3},
-     {call,4}].
+     {call,2}, {call,3}, {call,4}, {call,5}].
 
 static() ->
     [ static({Fun, Arity}) || {Fun, Arity} <- static_exports() ].
@@ -368,19 +366,24 @@ cast(Drv, Pids, Command, Arg) when is_pid(Drv), is_list(Arg) ->
 static({call,2}) ->
 "
 call(Drv, Command) ->
-    call(Drv, [], Command, []).
+    call(Drv, [], Command, [], infinity).
 ";
 static({call,3}) ->
 "
-call(Drv, Command, Options) ->
-    call(Drv, [], Command, Options).
+call(Drv, Command, Argv) ->
+    call(Drv, [], Command, Argv, infinity).
 ";
 static({call,4}) ->
 "
-call(Drv, Pids, Command, Arg) when is_pid(Drv), is_list(Arg) ->
-    case alcove_drv:call(Drv, Pids, encode(Command, Pids, Arg)) of
+call(Drv, Pids, Command, Argv) ->
+    call(Drv, Pids, Command, Argv, infinity).
+";
+static({call,5}) ->
+"
+call(Drv, Pids, Command, Argv, Timeout) when is_pid(Drv), is_list(Argv) ->
+    case alcove_drv:call(Drv, Pids, encode(Command, Pids, Argv), Timeout) of
         badarg ->
-            erlang:error(badarg, [Drv, Command, Arg]);
+            erlang:error(badarg, [Drv, Command, Argv]);
         Reply ->
             Reply
     end.

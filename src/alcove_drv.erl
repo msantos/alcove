@@ -18,7 +18,7 @@
 %% API
 -export([start/0, start/1, stop/1]).
 -export([start_link/2]).
--export([call/2, call/3, call/4, encode/2, encode/3]).
+-export([call/4, encode/2, encode/3]).
 -export([stdin/3, stdout/3, stderr/3, event/3, send/2]).
 -export([atom_to_type/1, type_to_atom/1]).
 -export([msg/2, decode/1]).
@@ -51,14 +51,6 @@ start_link(Owner, Options) ->
 -spec stop(ref()) -> ok.
 stop(Drv) ->
     gen_server:call(Drv, stop).
-
--spec call(ref(),iodata()) -> any().
-call(Drv, Data) ->
-    call(Drv, [], Data, infinity).
-
--spec call(ref(),[integer()],iodata()) -> any().
-call(Drv, Pids, Data) ->
-    call(Drv, Pids, Data, infinity).
 
 -spec call(ref(),[integer()],iodata(),'infinity' | non_neg_integer()) ->
     any().

@@ -863,9 +863,10 @@ probably confuse the process.
         Writes a buffer to a file descriptor and returns the number of
         bytes written.
 
-The alcove module functions can be rewritten to use call/3,4,5, which
-allows setting timeouts, or, the async version, cast/3,4.
+The alcove module functions can be rewritten to use call/2,3,4,5, which
+allows setting timeouts, or the async version, cast/3,4.
 
+    call(Drv, Call) -> any()
     call(Drv, Call, Argv) -> any()
     call(Drv, Pids, Call, Argv) -> any()
     call(Drv, Pids, Call, Argv, Timeout) -> any()
