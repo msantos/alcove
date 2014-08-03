@@ -223,7 +223,7 @@ alcove_event_loop(alcove_state_t *ap)
             }
         }
 
-        pid_foreach(ap, 0, fds, NULL, pid_not_equal, read_from_pid);
+        (void)pid_foreach(ap, 0, fds, NULL, pid_not_equal, read_from_pid);
 
         if (ap->verbose > 1)
             alcove_stats(ap);
@@ -280,15 +280,9 @@ alcove_stdin(alcove_state_t *ap)
             buf += 4;
             buflen -= 4;
 
-            switch (pid_foreach(ap, pid, buf, &buflen, pid_equal,
-                        write_to_pid)) {
-                case -2:
-                    return -1;
-                case -1:
-                    /* XXX badarg */
-                case 0:
-                    return 0;
-            }
+            (void)pid_foreach(ap, pid, buf, &buflen, pid_equal, write_to_pid);
+
+            return 0;
 
         default:
             return -1;
