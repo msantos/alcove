@@ -630,12 +630,20 @@ write_to_pid(alcove_state_t *ap, alcove_child_t *c, void *arg1, void *arg2)
 {
     char *buf = arg1;
     u_int16_t *buflen = arg2;
+    ssize_t n = 0;
+    ssize_t written = 0;
 
     if (c->fdin == -1)
-        return -1;
-
-    if (write(c->fdin, buf, *buflen) != *buflen)
         return -2;
+
+    do {
+        n = write(c->fdin, buf + written, *buflen - written);
+
+        if (n <= 0)
+            return n;
+
+        written += n;
+    } while (written < *buflen);
 
     return 0;
 }
