@@ -55,6 +55,7 @@ run(State) ->
         setgid(State),
         setuid(State),
         fork(State),
+        badpid(State),
         signal(State),
         portstress(State),
         forkstress(State),
@@ -353,6 +354,24 @@ fork(#state{pid = Drv, child = Child}) ->
 
         ?_assertMatch({ok, _}, Reply1),
         ?_assertEqual({error,eagain}, Reply2)
+    ].
+
+badpid(#state{pid = Drv}) ->
+    {ok, Child} = alcove:fork(Drv),
+
+    % EPIPE or PID not found
+    ok = alcove:execvp(Drv, [Child], "/bin/sh",
+        ["/bin/sh", "-c", "echo > /dev/null"]),
+    Reply0 = alcove:call(Drv, [Child], execvp, ["/bin/sh",
+            ["/bin/sh", "-c", "echo > /dev/null"]], 1000),
+
+    % PID not found
+    Reply1 = alcove:call(Drv, [12345], execvp, ["/bin/sh",
+            ["/bin/sh", "-c", "echo > /dev/null"]], 1000),
+
+    [
+        ?_assertEqual(false, Reply0),
+        ?_assertEqual(false, Reply1)
     ].
 
 signal(#state{pid = Drv}) ->
