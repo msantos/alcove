@@ -873,7 +873,7 @@ allows setting timeouts, or the async version, cast/3,4.
 
         Types   Call = chdir | chmod | chown | chroot | ...
                 Argv = [iodata()]
-                Timeout = non_neg_integer() | inifinity
+                Timeout = timeout()
 
         Make a synchronous call into the port driver.
 

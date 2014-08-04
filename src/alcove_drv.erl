@@ -52,7 +52,7 @@ start_link(Owner, Options) ->
 stop(Drv) ->
     gen_server:call(Drv, stop).
 
--spec call(ref(),[integer()],iodata(),'infinity' | non_neg_integer()) ->
+-spec call(ref(),[integer()],iodata(),timeout()) ->
     any().
 call(Drv, Pids, Data, Timeout) ->
     true = send(Drv, Data),
@@ -69,17 +69,17 @@ stdin(Drv, Pids, Data) ->
     Stdin = hdr(lists:reverse(Pids), [Data]),
     send(Drv, Stdin).
 
--spec stdout(ref(),[integer()],'infinity' | non_neg_integer()) ->
+-spec stdout(ref(),[integer()],timeout()) ->
     'false' | binary().
 stdout(Drv, Pids, Timeout) ->
     reply(Drv, Pids, ?ALCOVE_MSG_STDOUT, Timeout).
 
--spec stderr(ref(),[integer()],'infinity' | non_neg_integer()) ->
+-spec stderr(ref(),[integer()],timeout()) ->
     'false' | binary().
 stderr(Drv, Pids, Timeout) ->
     reply(Drv, Pids, ?ALCOVE_MSG_STDERR, Timeout).
 
--spec event(ref(),[integer()], 'infinity' | non_neg_integer()) -> any().
+-spec event(ref(),[integer()],timeout()) -> any().
 event(Drv, Pids, Timeout) ->
     reply(Drv, Pids, ?ALCOVE_MSG_EVENT, Timeout).
 
