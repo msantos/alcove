@@ -362,16 +362,16 @@ badpid(#state{pid = Drv}) ->
     % EPIPE or PID not found
     ok = alcove:execvp(Drv, [Child], "/bin/sh",
         ["/bin/sh", "-c", "echo > /dev/null"]),
-    Reply0 = alcove:call(Drv, [Child], execvp, ["/bin/sh",
-            ["/bin/sh", "-c", "echo > /dev/null"]], 1000),
+    Reply0 = (catch alcove:call(Drv, [Child], execvp, ["/bin/sh",
+                ["/bin/sh", "-c", "echo > /dev/null"]], 1000)),
 
     % PID not found
-    Reply1 = alcove:call(Drv, [12345], execvp, ["/bin/sh",
-            ["/bin/sh", "-c", "echo > /dev/null"]], 1000),
+    Reply1 = (catch alcove:call(Drv, [12345], execvp, ["/bin/sh",
+                ["/bin/sh", "-c", "echo > /dev/null"]], 1000)),
 
     [
-        ?_assertEqual(false, Reply0),
-        ?_assertEqual(false, Reply1)
+        ?_assertEqual({'EXIT',timeout}, Reply0),
+        ?_assertEqual({'EXIT',timeout}, Reply1)
     ].
 
 signal(#state{pid = Drv}) ->

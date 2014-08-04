@@ -213,6 +213,14 @@ handle_info(Info, State) ->
 %%--------------------------------------------------------------------
 %%% Internal functions
 %%--------------------------------------------------------------------
+reply(Drv, Pids, ?ALCOVE_MSG_CALL, Timeout) ->
+    receive
+        {alcove_call, Drv, Pids, Event} ->
+            Event
+    after
+        Timeout ->
+            exit(timeout)
+    end;
 reply(Drv, Pids, Type, Timeout) ->
     Tag = type_to_atom(Type),
     receive

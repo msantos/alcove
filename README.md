@@ -863,8 +863,8 @@ probably confuse the process.
         Writes a buffer to a file descriptor and returns the number of
         bytes written.
 
-The alcove module functions can be rewritten to use call/2,3,4,5, which
-allows setting timeouts, or the async version, cast/3,4.
+The alcove module functions can be rewritten to use call/2,3,4,5 which
+allows setting timeouts.
 
     call(Drv, Call) -> any()
     call(Drv, Call, Argv) -> any()
@@ -880,10 +880,11 @@ allows setting timeouts, or the async version, cast/3,4.
             alcove:call(Drv, Pids, execve,
                     ["/bin/ls", ["/bin/ls", "-al"], ["HOME=/home/foo"]])
 
-    cast(Drv, Call, Argv) -> any()
-    cast(Drv, Pids, Call, Argv) -> any()
-
-        Asynchronous port call.
+        By default, timeout is set to infinity. Similar to
+        gen_server:call/3, setting an integer timeout will cause the
+        process to crash if the timeout is reached. If the failure is
+        caught, the caller must deal with any delayed messages that
+        arrive for the Unix process described by the fork path.
 
         See "Message Format" for a description of the messages.
 
