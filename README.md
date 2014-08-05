@@ -64,6 +64,7 @@ Setting Up Privileges
 ```
 sudo visudo -f /etc/sudoers.d/99_alcove
 <user> ALL = NOPASSWD: /path/to/alcove/priv/alcove
+Defaults!/path/to/alcove/priv/alcove !requiretty
 ```
 
 When starting alcove, pass in the `exec` option:
@@ -967,10 +968,3 @@ Ubuntu:
 
 A statically linked executable is required because the tests do a
 chroot(2) to /bin before exec'ing the binary.
-
-TODO
-----
-
-* Support adding user fd's to the event loop
-
-* calls should have an optional timeout
