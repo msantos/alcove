@@ -93,11 +93,11 @@ main(int argc, char *argv[])
 
     ap = calloc(1, sizeof(alcove_state_t));
     if (!ap)
-        erl_err_sys("calloc");
+        err(EXIT_FAILURE, "calloc");
 
     act.sa_handler = sighandler;
     if (sigaction(SIGCHLD, &act, NULL) < 0)
-        erl_err_sys("sigaction");
+        err(EXIT_FAILURE, "sigaction");
 
     ap->maxfd = sysconf(_SC_OPEN_MAX);
     ap->maxchild = ap->maxfd / 4 - 4;
@@ -133,7 +133,7 @@ main(int argc, char *argv[])
 
     ap->child = calloc(ap->fdsetsize, sizeof(alcove_child_t));
     if (!ap->child)
-        erl_err_sys("calloc");
+        err(EXIT_FAILURE, "calloc");
 
     /* Unlike the child processes, the port does not use a control fd.
      * An fd is acquired and leaked here to prevent calls to open()
@@ -144,7 +144,7 @@ main(int argc, char *argv[])
      */
     if ( (fcntl(ALCOVE_FDCTL, F_GETFD) < 0)
             && (open("/dev/null", O_RDWR) != ALCOVE_FDCTL))
-            erl_err_quit("could not acquire ctl fd");
+            errx(EXIT_FAILURE, "could not acquire ctl fd");
 
     alcove_event_loop(ap);
     exit(0);
@@ -165,14 +165,14 @@ alcove_event_loop(alcove_state_t *ap)
         ap->child = realloc(ap->child, sizeof(alcove_child_t) * ap->fdsetsize);
 
         if (!ap->child)
-            erl_err_sys("realloc");
+            err(EXIT_FAILURE, "realloc");
     }
 
     (void)memset(ap->child, 0, sizeof(alcove_child_t) * ap->fdsetsize);
 
     fds = calloc(sizeof(struct pollfd), ap->maxfd);
     if (!fds)
-        erl_err_sys("calloc");
+        err(EXIT_FAILURE, "calloc");
 
     for ( ; ; ) {
         long maxfd = sysconf(_SC_OPEN_MAX);
@@ -180,13 +180,13 @@ alcove_event_loop(alcove_state_t *ap)
         nfds_t nfds = STDIN_FILENO;
 
         if (alcove_handle_signal(ap) < 0)
-            erl_err_sys("alcove_handle_signal");
+            err(EXIT_FAILURE, "alcove_handle_signal");
 
         if (ap->maxfd < maxfd) {
             ap->maxfd = maxfd;
             fds = realloc(fds, sizeof(struct pollfd) * maxfd);
             if (!fds)
-                erl_err_sys("realloc");
+                err(EXIT_FAILURE, "realloc");
             (void)memset(fds, 0, sizeof(struct pollfd) * maxfd);
         }
 
@@ -212,7 +212,7 @@ alcove_event_loop(alcove_state_t *ap)
         if (fds[STDIN_FILENO].revents & (POLLIN|POLLERR|POLLHUP|POLLNVAL)) {
             switch (alcove_stdin(ap)) {
                 case -1:
-                    erl_err_sys("alcove_stdin");
+                    err(EXIT_FAILURE, "alcove_stdin");
                 case 1:
                     /* EOF */
                     free(fds);

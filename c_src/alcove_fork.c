@@ -85,7 +85,7 @@ alcove_fork(alcove_state_t *ap, ETERM *arg)
             return alcove_errno(errno);
         case 0:
             (void)alcove_child_fun(&child_arg);
-            erl_err_sys("fork");
+            err(EXIT_FAILURE, "fork");
         default:
             if (alcove_parent_fd(ap, &fd, pid) < 0)
                 return alcove_errno(errno);
@@ -377,7 +377,7 @@ alcove_parent_fd(alcove_state_t *ap, alcove_stdio_t *fd, pid_t pid)
             || (close(fd->in[PIPE_READ]) < 0)
             || (close(fd->out[PIPE_WRITE]) < 0)
             || (close(fd->err[PIPE_WRITE]) < 0))
-        erl_err_sys("alcove_parent_fd:close");
+        err(EXIT_FAILURE, "alcove_parent_fd:close");
 
     return pid_foreach(ap, 0, fd, &pid, pid_equal, stdio_pid);
 }

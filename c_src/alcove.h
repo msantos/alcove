@@ -32,6 +32,8 @@
 #include <erl_driver.h>
 #include <erl_interface.h>
 
+#include <err.h>
+
 #include "erl_errno.h"
 #include "alcove_version.h"
 
