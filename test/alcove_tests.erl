@@ -169,10 +169,6 @@ setopt(#state{pid = Drv}) ->
     Opt5 = alcove:getopt(Drv, [Fork], maxforkdepth),
     Reply = alcove:fork(Drv, [Fork]),
 
-    true = alcove:setopt(Drv, [Fork], verbose, 2),
-    Fork = alcove:getpid(Drv, [Fork]),
-    Stderr = alcove:stderr(Drv, [Fork]),
-
     alcove:exit(Drv, [Fork], 0),
 
     [
@@ -181,8 +177,7 @@ setopt(#state{pid = Drv}) ->
         ?_assertEqual(0, Opt3),
         ?_assertNotEqual(0, Opt4),
         ?_assertEqual(0, Opt5),
-        ?_assertEqual({error,eagain}, Reply),
-        ?_assertNotEqual(false, Stderr)
+        ?_assertEqual({error,eagain}, Reply)
     ].
 
 event(#state{pid = Drv}) ->

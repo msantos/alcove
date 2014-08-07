@@ -68,7 +68,6 @@ static int read_from_pid(alcove_state_t *ap, alcove_child_t *c,
 
 static int alcove_handle_signal(alcove_state_t *ap);
 
-static void alcove_stats(alcove_state_t *ap);
 static void usage(alcove_state_t *);
 
 extern char *__progname;
@@ -224,9 +223,6 @@ alcove_event_loop(alcove_state_t *ap)
         }
 
         (void)pid_foreach(ap, 0, fds, NULL, pid_not_equal, read_from_pid);
-
-        if (ap->verbose > 1)
-            alcove_stats(ap);
     }
 }
 
@@ -755,18 +751,6 @@ alcove_handle_signal(alcove_state_t *ap) {
 
 DONE:
     return rv;
-}
-
-
-    static void
-alcove_stats(alcove_state_t *ap)
-{
-    unsigned long allocated = 0;
-    unsigned long freed = 0;
-
-    erl_eterm_statistics(&allocated, &freed);
-    VERBOSE(2, "allocated=%ld, freed=%ld", allocated, freed);
-    erl_eterm_release();
 }
 
     static void
