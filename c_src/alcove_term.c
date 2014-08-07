@@ -82,13 +82,13 @@ alcove_malloc(ssize_t size)
     void *buf = NULL;
 
     if (size < 0 || size >= INT32_MAX)
-        erl_err_quit("malloc:invalid size:%ld",
+        errx(EXIT_FAILURE, "malloc:invalid size:%ld",
                 (unsigned long)size);
 
     buf = erl_malloc(size);
 
     if (!buf)
-        erl_err_sys("malloc");
+        err(EXIT_FAILURE, "malloc");
 
     return buf;
 }
@@ -144,7 +144,7 @@ alcove_list_to_argv(ETERM *arg)
     argv = calloc(len + 1, sizeof(char **));
 
     if (!argv)
-        erl_err_sys("calloc");
+        err(EXIT_FAILURE, "calloc");
 
     for (i = 0; i < len; i++) {
         arg = alcove_list_head(&hd, arg);
@@ -246,7 +246,7 @@ alcove_list_to_buf(ETERM *arg, size_t *len, alcove_alloc_t **ptr, ssize_t *nptr)
             if (ALCOVE_IS_UNSIGNED_LONG(t)) {
                 char *p = calloc(ALCOVE_LL_UVALUE(t), 1);
                 if (!p)
-                    erl_err_sys("calloc");
+                    err(EXIT_FAILURE, "calloc");
 
                 (void)memcpy(buf, &p, sizeof(void *));
                 buf += sizeof(void *);
