@@ -277,6 +277,10 @@ alcove_lseek(alcove_state_t *ap, ETERM *arg)
 
     fd = ERL_INT_VALUE(hd);
 
+    /* stdin, stdout, stderr, ctl are reserved */
+    if (fd < 4)
+        return alcove_errno(EBADF);
+
     /* offset */
     arg = alcove_list_head(&hd, arg);
     if (!hd || !ALCOVE_IS_LONGLONG(hd))
@@ -289,11 +293,7 @@ alcove_lseek(alcove_state_t *ap, ETERM *arg)
     if (!hd || !ERL_IS_INTEGER(hd))
         goto BADARG;
 
-    offset = ERL_INT_VALUE(hd);
-
-    /* stdin, stdout, stderr, ctl are reserved */
-    if (fd < 4)
-        return alcove_errno(EBADF);
+    whence = ERL_INT_VALUE(hd);
 
     return (lseek(fd, offset, whence) == -1)
         ? alcove_errno(errno)
