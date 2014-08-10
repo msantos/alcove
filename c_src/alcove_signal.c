@@ -22,65 +22,56 @@
  * kill(2)
  *
  */
-    ETERM *
-alcove_kill(alcove_state_t *ap, ETERM *arg)
+    ssize_t
+alcove_kill(alcove_state_t *ap, const char *arg, size_t len,
+        char *reply, size_t rlen)
 {
-    ETERM *hd = NULL;
+    int index = 0;
+
     pid_t pid = 0;
     int sig = 0;
     int rv = 0;
 
     /* pid */
-    arg = alcove_list_head(&hd, arg);
-    if (!hd || !ERL_IS_INTEGER(hd))
-        goto BADARG;
-
-    pid = ERL_INT_VALUE(hd);
+    if (alcove_decode_int(arg, &index, &pid) < 0)
+        return -1;
 
     /* signal */
-    arg = alcove_list_head(&hd, arg);
-    if (!hd || !ERL_IS_INTEGER(hd))
-        goto BADARG;
-
-    sig = ERL_INT_VALUE(hd);
+    if (alcove_decode_int(arg, &index, &sig) < 0)
+        return -1;
 
     rv = kill(pid, sig);
 
-    return (rv < 0) ? alcove_errno(errno) : erl_mk_atom("ok");
-
-BADARG:
-    return erl_mk_atom("badarg");
+    return (rv < 0)
+        ? alcove_errno(reply, rlen, errno)
+        : alcove_mk_atom(reply, rlen, "ok");
 }
 
 /*
  * sigaction(2)
  *
  */
-    ETERM *
-alcove_sigaction(alcove_state_t *ap, ETERM *arg)
+    ssize_t
+alcove_sigaction(alcove_state_t *ap, const char *arg, size_t len,
+        char *reply, size_t rlen)
 {
-    ETERM *hd = NULL;
+    int index = 0;
+
     int signum = 0;
-    char *handler = NULL;
+    char handler[MAXATOMLEN] = {0};
     struct sigaction act = {{0}};
     int rv = 0;
 
     /* signum */
-    arg = alcove_list_head(&hd, arg);
-    if (!hd || !ERL_IS_INTEGER(hd))
-        goto BADARG;
-
-    signum = ERL_INT_VALUE(hd);
+    if (alcove_decode_int(arg, &index, &signum) < 0)
+        return -1;
 
     if (signum == SIGCHLD)
-        return alcove_errno(EINVAL);
+        return alcove_errno(reply, rlen, EINVAL);
 
     /* handler */
-    arg = alcove_list_head(&hd, arg);
-    if (!hd || !ERL_IS_ATOM(hd))
-        goto BADARG;
-
-    handler = ERL_ATOM_PTR(hd);
+    if (ei_decode_atom(arg, &index, handler) < 0)
+        return -1;
 
     if (!strncmp(handler, "dfl", 3)) {
         act.sa_handler = SIG_DFL;
@@ -92,61 +83,55 @@ alcove_sigaction(alcove_state_t *ap, ETERM *arg)
         act.sa_handler = sighandler;
     }
     else {
-        goto BADARG;
+        return -1;
     }
 
     rv = sigaction(signum, &act, NULL);
 
-    return (rv < 0) ? alcove_errno(errno) : erl_mk_atom("ok");
-
-BADARG:
-    return erl_mk_atom("badarg");
+    return (rv < 0)
+        ? alcove_errno(reply, rlen, errno)
+        : alcove_mk_atom(reply, rlen, "ok");
 }
 
 /*
  * signals
  *
  */
-    ETERM *
-alcove_signal_define(alcove_state_t *ap, ETERM *arg)
+    ssize_t
+alcove_signal_define(alcove_state_t *ap, const char *arg, size_t len,
+        char *reply, size_t rlen)
 {
-    ETERM *hd = NULL;
-    char *name = NULL;
+    int index = 0;
+    int rindex = 0;
+
+    char name[MAXATOMLEN] = {0};
 
     /* constant */
-    arg = alcove_list_head(&hd, arg);
-    if (!hd || !ERL_IS_ATOM(hd))
-        goto BADARG;
+    if (ei_decode_atom(arg, &index, name) < 0)
+        return -1;
 
-    name = ERL_ATOM_PTR(hd);
+    ALCOVE_ERR(ei_encode_version(reply, &rindex));
+    ALCOVE_ERR(alcove_define(reply, &rindex, name, alcove_signal_constants));
 
-    return alcove_define(name, alcove_signal_constants);
-
-BADARG:
-    return erl_mk_atom("badarg");
+    return rindex;
 }
 
-    ETERM *
-alcove_signal_constant(alcove_state_t *ap, ETERM *arg)
+    ssize_t
+alcove_signal_constant(alcove_state_t *ap, const char *arg, size_t len,
+        char *reply, size_t rlen)
 {
-    ETERM *hd = NULL;
+    int index = 0;
+    int rindex = 0;
+
     int signum = 0;
 
     /* signum */
-    arg = alcove_list_head(&hd, arg);
-    if (!hd || !ERL_IS_INTEGER(hd))
-        goto BADARG;
+    if (alcove_decode_int(arg, &index, &signum) < 0)
+        return -1;
 
-    signum = ERL_INT_VALUE(hd);
+    ALCOVE_ERR(ei_encode_version(reply, &rindex));
+    ALCOVE_ERR(alcove_constant(reply, &rindex,
+                signum, alcove_signal_constants));
 
-    return signum_to_atom(signum);
-
-BADARG:
-    return erl_mk_atom("badarg");
-}
-
-    ETERM *
-signum_to_atom(int signum)
-{
-    return alcove_constant(signum, alcove_signal_constants);
+    return rindex;
 }

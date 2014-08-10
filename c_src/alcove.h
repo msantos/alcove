@@ -29,8 +29,9 @@
 #include <fcntl.h>
 #include <sys/types.h>
 
-#include <erl_driver.h>
-#include <erl_interface.h>
+#include <ei.h>
+
+#include <err.h>
 
 #include <err.h>
 
@@ -48,37 +49,48 @@
 
 #define ALCOVE_DEFINE(x) {#x, x}
 
-#define ALCOVE_IS_IOLIST(_t) (ERL_IS_BINARY(_t) || ERL_IS_LIST(_t))
-
-#define ALCOVE_IS_UNSIGNED_INTEGER(x) \
-    (ERL_IS_INTEGER(x) || ERL_IS_UNSIGNED_INTEGER(x))
-
-#define ALCOVE_IS_UNSIGNED_LONG(x) \
-    (ERL_IS_INTEGER(x) || ERL_IS_UNSIGNED_INTEGER(x) \
-     || ERL_IS_LONGLONG(x) || ERL_IS_UNSIGNED_LONGLONG(x))
-
-#define ALCOVE_IS_UNSIGNED_LONGLONG(x) \
-    (ERL_IS_INTEGER(x) || ERL_IS_UNSIGNED_INTEGER(x) \
-     || ERL_IS_LONGLONG(x) || ERL_IS_UNSIGNED_LONGLONG(x))
-
-#define ALCOVE_IS_LONG(x) \
-    (ERL_IS_INTEGER(x) || ERL_IS_LONGLONG(x))
-
-#define ALCOVE_IS_LONGLONG(x) \
-    (ERL_IS_INTEGER(x) || ERL_IS_LONGLONG(x))
-
-#define ALCOVE_LL_UVALUE(x) \
-    ((ERL_IS_INTEGER(x) || ERL_IS_UNSIGNED_INTEGER(x)) \
-        ? ERL_INT_UVALUE(x) \
-        : ERL_LL_UVALUE(x))
-
-#define ALCOVE_LL_VALUE(x) \
-    ((ERL_IS_INTEGER(x)) \
-        ? ERL_INT_VALUE(x) \
-        : ERL_LL_VALUE(x))
-
 #define ALCOVE_SETOPT(x,k,v) \
     (x)->opt = (v) ? (x)->opt | (k) : (x)->opt & ~(k)
+
+#define ALCOVE_ERR(_x) \
+    if ((_x) < 0) errx(EXIT_FAILURE, "internal error")
+
+#define ALCOVE_TUPLE2(_msg, _index, _tag, _term) do { \
+    ALCOVE_ERR(ei_encode_version(_msg, _index)); \
+    ALCOVE_ERR(ei_encode_tuple_header(_msg, _index, 2)); \
+    ALCOVE_ERR(ei_encode_atom(_msg, _index, _tag)); \
+    ALCOVE_ERR(_term); \
+    } while (0)
+
+#define ALCOVE_TUPLE3(_msg, _index, _tag, _term1, _term2) do { \
+    ALCOVE_ERR(ei_encode_version(_msg, _index)); \
+    ALCOVE_ERR(ei_encode_tuple_header(_msg, _index, 3)); \
+    ALCOVE_ERR(ei_encode_atom(_msg, _index, _tag)); \
+    ALCOVE_ERR(_term1); \
+    ALCOVE_ERR(_term2); \
+    } while (0)
+
+#define ALCOVE_TUPLE4(_msg, _index, _tag, _term1, _term2, _term3) do { \
+    ALCOVE_ERR(ei_encode_version(_msg, _index)); \
+    ALCOVE_ERR(ei_encode_tuple_header(_msg, _index, 4)); \
+    ALCOVE_ERR(ei_encode_atom(_msg, _index, _tag)); \
+    ALCOVE_ERR(_term1); \
+    ALCOVE_ERR(_term2); \
+    ALCOVE_ERR(_term3); \
+    } while (0)
+
+#define ALCOVE_TUPLE5(_msg, _index, _tag, _term1, _term2, _term3, _term4) do { \
+    ALCOVE_ERR(ei_encode_version(_msg, _index)); \
+    ALCOVE_ERR(ei_encode_tuple_header(_msg, _index, 3)); \
+    ALCOVE_ERR(ei_encode_atom(_msg, _index, _tag)); \
+    ALCOVE_ERR(_term1); \
+    ALCOVE_ERR(_term2); \
+    ALCOVE_ERR(_term3); \
+    ALCOVE_ERR(_term4); \
+    } while (0)
+
+#define ALCOVE_OK(_msg, _index, _buf) \
+    ALCOVE_TUPLE2(_msg, _index, "ok", _buf)
 
 #define get_int32(s) ((((unsigned char*) (s))[0] << 24) | \
                       (((unsigned char*) (s))[1] << 16) | \
@@ -144,27 +156,31 @@ int pid_foreach(alcove_state_t *ap, pid_t pid, void *arg1, void *arg2,
 int pid_equal(pid_t p1, pid_t p2);
 int pid_not_equal(pid_t p1, pid_t p2);
 
+int alcove_decode_int(const char *, int *, int *);
+int alcove_decode_uint(const char *, int *, u_int32_t *);
+
+ssize_t alcove_decode_iolist_to_binary(const char *buf, int *index,
+        char *res, size_t *rlen);
+char *alcove_decode_iolist_to_string(const char *buf, int *index);
+ssize_t alcove_errno(char *buf, size_t len, int errnum);
+ssize_t alcove_error(char *buf, size_t len, const char *reason);
+ssize_t alcove_mk_atom(char *buf, size_t len, const char *atom);
+ssize_t alcove_mk_binary(char *buf, size_t buflen, void *bin, size_t len);
+ssize_t alcove_mk_long(char *buf, size_t buflen, long n);
+ssize_t alcove_mk_ulong(char *buf, size_t buflen, unsigned long n);
 void *alcove_malloc(ssize_t size);
+int alcove_define(char *buf, int *index, char *name,
+        alcove_define_t *constants);
+int alcove_constant(char *buf, int *index, u_int64_t val,
+        alcove_define_t *constants);
 
-ETERM *alcove_list_head(ETERM **, ETERM *);
-ETERM *alcove_tuple2(ETERM *, ETERM *);
-ETERM *alcove_tuple3(ETERM *, ETERM *, ETERM *);
-ETERM *alcove_tuple4(ETERM *, ETERM *, ETERM *, ETERM *);
-ETERM *alcove_tuple5(ETERM *, ETERM *, ETERM *, ETERM *, ETERM *);
-ETERM *alcove_errno(int);
-ETERM *alcove_error(const char *);
-ETERM *alcove_ok(ETERM *);
-ETERM *alcove_bool(bool);
-ETERM *alcove_bin(const char *);
-ETERM *alcove_define(char *name, alcove_define_t *constants);
-ETERM *alcove_constant(u_int64_t val, alcove_define_t *constants);
+ssize_t alcove_call(alcove_state_t *ap, u_int32_t call,
+        const char *arg, size_t len, char *reply, size_t rlen);
 
-ETERM *alcove_call(alcove_state_t *, u_int32_t, ETERM *);
-
-ETERM *signum_to_atom(int signum);
+char *erl_errno_id(int error);
 
 #define VERBOSE(x, ...) do { \
     if (ap->verbose >= x) { \
-        erl_err_msg(__VA_ARGS__); \
+        warnx(__VA_ARGS__); \
     } \
 } while (0)

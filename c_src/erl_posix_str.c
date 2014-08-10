@@ -27,8 +27,6 @@
 #endif
 
 #include "erl_errno.h"
-//#include "sys.h"
-#include "erl_driver.h"
 
 /*
  *----------------------------------------------------------------------

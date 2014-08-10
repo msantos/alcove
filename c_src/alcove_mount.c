@@ -23,107 +23,86 @@
  * mount(2)
  *
  */
-    ETERM *
-alcove_mount(alcove_state_t *ap, ETERM *arg)
+    ssize_t
+alcove_mount(alcove_state_t *ap, const char *arg, size_t len,
+        char *reply, size_t rlen)
 {
-    ETERM *hd = NULL;
-    char *source = NULL;
-    char *target = NULL;
-    char *filesystemtype = NULL;
+    int index = 0;
+
+    char source[PATH_MAX] = {0};
+    size_t slen = sizeof(source)-1;
+    char target[PATH_MAX] = {0};
+    size_t tlen = sizeof(target)-1;
+    char filesystemtype[PATH_MAX] = {0};
+    size_t flen = sizeof(filesystemtype)-1;
     unsigned long mountflags = 0;
-    void *data = NULL;
+    char data[MAXMSGLEN] = {0};
+    size_t dlen = sizeof(data);
 
     int rv = 0;
-    int errnum = 0;
 
     /* source */
-    arg = alcove_list_head(&hd, arg);
-    if (!hd || !ALCOVE_IS_IOLIST(hd))
-        goto BADARG;
-
-    if (erl_iolist_length(hd) > 0)
-        source = erl_iolist_to_string(hd);
+    if (alcove_decode_iolist_to_binary(arg, &index, source, &slen) < 0)
+        return -1;
 
     /* target */
-    arg = alcove_list_head(&hd, arg);
-    if (!hd || !ALCOVE_IS_IOLIST(hd))
-        goto BADARG;
-
-    if (erl_iolist_length(hd) > 0)
-        target = erl_iolist_to_string(hd);
-
-    if (!target)
-        goto BADARG;
+    if (alcove_decode_iolist_to_binary(arg, &index, target, &tlen) < 0 ||
+            tlen == 0)
+        return -1;
 
     /* filesystemtype */
-    arg = alcove_list_head(&hd, arg);
-    if (!hd || !ALCOVE_IS_IOLIST(hd))
-        goto BADARG;
-
-    if (erl_iolist_length(hd) > 0)
-        filesystemtype = erl_iolist_to_string(hd);
+    if (alcove_decode_iolist_to_binary(arg, &index, filesystemtype, &flen) < 0)
+        return -1;
 
     /* mountflags */
-    arg = alcove_list_head(&hd, arg);
-    if (!hd || !ALCOVE_IS_UNSIGNED_LONG(hd))
-        goto BADARG;
-
-    mountflags = ALCOVE_LL_UVALUE(hd);
+    if (ei_decode_ulong(arg, &index, &mountflags) < 0)
+        return -1;
 
     /* data */
-    arg = alcove_list_head(&hd, arg);
-    if (!hd || !ALCOVE_IS_IOLIST(hd))
-        goto BADARG;
-
-    if (erl_iolist_length(hd) > 0)
-        data = ERL_BIN_PTR(erl_iolist_to_binary(hd));
+    if (alcove_decode_iolist_to_binary(arg, &index, data, &dlen) < 0)
+        return -1;
 
 #ifdef __linux__
-    rv = mount(source, target, filesystemtype, mountflags, data);
+    rv = mount(
+            (slen == 0 ? NULL : source),
+            target,
+            (flen == 0 ? NULL : filesystemtype),
+            mountflags,
+            (dlen == 0 ? NULL : data)
+            );
 #else
-    rv = mount(filesystemtype, target, mountflags, data);
+    rv = mount(
+            (flen == 0 ? NULL : filesystemtype),
+            target,
+            mountflags,
+            (dlen == 0 ? NULL : data)
+            );
 #endif
 
-    errnum = errno;
-
-    erl_free(source);
-    erl_free(target);
-    erl_free(filesystemtype);
-    erl_free(data);
-
-    return (rv < 0) ? alcove_errno(errnum) : erl_mk_atom("ok");
-
-BADARG:
-    erl_free(source);
-    erl_free(target);
-    erl_free(filesystemtype);
-    erl_free(data);
-    return erl_mk_atom("badarg");
+    return (rv < 0)
+        ? alcove_errno(reply, rlen, errno)
+        : alcove_mk_atom(reply, rlen, "ok");
 }
 
 /*
  * umount(2)
  *
  */
-    ETERM *
-alcove_umount(alcove_state_t *ap, ETERM *arg)
+    ssize_t
+alcove_umount(alcove_state_t *ap, const char *arg, size_t len,
+        char *reply, size_t rlen)
 {
-    ETERM *hd = NULL;
-    char *source = NULL;
+    int index = 0;
+
+    char source[PATH_MAX] = {0};
+    size_t slen = sizeof(source)-1;
 
     int rv = 0;
-    int errnum = 0;
 
     /* source */
-    arg = alcove_list_head(&hd, arg);
-    if (!hd || !ALCOVE_IS_IOLIST(hd))
-        goto BADARG;
-
-    if (erl_iolist_length(hd) > 0)
-        source = erl_iolist_to_string(hd);
-
-    if (!source)
-        goto BADARG;
+    if (alcove_decode_iolist_to_binary(arg, &index, source, &slen) < 0 ||
+            slen == 0)
+        return -1;
 
 #ifdef __linux__
     rv = umount(source);
@@ -131,36 +110,29 @@ alcove_umount(alcove_state_t *ap, ETERM *arg)
     rv = unmount(source, 0);
 #endif
 
-    errnum = errno;
-
-    erl_free(source);
-
-    return (rv < 0) ? alcove_errno(errnum) : erl_mk_atom("ok");
-
-BADARG:
-    erl_free(source);
-    return erl_mk_atom("badarg");
+    return (rv < 0)
+        ? alcove_errno(reply, rlen, errno)
+        : alcove_mk_atom(reply, rlen, "ok");
 }
 
 /*
  * mount constants
  *
  */
-    ETERM *
-alcove_mount_define(alcove_state_t *ap, ETERM *arg)
+    ssize_t
+alcove_mount_define(alcove_state_t *ap, const char *arg, size_t len,
+        char *reply, size_t rlen)
 {
-    ETERM *hd = NULL;
-    char *name = NULL;
+    int index = 0;
+    int rindex = 0;
+
+    char name[MAXATOMLEN] = {0};
 
     /* flag */
-    arg = alcove_list_head(&hd, arg);
-    if (!hd || !ERL_IS_ATOM(hd))
-        goto BADARG;
+    if (ei_decode_atom(arg, &index, name) < 0)
+        return -1;
 
-    name = ERL_ATOM_PTR(hd);
-
-    return alcove_define(name, alcove_mount_constants);
-
-BADARG:
-    return erl_mk_atom("badarg");
+    ALCOVE_ERR(ei_encode_version(reply, &rindex));
+    ALCOVE_ERR(alcove_define(reply, &rindex, name, alcove_mount_constants));
+    return rindex;
 }

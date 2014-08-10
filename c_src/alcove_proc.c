@@ -27,21 +27,27 @@
  * getpid(2)
  *
  */
-    ETERM *
-alcove_getpid(alcove_state_t *ap, ETERM *arg)
+    ssize_t
+alcove_getpid(alcove_state_t *ap, const char *arg, size_t len,
+        char *reply, size_t rlen)
 {
-    return erl_mk_int(getpid());
+    return alcove_mk_long(reply, rlen, getpid());
 }
 
 /*
  * prctl(2)
  *
  */
-    ETERM *
-alcove_prctl(alcove_state_t *ap, ETERM *arg)
+    ssize_t
+alcove_prctl(alcove_state_t *ap, const char *arg, size_t len,
+        char *reply, size_t rlen)
 {
 #ifdef __linux__
-    ETERM *hd = NULL;
+    int index = 0;
+    int rindex = 0;
+    int type = 0;
+    int arity = 0;
+
     int option = 0;
     alcove_alloc_t *elem[4] = {0};
     ssize_t nelem[4] = {0};
@@ -50,59 +56,86 @@ alcove_prctl(alcove_state_t *ap, ETERM *arg)
     alcove_prctl_arg_t prarg[4] = {{0}};
 
     int rv = 0;
-    ETERM *t[6] = {0};
 
     /* option */
-    arg = alcove_list_head(&hd, arg);
-    if (!hd || !ERL_IS_INTEGER(hd))
-        goto BADARG;
-
-    option = ERL_INT_VALUE(hd);
+    if (alcove_decode_int(arg, &index, &option) < 0)
+        return -1;
 
     /* arg2, arg3, arg4, arg5 */
     for (i = 0; i < 4; i++) {
-        arg = alcove_list_head(&hd, arg);
-        if (!hd)
-            goto BADARG;
+        if (ei_get_type(arg, &index, &type, &arity) < 0)
+            return -1;
 
-        PROPT(hd, prarg[i], elem[i], nelem[i]);
+        switch (type) {
+            case ERL_SMALL_INTEGER_EXT:
+            case ERL_INTEGER_EXT:
+                if (ei_decode_ulong(arg, &index, &prarg[i].arg) < 0)
+                    return -1;
+
+                break;
+
+            case ERL_LIST_EXT:
+                prarg[i].type = ALCOVE_PRARG_CSTRUCT;
+                prarg[i].data = alcove_list_to_buf(arg, &index, &(prarg[i].len),
+                        &(elem[i]), &(nelem[i]));
+                break;
+
+            case ERL_BINARY_EXT:
+                prarg[i].type = ALCOVE_PRARG_BINARY;
+                prarg[i].data = alcove_malloc(arity);
+                if (ei_decode_binary(arg, &index, prarg[i].data,
+                            (long int *)&(prarg[i].len)) < 0)
+                    return -1;
+
+                break;
+
+            case ERL_NIL_EXT:
+                if (ei_decode_list_header(arg, &index, &arity) < 0 ||
+                        arity != 0)
+                    return -1;
+
+                break;
+
+            default:
+                return -1;
+        }
     }
 
     rv = prctl(option, PRARG(prarg[0]), PRARG(prarg[1]),
             PRARG(prarg[2]), PRARG(prarg[3]));
 
     if (rv < 0)
-        return alcove_errno(errno);
+        return alcove_errno(reply, rlen, errno);
 
-    t[0] = erl_mk_atom("ok");
-    t[1] = erl_mk_int(rv);
+    ALCOVE_ERR(ei_encode_version(reply, &rindex));
+    ALCOVE_ERR(ei_encode_tuple_header(reply, &rindex, 6));
+    ALCOVE_ERR(ei_encode_atom(reply, &rindex, "ok"));
+    ALCOVE_ERR(ei_encode_long(reply, &rindex, rv));
 
     for (i = 0; i < 4; i++) {
         switch (prarg[i].type) {
             case ALCOVE_PRARG_UNSIGNED_LONG:
-                t[i+2] = erl_mk_ulonglong(prarg[i].arg);
+                ALCOVE_ERR(ei_encode_ulonglong(reply, &rindex, prarg[i].arg));
                 break;
             case ALCOVE_PRARG_CSTRUCT:
-                t[i+2] = alcove_buf_to_list(prarg[i].data, prarg[i].len,
-                        elem[i], nelem[i]);
+                ALCOVE_ERR(alcove_buf_to_list(reply, &rindex,
+                            prarg[i].data, prarg[i].len,
+                            elem[i], nelem[i]));
+                free(prarg[i].data);
                 break;
             case ALCOVE_PRARG_BINARY:
-                t[i+2] = erl_mk_binary(prarg[i].data, prarg[i].len);
+                ALCOVE_ERR(ei_encode_binary(reply, &rindex, prarg[i].data,
+                            prarg[i].len));
+                free(prarg[i].data);
                 break;
+            default:
+                return -1;
         }
-
-        PRFREE(prarg[i], elem[i], nelem[i]);
     }
 
-    return erl_mk_tuple(t, 6);
-
-BADARG:
-    for (i = 0; i < 4; i++)
-        PRFREE(prarg[i], elem[i], nelem[i]);
-
-    return erl_mk_atom("badarg");
+    return rindex;
 #else
-    return alcove_error("unsupported");
+    return alcove_error(reply, rlen, "unsupported");
 #endif
 }
 
@@ -110,69 +143,81 @@ BADARG:
  * prctl flags
  *
  */
-    ETERM *
-alcove_prctl_define(alcove_state_t *ap, ETERM *arg)
+    ssize_t
+alcove_prctl_define(alcove_state_t *ap, const char *arg, size_t len,
+        char *reply, size_t rlen)
 {
 #ifdef __linux__
-    ETERM *hd = NULL;
-    char *name = NULL;
+    int index = 0;
+    int rindex = 0;
+
+    char name[MAXATOMLEN] = {0};
 
     /* name */
-    arg = alcove_list_head(&hd, arg);
-    if (!hd || !ERL_IS_ATOM(hd))
-        goto BADARG;
+    if (ei_decode_atom(arg, &index, name) < 0)
+        return -1;
 
-    name = ERL_ATOM_PTR(hd);
-
-    return alcove_define(name, alcove_prctl_constants);
-
-BADARG:
-    return erl_mk_atom("badarg");
+    ALCOVE_ERR(ei_encode_version(reply, &rindex));
+    ALCOVE_ERR(alcove_define(reply, &rindex, name, alcove_prctl_constants));
+    return rindex;
 #else
-    return erl_mk_atom("false");
+    return alcove_mk_atom(reply, rlen, "false");
 #endif
 }
 
 /*
  * getsid(2)
  */
-    ETERM *
-alcove_getsid(alcove_state_t *ap, ETERM *arg)
+    ssize_t
+alcove_getsid(alcove_state_t *ap, const char *arg, size_t len,
+        char *reply, size_t rlen)
 {
-    ETERM *hd = NULL;
+    int index = 0;
+    int rindex = 0;
+
     pid_t pid = 0;
     pid_t rv = 0;
 
     /* pid */
-    arg = alcove_list_head(&hd, arg);
-    if (!hd || !ERL_IS_INTEGER(hd))
-        goto BADARG;
-
-    pid = ERL_INT_VALUE(hd);
+    if (alcove_decode_int(arg, &index, &pid) < 0)
+        return -1;
 
     rv = getsid(pid);
 
-    return rv < 0 ? alcove_errno(errno) : alcove_ok(erl_mk_int(rv));
+    if (rv < 0)
+        return alcove_errno(reply, rlen, errno);
 
-BADARG:
-    return erl_mk_atom("badarg");
+    ALCOVE_OK(reply, &rindex,
+        ei_encode_long(reply, &rindex, rv));
+
+    return rindex;
 }
 
 /*
  * setsid(2)
  */
-    ETERM *
-alcove_setsid(alcove_state_t *ap, ETERM *arg)
+    ssize_t
+alcove_setsid(alcove_state_t *ap, const char *arg, size_t len,
+        char *reply, size_t rlen)
 {
+    int rindex = 0;
     pid_t pid = setsid();
-    return pid < 0 ? alcove_errno(errno) : alcove_ok(erl_mk_int(pid));
+
+    if (pid < 0)
+        return alcove_errno(reply, rlen, errno);
+
+    ALCOVE_OK(reply, &rindex,
+        ei_encode_long(reply, &rindex, pid));
+
+    return rindex;
 }
 
 /*
  * getpgrp(2)
  */
-    ETERM *
-alcove_getpgrp(alcove_state_t *ap, ETERM *arg)
+    ssize_t
+alcove_getpgrp(alcove_state_t *ap, const char *arg, size_t len,
+        char *reply, size_t rlen)
 {
-    return erl_mk_int(getpgrp());
+    return alcove_mk_long(reply, rlen, getpgrp());
 }

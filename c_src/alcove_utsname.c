@@ -23,53 +23,49 @@
  * gethostname(2)
  *
  */
-    ETERM *
-alcove_gethostname(alcove_state_t *ap, ETERM *arg)
+    ssize_t
+alcove_gethostname(alcove_state_t *ap, const char *arg, size_t len,
+        char *reply, size_t rlen)
 {
+    int rindex = 0;
+
     char name[HOST_NAME_MAX] = {0};
     int rv = 0;
 
     rv = gethostname(name, HOST_NAME_MAX-1);
 
-    return (rv < 0)
-        ? alcove_errno(errno)
-        : alcove_ok(erl_mk_binary(name, strlen(name)));
+    if (rv < 0)
+       return alcove_errno(reply, rlen, errno);
+
+    ALCOVE_OK(reply, &rindex,
+        ei_encode_binary(reply, &rindex, name, strlen(name)));
+
+    return rindex;
 }
 
 /*
  * sethostname(2)
  *
  */
-    ETERM *
-alcove_sethostname(alcove_state_t *ap, ETERM *arg)
+    ssize_t
+alcove_sethostname(alcove_state_t *ap, const char *arg, size_t len,
+        char *reply, size_t rlen)
 {
-    ETERM *hd = NULL;
-    char *name = NULL;
+    int index = 0;
+
+    char name[HOST_NAME_MAX] = {0};
+    size_t nlen = sizeof(name)-1;
     int rv = 0;
     int errnum = 0;
 
     /* hostname */
-    arg = alcove_list_head(&hd, arg);
-    if (!hd || !ALCOVE_IS_IOLIST(hd))
-        goto BADARG;
+    if (alcove_decode_iolist_to_binary(arg, &index, name, &nlen) < 0 ||
+            nlen == 0)
+        return -1;
 
-    if (erl_iolist_length(hd) > 0)
-        name = erl_iolist_to_string(hd);
-
-    if (!name)
-        goto BADARG;
-
-    rv = sethostname(name, strlen(name)+1);
-
-    errnum = errno;
-
-    erl_free(name);
+    rv = sethostname(name, strlen(name));
 
     return (rv < 0)
-        ? alcove_errno(errnum)
-        : erl_mk_atom("ok");
-
-BADARG:
-    erl_free(name);
-    return erl_mk_atom("badarg");
+        ? alcove_errno(reply, rlen, errnum)
+        : alcove_mk_atom(reply, rlen, "ok");
 }

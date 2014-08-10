@@ -16,33 +16,28 @@
 #include "alcove_call.h"
 
 /* Probably only useful for testing */
-    ETERM *
-alcove_alloc(alcove_state_t *ap, ETERM *arg)
+    ssize_t
+alcove_alloc(alcove_state_t *ap, const char *arg, size_t len,
+        char *reply, size_t rlen)
 {
-    ETERM *hd = NULL;
+    int index = 0;
+    int rindex = 0;
+    size_t size = 0;
     char *buf = NULL;
-    size_t len = 0;
     alcove_alloc_t *elem = NULL;
     ssize_t nelem = 0;
-    ETERM *t = NULL;
 
-    arg = alcove_list_head(&hd, arg);
-    if (!hd || !ERL_IS_LIST(hd))
-        goto BADARG;
-
-    buf = alcove_list_to_buf(hd, &len, &elem, &nelem);
-
+    buf = alcove_list_to_buf(arg, &index, &size, &elem, &nelem);
     if (!buf)
-        return erl_mk_atom("badarg");
+        return -1;
 
-    t = alcove_buf_to_list(buf, len, elem, nelem);
+    ALCOVE_TUPLE3(reply, &rindex,
+        "ok",
+        ei_encode_binary(reply, &rindex, buf, size),
+        alcove_buf_to_list(reply, &rindex, buf, size, elem, nelem)
+    );
 
-    return alcove_tuple3(
-            erl_mk_atom("ok"),
-            erl_mk_binary(buf, len),
-            t
-            );
+    free(buf);
 
-BADARG:
-    return erl_mk_atom("badarg");
+    return rindex;
 }

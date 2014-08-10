@@ -23,12 +23,17 @@ OIFS=$IFS
 while read line; do
     IFS=/
     set -- $line
-    printf "ETERM *alcove_%s(alcove_state_t *, ETERM *);\n" $1
+    cat << EOF
+ssize_t alcove_$1(alcove_state_t *, const char *, size_t, char *, size_t);
+EOF
 done < $PROTO
 
 cat<< 'EOF'
-char **alcove_list_to_argv(ETERM *);
+char **alcove_list_to_argv(const char *, int *);
 void alcove_free_argv(char **);
-void *alcove_list_to_buf(ETERM *arg, size_t *len, alcove_alloc_t **ptr, ssize_t *nptr);
-ETERM *alcove_buf_to_list(char *buf, size_t len, alcove_alloc_t *ptr, ssize_t nptr);
+void *alcove_list_to_buf(const char *, int *, size_t *,
+    alcove_alloc_t **, ssize_t *);
+int alcove_buf_to_list(char *, int *, const char *, size_t,
+    alcove_alloc_t *, ssize_t);
+int alcove_str_to_argv(const char *, int *, int, char *, size_t *);
 EOF

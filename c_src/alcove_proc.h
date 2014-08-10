@@ -27,31 +27,6 @@ enum {
 
 #define PRARG(x) (((x).type) ? (unsigned long)(x).data : (x).arg)
 
-#define PROPT(_term, _arg, _ptr, _nptr) do { \
-        if (ALCOVE_IS_UNSIGNED_LONG(_term)) { \
-            _arg.arg = ALCOVE_LL_UVALUE(_term); \
-        } \
-        else if (ERL_IS_LIST(_term)) { \
-            _arg.type = ALCOVE_PRARG_CSTRUCT; \
-            _arg.data = alcove_list_to_buf(_term, &(_arg).len, &(_ptr), &(_nptr)); \
-            if (!(_arg.data)) \
-                goto BADARG; \
-        } \
-        else if (ERL_IS_BINARY(_term)) { \
-            _arg.type = ALCOVE_PRARG_BINARY; \
-            _arg.len = ERL_BIN_SIZE(_term); \
-            _arg.data = alcove_malloc(_arg.len); \
-            (void)memcpy(_arg.data, ERL_BIN_PTR(_term), \
-                ERL_BIN_SIZE(_term)); \
-        } \
-} while (0)
-
-#define PRFREE(_x,_b,_n) do { \
-    if ((_x).type) { free((_x).data); } \
-    for ( ; (_n) > 0; (_n)--) \
-        free((_b)->p); \
-} while (0)
-
 alcove_define_t alcove_prctl_constants[] = {
 #ifdef PR_SET_PDEATHSIG
     ALCOVE_DEFINE(PR_SET_PDEATHSIG),

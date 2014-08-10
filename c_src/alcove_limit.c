@@ -20,111 +20,103 @@
  * getrlimit(2)
  *
  */
-    ETERM *
-alcove_getrlimit(alcove_state_t *ap, ETERM *arg)
+    ssize_t
+alcove_getrlimit(alcove_state_t *ap, const char *arg, size_t len,
+        char *reply, size_t rlen)
 {
-    ETERM *hd = NULL;
+    int index = 0;
+    int rindex = 0;
+
     int resource = 0;
     struct rlimit rlim = {0};
     int rv = 0;
 
     /* resource */
-    arg = alcove_list_head(&hd, arg);
-    if (!hd || !ERL_IS_INTEGER(hd))
-        goto BADARG;
-
-    resource = ERL_INT_VALUE(hd);
+    if (alcove_decode_int(arg, &index, &resource) < 0)
+        return -1;
 
     rv = getrlimit(resource, &rlim);
 
-    return (rv < 0)
-            ? alcove_errno(errno)
-            : alcove_ok(alcove_tuple3(
-                    erl_mk_atom("alcove_rlimit"),
-                    erl_mk_ulonglong(rlim.rlim_cur),
-                    erl_mk_ulonglong(rlim.rlim_max)
-                    ));
+    if (rv < 0)
+        return  alcove_errno(reply, rlen, errno);
 
-BADARG:
-    return erl_mk_atom("badarg");
+    ALCOVE_ERR(ei_encode_version(reply, &rindex));
+    ALCOVE_ERR(ei_encode_tuple_header(reply, &rindex, 2));
+    ALCOVE_ERR(ei_encode_atom(reply, &rindex, "ok"));
+    ALCOVE_ERR(ei_encode_tuple_header(reply, &rindex, 3));
+    ALCOVE_ERR(ei_encode_atom(reply, &rindex, "alcove_rlimit"));
+    ALCOVE_ERR(ei_encode_ulonglong(reply, &rindex, rlim.rlim_cur));
+    ALCOVE_ERR(ei_encode_ulonglong(reply, &rindex, rlim.rlim_max));
+
+    return rindex;
 }
 
 /*
  * setrlimit(2)
  *
  */
-    ETERM *
-alcove_setrlimit(alcove_state_t *ap, ETERM *arg)
+    ssize_t
+alcove_setrlimit(alcove_state_t *ap, const char *arg, size_t len,
+        char *reply, size_t rlen)
 {
-    ETERM *hd = NULL;
-    ETERM *t = NULL;
+    int index = 0;
+    int arity = 0;
+
     int resource = 0;
-    int cur = 0, max = 0;
+    char atom[MAXATOMLEN] = {0};
+    unsigned long long cur = 0, max = 0;
     struct rlimit rlim = {0};
     int rv = 0;
 
     /* resource */
-    arg = alcove_list_head(&hd, arg);
-    if (!hd || !ERL_IS_INTEGER(hd))
-        goto BADARG;
-
-    resource = ERL_INT_VALUE(hd);
+    if (alcove_decode_int(arg, &index, &resource) < 0)
+        return -1;
 
     /* {alcove_rlimit, rlim_cur, rlim_max} */
-
-    arg = alcove_list_head(&hd, arg);
-    if (!hd || !ERL_IS_TUPLE(hd) || erl_size(hd) != 3)
-        goto BADARG;
+    if (ei_decode_tuple_header(arg, &index, &arity) < 0 || arity != 3)
+        return -1;
 
     /* 'alcove_rlimit' */
-    t = erl_element(1, hd);
-    if (!t || !ERL_IS_ATOM(t) || strncmp(ERL_ATOM_PTR(t), "alcove_rlimit", 13))
-        goto BADARG;
+    if (ei_decode_atom(arg, &index, atom) < 0 ||
+            strncmp(atom, "alcove_rlimit", 13))
+        return -1;
 
     /* rlim_cur: soft limit */
-    t = erl_element(2, hd);
-    if (!t || !ALCOVE_IS_LONGLONG(t))
-        goto BADARG;
-
-    cur = ALCOVE_LL_UVALUE(t);
+    if (ei_decode_ulonglong(arg, &index, &cur) < 0)
+        return -1;
 
     /* rlim_max: hard limit */
-    t = erl_element(3, hd);
-    if (!t || !ALCOVE_IS_LONGLONG(t))
-        goto BADARG;
-
-    max = ALCOVE_LL_UVALUE(t);
+    if (ei_decode_ulonglong(arg, &index, &max) < 0)
+        return -1;
 
     rlim.rlim_cur = cur;
     rlim.rlim_max = max;
 
     rv = setrlimit(resource, &rlim);
 
-    return (rv < 0) ? alcove_errno(errno) : erl_mk_atom("ok");
-
-BADARG:
-    return erl_mk_atom("badarg");
+    return (rv < 0)
+        ? alcove_errno(reply, rlen, errno)
+        : alcove_mk_atom(reply, rlen, "ok");
 }
 
 /*
  * rlimit constants
  *
  */
-    ETERM *
-alcove_rlimit_define(alcove_state_t *ap, ETERM *arg)
+    ssize_t
+alcove_rlimit_define(alcove_state_t *ap, const char *arg, size_t len,
+        char *reply, size_t rlen)
 {
-    ETERM *hd = NULL;
-    char *name = NULL;
+    int index = 0;
+    int rindex = 0;
+
+    char name[MAXATOMLEN] = {0};
 
     /* name */
-    arg = alcove_list_head(&hd, arg);
-    if (!hd || !ERL_IS_ATOM(hd))
-        goto BADARG;
+    if (ei_decode_atom(arg, &index, name) < 0)
+        return -1;
 
-    name = ERL_ATOM_PTR(hd);
-
-    return alcove_define(name, alcove_rlimit_constants);
-
-BADARG:
-    return erl_mk_atom("badarg");
+    ALCOVE_ERR(ei_encode_version(reply, &rindex));
+    ALCOVE_ERR(alcove_define(reply, &rindex, name, alcove_rlimit_constants));
+    return rindex;
 }
