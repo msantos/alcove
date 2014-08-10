@@ -377,7 +377,7 @@ alcove_list_to_buf(const char *arg, int *index, size_t *len,
     char *buf = NULL;
     char *pbuf = NULL;
     char tmp[MAXMSGLEN] = {0};
-    ulong val = 0;
+    unsigned long val = 0;
 
     int i = 0;
     size_t n = 0;

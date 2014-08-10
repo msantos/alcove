@@ -52,7 +52,7 @@ alcove_open(alcove_state_t *ap, const char *arg, size_t len,
         return -1;
 
     /* mode */
-    if (alcove_decode_uint(arg, &index, &mode) < 0)
+    if (alcove_decode_uint(arg, &index, (u_int32_t *)&mode) < 0)
         return -1;
 
     fd = open(pathname, flags, mode);
@@ -338,7 +338,7 @@ alcove_chmod(alcove_state_t *ap, const char *arg, size_t len,
         return -1;
 
     /* mode */
-    if (alcove_decode_uint(arg, &index, &mode) < 0)
+    if (alcove_decode_uint(arg, &index, (u_int32_t *)&mode) < 0)
         return -1;
 
     rv = chmod(path, mode);
