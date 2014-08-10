@@ -50,8 +50,9 @@ static size_t alcove_call_hdr(unsigned char *hdr, size_t hdrlen,
 
 static ssize_t alcove_child_stdio(int fdin, u_int16_t depth,
         alcove_child_t *c, u_int16_t type);
-static ssize_t alcove_call_reply(u_int16_t, ETERM *);
-static ssize_t alcove_call_fake_reply(pid_t pid, u_int16_t type, ETERM *t);
+static ssize_t alcove_call_reply(u_int16_t, char *, size_t);
+static ssize_t alcove_call_fake_reply(pid_t pid, u_int16_t type,
+        char *, size_t);
 
 static int alcove_get_uint16(int fd, u_int16_t *val);
 static ssize_t alcove_read(int, void *, ssize_t);
@@ -88,8 +89,6 @@ main(int argc, char *argv[])
     alcove_state_t *ap = NULL;
     int ch = 0;
     struct sigaction act = {{0}};
-
-    erl_init(NULL, 0);
 
     ap = calloc(1, sizeof(alcove_state_t));
     if (!ap)
@@ -289,9 +288,8 @@ alcove_stdin(alcove_state_t *ap)
 alcove_msg_call(alcove_state_t *ap, unsigned char *buf, u_int16_t buflen)
 {
     u_int16_t call = 0;
-    ETERM *arg = NULL;
-    ETERM *reply = NULL;
-    ssize_t rv = -1;
+    char reply[MAXMSGLEN] = {0};
+    ssize_t rlen = 0;
 
     if (buflen <= sizeof(call))
         return -1;
@@ -299,21 +297,13 @@ alcove_msg_call(alcove_state_t *ap, unsigned char *buf, u_int16_t buflen)
     call = get_int16(buf);
     buf += 2;
 
-    arg = erl_decode(buf);
-    if (!arg)
-        goto DONE;
+    rlen = alcove_call(ap, call, (const char *)buf, buflen,
+            reply, sizeof(reply));
 
-    reply = alcove_call(ap, call, arg);
-    if (!reply)
-        goto DONE;
+    if (rlen < 0)
+        return -1;
 
-    rv = alcove_call_reply(ALCOVE_MSG_CALL, reply);
-
-DONE:
-    erl_free_compound(arg);
-    erl_free_compound(reply);
-
-    return rv;
+    return alcove_call_reply(ALCOVE_MSG_CALL, reply, rlen);
 }
 
     static size_t
@@ -399,35 +389,25 @@ alcove_child_stdio(int fdin, u_int16_t depth, alcove_child_t *c,
 }
 
     static ssize_t
-alcove_call_reply(u_int16_t type, ETERM *t)
+alcove_call_reply(u_int16_t type, char *buf, size_t len)
 {
     struct iovec iov[2];
 
     unsigned char hdr[MAXHDRLEN] = {0};
     u_int16_t hdrlen = 0;
 
-    unsigned char buf[MAXMSGLEN] = {0};
-    int buflen = 0;
-
-    buflen = erl_term_len(t);
-    if (buflen < 0 || buflen > sizeof(buf))
-        return -1;
-
-    if (erl_encode(t, buf) < 1)
-        return -1;
-
-    hdrlen = alcove_call_hdr(hdr, sizeof(hdr), type, buflen);
+    hdrlen = alcove_call_hdr(hdr, sizeof(hdr), type, len);
 
     iov[0].iov_base = hdr;
     iov[0].iov_len = hdrlen;
     iov[1].iov_base = buf;
-    iov[1].iov_len = buflen;
+    iov[1].iov_len = len;
 
     return alcove_write(STDOUT_FILENO, iov, ALCOVE_IOVEC_COUNT(iov));
 }
 
     static ssize_t
-alcove_call_fake_reply(pid_t pid, u_int16_t type, ETERM *t)
+alcove_call_fake_reply(pid_t pid, u_int16_t type, char *buf, size_t len)
 {
     struct iovec iov[3];
 
@@ -437,33 +417,21 @@ alcove_call_fake_reply(pid_t pid, u_int16_t type, ETERM *t)
     unsigned char callhdr[MAXHDRLEN] = {0};
     u_int16_t callhdrlen = 0;
 
-    unsigned char buf[MAXMSGLEN] = {0};
-    int buflen = 0;
-
     ssize_t n = -1;
 
-    buflen = erl_term_len(t);
-    if (buflen < 0 || buflen > sizeof(buf))
-        return -1;
-
-    if (erl_encode(t, buf) < 1)
-        return -1;
-
-    callhdrlen = alcove_call_hdr(callhdr, sizeof(callhdr), type, buflen);
+    callhdrlen = alcove_call_hdr(callhdr, sizeof(callhdr), type, len);
 
     proxyhdrlen = alcove_proxy_hdr(proxyhdr, sizeof(proxyhdr),
-            ALCOVE_MSG_PROXY, pid, callhdrlen + buflen);
+            ALCOVE_MSG_PROXY, pid, callhdrlen + len);
 
     iov[0].iov_base = proxyhdr;
     iov[0].iov_len = proxyhdrlen;
     iov[1].iov_base = callhdr;
     iov[1].iov_len = callhdrlen;
     iov[2].iov_base = buf;
-    iov[2].iov_len = buflen;
+    iov[2].iov_len = len;
 
     n = alcove_write(STDOUT_FILENO, iov, ALCOVE_IOVEC_COUNT(iov));
-
-    erl_free_compound(t);
 
     return n;
 }
@@ -560,29 +528,30 @@ pid_not_equal(pid_t p1, pid_t p2)
 exited_pid(alcove_state_t *ap, alcove_child_t *c, void *arg1, void *arg2)
 {
     int *status = arg1;
-    ETERM *t = NULL;
+    int index = 0;
+    char t[MAXMSGLEN] = {0};
 
     c->exited = 1;
     (void)close(c->fdin);
     c->fdin = -1;
 
     if (WIFEXITED(*status) && (ap->opt & alcove_opt_exit_status)) {
-        t = alcove_tuple2(
-                erl_mk_atom("exit_status"),
-                erl_mk_int(WEXITSTATUS(*status))
-                );
+        ALCOVE_TUPLE2(t, &index,
+                "exit_status",
+                ei_encode_long(t, &index, WEXITSTATUS(*status))
+        );
 
-        if (alcove_call_fake_reply(c->pid, ALCOVE_MSG_EVENT, t))
+        if (alcove_call_fake_reply(c->pid, ALCOVE_MSG_EVENT, t, index))
             return -1;
     }
 
     if (WIFSIGNALED(*status) && (ap->opt & alcove_opt_termsig)) {
-        t = alcove_tuple2(
-                erl_mk_atom("termsig"),
-                erl_mk_int(WTERMSIG(*status))
-                );
+        ALCOVE_TUPLE2(t, &index,
+            "termsig",
+            ei_encode_long(t, &index, WTERMSIG(*status))
+        );
 
-        if (alcove_call_fake_reply(c->pid, ALCOVE_MSG_EVENT, t) < 0)
+        if (alcove_call_fake_reply(c->pid, ALCOVE_MSG_EVENT, t, index) < 0)
             return -1;
     }
 
@@ -659,9 +628,14 @@ read_from_pid(alcove_state_t *ap, alcove_child_t *c, void *arg1, void *arg2)
         c->fdctl = -1;
 
         if (n == 0) {
+            int index = 0;
+            char t[MAXMSGLEN] = {0};
+
             c->fdctl = ALCOVE_CHILD_EXEC;
-            if (alcove_call_fake_reply(c->pid, ALCOVE_MSG_CALL,
-                        erl_mk_atom("ok")) < 0)
+            (void)ei_encode_version(t, &index);
+            (void)ei_encode_atom(t, &index, "ok");
+
+            if (alcove_call_fake_reply(c->pid, ALCOVE_MSG_CALL, t, index) < 0)
                 return -1;
         }
     }
@@ -699,10 +673,10 @@ read_from_pid(alcove_state_t *ap, alcove_child_t *c, void *arg1, void *arg2)
 
     static int
 alcove_handle_signal(alcove_state_t *ap) {
+    int index = 0;
+    char reply[MAXMSGLEN] = {0};
     int signum = 0;
-    ETERM *reply = NULL;
     int status = 0;
-    int rv = -1;
 
     if (!sigcaught)
         return 0;
@@ -734,23 +708,16 @@ alcove_handle_signal(alcove_state_t *ap) {
                 continue;
         }
 
-        reply = alcove_tuple2(
-                erl_mk_atom("signal"),
-                erl_mk_int(signum)
-                );
+        ALCOVE_TUPLE2(reply, &index,
+            "signal",
+            ei_encode_long(reply, &index, signum)
+        );
 
-        if (alcove_call_reply(ALCOVE_MSG_EVENT, reply) < 0) {
-            erl_free_compound(reply);
-            goto DONE;
-        }
-
-        erl_free_compound(reply);
+        if (alcove_call_reply(ALCOVE_MSG_EVENT, reply, index) < 0)
+            return -1;
     }
 
-    rv = 0;
-
-DONE:
-    return rv;
+    return 0;
 }
 
     static void

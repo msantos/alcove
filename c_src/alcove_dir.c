@@ -22,223 +22,176 @@
  * chdir(2)
  *
  */
-    ETERM *
-alcove_chdir(alcove_state_t *ap, ETERM *arg)
+    ssize_t
+alcove_chdir(alcove_state_t *ap, const char *arg, size_t len,
+        char *reply, size_t rlen)
 {
-    ETERM *hd = NULL;
-    char *path = NULL;
+    int index = 0;
+
+    char path[PATH_MAX] = {0};
+    size_t pathlen = sizeof(path)-1;
     int rv = 0;
-    int errnum = 0;
 
     /* path */
-    arg = alcove_list_head(&hd, arg);
-    if (!hd || !ALCOVE_IS_IOLIST(hd))
-        goto BADARG;
-
-    if (erl_iolist_length(hd) > 0)
-        path = erl_iolist_to_string(hd);
-
-    if (!path)
-        goto BADARG;
+    if (alcove_decode_iolist_to_binary(arg, &index, path, &pathlen) < 0 ||
+            pathlen == 0)
+        return -1;
 
     rv = chdir(path);
 
-    errnum = errno;
-
-    erl_free(path);
-
-    return (rv < 0) ? alcove_errno(errnum) : erl_mk_atom("ok");
-
-BADARG:
-    erl_free(path);
-    return erl_mk_atom("badarg");
+    return (rv < 0)
+        ? alcove_errno(reply, rlen, errno)
+        : alcove_mk_atom(reply, rlen, "ok");
 }
 
 /*
  * mkdir(2)
  *
  */
-    ETERM *
-alcove_mkdir(alcove_state_t *ap, ETERM *arg)
+    ssize_t
+alcove_mkdir(alcove_state_t *ap, const char *arg, size_t len,
+        char *reply, size_t rlen)
 {
-    ETERM *hd = NULL;
-    char *pathname = NULL;
+    int index = 0;
+    char pathname[PATH_MAX] = {0};
+    size_t pathlen = sizeof(pathname)-1;
     mode_t mode = {0};
     int rv = 0;
-    int errnum = 0;
 
     /* pathname */
-    arg = alcove_list_head(&hd, arg);
-    if (!hd || !ALCOVE_IS_IOLIST(hd))
-        goto BADARG;
-
-    if (erl_iolist_length(hd) > 0)
-        pathname = erl_iolist_to_string(hd);
-
-    if (!pathname)
-        goto BADARG;
+    if (alcove_decode_iolist_to_binary(arg, &index, pathname, &pathlen) < 0 ||
+            pathlen == 0)
+        return -1;
 
     /* mode */
-    arg = alcove_list_head(&hd, arg);
-    if (!hd || !ALCOVE_IS_UNSIGNED_INTEGER(hd))
-        goto BADARG;
-
-    mode = ERL_INT_UVALUE(hd);
+    if (alcove_decode_uint(arg, &index, &mode) < 0)
+        return -1;
 
     rv = mkdir(pathname, mode);
 
-    errnum = errno;
-
-    erl_free(pathname);
-
-    return ( (rv < 0) ? alcove_errno(errnum) : erl_mk_atom("ok"));
-
-BADARG:
-    erl_free(pathname);
-    return erl_mk_atom("badarg");
+    return (rv < 0)
+        ? alcove_errno(reply, rlen, errno)
+        : alcove_mk_atom(reply, rlen, "ok");
 }
 
 /*
  * rmdir(2)
  *
  */
-    ETERM *
-alcove_rmdir(alcove_state_t *ap, ETERM *arg)
+    ssize_t
+alcove_rmdir(alcove_state_t *ap, const char *arg, size_t len,
+        char *reply, size_t rlen)
 {
-    ETERM *hd = NULL;
-    char *pathname = NULL;
+    int index = 0;
+    char pathname[PATH_MAX] = {0};
+    size_t pathlen = sizeof(pathname)-1;
     int rv = 0;
-    int errnum = 0;
 
     /* pathname */
-    arg = alcove_list_head(&hd, arg);
-    if (!hd || !ALCOVE_IS_IOLIST(hd))
-        goto BADARG;
-
-    if (erl_iolist_length(hd) > 0)
-        pathname = erl_iolist_to_string(hd);
-
-    if (!pathname)
-        goto BADARG;
+    if (alcove_decode_iolist_to_binary(arg, &index, pathname, &pathlen) < 0 ||
+            pathlen == 0)
+        return -1;
 
     rv = rmdir(pathname);
 
-    errnum = errno;
-
-    erl_free(pathname);
-
-    return (rv < 0) ? alcove_errno(errnum) : erl_mk_atom("ok");
-
-BADARG:
-    erl_free(pathname);
-    return erl_mk_atom("badarg");
+    return (rv < 0)
+        ? alcove_errno(reply, rlen, errno)
+        : alcove_mk_atom(reply, rlen, "ok");
 }
 
 /*
  * chroot(2)
  *
  */
-    ETERM *
-alcove_chroot(alcove_state_t *ap, ETERM *arg)
+    ssize_t
+alcove_chroot(alcove_state_t *ap, const char *arg, size_t len,
+        char *reply, size_t rlen)
 {
-    ETERM *hd = NULL;
-    char *path = NULL;
+    int index = 0;
+    char path[PATH_MAX] = {0};
+    size_t pathlen = sizeof(path)-1;
     int rv = 0;
-    int errnum = 0;
 
     /* path */
-    arg = alcove_list_head(&hd, arg);
-    if (!hd || !ALCOVE_IS_IOLIST(hd))
-        goto BADARG;
-
-    if (erl_iolist_length(hd) > 0)
-        path = erl_iolist_to_string(hd);
-
-    if (!path)
-        goto BADARG;
+    if (alcove_decode_iolist_to_binary(arg, &index, path, &pathlen) < 0 ||
+            pathlen == 0)
+        return -1;
 
     rv = chroot(path);
 
-    errnum = errno;
-
-    erl_free(path);
-
-    return ( (rv < 0) ? alcove_errno(errnum) : erl_mk_atom("ok"));
-
-BADARG:
-    erl_free(path);
-    return erl_mk_atom("badarg");
+    return (rv < 0)
+        ? alcove_errno(reply, rlen, errno)
+        : alcove_mk_atom(reply, rlen, "ok");
 }
 
 /*
  * getcwd(3)
  *
  */
-    ETERM *
-alcove_getcwd(alcove_state_t *ap, ETERM *arg)
+    ssize_t
+alcove_getcwd(alcove_state_t *ap, const char *arg, size_t len,
+        char *reply, size_t rlen)
 {
+    int rindex = 0;
     char buf[PATH_MAX] = {0};
 
     if (!getcwd(buf, sizeof(buf)))
-        return alcove_errno(errno);
+        return alcove_errno(reply, rlen, errno);
 
-    return alcove_ok(erl_mk_binary(buf, strlen(buf)));
+    ALCOVE_OK(reply, &rindex,
+            ei_encode_binary(reply, &rindex, buf, strlen(buf)));
+
+    return rindex;
 }
 
 /*
  * readdir(3)
  *
  */
-    ETERM *
-alcove_readdir(alcove_state_t *ap, ETERM *arg)
+    ssize_t
+alcove_readdir(alcove_state_t *ap, const char *arg, size_t len,
+        char *reply, size_t rlen)
 {
-    ETERM *hd = NULL;
-    char *name = NULL;
+    int index = 0;
+    int rindex = 0;
+
+    char name[PATH_MAX] = {0};
+    size_t namelen = sizeof(name)-1;
     DIR *dirp = NULL;
     struct dirent *dent = NULL;
-    ETERM *t = erl_mk_empty_list();
-    int errnum = 0;
 
     /* name */
-    arg = alcove_list_head(&hd, arg);
-    if (!hd || !ALCOVE_IS_IOLIST(hd))
-        goto BADARG;
-
-    if (erl_iolist_length(hd) > 0)
-        name = erl_iolist_to_string(hd);
-
-    if (!name)
-        goto BADARG;
+    if (alcove_decode_iolist_to_binary(arg, &index, name, &namelen) < 0 ||
+            namelen == 0)
+        return -1;
 
     dirp = opendir(name);
 
     if (!dirp)
-        goto ERR;
+        return alcove_errno(reply, rlen, errno);
+
+    ALCOVE_ERR(ei_encode_version(reply, &rindex));
+    ALCOVE_ERR(ei_encode_tuple_header(reply, &rindex, 2));
+    ALCOVE_ERR(ei_encode_atom(reply, &rindex, "ok"));
 
     errno = 0;
     while ( (dent = readdir(dirp))) {
         if (!strcmp(dent->d_name, ".") || !strcmp(dent->d_name, ".."))
             continue;
 
-        t = erl_cons(erl_mk_binary(dent->d_name, strlen(dent->d_name)), t);
+        ALCOVE_ERR(ei_encode_list_header(reply, &rindex, 1));
+
+        ALCOVE_ERR(ei_encode_binary(reply, &rindex,
+                    dent->d_name, strlen(dent->d_name)));
     }
 
     if (errno != 0)
-        goto ERR;
+        return alcove_errno(reply, rlen, errno);
 
     if (closedir(dirp) < 0)
-        goto ERR;
+        return alcove_errno(reply, rlen, errno);
 
-    return alcove_ok(t);
+    ALCOVE_ERR(ei_encode_empty_list(reply, &rindex));
 
-BADARG:
-    erl_free(name);
-    erl_free(t);
-    return erl_mk_atom("badarg");
-
-ERR:
-    errnum = errno;
-    erl_free(name);
-    erl_free(t);
-    return alcove_errno(errnum);
+    return rindex;
 }

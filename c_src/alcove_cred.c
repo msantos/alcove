@@ -19,70 +19,66 @@
  * getgid(2)
  *
  */
-    ETERM *
-alcove_getgid(alcove_state_t *ap, ETERM *arg)
+    ssize_t
+alcove_getgid(alcove_state_t *ap, const char *arg, size_t len,
+        char *reply, size_t rlen)
 {
-    return erl_mk_uint(getgid());
+    return alcove_mk_ulong(reply, rlen, getgid());
 }
 
 /*
  * getuid(2)
  *
  */
-    ETERM *
-alcove_getuid(alcove_state_t *ap, ETERM *arg)
+    ssize_t
+alcove_getuid(alcove_state_t *ap, const char *arg, size_t len,
+        char *reply, size_t rlen)
 {
-    return erl_mk_uint(getuid());
+    return alcove_mk_ulong(reply, rlen, getuid());
 }
 
 /*
  * setgid(2)
  *
  */
-    ETERM *
-alcove_setgid(alcove_state_t *ap, ETERM *arg)
+    ssize_t
+alcove_setgid(alcove_state_t *ap, const char *arg, size_t len,
+        char *reply, size_t rlen)
 {
-    ETERM *hd = NULL;
+    int index = 0;
     gid_t gid = {0};
     int rv = 0;
 
     /* gid */
-    arg = alcove_list_head(&hd, arg);
-    if (!hd || !ALCOVE_IS_UNSIGNED_INTEGER(hd))
-        goto BADARG;
-
-    gid = ERL_INT_UVALUE(hd);
+    if (alcove_decode_uint(arg, &index, &gid) < 0)
+        return -1;
 
     rv = setgid(gid);
 
-    return (rv < 0) ? alcove_errno(errno) : erl_mk_atom("ok");
-
-BADARG:
-    return erl_mk_atom("badarg");
+    return (rv < 0)
+        ? alcove_errno(reply, rlen, errno)
+        : alcove_mk_atom(reply, rlen, "ok");
 }
 
 /*
  * setuid(2)
  *
  */
-    ETERM *
-alcove_setuid(alcove_state_t *ap, ETERM *arg)
+    ssize_t
+alcove_setuid(alcove_state_t *ap, const char *arg, size_t len,
+        char *reply, size_t rlen)
 {
-    ETERM *hd = NULL;
+    int index = 0;
     uid_t uid = {0};
     int rv = 0;
 
     /* uid */
-    arg = alcove_list_head(&hd, arg);
-    if (!hd || !ALCOVE_IS_UNSIGNED_INTEGER(hd))
-        goto BADARG;
-
-    uid = ERL_INT_UVALUE(hd);
+    if (alcove_decode_uint(arg, &index, &uid) < 0)
+        return -1;
 
     rv = setuid(uid);
 
-    return (rv < 0) ? alcove_errno(errno) : erl_mk_atom("ok");
-
-BADARG:
-    return erl_mk_atom("badarg");
+    return (rv < 0)
+        ? alcove_errno(reply, rlen, errno)
+        : alcove_mk_atom(reply, rlen, "ok");
 }

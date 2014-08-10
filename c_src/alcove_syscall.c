@@ -26,25 +26,24 @@
  * syscalls
  *
  */
-    ETERM *
-alcove_syscall_define(alcove_state_t *ap, ETERM *arg)
+    ssize_t
+alcove_syscall_define(alcove_state_t *ap, const char *arg, size_t len,
+        char *reply, size_t rlen)
 {
 #ifdef __linux__
-    ETERM *hd = NULL;
-    char *name = NULL;
+    int index = 0;
+    int rindex = 0;
+
+    char name[MAXATOMLEN] = {0};
 
     /* name */
-    arg = alcove_list_head(&hd, arg);
-    if (!hd || !ERL_IS_ATOM(hd))
-        goto BADARG;
+    if (ei_decode_atom(arg, &index, name) < 0)
+        return -1;
 
-    name = ERL_ATOM_PTR(hd);
-
-    return alcove_define(name, alcove_syscall_constants);
-
-BADARG:
-    return erl_mk_atom("badarg");
+    ALCOVE_ERR(ei_encode_version(reply, &rindex));
+    ALCOVE_ERR(alcove_define(reply, &rindex, name, alcove_syscall_constants));
+    return rindex;
 #else
-    return erl_mk_atom("false");
+    return alcove_mk_atom(reply, rlen, "false");
 #endif
 }

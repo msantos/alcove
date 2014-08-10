@@ -23,7 +23,7 @@ cat<< 'EOF'
 
 /* calls */
 typedef struct {
-    ETERM *(*fp)(alcove_state_t *, ETERM *);
+    ssize_t (*fp)(alcove_state_t *, const char *, size_t, char *, size_t);
     u_int8_t narg;
 } alcove_call_t;
 

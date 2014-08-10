@@ -59,21 +59,24 @@ static int setns(int fd, int nstype);
  * fork(2)
  *
  */
-    ETERM *
-alcove_fork(alcove_state_t *ap, ETERM *arg)
+    ssize_t
+alcove_fork(alcove_state_t *ap, const char *arg, size_t len,
+        char *reply, size_t rlen)
 {
+    int rindex = 0;
+
     alcove_arg_t child_arg = {0};
     alcove_stdio_t fd = {{0}};
     pid_t pid = 0;
 
     if (ap->depth >= ap->maxforkdepth)
-        return alcove_errno(EAGAIN);
+        return alcove_errno(reply, rlen, EAGAIN);
 
     if (pid_foreach(ap, 0, NULL, NULL, pid_equal, avail_pid) != 0)
-        return alcove_errno(EAGAIN);
+        return alcove_errno(reply, rlen, EAGAIN);
 
     if (alcove_stdio(&fd) < 0)
-        return alcove_errno(errno);
+        return alcove_errno(reply, rlen, errno);
 
     child_arg.ap = ap;
     child_arg.fd = &fd;
@@ -82,15 +85,18 @@ alcove_fork(alcove_state_t *ap, ETERM *arg)
 
     switch (pid) {
         case -1:
-            return alcove_errno(errno);
+            return alcove_errno(reply, rlen, errno);
         case 0:
             (void)alcove_child_fun(&child_arg);
             err(EXIT_FAILURE, "fork");
         default:
             if (alcove_parent_fd(ap, &fd, pid) < 0)
-                return alcove_errno(errno);
+                return alcove_errno(reply, rlen, errno);
 
-            return alcove_ok(erl_mk_int(pid));
+            ALCOVE_OK(reply, &rindex,
+                ei_encode_long(reply, &rindex, pid));
+
+            return rindex;
     }
 }
 
@@ -98,11 +104,14 @@ alcove_fork(alcove_state_t *ap, ETERM *arg)
  * clone(2)
  *
  */
-    ETERM *
-alcove_clone(alcove_state_t *ap, ETERM *arg)
+    ssize_t
+alcove_clone(alcove_state_t *ap, const char *arg, size_t len,
+        char *reply, size_t rlen)
 {
 #ifdef __linux__
-    ETERM *hd = NULL;
+    int index = 0;
+    int rindex = 0;
+
     alcove_arg_t child_arg = {0};
     alcove_stdio_t fd = {{0}};
     const size_t stack_size = 1024 * 1024;
@@ -112,21 +121,18 @@ alcove_clone(alcove_state_t *ap, ETERM *arg)
     int errnum = 0;
 
     if (ap->depth >= ap->maxforkdepth)
-        return alcove_errno(EAGAIN);
+        return alcove_errno(reply, rlen, EAGAIN);
 
     if (pid_foreach(ap, 0, NULL, NULL, pid_equal, avail_pid) != 0)
-        return alcove_errno(EAGAIN);
+        return alcove_errno(reply, rlen, EAGAIN);
 
     /* flags */
-    arg = alcove_list_head(&hd, arg);
-    if (!hd || !ERL_IS_INTEGER(hd))
-        goto BADARG;
-
-    flags = ERL_INT_VALUE(hd);
+    if (alcove_decode_int(arg, &index, &flags) < 0)
+        return -1;
 
     child_stack = calloc(stack_size, 1);
     if (!child_stack)
-        return alcove_errno(errno);
+        return alcove_errno(reply, rlen, errno);
 
     if (alcove_stdio(&fd) < 0)
         goto ERR;
@@ -143,19 +149,20 @@ alcove_clone(alcove_state_t *ap, ETERM *arg)
     free(child_stack);
 
     if (alcove_parent_fd(ap, &fd, pid) < 0)
-        return alcove_errno(errno);
+        return alcove_errno(reply, rlen, errno);
 
-    return alcove_ok(erl_mk_int(pid));
+    ALCOVE_OK(reply, &rindex,
+        ei_encode_long(reply, &rindex, pid)
+    );
 
-BADARG:
-    return erl_mk_atom("badarg");
+    return rindex;
 
 ERR:
     errnum = errno;
     free(child_stack);
-    return alcove_errno(errnum);
+    return alcove_errno(reply, rlen, errnum);
 #else
-    return alcove_error("unsupported");
+    return alcove_error(reply, rlen, "unsupported");
 #endif
 }
 
@@ -178,48 +185,40 @@ setns(int fd, int nstype)
 #endif
 #endif
 
-    ETERM *
-alcove_setns(alcove_state_t *ap, ETERM *arg)
+    ssize_t
+alcove_setns(alcove_state_t *ap, const char *arg, size_t len,
+        char *reply, size_t rlen)
 {
 #ifdef __linux__
-    ETERM *hd = NULL;
-    char *path = NULL;
+    int index = 0;
+
+    char path[PATH_MAX] = {0};
+    size_t plen = sizeof(path)-1;
     int fd = -1;
+    int rv = 0;
     int errnum = 0;
 
     /* path */
-    arg = alcove_list_head(&hd, arg);
-    if (!hd || !ALCOVE_IS_IOLIST(hd))
-        goto BADARG;
-
-    if (erl_iolist_length(hd) > 0)
-        path = erl_iolist_to_string(hd);
-
-    if (!path)
-        goto BADARG;
+    if (alcove_decode_iolist_to_binary(arg, &index, path, &plen) < 0 ||
+            plen == 0)
+        return -1;
 
     fd = open(path, O_RDONLY);
     if (fd < 0)
-        goto ERR;
+        return alcove_errno(reply, rlen, errno);
 
-    if (setns(fd, 0) < 0)
-        goto ERR;
+    rv = setns(fd, 0);
 
-    (void)close(fd);
-    erl_free(path);
-
-    return erl_mk_atom("ok");
-
-BADARG:
-    return erl_mk_atom("badarg");
-
-ERR:
     errnum = errno;
-    erl_free(path);
+
     (void)close(fd);
-    return alcove_errno(errnum);
+
+    if (rv < 0)
+        return alcove_errno(reply, rlen, errnum);
+
+    return alcove_mk_atom(reply, rlen, "ok");
 #else
-    return alcove_error("unsupported");
+    return alcove_error(reply, rlen, "unsupported");
 #endif
 }
 
@@ -227,29 +226,24 @@ ERR:
  * unshare(2)
  *
  */
-    ETERM *
-alcove_unshare(alcove_state_t *ap, ETERM *arg)
+    ssize_t
+alcove_unshare(alcove_state_t *ap, const char *arg, size_t len,
+        char *reply, size_t rlen)
 {
 #ifdef __linux__
-    ETERM *hd = NULL;
+    int index = 0;
+
     int flags = 0;
-    int rv = 0;
 
     /* flags */
-    arg = alcove_list_head(&hd, arg);
-    if (!hd || !ERL_IS_INTEGER(hd))
-        goto BADARG;
+    if (alcove_decode_int(arg, &index, &flags) < 0)
+        return -1;
 
-    flags = ERL_INT_VALUE(hd);
-
-    rv = unshare(flags);
-
-    return (rv < 0) ? alcove_errno(errno) : erl_mk_atom("ok");
-
-BADARG:
-    return erl_mk_atom("badarg");
+    return (unshare(flags) < 0)
+        ? alcove_errno(reply, rlen, errno)
+        : alcove_mk_atom(reply, rlen, "ok");
 #else
-    return alcove_error("unsupported");
+    return alcove_error(reply, rlen, "unsupported");
 #endif
 }
 
@@ -257,26 +251,25 @@ BADARG:
  * clone flags
  *
  */
-    ETERM *
-alcove_clone_define(alcove_state_t *ap, ETERM *arg)
+    ssize_t
+alcove_clone_define(alcove_state_t *ap, const char *arg, size_t len,
+        char *reply, size_t rlen)
 {
 #ifdef __linux__
-    ETERM *hd = NULL;
-    char *flag = NULL;
+    int index = 0;
+    int rindex = 0;
+
+    char flag[MAXATOMLEN] = {0};
 
     /* flag */
-    arg = alcove_list_head(&hd, arg);
-    if (!hd || !ERL_IS_ATOM(hd))
-        goto BADARG;
+    if (ei_decode_atom(arg, &index, flag) < 0)
+        return -1;
 
-    flag = ERL_ATOM_PTR(hd);
-
-    return alcove_define(flag, alcove_clone_constants);
-
-BADARG:
-    return erl_mk_atom("badarg");
+    ALCOVE_ERR(ei_encode_version(reply, &rindex));
+    ALCOVE_ERR(alcove_define(reply, &rindex, flag, alcove_clone_constants));
+    return rindex;
 #else
-    return erl_mk_atom("false");
+    return alcove_mk_atom(reply, rlen, "false");
 #endif
 }
 

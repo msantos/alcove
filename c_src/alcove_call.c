@@ -29,99 +29,145 @@
 static int cons_pid(alcove_state_t *ap, alcove_child_t *c,
         void *arg1, void *arg2);
 
-    ETERM *
-alcove_call(alcove_state_t *ap, u_int32_t call, ETERM *arg)
+    ssize_t
+alcove_call(alcove_state_t *ap, u_int32_t call,
+        const char *arg, size_t len,
+        char *reply, size_t rlen)
 {
+    int index = 0;
+    int type = 0;
+    int arity = 0;
+    int version = 0;
+
     alcove_call_t *fun = NULL;
+    ssize_t written = 0;
 
     if (call >= sizeof(calls)/sizeof(calls[0]))
-        return erl_mk_atom("badarg");
+        goto BADARG;
 
     fun = &calls[call];
 
-    if (!ERL_IS_LIST(arg) || erl_length(arg) != fun->narg)
-        return erl_mk_atom("badarg");
+    if (ei_decode_version(arg, &index, &version) < 0)
+        goto BADARG;
 
-    return (*fun->fp)(ap, arg);
+    if (ei_get_type(arg, &index, &type, &arity) < 0)
+        goto BADARG;
+
+    if (arity != fun->narg)
+        goto BADARG;
+
+    switch (type) {
+        case ERL_STRING_EXT: {
+            char tmp[MAXMSGLEN] = {0};
+            size_t tmplen = sizeof(tmp)-1;
+
+            if (alcove_str_to_argv(arg, &index, arity, tmp, &tmplen) < 0)
+                goto BADARG;
+
+            written = (*fun->fp)(ap, (const char *)tmp, tmplen, reply, rlen);
+            }
+            break;
+
+        case ERL_LIST_EXT:
+        case ERL_NIL_EXT:
+            if (ei_decode_list_header(arg, &index, &arity) < 0)
+                goto BADARG;
+
+            written = (*fun->fp)(ap, arg+index, len-index, reply, rlen);
+            break;
+    }
+
+    if (written < 0)
+        goto BADARG;
+
+    return written;
+
+BADARG:
+    return alcove_mk_atom(reply, rlen, "badarg");
 }
 
-    ETERM *
-alcove_version(alcove_state_t *ap, ETERM *arg)
+    ssize_t
+alcove_version(alcove_state_t *ap, const char *arg, size_t len,
+        char *reply, size_t rlen)
 {
-    return alcove_bin(ALCOVE_VERSION);
+    return alcove_mk_binary(reply, rlen,
+            ALCOVE_VERSION, sizeof(ALCOVE_VERSION)-1);
 }
 
-    ETERM *
-alcove_pid(alcove_state_t *ap, ETERM *arg)
+    ssize_t
+alcove_pid(alcove_state_t *ap, const char *arg, size_t len,
+        char *reply, size_t rlen)
 {
-    ETERM *t = erl_mk_empty_list();
-    (void)pid_foreach(ap, 0, &t, NULL, pid_not_equal, cons_pid);
-    return t;
+    int rindex = 0;
+
+    if (ei_encode_version(reply, &rindex) < 0)
+        return -1;
+
+    if (pid_foreach(ap, 0, reply, &rindex, pid_not_equal, cons_pid) < 0)
+        return -1;
+
+    if (ei_encode_empty_list(reply, &rindex) < 0)
+        return -1;
+
+    return rindex;
 }
 
 /* Get port options */
-    ETERM *
-alcove_getopt(alcove_state_t *ap, ETERM *arg)
+    ssize_t
+alcove_getopt(alcove_state_t *ap, const char *arg, size_t len,
+        char *reply, size_t rlen)
 {
-    ETERM *hd = NULL;
-    char *opt = NULL;
+    int index = 0;
+    char opt[MAXATOMLEN] = {0};
+    int val = -1;
 
     /* opt */
-    arg = alcove_list_head(&hd, arg);
-    if (!hd || !ERL_IS_ATOM(hd))
-        goto BADARG;
-
-    opt = ERL_ATOM_PTR(hd);
+    if (ei_decode_atom(arg, &index, opt) < 0)
+        return -1;
 
     if (!strncmp(opt, "verbose", 7)) {
-        return erl_mk_uint(ap->verbose);
+        val = ap->verbose;
     }
     else if (!strncmp(opt, "childlimit", 10)) {
-        return erl_mk_uint(ap->fdsetsize);
+        val = ap->fdsetsize;
     }
     else if (!strncmp(opt, "exit_status", 11)) {
-        return erl_mk_uint(ap->opt & alcove_opt_exit_status ? 1 : 0);
+        val = ap->opt & alcove_opt_exit_status ? 1 : 0;
     }
     else if (!strncmp(opt, "maxchild", 8)) {
-        return erl_mk_uint(ap->maxchild);
+        val = ap->maxchild;
     }
     else if (!strncmp(opt, "maxforkdepth", 12)) {
-        return erl_mk_uint(ap->maxforkdepth);
+        val = ap->maxforkdepth;
     }
     else if (!strncmp(opt, "sigchld", 7)) {
-        return erl_mk_uint(ap->opt & alcove_opt_sigchld ? 1 : 0);
+        val = ap->opt & alcove_opt_sigchld ? 1 : 0;
     }
     else if (!strncmp(opt, "termsig", 7)) {
-        return erl_mk_uint(ap->opt & alcove_opt_termsig ? 1 : 0);
+        val = ap->opt & alcove_opt_termsig ? 1 : 0;
     }
-    else
-        return erl_mk_atom("false");
 
-BADARG:
-    return erl_mk_atom("badarg");
+    return (val == -1)
+        ? alcove_mk_atom(reply, rlen, "false")
+        : alcove_mk_ulong(reply, rlen, val);
 }
 
 /* Set port options */
-    ETERM *
-alcove_setopt(alcove_state_t *ap, ETERM *arg)
+    ssize_t
+alcove_setopt(alcove_state_t *ap, const char *arg, size_t len,
+        char *reply, size_t rlen)
 {
-    ETERM *hd = NULL;
-    char *opt = NULL;
+    int index = 0;
+    char opt[MAXATOMLEN] = {0};
     u_int32_t val = 0;
 
     /* opt */
-    arg = alcove_list_head(&hd, arg);
-    if (!hd || !ERL_IS_ATOM(hd))
-        goto BADARG;
-
-    opt = ERL_ATOM_PTR(hd);
+    if (ei_decode_atom(arg, &index, opt) < 0)
+        return -1;
 
     /* val */
-    arg = alcove_list_head(&hd, arg);
-    if (!hd || !ERL_IS_INTEGER(hd))
-        goto BADARG;
-
-    val = ERL_INT_UVALUE(hd);
+    if (alcove_decode_uint(arg, &index, &val) < 0)
+        return -1;
 
     if (!strncmp(opt, "verbose", 7)) {
         ap->verbose = val;
@@ -142,12 +188,9 @@ alcove_setopt(alcove_state_t *ap, ETERM *arg)
         ALCOVE_SETOPT(ap, alcove_opt_termsig, val);
     }
     else
-        return erl_mk_atom("false");
+        return alcove_mk_atom(reply, rlen, "false");
 
-    return erl_mk_atom("true");
-
-BADARG:
-    return erl_mk_atom("badarg");
+    return alcove_mk_atom(reply, rlen, "true");
 }
 
 /*
@@ -157,13 +200,30 @@ BADARG:
     static int
 cons_pid(alcove_state_t *ap, alcove_child_t *c, void *arg1, void *arg2)
 {
-    ETERM **t = arg1;
-    *t = erl_cons(alcove_tuple5(
-                erl_mk_atom("alcove_pid"),
-                erl_mk_int(c->pid),
-                erl_mk_int(c->fdin),
-                erl_mk_int(c->fdout),
-                erl_mk_int(c->fderr)
-                ), *t);
+    char *buf = arg1;
+    int *index = arg2;
+
+    /* XXX can overflow buf */
+    if (ei_encode_list_header(buf, index, 1) < 0)
+        return -1;
+
+    if (ei_encode_tuple_header(buf, index, 5) < 0)
+        return -1;
+
+    if (ei_encode_atom(buf, index, "alcove_pid") < 0)
+        return -1;
+
+    if (ei_encode_long(buf, index, c->pid) < 0)
+        return -1;
+
+    if (ei_encode_long(buf, index, c->fdin) < 0)
+        return -1;
+
+    if (ei_encode_long(buf, index, c->fdout) < 0)
+        return -1;
+
+    if (ei_encode_long(buf, index, c->fderr) < 0)
+        return -1;
+
     return 1;
 }

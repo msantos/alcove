@@ -19,133 +19,88 @@
  * execvp(3)
  *
  */
-    ETERM *
-alcove_execvp(alcove_state_t *ap, ETERM *arg)
+    ssize_t
+alcove_execvp(alcove_state_t *ap, const char *arg, size_t len,
+        char *reply, size_t rlen)
 {
-    ETERM *hd = NULL;
-    char *progname = NULL;
+    int index = 0;
+
+    char progname[PATH_MAX] = {0};
+    size_t plen = sizeof(progname)-1;
     char **argv = NULL;
     int errnum = 0;
 
     /* progname */
-    arg = alcove_list_head(&hd, arg);
-    if (!hd || !ALCOVE_IS_IOLIST(hd))
-        goto BADARG;
-
-    if (erl_iolist_length(hd) > 0)
-        progname = erl_iolist_to_string(hd);
-
-    if (!progname)
-        goto BADARG;
+    if (alcove_decode_iolist_to_binary(arg, &index, progname, &plen) ||
+            plen == 0)
+        return -1;
 
     /* argv */
-    arg = alcove_list_head(&hd, arg);
-    if (!hd || !ERL_IS_LIST(hd))
-        goto BADARG;
-
-    if (!ERL_IS_EMPTY_LIST(hd)) {
-        argv = alcove_list_to_argv(hd);
-        if (!argv)
-            goto BADARG;
-    }
+    /* XXX returns NULL for emtpy list AND failures */
+    argv = alcove_list_to_argv(arg, &index);
 
     execvp(progname, argv);
 
     errnum = errno;
 
-    erl_free(progname);
     alcove_free_argv(argv);
 
-    return alcove_errno(errnum);
-
-BADARG:
-    erl_free(progname);
-    alcove_free_argv(argv);
-    return erl_mk_atom("badarg");
+    return alcove_errno(reply, rlen, errnum);
 }
 
 /*
  * execve(2)
  *
  */
-    ETERM *
-alcove_execve(alcove_state_t *ap, ETERM *arg)
+    ssize_t
+alcove_execve(alcove_state_t *ap, const char *arg, size_t len,
+        char *reply, size_t rlen)
 {
-    ETERM *hd = NULL;
-    char *filename = NULL;
+    int index = 0;
+
+    char filename[PATH_MAX] = {0};
+    size_t flen = sizeof(filename)-1;
     char **argv = NULL;
     char **envp = NULL;
     int errnum = 0;
 
     /* filename */
-    arg = alcove_list_head(&hd, arg);
-    if (!hd || !ALCOVE_IS_IOLIST(hd))
-        goto BADARG;
-
-    if (erl_iolist_length(hd) > 0)
-        filename = erl_iolist_to_string(hd);
-
-    if (!filename)
-        goto BADARG;
+    if (alcove_decode_iolist_to_binary(arg, &index, filename, &flen) ||
+            flen == 0)
+        return -1;
 
     /* argv */
-    arg = alcove_list_head(&hd, arg);
-    if (!hd || !ERL_IS_LIST(hd))
-        goto BADARG;
-
-    if (!ERL_IS_EMPTY_LIST(hd)) {
-        argv = alcove_list_to_argv(hd);
-        if (!argv)
-            goto BADARG;
-    }
+    /* XXX returns NULL for emtpy list AND failures */
+    argv = alcove_list_to_argv(arg, &index);
 
     /* envp */
-    arg = alcove_list_head(&hd, arg);
-    if (!hd || !ERL_IS_LIST(hd))
-        goto BADARG;
-
-    if (!ERL_IS_EMPTY_LIST(hd)) {
-        envp = alcove_list_to_argv(hd);
-        if (!envp)
-            goto BADARG;
-    }
+    /* XXX returns NULL for emtpy list AND failures */
+    envp = alcove_list_to_argv(arg, &index);
 
     execve(filename, argv, envp);
 
     errnum = errno;
 
-    erl_free(filename);
     alcove_free_argv(argv);
     alcove_free_argv(envp);
 
-    return alcove_errno(errnum);
-
-BADARG:
-    erl_free(filename);
-    alcove_free_argv(argv);
-    alcove_free_argv(envp);
-    return erl_mk_atom("badarg");
+    return alcove_errno(reply, rlen, errnum);
 }
 
 /*
  * exit(3)
  *
  */
-    ETERM *
-alcove_exit(alcove_state_t *ap, ETERM *arg)
+    ssize_t
+alcove_exit(alcove_state_t *ap, const char *arg, size_t len,
+        char *reply, size_t rlen)
 {
-    ETERM *hd = NULL;
+    int index = 0;
     int status = 0;
 
     /* status */
-    arg = alcove_list_head(&hd, arg);
-    if (!hd || !ERL_IS_INTEGER(hd))
-        goto BADARG;
-
-    status = ERL_INT_VALUE(hd);
+    if (alcove_decode_int(arg, &index, &status) < 0)
+        return -1;
 
     exit(status);
-
-BADARG:
-    return erl_mk_atom("badarg");
 }

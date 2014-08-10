@@ -14,66 +14,221 @@
  */
 #include "alcove.h"
 
-    ETERM *
-alcove_tuple2(ETERM *tag, ETERM *term)
+    int
+alcove_decode_int(const char *buf, int *index, int *n)
 {
-    ETERM *t[2] = {tag, term};
+    union {
+        int i;
+        long l;
+    } val;
 
-    return erl_mk_tuple(t, 2);
+    if (ei_decode_long(buf, index, &val.l) < 0)
+        return -1;
+
+    *n = val.i;
+
+    return 0;
 }
 
-    ETERM *
-alcove_tuple3(ETERM *t1, ETERM *t2, ETERM *t3)
+    int
+alcove_decode_uint(const char *buf, int *index, u_int32_t *n)
 {
-    ETERM *t[3] = {t1, t2, t3};
+    union {
+        u_int32_t i;
+        unsigned long l;
+    } val;
 
-    return erl_mk_tuple(t, 3);
+    if (ei_decode_ulong(buf, index, &val.l) < 0)
+        return -1;
+
+    *n = val.i;
+
+    return 0;
 }
 
-    ETERM *
-alcove_tuple4(ETERM *t1, ETERM *t2, ETERM *t3, ETERM *t4)
+    ssize_t
+alcove_decode_iolist_to_binary(const char *buf, int *index, char *res, size_t *rlen)
 {
-    ETERM *t[4] = {t1, t2, t3, t4};
+    int type = 0;
+    int size = 0;
 
-    return erl_mk_tuple(t, 4);
+    /* XXX should take an iolist */
+    if (ei_get_type(buf, index, &type, &size) < 0)
+        return -1;
+
+    switch (type) {
+        case ERL_STRING_EXT:
+            if (ei_decode_string(buf, index, res) < 0)
+                return -1;
+
+            /* Does not include NULL */
+            *rlen = size;
+            break;
+
+        case ERL_BINARY_EXT:
+            if (ei_decode_binary(buf, index, res, (long int *)rlen) < 0)
+                return -1;
+            *rlen = size;
+            break;
+
+        case ERL_NIL_EXT:
+            if (ei_decode_list_header(buf, index, &size) < 0)
+                return -1;
+            *rlen = size;
+            break;
+
+        case ERL_LIST_EXT: {
+            int i = 0;
+            size_t offset = 0;
+            size_t written = 0;
+
+            if (ei_decode_list_header(buf, index, &size) < 0)
+                return -1;
+
+            /* XXX overflow */
+            for (i = 0; i < size; i++) {
+                offset += written;
+                if (alcove_decode_iolist_to_binary(buf, index, res+offset, &written) < 0)
+                    return -1;
+            }
+
+            *rlen = offset + written;
+            }
+            break;
+
+        default:
+            return -1;
+    }
+
+    return 0;
 }
 
-    ETERM *
-alcove_tuple5(ETERM *t1, ETERM *t2, ETERM *t3, ETERM *t4, ETERM *t5)
+    char *
+alcove_decode_iolist_to_string(const char *buf, int *index)
 {
-    ETERM *t[5] = {t1, t2, t3, t4, t5};
+    int type = 0;
+    int size = 0;
 
-    return erl_mk_tuple(t, 5);
+    char *res = NULL;
+    int rlen = 0;
+
+    /* XXX should take an iolist */
+    if (ei_get_type(buf, index, &type, &size) < 0)
+        return NULL;
+
+    res = calloc(size+1, 1);
+
+    if (!res)
+        err(EXIT_FAILURE, "calloc");
+
+    switch (type) {
+        case ERL_STRING_EXT:
+            if (ei_decode_string(buf, index, res) < 0)
+                return NULL;
+
+            break;
+
+        case ERL_BINARY_EXT:
+            if (ei_decode_binary(buf, index, res, (long int *)&rlen) < 0)
+                return NULL;
+
+            break;
+    }
+
+    return res;
 }
 
-    ETERM *
-alcove_errno(int errnum)
+    ssize_t
+alcove_errno(char *buf, size_t len, int errnum)
 {
-    return alcove_error(erl_errno_id(errnum));
+    return alcove_error(buf, len, erl_errno_id(errnum));
 }
 
-    ETERM *
-alcove_error(const char *reason)
+    ssize_t
+alcove_error(char *buf, size_t len, const char *reason)
 {
-    return alcove_tuple2(erl_mk_atom("error"), erl_mk_atom(reason));
+    int index = 0;
+    size_t elen = strlen(reason);
+
+    if (ei_encode_version(buf, &index) < 0)
+        return -1;
+
+    if (ei_encode_tuple_header(buf, &index, 2) < 0)
+        return -1;
+
+    if (ei_encode_atom(buf, &index, "error") < 0)
+        return -1;
+
+    if (elen > len - index)
+        return -1;
+
+    if (ei_encode_atom_len(buf, &index, reason, strlen(reason)) < 0)
+        return -1;
+
+    return index;
 }
 
-    ETERM *
-alcove_ok(ETERM *term)
+    ssize_t
+alcove_mk_atom(char *buf, size_t len, const char *atom)
 {
-    return alcove_tuple2(erl_mk_atom("ok"), term);
+    int index = 0;
+    size_t slen = strlen(atom);
+
+    if (ei_encode_version(buf, &index) < 0)
+        return -1;
+
+    if (slen > len - index)
+        return -1;
+
+    if (ei_encode_atom_len(buf, &index, atom, strlen(atom)) < 0)
+        return -1;
+
+    return index;
 }
 
-    ETERM *
-alcove_bool(bool ok)
+    ssize_t
+alcove_mk_binary(char *buf, size_t buflen, void *bin, size_t len)
 {
-    return (ok ? erl_mk_atom("true") : erl_mk_atom("false"));
+    int index = 0;
+
+    if (ei_encode_version(buf, &index) < 0)
+        return -1;
+
+    if (len > buflen - index)
+        return -1;
+
+    if (ei_encode_binary(buf, &index, bin, len) < 0)
+        return -1;
+
+    return index;
 }
 
-    ETERM *
-alcove_bin(const char *buf)
+    ssize_t
+alcove_mk_long(char *buf, size_t buflen, long n)
 {
-    return (buf ? erl_mk_binary(buf, strlen(buf)) : erl_mk_binary("",0));
+    int index = 0;
+
+    if (ei_encode_version(buf, &index) < 0)
+        return -1;
+
+    if (ei_encode_long(buf, &index, n) < 0)
+        return -1;
+
+    return index;
+}
+
+    ssize_t
+alcove_mk_ulong(char *buf, size_t buflen, unsigned long n)
+{
+    int index = 0;
+
+    if (ei_encode_version(buf, &index) < 0)
+        return -1;
+
+    if (ei_encode_ulong(buf, &index, n) < 0)
+        return -1;
+
+    return index;
 }
 
     void *
@@ -85,7 +240,7 @@ alcove_malloc(ssize_t size)
         errx(EXIT_FAILURE, "malloc:invalid size:%ld",
                 (unsigned long)size);
 
-    buf = erl_malloc(size);
+    buf = malloc(size);
 
     if (!buf)
         err(EXIT_FAILURE, "malloc");
@@ -93,72 +248,101 @@ alcove_malloc(ssize_t size)
     return buf;
 }
 
-    ETERM *
-alcove_define(char *name, alcove_define_t *constants)
+    int
+alcove_define(char *buf, int *index, char *name, alcove_define_t *constants)
 {
     alcove_define_t *dp = NULL;
 
     for (dp = constants; dp->name != NULL; dp++) {
         if (!strcmp(name, dp->name))
-            return erl_mk_ulonglong(dp->val);
+            return ei_encode_ulonglong(buf, index, dp->val);
     }
 
-    return erl_mk_atom("false");
+    return ei_encode_atom(buf, index, "false");
 }
 
-    ETERM *
-alcove_constant(u_int64_t val, alcove_define_t *constants)
+    int
+alcove_constant(char *buf, int *index, u_int64_t val,
+        alcove_define_t *constants)
 {
     alcove_define_t *dp = NULL;
 
     for (dp = constants; dp->name != NULL; dp++) {
         if (val == dp->val)
-            return erl_mk_atom(dp->name);
+            return ei_encode_atom(buf, index, dp->name);
     }
 
-    return erl_mk_atom("false");
+    return ei_encode_atom(buf, index, "false");
 }
 
-    ETERM *
-alcove_list_head(ETERM **hd, ETERM *list)
+    int
+alcove_str_to_argv(const char *arg, int *index, int arity, char *buf, size_t *len)
 {
-    *hd = erl_hd(list);
-    return erl_tl(list);
+    int rindex = 0;
+
+    char tmp[MAXMSGLEN] = {0};
+    int i = 0;
+
+    /* [0] is also encoded to a string. strlen() can't be used to
+       calculate the length */
+    if (ei_decode_string(arg, index, tmp) < 0)
+        return -1;
+
+    /* Must be small integers from 0 - 255 */
+    for (i = 0; i < arity; i++) {
+        if (ei_encode_ulong(buf, &rindex, tmp[i]) < 0)
+            return -1;
+    }
+
+    /*
+    if (ei_encode_empty_list(buf, &rindex) < 0)
+        return -1;
+        */
+
+    *len = rindex;
+
+    return 0;
 }
 
     char **
-alcove_list_to_argv(ETERM *arg)
+alcove_list_to_argv(const char *arg, int *index)
 {
-    ETERM *hd = NULL;
-    ssize_t len = 0;
+    int arity = 0;
+
     int i = 0;
     char **argv = NULL;
     long maxarg = sysconf(_SC_ARG_MAX);
 
-    len = erl_length(arg);
+    if (ei_decode_list_header(arg, index, &arity) < 0)
+        return NULL;
 
-    if (len < 0 || len >= maxarg)
+    if (arity < 0 || arity >= maxarg)
         return NULL;
 
     /* NULL terminate */
-    argv = calloc(len + 1, sizeof(char **));
+    argv = calloc(arity + 1, sizeof(char **));
 
     if (!argv)
         err(EXIT_FAILURE, "calloc");
 
-    for (i = 0; i < len; i++) {
-        arg = alcove_list_head(&hd, arg);
-        if (!hd)
-            goto ERR;
-
-        argv[i] = erl_iolist_to_string(hd);
+    for (i = 0; i < arity; i++) {
+        argv[i] = alcove_decode_iolist_to_string(arg, index);
         if (!argv[i])
             goto ERR;
     }
 
+    /* list tail */
+    if (ei_decode_list_header(arg, index, &arity) < 0 || arity != 0)
+        return NULL;
+
     return argv;
 
 ERR:
+    for (i = 0; i < arity; i++) {
+        if (argv[i])
+            free(argv[i]);
+    }
+
     free(argv);
     return NULL;
 }
@@ -177,117 +361,192 @@ alcove_free_argv(char **argv)
     free(argv);
 }
 
+/* XXX FIXME */
     void *
-alcove_list_to_buf(ETERM *arg, size_t *len, alcove_alloc_t **ptr, ssize_t *nptr)
+alcove_list_to_buf(const char *arg, int *index, size_t *len,
+        alcove_alloc_t **ptr, ssize_t *nptr)
 {
-    ETERM *hd = NULL;
-    ETERM *parg = arg;
-    ETERM *t = NULL;
-    ssize_t nelem = 0;
-    int i = 0;
+    int type = 0;
+    int arity = 0;
+    long size = 0;
+
+    const char *parg = NULL;
+    int pindex = 0;
+    int parity = 0;
+
     char *buf = NULL;
     char *pbuf = NULL;
+    char tmp[MAXMSGLEN] = {0};
+    ulong val = 0;
+
+    int i = 0;
     size_t n = 0;
 
     *len = 0;
     *nptr = 0;
-    nelem = erl_length(arg);
 
-    if (nelem < 0 || nelem >= 0xffff)
+    if (ei_decode_list_header(arg, index, &arity) < 0)
         return NULL;
 
+    if (arity < 0 || arity >= 0xffff)
+        return NULL;
+
+    parg = arg;
+    pindex = *index;
+    parity = arity;
+
     /* Calculate the size required */
-    for (i = 0; i < nelem; i++) {
-        parg = alcove_list_head(&hd, parg);
-        if (!hd)
+    for (i = 0; i < arity; i++) {
+        if (ei_get_type(parg, &pindex, &type, &parity) < 0)
             return NULL;
 
-        if (ERL_IS_BINARY(hd)) {
-            n += erl_size(hd);
-        }
-        else if (ERL_IS_TUPLE(hd) && erl_size(hd) == 2) {
-            t = erl_element(1, hd);
-            if (!t || !ERL_IS_ATOM(t) || strncmp(ERL_ATOM_PTR(t), "ptr", 3))
-                return NULL;
+        switch (type) {
+            case ERL_BINARY_EXT:
+                if (parity > sizeof(tmp))
+                    return NULL;
 
-            t = erl_element(2, hd);
+                if (ei_decode_binary(parg, &pindex, tmp, &size) < 0)
+                    return NULL;
 
-            if (ALCOVE_IS_UNSIGNED_LONG(t) || ERL_IS_BINARY(t)) {
-                n += sizeof(void *);
-            }
-            else
+                n += size;
+                break;
+
+            case ERL_SMALL_TUPLE_EXT:
+            case ERL_LARGE_TUPLE_EXT:
+                if (parity != 2)
+                    return NULL;
+
+                if (ei_decode_tuple_header(parg, &pindex, &parity) < 0)
+                    return NULL;
+
+                if (ei_decode_atom(parg, &pindex, tmp) < 0)
+                    return NULL;
+
+                if (strncmp(tmp, "ptr", 3))
+                    return NULL;
+
+                if (ei_get_type(parg, &pindex, &type, &parity) < 0)
+                    return NULL;
+
+                switch (type) {
+                    case ERL_SMALL_INTEGER_EXT:
+                    case ERL_INTEGER_EXT:
+                        if (ei_decode_ulong(parg, &pindex, &val) < 0)
+                            return NULL;
+
+                        n += sizeof(void *);
+                        break;
+
+                    case ERL_BINARY_EXT:
+                        if (ei_decode_binary(parg, &pindex,
+                                    tmp, &size) < 0)
+                            return NULL;
+
+                        n += sizeof(void *);
+                        break;
+                }
+                break;
+
+            default:
                 return NULL;
         }
-        else
-            return NULL;
     }
 
     buf = alcove_malloc(n);
     *len = n;
 
-    *ptr = alcove_malloc(nelem * sizeof(alcove_alloc_t));
-    *nptr = nelem;
+    *ptr = alcove_malloc(arity * sizeof(alcove_alloc_t));
+    *nptr = arity;
 
     pbuf = buf;
 
     /* Copy the list contents */
-    for (i = 0; i < nelem; i++) {
-        arg = alcove_list_head(&hd, arg);
+    for (i = 0; i < arity; i++) {
+        (void)ei_get_type(arg, index, &type, &parity);
 
-        if (ERL_IS_BINARY(hd)) {
-            (void)memcpy(buf, ERL_BIN_PTR(hd), ERL_BIN_SIZE(hd));
-            buf += ERL_BIN_SIZE(hd);
-            (*ptr)[i].p = NULL;
-            (*ptr)[i].len = ERL_BIN_SIZE(hd);
-        }
-        else if (ERL_IS_TUPLE(hd)) {
-            t = erl_element(2, hd);
+        switch (type) {
+            case ERL_BINARY_EXT:
+                (void)ei_decode_binary(arg, index, buf, &size);
+                buf += size;
+                (*ptr)[i].p = NULL;
+                (*ptr)[i].len = size;
+                break;
 
-            if (ALCOVE_IS_UNSIGNED_LONG(t)) {
-                char *p = calloc(ALCOVE_LL_UVALUE(t), 1);
-                if (!p)
-                    err(EXIT_FAILURE, "calloc");
+            case ERL_SMALL_TUPLE_EXT:
+            case ERL_LARGE_TUPLE_EXT:
+                (void)ei_decode_tuple_header(arg, index, &parity);
+                (void)ei_decode_atom(arg, index, tmp);
+                (void)ei_get_type(arg, index, &type, &parity);
 
-                (void)memcpy(buf, &p, sizeof(void *));
-                buf += sizeof(void *);
+                switch (type) {
+                    case ERL_SMALL_INTEGER_EXT:
+                    case ERL_INTEGER_EXT: {
+                        char *p = NULL;
 
-                (*ptr)[i].p = p;
-                (*ptr)[i].len = ALCOVE_LL_UVALUE(t);
-            }
-            else if (ERL_IS_BINARY(t)) {
-                char *p = alcove_malloc(ERL_BIN_SIZE(t));
-                (void)memcpy(p, ERL_BIN_PTR(t), ERL_BIN_SIZE(t));
-                (void)memcpy(buf, &p, sizeof(void *));
-                buf += sizeof(void *);
-                (*ptr)[i].p = p;
-                (*ptr)[i].len = ERL_BIN_SIZE(t);
-            }
+                        (void)ei_decode_ulong(arg, index, &val);
+
+                        p = calloc(val, 1);
+                        if (!p)
+                            err(EXIT_FAILURE, "calloc");
+
+                        (void)memcpy(buf, &p, sizeof(void *));
+                        buf += sizeof(void *);
+                        (*ptr)[i].p = p;
+                        (*ptr)[i].len = val;
+                        }
+                        break;
+
+                    case ERL_BINARY_EXT: {
+                        char *p = NULL;
+                        (void)ei_decode_binary(arg, index, tmp, &size);
+                        p = alcove_malloc(size);
+                        (void)memcpy(p, tmp, size);
+                        (void)memcpy(buf, &p, sizeof(void *));
+                        buf += sizeof(void *);
+                        (*ptr)[i].p = p;
+                        (*ptr)[i].len = size;
+                        }
+                        break;
+                }
         }
     }
 
     return pbuf;
 }
 
-    ETERM *
-alcove_buf_to_list(char *buf, size_t len, alcove_alloc_t *ptr, ssize_t nptr)
+    int
+alcove_buf_to_list(char *reply, int *rindex, const char *buf, size_t len,
+        alcove_alloc_t *ptr, ssize_t nptr)
 {
-    ETERM *t = NULL;
+    int i = 0;
+    size_t offset = 0;
 
-    t = erl_mk_empty_list();
-    for (nptr-- ; nptr >= 0; nptr--) {
-        if (ptr[nptr].p) {
+    if (ei_encode_list_header(reply, rindex, nptr) < 0)
+        return -1;
+
+    for ( ; i < nptr; i++) {
+        if (ptr[i].p) {
             /* Allocated buffer */
-            len -= sizeof(void *);
-            t = erl_cons(alcove_tuple2(erl_mk_atom("ptr"),
-                        erl_mk_binary(ptr[nptr].p, ptr[nptr].len)), t);
-            free(ptr[nptr].p);
+            if (ei_encode_tuple_header(reply, rindex, 2) < 0)
+                return -1;
+            if (ei_encode_atom(reply, rindex, "ptr") < 0)
+                return -1;
+            if (ei_encode_binary(reply, rindex, ptr[i].p,
+                        ptr[i].len) < 0)
+                return -1;
+            free(ptr[i].p);
+            offset += sizeof(void *);
         }
         else {
             /* Static binary */
-            len -= ptr[nptr].len;
-            t = erl_cons(erl_mk_binary(buf+len, ptr[nptr].len), t);
+            if (ei_encode_binary(reply, rindex, buf+offset, ptr[i].len) < 0)
+                return -1;
+            offset += ptr[i].len;
         }
     }
 
-    return t;
+    if (ei_encode_empty_list(reply, rindex) < 0)
+        return -1;
+
+    return 0;
 }
