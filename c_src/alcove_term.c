@@ -50,10 +50,10 @@ alcove_decode_uint(const char *buf, int *index, u_int32_t *n)
 alcove_decode_iolist_to_binary(const char *buf, int *index, char *res, size_t *rlen)
 {
     int type = 0;
-    int size = 0;
+    int arity = 0;
 
     /* XXX should take an iolist */
-    if (ei_get_type(buf, index, &type, &size) < 0)
+    if (ei_get_type(buf, index, &type, &arity) < 0)
         return -1;
 
     switch (type) {
@@ -62,19 +62,19 @@ alcove_decode_iolist_to_binary(const char *buf, int *index, char *res, size_t *r
                 return -1;
 
             /* Does not include NULL */
-            *rlen = size;
+            *rlen = arity;
             break;
 
         case ERL_BINARY_EXT:
             if (ei_decode_binary(buf, index, res, (long int *)rlen) < 0)
                 return -1;
-            *rlen = size;
+            *rlen = arity;
             break;
 
         case ERL_NIL_EXT:
-            if (ei_decode_list_header(buf, index, &size) < 0)
+            if (ei_decode_list_header(buf, index, &arity) < 0)
                 return -1;
-            *rlen = size;
+            *rlen = arity;
             break;
 
         case ERL_LIST_EXT: {
@@ -82,11 +82,11 @@ alcove_decode_iolist_to_binary(const char *buf, int *index, char *res, size_t *r
             size_t offset = 0;
             size_t written = 0;
 
-            if (ei_decode_list_header(buf, index, &size) < 0)
+            if (ei_decode_list_header(buf, index, &arity) < 0)
                 return -1;
 
             /* XXX overflow */
-            for (i = 0; i < size; i++) {
+            for (i = 0; i < arity; i++) {
                 offset += written;
                 if (alcove_decode_iolist_to_binary(buf, index, res+offset, &written) < 0)
                     return -1;
@@ -107,16 +107,16 @@ alcove_decode_iolist_to_binary(const char *buf, int *index, char *res, size_t *r
 alcove_decode_iolist_to_string(const char *buf, int *index)
 {
     int type = 0;
-    int size = 0;
+    int arity = 0;
 
     char *res = NULL;
-    int rlen = 0;
+    long rlen = 0;
 
     /* XXX should take an iolist */
-    if (ei_get_type(buf, index, &type, &size) < 0)
+    if (ei_get_type(buf, index, &type, &arity) < 0)
         return NULL;
 
-    res = calloc(size+1, 1);
+    res = calloc(arity+1, 1);
 
     if (!res)
         err(EXIT_FAILURE, "calloc");
@@ -129,7 +129,7 @@ alcove_decode_iolist_to_string(const char *buf, int *index)
             break;
 
         case ERL_BINARY_EXT:
-            if (ei_decode_binary(buf, index, res, (long int *)&rlen) < 0)
+            if (ei_decode_binary(buf, index, res, &rlen) < 0)
                 return NULL;
 
             break;
@@ -294,10 +294,8 @@ alcove_str_to_argv(const char *arg, int *index, int arity, char *buf, size_t *le
             return -1;
     }
 
-    /*
     if (ei_encode_empty_list(buf, &rindex) < 0)
         return -1;
-        */
 
     *len = rindex;
 
@@ -338,12 +336,7 @@ alcove_list_to_argv(const char *arg, int *index)
     return argv;
 
 ERR:
-    for (i = 0; i < arity; i++) {
-        if (argv[i])
-            free(argv[i]);
-    }
-
-    free(argv);
+    alcove_free_argv(argv);
     return NULL;
 }
 

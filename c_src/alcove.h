@@ -173,6 +173,8 @@ int alcove_define(char *buf, int *index, char *name,
         alcove_define_t *constants);
 int alcove_constant(char *buf, int *index, u_int64_t val,
         alcove_define_t *constants);
+char **alcove_list_to_argv(const char *, int *);
+void alcove_free_argv(char **);
 
 ssize_t alcove_call(alcove_state_t *ap, u_int32_t call,
         const char *arg, size_t len, char *reply, size_t rlen);
