@@ -236,7 +236,7 @@ alcove_malloc(ssize_t size)
 {
     void *buf = NULL;
 
-    if (size < 0 || size >= INT32_MAX)
+    if (size <= 0 || size >= INT32_MAX)
         errx(EXIT_FAILURE, "malloc:invalid size:%ld",
                 (unsigned long)size);
 
@@ -320,7 +320,7 @@ alcove_list_to_argv(const char *arg, int *index)
         return NULL;
 
     /* NULL terminate */
-    argv = calloc(arity + 1, sizeof(char **));
+    argv = calloc(arity + 1, sizeof(char *));
 
     if (!argv)
         err(EXIT_FAILURE, "calloc");
@@ -333,7 +333,7 @@ alcove_list_to_argv(const char *arg, int *index)
 
     /* list tail */
     if (ei_decode_list_header(arg, index, &arity) < 0 || arity != 0)
-        return NULL;
+        goto ERR;
 
     return argv;
 
