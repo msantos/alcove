@@ -472,6 +472,9 @@ alcove_list_to_fd_set(const char *arg, int *index, fd_set *fdset, int *nfds)
                 return -1;
 
             break;
+
+        default:
+            return -1;
     }
 
     return 0;

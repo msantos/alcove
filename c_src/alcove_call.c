@@ -75,6 +75,9 @@ alcove_call(alcove_state_t *ap, u_int32_t call,
 
             written = (*fun->fp)(ap, arg+index, len-index, reply, rlen);
             break;
+
+        default:
+            goto BADARG;
     }
 
     if (written < 0)

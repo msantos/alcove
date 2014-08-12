@@ -133,6 +133,9 @@ alcove_decode_iolist_to_string(const char *buf, int *index)
                 return NULL;
 
             break;
+
+        default:
+            return NULL;
     }
 
     return res;
@@ -437,6 +440,9 @@ alcove_list_to_buf(const char *arg, int *index, size_t *len,
 
                         n += sizeof(void *);
                         break;
+
+                    default:
+                        return NULL;
                 }
                 break;
 
