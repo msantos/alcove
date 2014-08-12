@@ -124,21 +124,25 @@ alcove_decode_iolist_to_string(const char *buf, int *index)
     switch (type) {
         case ERL_STRING_EXT:
             if (ei_decode_string(buf, index, res) < 0)
-                return NULL;
+                goto BADARG;
 
             break;
 
         case ERL_BINARY_EXT:
             if (ei_decode_binary(buf, index, res, &rlen) < 0)
-                return NULL;
+                goto BADARG;
 
             break;
 
         default:
-            return NULL;
+            goto BADARG;
     }
 
     return res;
+
+BADARG:
+    free(res);
+    return NULL;
 }
 
     ssize_t
