@@ -161,7 +161,6 @@ int alcove_decode_uint(const char *, int *, u_int32_t *);
 
 ssize_t alcove_decode_iolist_to_binary(const char *buf, int *index,
         char *res, size_t *rlen);
-char *alcove_decode_iolist_to_string(const char *buf, int *index);
 ssize_t alcove_errno(char *buf, size_t len, int errnum);
 ssize_t alcove_error(char *buf, size_t len, const char *reason);
 ssize_t alcove_mk_atom(char *buf, size_t len, const char *atom);

@@ -14,6 +14,8 @@
  */
 #include "alcove.h"
 
+char * alcove_x_decode_iolist_to_string(const char *buf, int *index);
+
     int
 alcove_decode_int(const char *buf, int *index, int *n)
 {
@@ -104,7 +106,7 @@ alcove_decode_iolist_to_binary(const char *buf, int *index, char *res, size_t *r
 }
 
     char *
-alcove_decode_iolist_to_string(const char *buf, int *index)
+alcove_x_decode_iolist_to_string(const char *buf, int *index)
 {
     int type = 0;
     int arity = 0;
@@ -331,7 +333,7 @@ alcove_list_to_argv(const char *arg, int *index)
         err(EXIT_FAILURE, "calloc");
 
     for (i = 0; i < arity; i++) {
-        argv[i] = alcove_decode_iolist_to_string(arg, index);
+        argv[i] = alcove_x_decode_iolist_to_string(arg, index);
         if (!argv[i])
             goto ERR;
     }
