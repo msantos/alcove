@@ -284,33 +284,6 @@ alcove_constant(char *buf, int *index, u_int64_t val,
     return ei_encode_atom(buf, index, "false");
 }
 
-    int
-alcove_str_to_argv(const char *arg, int *index, int arity, char *buf, size_t *len)
-{
-    int rindex = 0;
-
-    char tmp[MAXMSGLEN] = {0};
-    int i = 0;
-
-    /* [0] is also encoded to a string. strlen() can't be used to
-       calculate the length */
-    if (ei_decode_string(arg, index, tmp) < 0)
-        return -1;
-
-    /* Must be small integers from 0 - 255 */
-    for (i = 0; i < arity; i++) {
-        if (ei_encode_ulong(buf, &rindex, tmp[i]) < 0)
-            return -1;
-    }
-
-    if (ei_encode_empty_list(buf, &rindex) < 0)
-        return -1;
-
-    *len = rindex;
-
-    return 0;
-}
-
     char **
 alcove_list_to_argv(const char *arg, int *index)
 {

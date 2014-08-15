@@ -35,7 +35,6 @@ alcove_call(alcove_state_t *ap, u_int32_t call,
         char *reply, size_t rlen)
 {
     int index = 0;
-    int type = 0;
     int arity = 0;
     int version = 0;
 
@@ -50,35 +49,13 @@ alcove_call(alcove_state_t *ap, u_int32_t call,
     if (ei_decode_version(arg, &index, &version) < 0)
         goto BADARG;
 
-    if (ei_get_type(arg, &index, &type, &arity) < 0)
+    if (ei_decode_tuple_header(arg, &index, &arity) < 0)
         goto BADARG;
 
     if (arity != fun->narg)
         goto BADARG;
 
-    switch (type) {
-        case ERL_STRING_EXT: {
-            char tmp[MAXMSGLEN] = {0};
-            size_t tmplen = sizeof(tmp)-1;
-
-            if (alcove_str_to_argv(arg, &index, arity, tmp, &tmplen) < 0)
-                goto BADARG;
-
-            written = (*fun->fp)(ap, (const char *)tmp, tmplen, reply, rlen);
-            }
-            break;
-
-        case ERL_LIST_EXT:
-        case ERL_NIL_EXT:
-            if (ei_decode_list_header(arg, &index, &arity) < 0)
-                goto BADARG;
-
-            written = (*fun->fp)(ap, arg+index, len-index, reply, rlen);
-            break;
-
-        default:
-            goto BADARG;
-    }
+    written = (*fun->fp)(ap, arg+index, len-index, reply, rlen);
 
     if (written < 0)
         goto BADARG;

@@ -33,5 +33,4 @@ void *alcove_list_to_buf(const char *, int *, size_t *,
     alcove_alloc_t **, ssize_t *);
 int alcove_buf_to_list(char *, int *, const char *, size_t,
     alcove_alloc_t *, ssize_t);
-int alcove_str_to_argv(const char *, int *, int, char *, size_t *);
 EOF

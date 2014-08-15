@@ -98,7 +98,11 @@ hdr([Pid|Pids], Acc) ->
 encode(Command, Arg) when is_integer(Command), is_list(Arg) ->
     encode(?ALCOVE_MSG_CALL, Command, Arg).
 encode(Type, Command, Arg) when is_integer(Type), is_integer(Command), is_list(Arg) ->
-    <<?UINT16(Type), ?UINT16(Command), (term_to_binary(Arg))/binary>>.
+    <<
+    ?UINT16(Type),
+    ?UINT16(Command),
+    (term_to_binary(list_to_tuple(Arg)))/binary
+    >>.
 
 decode(Msg) ->
     % Re-add the message length stripped off by open_port
