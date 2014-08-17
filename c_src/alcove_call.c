@@ -46,7 +46,8 @@ alcove_call(alcove_state_t *ap, u_int32_t call,
 
     fun = &calls[call];
 
-    if (ei_decode_version(arg, &index, &version) < 0)
+    if ((ei_decode_version(arg, &index, &version) < 0)
+            && version != ERL_VERSION_MAGIC)
         goto BADARG;
 
     if (ei_decode_tuple_header(arg, &index, &arity) < 0)

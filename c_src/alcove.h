@@ -38,6 +38,10 @@
 #include "erl_errno.h"
 #include "alcove_version.h"
 
+#ifndef ERL_VERSION_MAGIC
+#define ERL_VERSION_MAGIC 131
+#endif
+
 #define ALCOVE_FDCTL 3
 
 #define MAXFORKDEPTH    16
