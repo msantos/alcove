@@ -139,7 +139,7 @@ alcove_getcwd(alcove_state_t *ap, const char *arg, size_t len,
         return alcove_errno(reply, rlen, errno);
 
     ALCOVE_OK(reply, &rindex,
-            ei_encode_binary(reply, &rindex, buf, strlen(buf)));
+            alcove_encode_binary(reply, rlen, &rindex, buf, strlen(buf)));
 
     return rindex;
 }
@@ -170,18 +170,18 @@ alcove_readdir(alcove_state_t *ap, const char *arg, size_t len,
     if (!dirp)
         return alcove_errno(reply, rlen, errno);
 
-    ALCOVE_ERR(ei_encode_version(reply, &rindex));
-    ALCOVE_ERR(ei_encode_tuple_header(reply, &rindex, 2));
-    ALCOVE_ERR(ei_encode_atom(reply, &rindex, "ok"));
+    ALCOVE_ERR(alcove_encode_version(reply, rlen, &rindex));
+    ALCOVE_ERR(alcove_encode_tuple_header(reply, rlen, &rindex, 2));
+    ALCOVE_ERR(alcove_encode_atom(reply, rlen, &rindex, "ok"));
 
     errno = 0;
     while ( (dent = readdir(dirp))) {
         if (!strcmp(dent->d_name, ".") || !strcmp(dent->d_name, ".."))
             continue;
 
-        ALCOVE_ERR(ei_encode_list_header(reply, &rindex, 1));
+        ALCOVE_ERR(alcove_encode_list_header(reply, rlen, &rindex, 1));
 
-        ALCOVE_ERR(ei_encode_binary(reply, &rindex,
+        ALCOVE_ERR(alcove_encode_binary(reply, rlen, &rindex,
                     dent->d_name, strlen(dent->d_name)));
     }
 
@@ -191,7 +191,7 @@ alcove_readdir(alcove_state_t *ap, const char *arg, size_t len,
     if (closedir(dirp) < 0)
         return alcove_errno(reply, rlen, errno);
 
-    ALCOVE_ERR(ei_encode_empty_list(reply, &rindex));
+    ALCOVE_ERR(alcove_encode_empty_list(reply, rlen, &rindex));
 
     return rindex;
 }

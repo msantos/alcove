@@ -38,7 +38,7 @@ alcove_gethostname(alcove_state_t *ap, const char *arg, size_t len,
        return alcove_errno(reply, rlen, errno);
 
     ALCOVE_OK(reply, &rindex,
-        ei_encode_binary(reply, &rindex, name, strlen(name)));
+        alcove_encode_binary(reply, rlen, &rindex, name, strlen(name)));
 
     return rindex;
 }

@@ -157,21 +157,17 @@ alcove_errno(char *buf, size_t len, int errnum)
 alcove_error(char *buf, size_t len, const char *reason)
 {
     int index = 0;
-    size_t elen = strlen(reason);
 
-    if (ei_encode_version(buf, &index) < 0)
+    if (alcove_encode_version(buf, len, &index) < 0)
         return -1;
 
-    if (ei_encode_tuple_header(buf, &index, 2) < 0)
+    if (alcove_encode_tuple_header(buf, len, &index, 2) < 0)
         return -1;
 
-    if (ei_encode_atom(buf, &index, "error") < 0)
+    if (alcove_encode_atom(buf, len, &index, "error") < 0)
         return -1;
 
-    if (elen > len - index)
-        return -1;
-
-    if (ei_encode_atom_len(buf, &index, reason, strlen(reason)) < 0)
+    if (alcove_encode_atom(buf, len, &index, reason) < 0)
         return -1;
 
     return index;
@@ -181,60 +177,53 @@ alcove_error(char *buf, size_t len, const char *reason)
 alcove_mk_atom(char *buf, size_t len, const char *atom)
 {
     int index = 0;
-    size_t slen = strlen(atom);
 
-    if (ei_encode_version(buf, &index) < 0)
+    if (alcove_encode_version(buf, len, &index) < 0)
         return -1;
 
-    if (slen > len - index)
-        return -1;
-
-    if (ei_encode_atom_len(buf, &index, atom, strlen(atom)) < 0)
+    if (alcove_encode_atom(buf, len, &index, atom) < 0)
         return -1;
 
     return index;
 }
 
     ssize_t
-alcove_mk_binary(char *buf, size_t buflen, void *bin, size_t len)
+alcove_mk_binary(char *buf, size_t len, const void *p, size_t plen)
 {
     int index = 0;
 
-    if (ei_encode_version(buf, &index) < 0)
+    if (alcove_encode_version(buf, len, &index) < 0)
         return -1;
 
-    if (len > buflen - index)
-        return -1;
-
-    if (ei_encode_binary(buf, &index, bin, len) < 0)
+    if (alcove_encode_binary(buf, len, &index, p, plen) < 0)
         return -1;
 
     return index;
 }
 
     ssize_t
-alcove_mk_long(char *buf, size_t buflen, long n)
+alcove_mk_long(char *buf, size_t len, long n)
 {
     int index = 0;
 
-    if (ei_encode_version(buf, &index) < 0)
+    if (alcove_encode_version(buf, len, &index) < 0)
         return -1;
 
-    if (ei_encode_long(buf, &index, n) < 0)
+    if (alcove_encode_long(buf, len, &index, n) < 0)
         return -1;
 
     return index;
 }
 
     ssize_t
-alcove_mk_ulong(char *buf, size_t buflen, unsigned long n)
+alcove_mk_ulong(char *buf, size_t len, unsigned long n)
 {
     int index = 0;
 
-    if (ei_encode_version(buf, &index) < 0)
+    if (alcove_encode_version(buf, len, &index) < 0)
         return -1;
 
-    if (ei_encode_ulong(buf, &index, n) < 0)
+    if (alcove_encode_ulong(buf, len, &index, n) < 0)
         return -1;
 
     return index;
@@ -527,4 +516,176 @@ alcove_buf_to_list(char *reply, int *rindex, const char *buf, size_t len,
         return -1;
 
     return 0;
+}
+
+
+/* Wrappers around the ei encode functions with length checks */
+    int
+alcove_encode_version(char *buf, size_t len, int *index)
+{
+    int n = *index;
+
+    if (*index < 0 || *index > 0xffff)
+        return -1;
+
+    if (ei_encode_version(NULL, &n) < 0)
+        return -1;
+
+    if (n > len)
+        return -1;
+
+    return ei_encode_version(buf, index);
+}
+
+    int
+alcove_encode_list_header(char *buf, size_t len, int *index, int arity)
+{
+    int n = *index;
+
+    if (*index < 0 || *index > 0xffff)
+        return -1;
+
+    if (ei_encode_list_header(NULL, &n, arity) < 0)
+        return -1;
+
+    if (n > len)
+        return -1;
+
+    return ei_encode_list_header(buf, index, arity);
+}
+
+    int
+alcove_encode_empty_list(char *buf, size_t len, int *index)
+{
+    int n = *index;
+
+    if (*index < 0 || *index > 0xffff)
+        return -1;
+
+    if (ei_encode_empty_list(NULL, &n) < 0)
+        return -1;
+
+    if (n > len)
+        return -1;
+
+    return ei_encode_empty_list(buf, index);
+}
+
+    int
+alcove_encode_tuple_header(char *buf, size_t len, int *index, int arity)
+{
+    int n = *index;
+
+    if (*index < 0 || *index > 0xffff)
+        return -1;
+
+    if (ei_encode_tuple_header(NULL, &n, arity) < 0)
+        return -1;
+
+    if (n > len)
+        return -1;
+
+    return ei_encode_tuple_header(buf, index, arity);
+}
+
+    int
+alcove_encode_long(char *buf, size_t len, int *index, long x)
+{
+    int n = *index;
+
+    if (*index < 0 || *index > 0xffff)
+        return -1;
+
+    if (ei_encode_long(NULL, &n, x) < 0)
+        return -1;
+
+    if (n > len)
+        return -1;
+
+    return ei_encode_long(buf, index, x);
+}
+
+    int
+alcove_encode_ulong(char *buf, size_t len, int *index, unsigned long x)
+{
+    int n = *index;
+
+    if (*index < 0 || *index > 0xffff)
+        return -1;
+
+    if (ei_encode_ulong(NULL, &n, x) < 0)
+        return -1;
+
+    if (n > len)
+        return -1;
+
+    return ei_encode_ulong(buf, index, x);
+}
+
+    int
+alcove_encode_longlong(char *buf, size_t len, int *index, long long x)
+{
+    int n = *index;
+
+    if (*index < 0 || *index > 0xffff)
+        return -1;
+
+    if (ei_encode_longlong(NULL, &n, x) < 0)
+        return -1;
+
+    if (n > len)
+        return -1;
+
+    return ei_encode_longlong(buf, index, x);
+}
+
+    int
+alcove_encode_ulonglong(char *buf, size_t len, int *index, unsigned long long x)
+{
+    int n = *index;
+
+    if (*index < 0 || *index > 0xffff)
+        return -1;
+
+    if (ei_encode_ulonglong(NULL, &n, x) < 0)
+        return -1;
+
+    if (n > len)
+        return -1;
+
+    return ei_encode_ulonglong(buf, index, x);
+}
+
+    int
+alcove_encode_atom(char *buf, size_t len, int *index, const char *p)
+{
+    int n = *index;
+
+    if (*index < 0 || *index > 0xffff)
+        return -1;
+
+    if (ei_encode_atom(NULL, &n, p) < 0)
+        return -1;
+
+    if (n > len)
+        return -1;
+
+    return ei_encode_atom(buf, index, p);
+}
+
+    int
+alcove_encode_binary(char *buf, size_t len, int *index, const void *p, long plen)
+{
+    int n = *index;
+
+    if (*index < 0 || *index > 0xffff)
+        return -1;
+
+    if (ei_encode_binary(NULL, &n, p, plen) < 0)
+        return -1;
+
+    if (n > len)
+        return -1;
+
+    return ei_encode_binary(buf, index, p, plen);
 }

@@ -99,7 +99,7 @@ alcove_pid(alcove_state_t *ap, const char *arg, size_t len,
      *
      * length = 1 + (count * 49) + 1
      */
-    if (count * 50 > rlen)
+    if (2 + count * 49 > rlen)
         return -1;
 
     if (ei_encode_version(reply, &rindex) < 0)

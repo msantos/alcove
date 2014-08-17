@@ -110,7 +110,7 @@ alcove_signal_define(alcove_state_t *ap, const char *arg, size_t len,
     if (ei_decode_atom(arg, &index, name) < 0)
         return -1;
 
-    ALCOVE_ERR(ei_encode_version(reply, &rindex));
+    ALCOVE_ERR(alcove_encode_version(reply, rlen, &rindex));
     ALCOVE_ERR(alcove_define(reply, &rindex, name, alcove_signal_constants));
 
     return rindex;
@@ -129,7 +129,7 @@ alcove_signal_constant(alcove_state_t *ap, const char *arg, size_t len,
     if (alcove_decode_int(arg, &index, &signum) < 0)
         return -1;
 
-    ALCOVE_ERR(ei_encode_version(reply, &rindex));
+    ALCOVE_ERR(alcove_encode_version(reply, rlen, &rindex));
     ALCOVE_ERR(alcove_constant(reply, &rindex,
                 signum, alcove_signal_constants));
 

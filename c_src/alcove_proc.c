@@ -107,15 +107,15 @@ alcove_prctl(alcove_state_t *ap, const char *arg, size_t len,
     if (rv < 0)
         return alcove_errno(reply, rlen, errno);
 
-    ALCOVE_ERR(ei_encode_version(reply, &rindex));
-    ALCOVE_ERR(ei_encode_tuple_header(reply, &rindex, 6));
-    ALCOVE_ERR(ei_encode_atom(reply, &rindex, "ok"));
-    ALCOVE_ERR(ei_encode_long(reply, &rindex, rv));
+    ALCOVE_ERR(alcove_encode_version(reply, rlen, &rindex));
+    ALCOVE_ERR(alcove_encode_tuple_header(reply, rlen, &rindex, 6));
+    ALCOVE_ERR(alcove_encode_atom(reply, rlen, &rindex, "ok"));
+    ALCOVE_ERR(alcove_encode_long(reply, rlen, &rindex, rv));
 
     for (i = 0; i < 4; i++) {
         switch (prarg[i].type) {
             case ALCOVE_PRARG_UNSIGNED_LONG:
-                ALCOVE_ERR(ei_encode_ulonglong(reply, &rindex, prarg[i].arg));
+                ALCOVE_ERR(alcove_encode_ulonglong(reply, rlen, &rindex, prarg[i].arg));
                 break;
             case ALCOVE_PRARG_CSTRUCT:
                 ALCOVE_ERR(alcove_buf_to_list(reply, &rindex,
@@ -124,7 +124,7 @@ alcove_prctl(alcove_state_t *ap, const char *arg, size_t len,
                 free(prarg[i].data);
                 break;
             case ALCOVE_PRARG_BINARY:
-                ALCOVE_ERR(ei_encode_binary(reply, &rindex, prarg[i].data,
+                ALCOVE_ERR(alcove_encode_binary(reply, rlen, &rindex, prarg[i].data,
                             prarg[i].len));
                 free(prarg[i].data);
                 break;
@@ -157,7 +157,7 @@ alcove_prctl_define(alcove_state_t *ap, const char *arg, size_t len,
     if (ei_decode_atom(arg, &index, name) < 0)
         return -1;
 
-    ALCOVE_ERR(ei_encode_version(reply, &rindex));
+    ALCOVE_ERR(alcove_encode_version(reply, rlen, &rindex));
     ALCOVE_ERR(alcove_define(reply, &rindex, name, alcove_prctl_constants));
     return rindex;
 #else
@@ -188,7 +188,7 @@ alcove_getsid(alcove_state_t *ap, const char *arg, size_t len,
         return alcove_errno(reply, rlen, errno);
 
     ALCOVE_OK(reply, &rindex,
-        ei_encode_long(reply, &rindex, rv));
+        alcove_encode_long(reply, rlen, &rindex, rv));
 
     return rindex;
 }
@@ -207,7 +207,7 @@ alcove_setsid(alcove_state_t *ap, const char *arg, size_t len,
         return alcove_errno(reply, rlen, errno);
 
     ALCOVE_OK(reply, &rindex,
-        ei_encode_long(reply, &rindex, pid));
+        alcove_encode_long(reply, rlen, &rindex, pid));
 
     return rindex;
 }

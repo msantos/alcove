@@ -162,20 +162,29 @@ int pid_not_equal(pid_t p1, pid_t p2);
 
 int alcove_decode_int(const char *, int *, int *);
 int alcove_decode_uint(const char *, int *, u_int32_t *);
-
 ssize_t alcove_decode_iolist_to_binary(const char *buf, int *index,
         char *res, size_t *rlen);
+
+int alcove_encode_version(char *, size_t, int *);
+int alcove_encode_list_header(char *, size_t, int *, int);
+int alcove_encode_empty_list(char *, size_t, int *);
+int alcove_encode_tuple_header(char *, size_t, int *, int);
+int alcove_encode_long(char *, size_t, int *, long);
+int alcove_encode_ulong(char *, size_t, int *, unsigned long);
+int alcove_encode_longlong(char *, size_t, int *, long long);
+int alcove_encode_ulonglong(char *, size_t, int *, unsigned long long);
+int alcove_encode_atom(char *, size_t, int *, const char *);
+int alcove_encode_binary(char *, size_t, int *, const void *, long);
+
 ssize_t alcove_errno(char *buf, size_t len, int errnum);
 ssize_t alcove_error(char *buf, size_t len, const char *reason);
 ssize_t alcove_mk_atom(char *buf, size_t len, const char *atom);
-ssize_t alcove_mk_binary(char *buf, size_t buflen, void *bin, size_t len);
-ssize_t alcove_mk_long(char *buf, size_t buflen, long n);
-ssize_t alcove_mk_ulong(char *buf, size_t buflen, unsigned long n);
-void *alcove_malloc(ssize_t size);
-int alcove_define(char *buf, int *index, char *name,
-        alcove_define_t *constants);
-int alcove_constant(char *buf, int *index, u_int64_t val,
-        alcove_define_t *constants);
+ssize_t alcove_mk_binary(char *, size_t, const void *, size_t);
+ssize_t alcove_mk_long(char *, size_t, long);
+ssize_t alcove_mk_ulong(char *, size_t, unsigned long);
+void *alcove_malloc(ssize_t);
+int alcove_define(char *, int *, char *, alcove_define_t *);
+int alcove_constant(char *, int *, u_int64_t, alcove_define_t *);
 char **alcove_list_to_argv(const char *, int *);
 void alcove_free_argv(char **);
 

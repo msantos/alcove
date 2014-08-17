@@ -23,7 +23,7 @@
 
 static int alcove_list_to_fd_set(const char *arg, int *index,
         fd_set *fdset, int *nfds);
-static int alcove_fd_isset(char *buf, int *index, fd_set *set);
+static int alcove_fd_isset(char *buf, size_t len, int *index, fd_set *set);
 
 /*
  * open(2)
@@ -70,7 +70,7 @@ alcove_open(alcove_state_t *ap, const char *arg, size_t len,
     ALCOVE_OK(
         reply,
         &rindex,
-        ei_encode_long(reply, &rindex, fd)
+        alcove_encode_long(reply, rlen, &rindex, fd)
     );
 
     return rindex;
@@ -188,9 +188,9 @@ alcove_select(alcove_state_t *ap, const char *arg, size_t len,
 
     ALCOVE_TUPLE4(reply, &rindex,
         "ok",
-        alcove_fd_isset(reply, &rindex, &readfds),
-        alcove_fd_isset(reply, &rindex, &writefds),
-        alcove_fd_isset(reply, &rindex, &exceptfds)
+        alcove_fd_isset(reply, rlen, &rindex, &readfds),
+        alcove_fd_isset(reply, rlen, &rindex, &writefds),
+        alcove_fd_isset(reply, rlen, &rindex, &exceptfds)
     );
 
     return rindex;
@@ -271,7 +271,7 @@ alcove_read(alcove_state_t *ap, const char *arg, size_t len,
         return alcove_errno(reply, rlen, errno);
 
     ALCOVE_OK(reply, &rindex,
-        ei_encode_binary(reply, &rindex, buf, rv));
+        alcove_encode_binary(reply, rlen, &rindex, buf, rv));
 
     return rindex;
 }
@@ -311,7 +311,7 @@ alcove_write(alcove_state_t *ap, const char *arg, size_t len,
     }
     else {
         ALCOVE_OK(reply, &rindex,
-            ei_encode_longlong(reply, &rindex, rv));
+            alcove_encode_longlong(reply, rlen, &rindex, rv));
     }
 
     return rindex;
@@ -401,7 +401,7 @@ alcove_file_define(alcove_state_t *ap, const char *arg, size_t len,
     if (ei_decode_atom(arg, &index, flag) < 0)
         return -1;
 
-    ALCOVE_ERR(ei_encode_version(reply, &rindex));
+    ALCOVE_ERR(alcove_encode_version(reply, rlen, &rindex));
     ALCOVE_ERR(alcove_define(reply, &rindex, flag, alcove_file_constants));
     return rindex;
 }
@@ -481,7 +481,7 @@ alcove_list_to_fd_set(const char *arg, int *index, fd_set *fdset, int *nfds)
 }
 
     static int
-alcove_fd_isset(char *buf, int *index, fd_set *set)
+alcove_fd_isset(char *buf, size_t len, int *index, fd_set *set)
 {
     int fd = 0;
 
@@ -490,15 +490,15 @@ alcove_fd_isset(char *buf, int *index, fd_set *set)
 
     for (fd = FD_SETSIZE - 1; fd > 3; fd--) {
         if (FD_ISSET(fd, set)) {
-            if (ei_encode_list_header(buf, index, 1) < 0)
+            if (alcove_encode_list_header(buf, len, index, 1) < 0)
                 return -1;
 
-            if (ei_encode_long(buf, index, fd) < 0)
+            if (alcove_encode_long(buf, len, index, fd) < 0)
                 return -1;
         }
     }
 
-    if (ei_encode_empty_list(buf, index) < 0)
+    if (alcove_encode_empty_list(buf, len, index) < 0)
         return -1;
 
     return 0;

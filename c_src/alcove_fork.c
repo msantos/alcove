@@ -94,7 +94,7 @@ alcove_fork(alcove_state_t *ap, const char *arg, size_t len,
                 return alcove_errno(reply, rlen, errno);
 
             ALCOVE_OK(reply, &rindex,
-                ei_encode_long(reply, &rindex, pid));
+                alcove_encode_long(reply, rlen, &rindex, pid));
 
             return rindex;
     }
@@ -152,7 +152,7 @@ alcove_clone(alcove_state_t *ap, const char *arg, size_t len,
         return alcove_errno(reply, rlen, errno);
 
     ALCOVE_OK(reply, &rindex,
-        ei_encode_long(reply, &rindex, pid)
+        alcove_encode_long(reply, rlen, &rindex, pid)
     );
 
     return rindex;
@@ -265,7 +265,7 @@ alcove_clone_define(alcove_state_t *ap, const char *arg, size_t len,
     if (ei_decode_atom(arg, &index, flag) < 0)
         return -1;
 
-    ALCOVE_ERR(ei_encode_version(reply, &rindex));
+    ALCOVE_ERR(alcove_encode_version(reply, rlen, &rindex));
     ALCOVE_ERR(alcove_define(reply, &rindex, flag, alcove_clone_constants));
     return rindex;
 #else

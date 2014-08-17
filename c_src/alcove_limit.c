@@ -40,13 +40,13 @@ alcove_getrlimit(alcove_state_t *ap, const char *arg, size_t len,
     if (rv < 0)
         return  alcove_errno(reply, rlen, errno);
 
-    ALCOVE_ERR(ei_encode_version(reply, &rindex));
-    ALCOVE_ERR(ei_encode_tuple_header(reply, &rindex, 2));
-    ALCOVE_ERR(ei_encode_atom(reply, &rindex, "ok"));
-    ALCOVE_ERR(ei_encode_tuple_header(reply, &rindex, 3));
-    ALCOVE_ERR(ei_encode_atom(reply, &rindex, "alcove_rlimit"));
-    ALCOVE_ERR(ei_encode_ulonglong(reply, &rindex, rlim.rlim_cur));
-    ALCOVE_ERR(ei_encode_ulonglong(reply, &rindex, rlim.rlim_max));
+    ALCOVE_ERR(alcove_encode_version(reply, rlen, &rindex));
+    ALCOVE_ERR(alcove_encode_tuple_header(reply, rlen, &rindex, 2));
+    ALCOVE_ERR(alcove_encode_atom(reply, rlen, &rindex, "ok"));
+    ALCOVE_ERR(alcove_encode_tuple_header(reply, rlen, &rindex, 3));
+    ALCOVE_ERR(alcove_encode_atom(reply, rlen, &rindex, "alcove_rlimit"));
+    ALCOVE_ERR(alcove_encode_ulonglong(reply, rlen, &rindex, rlim.rlim_cur));
+    ALCOVE_ERR(alcove_encode_ulonglong(reply, rlen, &rindex, rlim.rlim_max));
 
     return rindex;
 }
@@ -116,7 +116,7 @@ alcove_rlimit_define(alcove_state_t *ap, const char *arg, size_t len,
     if (ei_decode_atom(arg, &index, name) < 0)
         return -1;
 
-    ALCOVE_ERR(ei_encode_version(reply, &rindex));
+    ALCOVE_ERR(alcove_encode_version(reply, rlen, &rindex));
     ALCOVE_ERR(alcove_define(reply, &rindex, name, alcove_rlimit_constants));
     return rindex;
 }
