@@ -26,6 +26,8 @@
 
 #include <sys/types.h>
 
+static int count_pid(alcove_state_t *ap, alcove_child_t *c,
+        void *arg1, void *arg2);
 static int cons_pid(alcove_state_t *ap, alcove_child_t *c,
         void *arg1, void *arg2);
 
@@ -80,6 +82,25 @@ alcove_pid(alcove_state_t *ap, const char *arg, size_t len,
         char *reply, size_t rlen)
 {
     int rindex = 0;
+    size_t count = 0;
+
+    /* Count the number of PIDs */
+    if (pid_foreach(ap, 0, &count, NULL, pid_not_equal, count_pid) < 0)
+        return -1;
+
+    /* Ensure the buffer is large enough to hold the PIDs
+     * version = 1 byte
+     *     list header = 5 bytes
+     *     tuple header = 5 bytes
+     *     atom = 1 byte
+     *     alcove_pid = 10 bytes
+     *     4 * int (7) = 28 bytes
+     * tail = 1 byte
+     *
+     * length = 1 + (count * 49) + 1
+     */
+    if (count * 50 > rlen)
+        return -1;
 
     if (ei_encode_version(reply, &rindex) < 0)
         return -1;
@@ -177,6 +198,13 @@ alcove_setopt(alcove_state_t *ap, const char *arg, size_t len,
 /*
  * Utility functions
  */
+    static int
+count_pid(alcove_state_t *ap, alcove_child_t *c, void *arg1, void *arg2)
+{
+    size_t *n = arg1;
+    *n += 1;
+    return 1;
+}
 
     static int
 cons_pid(alcove_state_t *ap, alcove_child_t *c, void *arg1, void *arg2)
@@ -184,7 +212,6 @@ cons_pid(alcove_state_t *ap, alcove_child_t *c, void *arg1, void *arg2)
     char *buf = arg1;
     int *index = arg2;
 
-    /* XXX can overflow buf */
     if (ei_encode_list_header(buf, index, 1) < 0)
         return -1;
 
