@@ -59,7 +59,7 @@ alcove_sethostname(alcove_state_t *ap, const char *arg, size_t len,
     int errnum = 0;
 
     /* hostname */
-    if (alcove_decode_iolist_to_binary(arg, &index, name, &nlen) < 0 ||
+    if (alcove_decode_iolist(arg, &index, name, &nlen) < 0 ||
             nlen == 0)
         return -1;
 

@@ -162,8 +162,7 @@ int pid_not_equal(pid_t p1, pid_t p2);
 
 int alcove_decode_int(const char *, int *, int *);
 int alcove_decode_uint(const char *, int *, u_int32_t *);
-ssize_t alcove_decode_iolist_to_binary(const char *buf, int *index,
-        char *res, size_t *rlen);
+int alcove_decode_iolist(const char *, int *, char *, size_t *);
 
 int alcove_encode_version(char *, size_t, int *);
 int alcove_encode_list_header(char *, size_t, int *, int);

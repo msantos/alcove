@@ -23,6 +23,7 @@ getpid/0
 getrlimit/1
 getsid/1
 getuid/0
+iolist_to_bin/1
 kill/2
 lseek/3
 mkdir/2

@@ -41,3 +41,18 @@ alcove_alloc(alcove_state_t *ap, const char *arg, size_t len,
 
     return rindex;
 }
+
+/* For testing conversion of iolists to binaries */
+    ssize_t
+alcove_iolist_to_bin(alcove_state_t *ap, const char *arg, size_t len,
+        char *reply, size_t rlen)
+{
+    int index = 0;
+    char buf[MAXMSGLEN] = {0};
+    size_t blen = sizeof(buf);
+
+    if (alcove_decode_iolist(arg, &index, buf, &blen) < 0)
+        return -1;
+
+    return alcove_mk_binary(reply, rlen, buf, blen);
+}

@@ -38,6 +38,7 @@ run(State) ->
     [
         msg(State),
         version(State),
+        iodata(State),
         pid(State),
         getpid(State),
         setopt(State),
@@ -136,6 +137,37 @@ msg(_) ->
 version(#state{pid = Drv}) ->
     Version = alcove:version(Drv),
     ?_assertEqual(true, is_binary(Version)).
+
+iodata(#state{pid = Drv}) ->
+    Iolist = ["0",1,"2",3,
+              [4,[5,6,<<7,8,9>>,["10"]]],
+              <<"1112, 13, 14, 15">>,
+              [16,17,"18,19,20"],
+              21,
+              <<22>>],
+
+    Reply0 = alcove:iolist_to_bin(Drv, Iolist),
+
+    % Valid iolists: binary, string, lists, bytes must be within a list
+    Reply1 = (catch alcove:iolist_to_bin(Drv, 10)),
+    Reply2 = (catch alcove:iolist_to_bin(Drv, [123456])),
+    Reply3 = alcove:iolist_to_bin(Drv, <<1,2,3,4,5,6>>),
+    Reply4 = alcove:iolist_to_bin(Drv, "ok"),
+
+    % Arbitrary implementation limit of 16 nested
+    % lists. iolist_to_binary/1 does not have this limitation.
+    Reply5 = alcove:iolist_to_bin(Drv, [[[[[[[[[[[[[[[["ok"]]]]]]]]]]]]]]]]),
+    Reply6 = (catch alcove:iolist_to_bin(Drv, [[[[[[[[[[[[[[[[["fail"]]]]]]]]]]]]]]]]])),
+
+    [
+        ?_assertEqual(Reply0, iolist_to_binary(Iolist)),
+        ?_assertMatch({'EXIT',{badarg,_}}, Reply1),
+        ?_assertMatch({'EXIT',{badarg,_}}, Reply2),
+        ?_assertEqual(<<1,2,3,4,5,6>>, Reply3),
+        ?_assertEqual(<<"ok">>, Reply4),
+        ?_assertEqual(<<"ok">>, Reply5),
+        ?_assertMatch({'EXIT',{badarg,_}}, Reply6)
+    ].
 
 pid(#state{pid = Drv}) ->
     Pids = alcove:pid(Drv),

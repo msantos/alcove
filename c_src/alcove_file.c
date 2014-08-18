@@ -43,7 +43,7 @@ alcove_open(alcove_state_t *ap, const char *arg, size_t len,
     int errnum = 0;
 
     /* pathname */
-    if (alcove_decode_iolist_to_binary(arg, &index, pathname, &plen) < 0 ||
+    if (alcove_decode_iolist(arg, &index, pathname, &plen) < 0 ||
             plen == 0)
         return -1;
 
@@ -301,7 +301,7 @@ alcove_write(alcove_state_t *ap, const char *arg, size_t len,
         return alcove_errno(reply, rlen, EBADF);
 
     /* buf */
-    if (alcove_decode_iolist_to_binary(arg, &index, buf, &buflen) < 0)
+    if (alcove_decode_iolist(arg, &index, buf, &buflen) < 0)
         return -1;
 
     rv = write(fd, buf, buflen);
@@ -333,7 +333,7 @@ alcove_chmod(alcove_state_t *ap, const char *arg, size_t len,
     int rv = 0;
 
     /* path */
-    if (alcove_decode_iolist_to_binary(arg, &index, path, &plen) < 0 ||
+    if (alcove_decode_iolist(arg, &index, path, &plen) < 0 ||
             plen == 0)
         return -1;
 
@@ -365,7 +365,7 @@ alcove_chown(alcove_state_t *ap, const char *arg, size_t len,
     int rv = 0;
 
     /* path */
-    if (alcove_decode_iolist_to_binary(arg, &index, path, &plen) < 0 ||
+    if (alcove_decode_iolist(arg, &index, path, &plen) < 0 ||
             plen == 0)
         return -1;
 

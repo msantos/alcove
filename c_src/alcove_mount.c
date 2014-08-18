@@ -42,16 +42,16 @@ alcove_mount(alcove_state_t *ap, const char *arg, size_t len,
     int rv = 0;
 
     /* source */
-    if (alcove_decode_iolist_to_binary(arg, &index, source, &slen) < 0)
+    if (alcove_decode_iolist(arg, &index, source, &slen) < 0)
         return -1;
 
     /* target */
-    if (alcove_decode_iolist_to_binary(arg, &index, target, &tlen) < 0 ||
+    if (alcove_decode_iolist(arg, &index, target, &tlen) < 0 ||
             tlen == 0)
         return -1;
 
     /* filesystemtype */
-    if (alcove_decode_iolist_to_binary(arg, &index, filesystemtype, &flen) < 0)
+    if (alcove_decode_iolist(arg, &index, filesystemtype, &flen) < 0)
         return -1;
 
     /* mountflags */
@@ -59,7 +59,7 @@ alcove_mount(alcove_state_t *ap, const char *arg, size_t len,
         return -1;
 
     /* data */
-    if (alcove_decode_iolist_to_binary(arg, &index, data, &dlen) < 0)
+    if (alcove_decode_iolist(arg, &index, data, &dlen) < 0)
         return -1;
 
 #ifdef __linux__
@@ -100,7 +100,7 @@ alcove_umount(alcove_state_t *ap, const char *arg, size_t len,
     int rv = 0;
 
     /* source */
-    if (alcove_decode_iolist_to_binary(arg, &index, source, &slen) < 0 ||
+    if (alcove_decode_iolist(arg, &index, source, &slen) < 0 ||
             slen == 0)
         return -1;
 

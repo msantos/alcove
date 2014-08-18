@@ -31,7 +31,7 @@ alcove_execvp(alcove_state_t *ap, const char *arg, size_t len,
     int errnum = 0;
 
     /* progname */
-    if (alcove_decode_iolist_to_binary(arg, &index, progname, &plen) ||
+    if (alcove_decode_iolist(arg, &index, progname, &plen) ||
             plen == 0)
         return -1;
 
@@ -65,7 +65,7 @@ alcove_execve(alcove_state_t *ap, const char *arg, size_t len,
     int errnum = 0;
 
     /* filename */
-    if (alcove_decode_iolist_to_binary(arg, &index, filename, &flen) ||
+    if (alcove_decode_iolist(arg, &index, filename, &flen) ||
             flen == 0)
         return -1;
 

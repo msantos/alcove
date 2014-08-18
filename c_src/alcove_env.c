@@ -54,7 +54,7 @@ alcove_getenv(alcove_state_t *ap, const char *arg, size_t len,
     char *value = NULL;
 
     /* name */
-    if (alcove_decode_iolist_to_binary(arg, &index, name, &namelen) < 0 ||
+    if (alcove_decode_iolist(arg, &index, name, &namelen) < 0 ||
             namelen == 0)
         return -1;
 
@@ -83,12 +83,12 @@ alcove_setenv(alcove_state_t *ap, const char *arg, size_t len,
     int rv = 0;
 
     /* name */
-    if (alcove_decode_iolist_to_binary(arg, &index, name, &namelen) < 0 ||
+    if (alcove_decode_iolist(arg, &index, name, &namelen) < 0 ||
             namelen == 0)
         return -1;
 
     /* value */
-    if (alcove_decode_iolist_to_binary(arg, &index, value, &valuelen) < 0)
+    if (alcove_decode_iolist(arg, &index, value, &valuelen) < 0)
         return -1;
 
     /* overwrite */
@@ -116,7 +116,7 @@ alcove_unsetenv(alcove_state_t *ap, const char *arg, size_t len,
     int rv = 0;
 
     /* name */
-    if (alcove_decode_iolist_to_binary(arg, &index, name, &namelen) < 0 ||
+    if (alcove_decode_iolist(arg, &index, name, &namelen) < 0 ||
             namelen == 0)
         return -1;
 
