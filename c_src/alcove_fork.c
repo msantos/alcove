@@ -114,7 +114,7 @@ alcove_clone(alcove_state_t *ap, const char *arg, size_t len,
 
     alcove_arg_t child_arg = {0};
     alcove_stdio_t fd = {{0}};
-    const size_t stack_size = 1024 * 1024;
+    struct rlimit stack_size = {0};
     char *child_stack = NULL;
     int flags = 0;
     pid_t pid = 0;
@@ -130,7 +130,10 @@ alcove_clone(alcove_state_t *ap, const char *arg, size_t len,
     if (alcove_decode_int(arg, &index, &flags) < 0)
         return -1;
 
-    child_stack = calloc(stack_size, 1);
+    if (getrlimit(RLIMIT_STACK, &stack_size) < 0)
+        return alcove_errno(reply, rlen, errno);
+
+    child_stack = calloc(stack_size.rlim_cur, 1);
     if (!child_stack)
         return alcove_errno(reply, rlen, errno);
 
@@ -140,7 +143,7 @@ alcove_clone(alcove_state_t *ap, const char *arg, size_t len,
     child_arg.ap = ap;
     child_arg.fd = &fd;
 
-    pid = clone(alcove_child_fun, child_stack + stack_size,
+    pid = clone(alcove_child_fun, child_stack + stack_size.rlim_cur,
             flags | SIGCHLD, &child_arg);
 
     if (pid < 0)

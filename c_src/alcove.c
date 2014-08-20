@@ -39,6 +39,8 @@ enum {
 #pragma message "Support for namespaces using clone(2) disabled"
 #endif
 
+static int alcove_set_rlimits(void);
+
 static int alcove_stdin(alcove_state_t *ap);
 static ssize_t alcove_msg_call(alcove_state_t *ap, unsigned char *buf,
         u_int16_t buflen);
@@ -102,6 +104,9 @@ main(int argc, char *argv[])
     ap->maxchild = ap->maxfd / 4 - 4;
     ap->maxforkdepth = MAXFORKDEPTH;
 
+    if (alcove_set_rlimits() < 0)
+        err(EXIT_FAILURE, "alcove_set_rlimits");
+
     while ( (ch = getopt(argc, argv, "ae:m:M:hs:S:v")) != -1) {
         switch (ch) {
             case 'e':
@@ -147,6 +152,31 @@ main(int argc, char *argv[])
 
     alcove_event_loop(ap);
     exit(0);
+}
+
+    static int
+alcove_set_rlimits(void)
+{
+    struct rlimit stack_size = {0};
+
+    if (getrlimit(RLIMIT_STACK, &stack_size) < 0)
+        return -1;
+
+    /* Reset an unlimited stack size to a default value. The default is
+     * set to 8Mb, the default for linux (_STK_LIM in linux/resources.h).
+     *
+     * The current value of RLIMIT_STACK is used for allocating for the
+     * stack of cloned processes.
+     *
+     */
+
+    if (stack_size.rlim_cur == RLIM_INFINITY) {
+        stack_size.rlim_cur = 8 * 1024 * 1024;
+        if (setrlimit(RLIMIT_STACK, &stack_size) < 0)
+            return -1;
+    }
+
+    return 0;
 }
 
     void
