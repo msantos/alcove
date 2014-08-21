@@ -55,12 +55,21 @@ stop(Drv) ->
 -spec call(ref(),[integer()],iodata(),timeout()) ->
     any().
 call(Drv, Pids, Data, Timeout) ->
-    true = send(Drv, Data),
-    reply(Drv, Pids, ?ALCOVE_MSG_CALL, Timeout).
+    case send(Drv, Data) of
+        true ->
+            reply(Drv, Pids, ?ALCOVE_MSG_CALL, Timeout);
+        Error ->
+            Error
+    end.
 
--spec send(ref(),iodata()) -> any().
+-spec send(ref(),iodata()) -> true | {error,closed} | badarg.
 send(Drv, Data) ->
-    gen_server:call(Drv, {send, Data}, infinity).
+    case iolist_size(Data) =< 16#ffff of
+        true ->
+            gen_server:call(Drv, {send, Data}, infinity);
+        false ->
+            badarg
+    end.
 
 -spec stdin(ref(),[integer()],iodata()) -> 'true'.
 stdin(Drv, [], Data) ->
