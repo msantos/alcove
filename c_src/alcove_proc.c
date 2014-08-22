@@ -58,7 +58,7 @@ alcove_prctl(alcove_state_t *ap, const char *arg, size_t len,
     int rv = 0;
 
     /* option */
-    if (alcove_decode_int(arg, &index, &option) < 0)
+    if (alcove_decode_int(arg, len, &index, &option) < 0)
         return -1;
 
     /* arg2, arg3, arg4, arg5 */
@@ -154,7 +154,7 @@ alcove_prctl_define(alcove_state_t *ap, const char *arg, size_t len,
     char name[MAXATOMLEN] = {0};
 
     /* name */
-    if (ei_decode_atom(arg, &index, name) < 0)
+    if (alcove_decode_atom(arg, len, &index, name) < 0)
         return -1;
 
     ALCOVE_ERR(alcove_encode_version(reply, rlen, &rindex));
@@ -179,7 +179,7 @@ alcove_getsid(alcove_state_t *ap, const char *arg, size_t len,
     pid_t rv = 0;
 
     /* pid */
-    if (alcove_decode_int(arg, &index, &pid) < 0)
+    if (alcove_decode_int(arg, len, &index, &pid) < 0)
         return -1;
 
     rv = getsid(pid);

@@ -21,7 +21,7 @@
 
 #include "alcove_file.h"
 
-static int alcove_list_to_fd_set(const char *arg, int *index,
+static int alcove_list_to_fd_set(const char *arg, size_t len, int *index,
         fd_set *fdset, int *nfds);
 static int alcove_fd_isset(char *buf, size_t len, int *index, fd_set *set);
 
@@ -48,11 +48,11 @@ alcove_open(alcove_state_t *ap, const char *arg, size_t len,
         return -1;
 
     /* flags */
-    if (alcove_decode_int(arg, &index, &flags) < 0)
+    if (alcove_decode_int(arg, len, &index, &flags) < 0)
         return -1;
 
     /* mode */
-    if (alcove_decode_uint(arg, &index, (u_int32_t *)&mode) < 0)
+    if (alcove_decode_uint(arg, len, &index, (u_int32_t *)&mode) < 0)
         return -1;
 
     fd = open(pathname, flags, mode);
@@ -93,7 +93,7 @@ alcove_close(alcove_state_t *ap, const char *arg, size_t len,
     int fd = 0;
 
     /* fd */
-    if (alcove_decode_int(arg, &index, &fd) < 0)
+    if (alcove_decode_int(arg, len, &index, &fd) < 0)
         return -1;
 
     /* stdin, stdout, stderr, ctl are reserved */
@@ -130,15 +130,15 @@ alcove_select(alcove_state_t *ap, const char *arg, size_t len,
     int rv = 0;
 
     /* readfds */
-    if (alcove_list_to_fd_set(arg, &index, &readfds, &nfds) < 0)
+    if (alcove_list_to_fd_set(arg, len, &index, &readfds, &nfds) < 0)
         return alcove_errno(reply, rlen, EBADF);
 
     /* writefds */
-    if (alcove_list_to_fd_set(arg, &index, &writefds, &nfds) < 0)
+    if (alcove_list_to_fd_set(arg, len, &index, &writefds, &nfds) < 0)
         return alcove_errno(reply, rlen, EBADF);
 
     /* exceptfds */
-    if (alcove_list_to_fd_set(arg, &index, &exceptfds, &nfds) < 0)
+    if (alcove_list_to_fd_set(arg, len, &index, &exceptfds, &nfds) < 0)
         return alcove_errno(reply, rlen, EBADF);
 
     /* timeout */
@@ -161,7 +161,7 @@ alcove_select(alcove_state_t *ap, const char *arg, size_t len,
             timeout = &tv;
 
             /* 'alcove_timeval' */
-            if (ei_decode_atom(arg, &index, buf) < 0)
+            if (alcove_decode_atom(arg, len, &index, buf) < 0)
                 return -1;
 
             if (strncmp(buf, "alcove_timeval", 14))
@@ -211,7 +211,7 @@ alcove_lseek(alcove_state_t *ap, const char *arg, size_t len,
     int whence = 0;
 
     /* fd */
-    if (alcove_decode_int(arg, &index, &fd) < 0)
+    if (alcove_decode_int(arg, len, &index, &fd) < 0)
         return -1;
 
     /* stdin, stdout, stderr, ctl are reserved */
@@ -223,7 +223,7 @@ alcove_lseek(alcove_state_t *ap, const char *arg, size_t len,
         return -1;
 
     /* whence */
-    if (alcove_decode_int(arg, &index, &whence) < 0)
+    if (alcove_decode_int(arg, len, &index, &whence) < 0)
         return -1;
 
     return (lseek(fd, offset, whence) == -1)
@@ -249,7 +249,7 @@ alcove_read(alcove_state_t *ap, const char *arg, size_t len,
     int rv = 0;
 
     /* fd */
-    if (alcove_decode_int(arg, &index, &fd) < 0)
+    if (alcove_decode_int(arg, len, &index, &fd) < 0)
         return -1;
 
     /* stdin, stdout, stderr, ctl are reserved */
@@ -293,7 +293,7 @@ alcove_write(alcove_state_t *ap, const char *arg, size_t len,
     int rv = 0;
 
     /* fd */
-    if (alcove_decode_int(arg, &index, &fd) < 0)
+    if (alcove_decode_int(arg, len, &index, &fd) < 0)
         return -1;
 
     /* stdin, stdout, stderr, ctl are reserved */
@@ -338,7 +338,7 @@ alcove_chmod(alcove_state_t *ap, const char *arg, size_t len,
         return -1;
 
     /* mode */
-    if (alcove_decode_uint(arg, &index, (u_int32_t *)&mode) < 0)
+    if (alcove_decode_uint(arg, len, &index, (u_int32_t *)&mode) < 0)
         return -1;
 
     rv = chmod(path, mode);
@@ -370,11 +370,11 @@ alcove_chown(alcove_state_t *ap, const char *arg, size_t len,
         return -1;
 
     /* owner */
-    if (alcove_decode_uint(arg, &index, &owner) < 0)
+    if (alcove_decode_uint(arg, len, &index, &owner) < 0)
         return -1;
 
     /* group */
-    if (alcove_decode_uint(arg, &index, &group) < 0)
+    if (alcove_decode_uint(arg, len, &index, &group) < 0)
         return -1;
 
     rv = chown(path, owner, group);
@@ -398,7 +398,7 @@ alcove_file_define(alcove_state_t *ap, const char *arg, size_t len,
     char flag[MAXATOMLEN] = {0};
 
     /* flag */
-    if (ei_decode_atom(arg, &index, flag) < 0)
+    if (alcove_decode_atom(arg, len, &index, flag) < 0)
         return -1;
 
     ALCOVE_ERR(alcove_encode_version(reply, rlen, &rindex));
@@ -411,7 +411,8 @@ alcove_file_define(alcove_state_t *ap, const char *arg, size_t len,
  *
  */
     static int
-alcove_list_to_fd_set(const char *arg, int *index, fd_set *fdset, int *nfds)
+alcove_list_to_fd_set(const char *arg, size_t len, int *index,
+        fd_set *fdset, int *nfds)
 {
     int type = 0;
     int arity = 0;
@@ -451,7 +452,7 @@ alcove_list_to_fd_set(const char *arg, int *index, fd_set *fdset, int *nfds)
                 return -1;
 
             for (i = 0; i < arity; i++) {
-                if (alcove_decode_int(arg, index, &fd) < 0)
+                if (alcove_decode_int(arg, len, index, &fd) < 0)
                     return -1;
 
                 /* stdin, stdout, stderr, ctl are reserved */

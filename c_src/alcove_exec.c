@@ -99,7 +99,7 @@ alcove_exit(alcove_state_t *ap, const char *arg, size_t len,
     int status = 0;
 
     /* status */
-    if (alcove_decode_int(arg, &index, &status) < 0)
+    if (alcove_decode_int(arg, len, &index, &status) < 0)
         return -1;
 
     exit(status);

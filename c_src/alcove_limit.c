@@ -32,7 +32,7 @@ alcove_getrlimit(alcove_state_t *ap, const char *arg, size_t len,
     int rv = 0;
 
     /* resource */
-    if (alcove_decode_int(arg, &index, &resource) < 0)
+    if (alcove_decode_int(arg, len, &index, &resource) < 0)
         return -1;
 
     rv = getrlimit(resource, &rlim);
@@ -69,7 +69,7 @@ alcove_setrlimit(alcove_state_t *ap, const char *arg, size_t len,
     int rv = 0;
 
     /* resource */
-    if (alcove_decode_int(arg, &index, &resource) < 0)
+    if (alcove_decode_int(arg, len, &index, &resource) < 0)
         return -1;
 
     /* {alcove_rlimit, rlim_cur, rlim_max} */
@@ -77,7 +77,7 @@ alcove_setrlimit(alcove_state_t *ap, const char *arg, size_t len,
         return -1;
 
     /* 'alcove_rlimit' */
-    if (ei_decode_atom(arg, &index, atom) < 0 ||
+    if (alcove_decode_atom(arg, len, &index, atom) < 0 ||
             strncmp(atom, "alcove_rlimit", 13))
         return -1;
 
@@ -113,7 +113,7 @@ alcove_rlimit_define(alcove_state_t *ap, const char *arg, size_t len,
     char name[MAXATOMLEN] = {0};
 
     /* name */
-    if (ei_decode_atom(arg, &index, name) < 0)
+    if (alcove_decode_atom(arg, len, &index, name) < 0)
         return -1;
 
     ALCOVE_ERR(alcove_encode_version(reply, rlen, &rindex));

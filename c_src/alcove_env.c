@@ -92,7 +92,7 @@ alcove_setenv(alcove_state_t *ap, const char *arg, size_t len,
         return -1;
 
     /* overwrite */
-    if (alcove_decode_int(arg, &index, &overwrite) < 0)
+    if (alcove_decode_int(arg, len, &index, &overwrite) < 0)
         return -1;
 
     rv = setenv(name, value, overwrite);

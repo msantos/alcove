@@ -129,7 +129,7 @@ alcove_mount_define(alcove_state_t *ap, const char *arg, size_t len,
     char name[MAXATOMLEN] = {0};
 
     /* flag */
-    if (ei_decode_atom(arg, &index, name) < 0)
+    if (alcove_decode_atom(arg, len, &index, name) < 0)
         return -1;
 
     ALCOVE_ERR(alcove_encode_version(reply, rlen, &rindex));

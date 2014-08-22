@@ -33,11 +33,11 @@ alcove_kill(alcove_state_t *ap, const char *arg, size_t len,
     int rv = 0;
 
     /* pid */
-    if (alcove_decode_int(arg, &index, &pid) < 0)
+    if (alcove_decode_int(arg, len, &index, &pid) < 0)
         return -1;
 
     /* signal */
-    if (alcove_decode_int(arg, &index, &sig) < 0)
+    if (alcove_decode_int(arg, len, &index, &sig) < 0)
         return -1;
 
     rv = kill(pid, sig);
@@ -63,14 +63,14 @@ alcove_sigaction(alcove_state_t *ap, const char *arg, size_t len,
     int rv = 0;
 
     /* signum */
-    if (alcove_decode_int(arg, &index, &signum) < 0)
+    if (alcove_decode_int(arg, len, &index, &signum) < 0)
         return -1;
 
     if (signum == SIGCHLD)
         return alcove_errno(reply, rlen, EINVAL);
 
     /* handler */
-    if (ei_decode_atom(arg, &index, handler) < 0)
+    if (alcove_decode_atom(arg, len, &index, handler) < 0)
         return -1;
 
     if (!strncmp(handler, "dfl", 3)) {
@@ -107,7 +107,7 @@ alcove_signal_define(alcove_state_t *ap, const char *arg, size_t len,
     char name[MAXATOMLEN] = {0};
 
     /* constant */
-    if (ei_decode_atom(arg, &index, name) < 0)
+    if (alcove_decode_atom(arg, len, &index, name) < 0)
         return -1;
 
     ALCOVE_ERR(alcove_encode_version(reply, rlen, &rindex));
@@ -126,7 +126,7 @@ alcove_signal_constant(alcove_state_t *ap, const char *arg, size_t len,
     int signum = 0;
 
     /* signum */
-    if (alcove_decode_int(arg, &index, &signum) < 0)
+    if (alcove_decode_int(arg, len, &index, &signum) < 0)
         return -1;
 
     ALCOVE_ERR(alcove_encode_version(reply, rlen, &rindex));

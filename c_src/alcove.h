@@ -160,8 +160,11 @@ int pid_foreach(alcove_state_t *ap, pid_t pid, void *arg1, void *arg2,
 int pid_equal(pid_t p1, pid_t p2);
 int pid_not_equal(pid_t p1, pid_t p2);
 
-int alcove_decode_int(const char *, int *, int *);
-int alcove_decode_uint(const char *, int *, u_int32_t *);
+int alcove_decode_int(const char *, size_t, int *, int *);
+int alcove_decode_uint(const char *, size_t, int *, u_int32_t *);
+int alcove_decode_long(const char *, size_t, int *, long *);
+int alcove_decode_ulong(const char *, size_t, int *, unsigned long *);
+int alcove_decode_atom(const char *, size_t, int *, char *);
 int alcove_decode_iolist(const char *, int *, char *, size_t *);
 
 int alcove_encode_version(char *, size_t, int *);

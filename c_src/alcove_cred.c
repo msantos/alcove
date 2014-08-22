@@ -50,7 +50,7 @@ alcove_setgid(alcove_state_t *ap, const char *arg, size_t len,
     int rv = 0;
 
     /* gid */
-    if (alcove_decode_uint(arg, &index, &gid) < 0)
+    if (alcove_decode_uint(arg, len, &index, &gid) < 0)
         return -1;
 
     rv = setgid(gid);
@@ -73,7 +73,7 @@ alcove_setuid(alcove_state_t *ap, const char *arg, size_t len,
     int rv = 0;
 
     /* uid */
-    if (alcove_decode_uint(arg, &index, &uid) < 0)
+    if (alcove_decode_uint(arg, len, &index, &uid) < 0)
         return -1;
 
     rv = setuid(uid);

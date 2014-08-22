@@ -19,14 +19,14 @@ int alcove_decode_iolist_internal(const char *buf, int *index,
         char *res, size_t rlen, int *rindex, int depth);
 
     int
-alcove_decode_int(const char *buf, int *index, int *n)
+alcove_decode_int(const char *buf, size_t len, int *index, int *n)
 {
     union {
         int i;
         long l;
     } val;
 
-    if (ei_decode_long(buf, index, &val.l) < 0)
+    if (alcove_decode_long(buf, len, index, &val.l) < 0)
         return -1;
 
     *n = val.i;
@@ -35,19 +35,108 @@ alcove_decode_int(const char *buf, int *index, int *n)
 }
 
     int
-alcove_decode_uint(const char *buf, int *index, u_int32_t *n)
+alcove_decode_uint(const char *buf, size_t len, int *index, u_int32_t *n)
 {
     union {
         u_int32_t i;
         unsigned long l;
     } val;
 
-    if (ei_decode_ulong(buf, index, &val.l) < 0)
+    if (alcove_decode_ulong(buf, len, index, &val.l) < 0)
         return -1;
 
     *n = val.i;
 
     return 0;
+}
+
+    int
+alcove_decode_long(const char *buf, size_t len, int *index, long *p)
+{
+    int type = 0;
+    int arity = 0;
+    int n = 0;
+
+    if (*index < 0 || *index >= 0xffff || *index >= len)
+        return -1;
+
+    if (ei_get_type(buf, index, &type, &arity) < 0)
+        return -1;
+
+    switch (type) {
+        case ERL_SMALL_INTEGER_EXT:
+            n = 1;
+            break;
+
+        case ERL_INTEGER_EXT:
+            n = 4;
+            break;
+
+        default:
+            if (arity == 0)
+                return -1;
+
+            break;
+    }
+
+    if (*index + n > len)
+        return -1;
+
+    return ei_decode_long(buf, index, p);
+}
+
+    int
+alcove_decode_ulong(const char *buf, size_t len, int *index, unsigned long *p)
+{
+    int type = 0;
+    int arity = 0;
+    int n = 0;
+
+    if (*index < 0 || *index >= 0xffff || *index >= len)
+        return -1;
+
+    if (ei_get_type(buf, index, &type, &arity) < 0)
+        return -1;
+
+    switch (type) {
+        case ERL_SMALL_INTEGER_EXT:
+            n = 1;
+            break;
+
+        case ERL_INTEGER_EXT:
+            n = 4;
+            break;
+
+        default:
+            if (arity == 0)
+                return -1;
+
+            break;
+    }
+
+    if (*index + n > len)
+        return -1;
+
+    return ei_decode_ulong(buf, index, p);
+}
+
+    int
+alcove_decode_atom(const char *buf, size_t len, int *index, char *p)
+{
+    int type = 0;
+    int arity = 0;
+
+    if (*index < 0 || *index >= 0xffff || *index >= len)
+        return -1;
+
+    if (ei_get_type(buf, index, &type, &arity) < 0)
+        return -1;
+
+    if (*index + arity > len)
+        return -1;
+
+    /* ei_decode_atom will return an error if p >= MAXATOMLEN */
+    return ei_decode_atom(buf, index, p);
 }
 
     int

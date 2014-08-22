@@ -124,7 +124,7 @@ alcove_getopt(alcove_state_t *ap, const char *arg, size_t len,
     int val = -1;
 
     /* opt */
-    if (ei_decode_atom(arg, &index, opt) < 0)
+    if (alcove_decode_atom(arg, len, &index, opt) < 0)
         return -1;
 
     if (!strncmp(opt, "verbose", 7)) {
@@ -164,11 +164,11 @@ alcove_setopt(alcove_state_t *ap, const char *arg, size_t len,
     u_int32_t val = 0;
 
     /* opt */
-    if (ei_decode_atom(arg, &index, opt) < 0)
+    if (alcove_decode_atom(arg, len, &index, opt) < 0)
         return -1;
 
     /* val */
-    if (alcove_decode_uint(arg, &index, &val) < 0)
+    if (alcove_decode_uint(arg, len, &index, &val) < 0)
         return -1;
 
     if (!strncmp(opt, "verbose", 7)) {
