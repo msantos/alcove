@@ -538,7 +538,7 @@ alcove_list_to_buf(const char *arg, int *index, size_t *len,
                 if (ei_decode_atom(parg, &pindex, tmp) < 0)
                     return NULL;
 
-                if (strncmp(tmp, "ptr", 3))
+                if (strcmp(tmp, "ptr"))
                     return NULL;
 
                 if (ei_get_type(parg, &pindex, &type, &parity) < 0)
@@ -547,7 +547,8 @@ alcove_list_to_buf(const char *arg, int *index, size_t *len,
                 switch (type) {
                     case ERL_SMALL_INTEGER_EXT:
                     case ERL_INTEGER_EXT:
-                        if (ei_decode_ulong(parg, &pindex, &val) < 0)
+                        if (ei_decode_ulong(parg, &pindex, &val) < 0 ||
+                                val > MAXMSGLEN)
                             return NULL;
 
                         n += sizeof(void *);
@@ -555,7 +556,7 @@ alcove_list_to_buf(const char *arg, int *index, size_t *len,
 
                     case ERL_BINARY_EXT:
                         if (ei_decode_binary(parg, &pindex,
-                                    tmp, &size) < 0)
+                                    tmp, &size) < 0 || size > MAXMSGLEN)
                             return NULL;
 
                         n += sizeof(void *);
