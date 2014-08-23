@@ -57,7 +57,7 @@ alcove_decode_long(const char *buf, size_t len, int *index, long *p)
     int arity = 0;
     int n = 0;
 
-    if (*index < 0 || *index >= 0xffff || *index >= len)
+    if (*index < 0 || *index >= MAXMSGLEN || *index >= len)
         return -1;
 
     if (ei_get_type(buf, index, &type, &arity) < 0)
@@ -92,7 +92,7 @@ alcove_decode_ulong(const char *buf, size_t len, int *index, unsigned long *p)
     int arity = 0;
     int n = 0;
 
-    if (*index < 0 || *index >= 0xffff || *index >= len)
+    if (*index < 0 || *index >= MAXMSGLEN || *index >= len)
         return -1;
 
     if (ei_get_type(buf, index, &type, &arity) < 0)
@@ -126,7 +126,7 @@ alcove_decode_atom(const char *buf, size_t len, int *index, char *p)
     int type = 0;
     int arity = 0;
 
-    if (*index < 0 || *index >= 0xffff || *index >= len)
+    if (*index < 0 || *index >= MAXMSGLEN || *index >= len)
         return -1;
 
     if (ei_get_type(buf, index, &type, &arity) < 0)
@@ -398,30 +398,31 @@ alcove_malloc(ssize_t size)
 }
 
     int
-alcove_define(char *buf, int *index, char *name, alcove_define_t *constants)
+alcove_define(char *buf, size_t len, int *index, char *name,
+        alcove_define_t *constants)
 {
     alcove_define_t *dp = NULL;
 
     for (dp = constants; dp->name != NULL; dp++) {
         if (!strcmp(name, dp->name))
-            return ei_encode_ulonglong(buf, index, dp->val);
+            return alcove_encode_ulonglong(buf, len, index, dp->val);
     }
 
-    return ei_encode_atom(buf, index, "false");
+    return alcove_encode_atom(buf, len, index, "false");
 }
 
     int
-alcove_constant(char *buf, int *index, u_int64_t val,
+alcove_constant(char *buf, size_t len, int *index, u_int64_t val,
         alcove_define_t *constants)
 {
     alcove_define_t *dp = NULL;
 
     for (dp = constants; dp->name != NULL; dp++) {
         if (val == dp->val)
-            return ei_encode_atom(buf, index, dp->name);
+            return alcove_encode_atom(buf, len, index, dp->name);
     }
 
-    return ei_encode_atom(buf, index, "false");
+    return alcove_encode_atom(buf, len, index, "false");
 }
 
     char **
@@ -503,7 +504,7 @@ alcove_list_to_buf(const char *arg, int *index, size_t *len,
     if (ei_decode_list_header(arg, index, &arity) < 0)
         return NULL;
 
-    if (arity < 0 || arity >= 0xffff)
+    if (arity < 0 || arity >= MAXMSGLEN)
         return NULL;
 
     parg = arg;
@@ -633,23 +634,24 @@ alcove_list_to_buf(const char *arg, int *index, size_t *len,
 }
 
     int
-alcove_buf_to_list(char *reply, int *rindex, const char *buf, size_t len,
+alcove_encode_buf_to_list(char *reply, size_t rlen, int *rindex,
+        const char *buf, size_t len,
         alcove_alloc_t *ptr, ssize_t nptr)
 {
     int i = 0;
     size_t offset = 0;
 
-    if (ei_encode_list_header(reply, rindex, nptr) < 0)
+    if (alcove_encode_list_header(reply, rlen, rindex, nptr) < 0)
         return -1;
 
     for ( ; i < nptr; i++) {
         if (ptr[i].p) {
             /* Allocated buffer */
-            if (ei_encode_tuple_header(reply, rindex, 2) < 0)
+            if (alcove_encode_tuple_header(reply, rlen, rindex, 2) < 0)
                 return -1;
-            if (ei_encode_atom(reply, rindex, "ptr") < 0)
+            if (alcove_encode_atom(reply, rlen, rindex, "ptr") < 0)
                 return -1;
-            if (ei_encode_binary(reply, rindex, ptr[i].p,
+            if (alcove_encode_binary(reply, rlen, rindex, ptr[i].p,
                         ptr[i].len) < 0)
                 return -1;
             free(ptr[i].p);
@@ -657,13 +659,13 @@ alcove_buf_to_list(char *reply, int *rindex, const char *buf, size_t len,
         }
         else {
             /* Static binary */
-            if (ei_encode_binary(reply, rindex, buf+offset, ptr[i].len) < 0)
+            if (alcove_encode_binary(reply, rlen, rindex, buf+offset, ptr[i].len) < 0)
                 return -1;
             offset += ptr[i].len;
         }
     }
 
-    if (ei_encode_empty_list(reply, rindex) < 0)
+    if (alcove_encode_empty_list(reply, rlen, rindex) < 0)
         return -1;
 
     return 0;
@@ -676,7 +678,7 @@ alcove_encode_version(char *buf, size_t len, int *index)
 {
     int n = *index;
 
-    if (*index < 0 || *index > 0xffff)
+    if (*index < 0 || *index > MAXMSGLEN)
         return -1;
 
     if (ei_encode_version(NULL, &n) < 0)
@@ -693,7 +695,7 @@ alcove_encode_list_header(char *buf, size_t len, int *index, int arity)
 {
     int n = *index;
 
-    if (*index < 0 || *index > 0xffff)
+    if (*index < 0 || *index > MAXMSGLEN)
         return -1;
 
     if (ei_encode_list_header(NULL, &n, arity) < 0)
@@ -710,7 +712,7 @@ alcove_encode_empty_list(char *buf, size_t len, int *index)
 {
     int n = *index;
 
-    if (*index < 0 || *index > 0xffff)
+    if (*index < 0 || *index > MAXMSGLEN)
         return -1;
 
     if (ei_encode_empty_list(NULL, &n) < 0)
@@ -727,7 +729,7 @@ alcove_encode_tuple_header(char *buf, size_t len, int *index, int arity)
 {
     int n = *index;
 
-    if (*index < 0 || *index > 0xffff)
+    if (*index < 0 || *index > MAXMSGLEN)
         return -1;
 
     if (ei_encode_tuple_header(NULL, &n, arity) < 0)
@@ -744,7 +746,7 @@ alcove_encode_long(char *buf, size_t len, int *index, long x)
 {
     int n = *index;
 
-    if (*index < 0 || *index > 0xffff)
+    if (*index < 0 || *index > MAXMSGLEN)
         return -1;
 
     if (ei_encode_long(NULL, &n, x) < 0)
@@ -761,7 +763,7 @@ alcove_encode_ulong(char *buf, size_t len, int *index, unsigned long x)
 {
     int n = *index;
 
-    if (*index < 0 || *index > 0xffff)
+    if (*index < 0 || *index > MAXMSGLEN)
         return -1;
 
     if (ei_encode_ulong(NULL, &n, x) < 0)
@@ -778,7 +780,7 @@ alcove_encode_longlong(char *buf, size_t len, int *index, long long x)
 {
     int n = *index;
 
-    if (*index < 0 || *index > 0xffff)
+    if (*index < 0 || *index > MAXMSGLEN)
         return -1;
 
     if (ei_encode_longlong(NULL, &n, x) < 0)
@@ -795,7 +797,7 @@ alcove_encode_ulonglong(char *buf, size_t len, int *index, unsigned long long x)
 {
     int n = *index;
 
-    if (*index < 0 || *index > 0xffff)
+    if (*index < 0 || *index > MAXMSGLEN)
         return -1;
 
     if (ei_encode_ulonglong(NULL, &n, x) < 0)
@@ -812,7 +814,7 @@ alcove_encode_atom(char *buf, size_t len, int *index, const char *p)
 {
     int n = *index;
 
-    if (*index < 0 || *index > 0xffff)
+    if (*index < 0 || *index > MAXMSGLEN)
         return -1;
 
     if (ei_encode_atom(NULL, &n, p) < 0)
@@ -829,7 +831,7 @@ alcove_encode_binary(char *buf, size_t len, int *index, const void *p, long plen
 {
     int n = *index;
 
-    if (*index < 0 || *index > 0xffff)
+    if (*index < 0 || *index > MAXMSGLEN)
         return -1;
 
     if (ei_encode_binary(NULL, &n, p, plen) < 0)

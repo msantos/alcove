@@ -111,7 +111,8 @@ alcove_signal_define(alcove_state_t *ap, const char *arg, size_t len,
         return -1;
 
     ALCOVE_ERR(alcove_encode_version(reply, rlen, &rindex));
-    ALCOVE_ERR(alcove_define(reply, &rindex, name, alcove_signal_constants));
+    ALCOVE_ERR(alcove_define(reply, rlen, &rindex,
+                name, alcove_signal_constants));
 
     return rindex;
 }
@@ -130,7 +131,7 @@ alcove_signal_constant(alcove_state_t *ap, const char *arg, size_t len,
         return -1;
 
     ALCOVE_ERR(alcove_encode_version(reply, rlen, &rindex));
-    ALCOVE_ERR(alcove_constant(reply, &rindex,
+    ALCOVE_ERR(alcove_constant(reply, rlen, &rindex,
                 signum, alcove_signal_constants));
 
     return rindex;

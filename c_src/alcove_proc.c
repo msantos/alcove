@@ -118,7 +118,7 @@ alcove_prctl(alcove_state_t *ap, const char *arg, size_t len,
                 ALCOVE_ERR(alcove_encode_ulonglong(reply, rlen, &rindex, prarg[i].arg));
                 break;
             case ALCOVE_PRARG_CSTRUCT:
-                ALCOVE_ERR(alcove_buf_to_list(reply, &rindex,
+                ALCOVE_ERR(alcove_encode_buf_to_list(reply, rlen, &rindex,
                             prarg[i].data, prarg[i].len,
                             elem[i], nelem[i]));
                 free(prarg[i].data);
@@ -158,7 +158,8 @@ alcove_prctl_define(alcove_state_t *ap, const char *arg, size_t len,
         return -1;
 
     ALCOVE_ERR(alcove_encode_version(reply, rlen, &rindex));
-    ALCOVE_ERR(alcove_define(reply, &rindex, name, alcove_prctl_constants));
+    ALCOVE_ERR(alcove_define(reply, rlen, &rindex,
+                name, alcove_prctl_constants));
     return rindex;
 #else
     return alcove_mk_atom(reply, rlen, "false");

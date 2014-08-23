@@ -34,7 +34,7 @@ alcove_alloc(alcove_state_t *ap, const char *arg, size_t len,
     ALCOVE_TUPLE3(reply, &rindex,
         "ok",
         alcove_encode_binary(reply, rlen, &rindex, buf, size),
-        alcove_buf_to_list(reply, &rindex, buf, size, elem, nelem)
+        alcove_encode_buf_to_list(reply, rlen, &rindex, buf, size, elem, nelem)
     );
 
     free(buf);

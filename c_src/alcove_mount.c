@@ -133,6 +133,7 @@ alcove_mount_define(alcove_state_t *ap, const char *arg, size_t len,
         return -1;
 
     ALCOVE_ERR(alcove_encode_version(reply, rlen, &rindex));
-    ALCOVE_ERR(alcove_define(reply, &rindex, name, alcove_mount_constants));
+    ALCOVE_ERR(alcove_define(reply, rlen, &rindex,
+                name, alcove_mount_constants));
     return rindex;
 }

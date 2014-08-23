@@ -31,6 +31,6 @@ done < $PROTO
 cat<< 'EOF'
 void *alcove_list_to_buf(const char *, int *, size_t *,
     alcove_alloc_t **, ssize_t *);
-int alcove_buf_to_list(char *, int *, const char *, size_t,
+int alcove_encode_buf_to_list(char *, size_t, int *, const char *, size_t,
     alcove_alloc_t *, ssize_t);
 EOF

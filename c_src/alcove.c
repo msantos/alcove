@@ -330,6 +330,9 @@ alcove_msg_call(alcove_state_t *ap, unsigned char *buf, u_int16_t buflen)
     rlen = alcove_call(ap, call, (const char *)buf, buflen,
             reply, sizeof(reply));
 
+    /* Must crash on error. The port may have allocated memory or
+     * performed some other destructive action.
+     */
     if (rlen < 0)
         return -1;
 
