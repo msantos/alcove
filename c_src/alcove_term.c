@@ -449,8 +449,8 @@ alcove_list_to_buf(const char *arg, size_t len, int *index, size_t *buflen,
     int arity = 0;
     long size = 0;
 
-    int pindex = 0;
-    int parity = 0;
+    int tmp_index = 0;
+    int tmp_arity = 0;
 
     char *buf = NULL;
     char *pbuf = NULL;
@@ -469,20 +469,20 @@ alcove_list_to_buf(const char *arg, size_t len, int *index, size_t *buflen,
     if (arity < 0 || arity >= MAXMSGLEN)
         return NULL;
 
-    pindex = *index;
-    parity = arity;
+    tmp_index = *index;
+    tmp_arity = arity;
 
     /* Calculate the size required */
     for (i = 0; i < arity; i++) {
-        if (alcove_get_type(arg, len, &pindex, &type, &parity) < 0)
+        if (alcove_get_type(arg, len, &tmp_index, &type, &tmp_arity) < 0)
             return NULL;
 
         switch (type) {
             case ERL_BINARY_EXT:
-                if (parity > sizeof(tmp))
+                if (tmp_arity > sizeof(tmp))
                     return NULL;
 
-                if (ei_decode_binary(arg, &pindex, tmp, &size) < 0)
+                if (ei_decode_binary(arg, &tmp_index, tmp, &size) < 0)
                     return NULL;
 
                 n += size;
@@ -490,25 +490,25 @@ alcove_list_to_buf(const char *arg, size_t len, int *index, size_t *buflen,
 
             case ERL_SMALL_TUPLE_EXT:
             case ERL_LARGE_TUPLE_EXT:
-                if (parity != 2)
+                if (tmp_arity != 2)
                     return NULL;
 
-                if (ei_decode_tuple_header(arg, &pindex, &parity) < 0)
+                if (ei_decode_tuple_header(arg, &tmp_index, &tmp_arity) < 0)
                     return NULL;
 
-                if (ei_decode_atom(arg, &pindex, tmp) < 0)
+                if (ei_decode_atom(arg, &tmp_index, tmp) < 0)
                     return NULL;
 
                 if (strcmp(tmp, "ptr"))
                     return NULL;
 
-                if (ei_get_type(arg, &pindex, &type, &parity) < 0)
+                if (ei_get_type(arg, &tmp_index, &type, &tmp_arity) < 0)
                     return NULL;
 
                 switch (type) {
                     case ERL_SMALL_INTEGER_EXT:
                     case ERL_INTEGER_EXT:
-                        if (ei_decode_ulong(arg, &pindex, &val) < 0 ||
+                        if (ei_decode_ulong(arg, &tmp_index, &val) < 0 ||
                                 val > MAXMSGLEN)
                             return NULL;
 
@@ -516,7 +516,7 @@ alcove_list_to_buf(const char *arg, size_t len, int *index, size_t *buflen,
                         break;
 
                     case ERL_BINARY_EXT:
-                        if (ei_decode_binary(arg, &pindex,
+                        if (ei_decode_binary(arg, &tmp_index,
                                     tmp, &size) < 0 || size > MAXMSGLEN)
                             return NULL;
 
@@ -543,7 +543,7 @@ alcove_list_to_buf(const char *arg, size_t len, int *index, size_t *buflen,
 
     /* Copy the list contents */
     for (i = 0; i < arity; i++) {
-        (void)ei_get_type(arg, index, &type, &parity);
+        (void)ei_get_type(arg, index, &type, &tmp_arity);
 
         switch (type) {
             case ERL_BINARY_EXT:
@@ -555,9 +555,9 @@ alcove_list_to_buf(const char *arg, size_t len, int *index, size_t *buflen,
 
             case ERL_SMALL_TUPLE_EXT:
             case ERL_LARGE_TUPLE_EXT:
-                (void)ei_decode_tuple_header(arg, index, &parity);
+                (void)ei_decode_tuple_header(arg, index, &tmp_arity);
                 (void)ei_decode_atom(arg, index, tmp);
-                (void)ei_get_type(arg, index, &type, &parity);
+                (void)ei_get_type(arg, index, &type, &tmp_arity);
 
                 switch (type) {
                     case ERL_SMALL_INTEGER_EXT:
