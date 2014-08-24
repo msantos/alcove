@@ -15,7 +15,7 @@
 #include "alcove.h"
 
 char * alcove_x_decode_iolist_to_string(const char *buf, int *index);
-int alcove_decode_iolist_internal(const char *buf, int *index,
+int alcove_decode_iolist_internal(const char *buf, size_t len, int *index,
         char *res, size_t rlen, int *rindex, int depth);
 
     int
@@ -88,14 +88,14 @@ alcove_decode_atom(const char *buf, size_t len, int *index, char *p)
 }
 
     int
-alcove_decode_iolist(const char *buf, int *index,
+alcove_decode_iolist(const char *buf, size_t len, int *index,
         char *res, size_t *rlen)
 {
     int type = 0;
     int arity = 0;
     int rindex = 0;
 
-    if (ei_get_type(buf, index, &type, &arity) < 0)
+    if (alcove_get_type(buf, len, index, &type, &arity) < 0)
         return -1;
 
     switch (type) {
@@ -109,7 +109,8 @@ alcove_decode_iolist(const char *buf, int *index,
             return -1;
     }
 
-    if (alcove_decode_iolist_internal(buf, index, res, *rlen, &rindex, 0) < 0)
+    if (alcove_decode_iolist_internal(buf, len, index,
+                res, *rlen, &rindex, 0) < 0)
         return -1;
 
     *rlen = rindex;
@@ -118,7 +119,7 @@ alcove_decode_iolist(const char *buf, int *index,
 }
 
     int
-alcove_decode_iolist_internal(const char *buf, int *index,
+alcove_decode_iolist_internal(const char *buf, size_t len, int *index,
         char *res, size_t rlen, int *rindex, int depth)
 {
     int type = 0;
@@ -128,7 +129,7 @@ alcove_decode_iolist_internal(const char *buf, int *index,
     if (depth > 16)
         return -1;
 
-    if (ei_get_type(buf, index, &type, &arity) < 0)
+    if (alcove_get_type(buf, len, index, &type, &arity) < 0)
         return -1;
 
     switch (type) {
@@ -185,7 +186,7 @@ alcove_decode_iolist_internal(const char *buf, int *index,
             for (i = 0; i < length; i++) {
                 if (*rindex >= rlen)
                     return -1;
-                if (alcove_decode_iolist_internal(buf, index,
+                if (alcove_decode_iolist_internal(buf, len, index,
                             res, rlen, rindex, depth + 1) < 0)
                     return -1;
             }

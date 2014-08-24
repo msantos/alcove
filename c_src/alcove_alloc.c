@@ -51,7 +51,7 @@ alcove_iolist_to_bin(alcove_state_t *ap, const char *arg, size_t len,
     char buf[MAXMSGLEN] = {0};
     size_t blen = sizeof(buf);
 
-    if (alcove_decode_iolist(arg, &index, buf, &blen) < 0)
+    if (alcove_decode_iolist(arg, len, &index, buf, &blen) < 0)
         return -1;
 
     return alcove_mk_binary(reply, rlen, buf, blen);

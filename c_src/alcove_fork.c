@@ -202,7 +202,7 @@ alcove_setns(alcove_state_t *ap, const char *arg, size_t len,
     int errnum = 0;
 
     /* path */
-    if (alcove_decode_iolist(arg, &index, path, &plen) < 0 ||
+    if (alcove_decode_iolist(arg, len, &index, path, &plen) < 0 ||
             plen == 0)
         return -1;
 

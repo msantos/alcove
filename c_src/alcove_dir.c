@@ -33,7 +33,7 @@ alcove_chdir(alcove_state_t *ap, const char *arg, size_t len,
     int rv = 0;
 
     /* path */
-    if (alcove_decode_iolist(arg, &index, path, &pathlen) < 0 ||
+    if (alcove_decode_iolist(arg, len, &index, path, &pathlen) < 0 ||
             pathlen == 0)
         return -1;
 
@@ -59,7 +59,7 @@ alcove_mkdir(alcove_state_t *ap, const char *arg, size_t len,
     int rv = 0;
 
     /* pathname */
-    if (alcove_decode_iolist(arg, &index, pathname, &pathlen) < 0 ||
+    if (alcove_decode_iolist(arg, len, &index, pathname, &pathlen) < 0 ||
             pathlen == 0)
         return -1;
 
@@ -88,7 +88,7 @@ alcove_rmdir(alcove_state_t *ap, const char *arg, size_t len,
     int rv = 0;
 
     /* pathname */
-    if (alcove_decode_iolist(arg, &index, pathname, &pathlen) < 0 ||
+    if (alcove_decode_iolist(arg, len, &index, pathname, &pathlen) < 0 ||
             pathlen == 0)
         return -1;
 
@@ -113,7 +113,7 @@ alcove_chroot(alcove_state_t *ap, const char *arg, size_t len,
     int rv = 0;
 
     /* path */
-    if (alcove_decode_iolist(arg, &index, path, &pathlen) < 0 ||
+    if (alcove_decode_iolist(arg, len, &index, path, &pathlen) < 0 ||
             pathlen == 0)
         return -1;
 
@@ -161,7 +161,7 @@ alcove_readdir(alcove_state_t *ap, const char *arg, size_t len,
     struct dirent *dent = NULL;
 
     /* name */
-    if (alcove_decode_iolist(arg, &index, name, &namelen) < 0 ||
+    if (alcove_decode_iolist(arg, len, &index, name, &namelen) < 0 ||
             namelen == 0)
         return -1;
 
