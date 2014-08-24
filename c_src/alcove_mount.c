@@ -55,7 +55,7 @@ alcove_mount(alcove_state_t *ap, const char *arg, size_t len,
         return -1;
 
     /* mountflags */
-    if (ei_decode_ulong(arg, &index, &mountflags) < 0)
+    if (alcove_decode_ulong(arg, len, &index, &mountflags) < 0)
         return -1;
 
     /* data */

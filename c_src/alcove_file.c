@@ -168,11 +168,11 @@ alcove_select(alcove_state_t *ap, const char *arg, size_t len,
                 return -1;
 
             /* sec */
-            if (ei_decode_longlong(arg, &index, (long long *)&tv.tv_sec) < 0)
+            if (alcove_decode_longlong(arg, len, &index, (long long *)&tv.tv_sec) < 0)
                 return -1;
 
             /* usec */
-            if (ei_decode_longlong(arg, &index, (long long *)&tv.tv_usec) < 0)
+            if (alcove_decode_longlong(arg, len, &index, (long long *)&tv.tv_usec) < 0)
                 return -1;
 
             break;
@@ -219,7 +219,7 @@ alcove_lseek(alcove_state_t *ap, const char *arg, size_t len,
         return alcove_errno(reply, rlen, EBADF);
 
     /* offset */
-    if (ei_decode_longlong(arg, &index, (long long *)&offset) < 0)
+    if (alcove_decode_longlong(arg, len, &index, (long long *)&offset) < 0)
         return -1;
 
     /* whence */
@@ -257,7 +257,8 @@ alcove_read(alcove_state_t *ap, const char *arg, size_t len,
         return alcove_errno(reply, rlen, EBADF);
 
     /* count */
-    if (ei_decode_ulonglong(arg, &index, (unsigned long long *)&count) < 0)
+    if (alcove_decode_ulonglong(arg, len, &index,
+                (unsigned long long *)&count) < 0)
         return -1;
 
     /* Silently truncate too large values of count */
@@ -464,7 +465,8 @@ alcove_list_to_fd_set(const char *arg, size_t len, int *index,
                 *nfds = MAX(fd, *nfds);
             }
 
-            if (ei_decode_list_header(arg, index, &arity) < 0 || arity != 0)
+            if (alcove_decode_list_header(arg, len, index, &arity) < 0
+                    || arity != 0)
                 return -1;
 
             break;

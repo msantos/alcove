@@ -76,6 +76,30 @@ alcove_decode_ulong(const char *buf, size_t len, int *index, unsigned long *p)
 }
 
     int
+alcove_decode_longlong(const char *buf, size_t len, int *index, long long *p)
+{
+    int type = 0;
+    int arity = 0;
+
+    if (alcove_get_type(buf, len, index, &type, &arity) < 0)
+        return -1;
+
+    return ei_decode_longlong(buf, index, p);
+}
+
+    int
+alcove_decode_ulonglong(const char *buf, size_t len, int *index, unsigned long long *p)
+{
+    int type = 0;
+    int arity = 0;
+
+    if (alcove_get_type(buf, len, index, &type, &arity) < 0)
+        return -1;
+
+    return ei_decode_ulonglong(buf, index, p);
+}
+
+    int
 alcove_decode_atom(const char *buf, size_t len, int *index, char *p)
 {
     int type = 0;
@@ -98,6 +122,18 @@ alcove_decode_list_header(const char *buf, size_t len, int *index, int *size)
         return -1;
 
     return ei_decode_list_header(buf, index, size);
+}
+
+    int
+alcove_decode_tuple_header(const char *buf, size_t len, int *index, int *size)
+{
+    int type = 0;
+    int arity = 0;
+
+    if (alcove_get_type(buf, len, index, &type, &arity) < 0)
+        return -1;
+
+    return ei_decode_tuple_header(buf, index, size);
 }
 
     int

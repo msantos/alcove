@@ -73,7 +73,7 @@ alcove_setrlimit(alcove_state_t *ap, const char *arg, size_t len,
         return -1;
 
     /* {alcove_rlimit, rlim_cur, rlim_max} */
-    if (ei_decode_tuple_header(arg, &index, &arity) < 0 || arity != 3)
+    if (alcove_decode_tuple_header(arg, len, &index, &arity) < 0 || arity != 3)
         return -1;
 
     /* 'alcove_rlimit' */
@@ -82,11 +82,11 @@ alcove_setrlimit(alcove_state_t *ap, const char *arg, size_t len,
         return -1;
 
     /* rlim_cur: soft limit */
-    if (ei_decode_ulonglong(arg, &index, &cur) < 0)
+    if (alcove_decode_ulonglong(arg, len, &index, &cur) < 0)
         return -1;
 
     /* rlim_max: hard limit */
-    if (ei_decode_ulonglong(arg, &index, &max) < 0)
+    if (alcove_decode_ulonglong(arg, len, &index, &max) < 0)
         return -1;
 
     rlim.rlim_cur = cur;
