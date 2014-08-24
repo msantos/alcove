@@ -76,8 +76,8 @@ alcove_prctl(alcove_state_t *ap, const char *arg, size_t len,
 
             case ERL_LIST_EXT:
                 prarg[i].type = ALCOVE_PRARG_CSTRUCT;
-                prarg[i].data = alcove_list_to_buf(arg, &index, &(prarg[i].len),
-                        &(elem[i]), &(nelem[i]));
+                prarg[i].data = alcove_list_to_buf(arg, len, &index,
+                        &(prarg[i].len), &(elem[i]), &(nelem[i]));
                 break;
 
             case ERL_BINARY_EXT:

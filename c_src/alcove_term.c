@@ -89,6 +89,18 @@ alcove_decode_atom(const char *buf, size_t len, int *index, char *p)
 }
 
     int
+alcove_decode_list_header(const char *buf, size_t len, int *index, int *size)
+{
+    int type = 0;
+    int arity = 0;
+
+    if (alcove_get_type(buf, len, index, &type, &arity) < 0)
+        return -1;
+
+    return ei_decode_list_header(buf, index, size);
+}
+
+    int
 alcove_decode_iolist(const char *buf, size_t len, int *index,
         char *res, size_t *rlen)
 {
@@ -193,7 +205,8 @@ alcove_decode_iolist_internal(const char *buf, size_t len, int *index,
             }
 
             /* [] */
-            if (ei_decode_list_header(buf, index, &length) < 0 || length != 0)
+            if (alcove_decode_list_header(buf, len, index, &length) < 0
+                    || length != 0)
                 return -1;
 
             }
@@ -384,7 +397,7 @@ alcove_list_to_argv(const char *arg, size_t len, int *index)
     char **argv = NULL;
     long maxarg = sysconf(_SC_ARG_MAX);
 
-    if (ei_decode_list_header(arg, index, &arity) < 0)
+    if (alcove_decode_list_header(arg, len, index, &arity) < 0)
         return NULL;
 
     if (arity < 0 || arity >= maxarg)
@@ -403,7 +416,7 @@ alcove_list_to_argv(const char *arg, size_t len, int *index)
     }
 
     /* list tail */
-    if (ei_decode_list_header(arg, index, &arity) < 0 || arity != 0)
+    if (alcove_decode_list_header(arg, len, index, &arity) < 0 || arity != 0)
         goto ERR;
 
     return argv;
@@ -429,14 +442,13 @@ alcove_free_argv(char **argv)
 
 /* XXX FIXME */
     void *
-alcove_list_to_buf(const char *arg, int *index, size_t *len,
+alcove_list_to_buf(const char *arg, size_t len, int *index, size_t *buflen,
         alcove_alloc_t **ptr, ssize_t *nptr)
 {
     int type = 0;
     int arity = 0;
     long size = 0;
 
-    const char *parg = NULL;
     int pindex = 0;
     int parity = 0;
 
@@ -448,22 +460,21 @@ alcove_list_to_buf(const char *arg, int *index, size_t *len,
     int i = 0;
     size_t n = 0;
 
-    *len = 0;
+    *buflen = 0;
     *nptr = 0;
 
-    if (ei_decode_list_header(arg, index, &arity) < 0)
+    if (alcove_decode_list_header(arg, len, index, &arity) < 0)
         return NULL;
 
     if (arity < 0 || arity >= MAXMSGLEN)
         return NULL;
 
-    parg = arg;
     pindex = *index;
     parity = arity;
 
     /* Calculate the size required */
     for (i = 0; i < arity; i++) {
-        if (ei_get_type(parg, &pindex, &type, &parity) < 0)
+        if (alcove_get_type(arg, len, &pindex, &type, &parity) < 0)
             return NULL;
 
         switch (type) {
@@ -471,7 +482,7 @@ alcove_list_to_buf(const char *arg, int *index, size_t *len,
                 if (parity > sizeof(tmp))
                     return NULL;
 
-                if (ei_decode_binary(parg, &pindex, tmp, &size) < 0)
+                if (ei_decode_binary(arg, &pindex, tmp, &size) < 0)
                     return NULL;
 
                 n += size;
@@ -482,22 +493,22 @@ alcove_list_to_buf(const char *arg, int *index, size_t *len,
                 if (parity != 2)
                     return NULL;
 
-                if (ei_decode_tuple_header(parg, &pindex, &parity) < 0)
+                if (ei_decode_tuple_header(arg, &pindex, &parity) < 0)
                     return NULL;
 
-                if (ei_decode_atom(parg, &pindex, tmp) < 0)
+                if (ei_decode_atom(arg, &pindex, tmp) < 0)
                     return NULL;
 
                 if (strcmp(tmp, "ptr"))
                     return NULL;
 
-                if (ei_get_type(parg, &pindex, &type, &parity) < 0)
+                if (ei_get_type(arg, &pindex, &type, &parity) < 0)
                     return NULL;
 
                 switch (type) {
                     case ERL_SMALL_INTEGER_EXT:
                     case ERL_INTEGER_EXT:
-                        if (ei_decode_ulong(parg, &pindex, &val) < 0 ||
+                        if (ei_decode_ulong(arg, &pindex, &val) < 0 ||
                                 val > MAXMSGLEN)
                             return NULL;
 
@@ -505,7 +516,7 @@ alcove_list_to_buf(const char *arg, int *index, size_t *len,
                         break;
 
                     case ERL_BINARY_EXT:
-                        if (ei_decode_binary(parg, &pindex,
+                        if (ei_decode_binary(arg, &pindex,
                                     tmp, &size) < 0 || size > MAXMSGLEN)
                             return NULL;
 
@@ -523,7 +534,7 @@ alcove_list_to_buf(const char *arg, int *index, size_t *len,
     }
 
     buf = alcove_malloc(n);
-    *len = n;
+    *buflen = n;
 
     *ptr = alcove_malloc(arity * sizeof(alcove_alloc_t));
     *nptr = arity;

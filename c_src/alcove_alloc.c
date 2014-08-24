@@ -27,7 +27,7 @@ alcove_alloc(alcove_state_t *ap, const char *arg, size_t len,
     alcove_alloc_t *elem = NULL;
     ssize_t nelem = 0;
 
-    buf = alcove_list_to_buf(arg, &index, &size, &elem, &nelem);
+    buf = alcove_list_to_buf(arg, len, &index, &size, &elem, &nelem);
     if (!buf)
         return -1;
 
