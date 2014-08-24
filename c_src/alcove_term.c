@@ -55,31 +55,8 @@ alcove_decode_long(const char *buf, size_t len, int *index, long *p)
 {
     int type = 0;
     int arity = 0;
-    int n = 0;
 
-    if (*index < 0 || *index >= MAXMSGLEN || *index >= len)
-        return -1;
-
-    if (ei_get_type(buf, index, &type, &arity) < 0)
-        return -1;
-
-    switch (type) {
-        case ERL_SMALL_INTEGER_EXT:
-            n = 1;
-            break;
-
-        case ERL_INTEGER_EXT:
-            n = 4;
-            break;
-
-        default:
-            if (arity == 0)
-                return -1;
-
-            break;
-    }
-
-    if (*index + n > len)
+    if (alcove_get_type(buf, len, index, &type, &arity) < 0)
         return -1;
 
     return ei_decode_long(buf, index, p);
@@ -90,31 +67,8 @@ alcove_decode_ulong(const char *buf, size_t len, int *index, unsigned long *p)
 {
     int type = 0;
     int arity = 0;
-    int n = 0;
 
-    if (*index < 0 || *index >= MAXMSGLEN || *index >= len)
-        return -1;
-
-    if (ei_get_type(buf, index, &type, &arity) < 0)
-        return -1;
-
-    switch (type) {
-        case ERL_SMALL_INTEGER_EXT:
-            n = 1;
-            break;
-
-        case ERL_INTEGER_EXT:
-            n = 4;
-            break;
-
-        default:
-            if (arity == 0)
-                return -1;
-
-            break;
-    }
-
-    if (*index + n > len)
+    if (alcove_get_type(buf, len, index, &type, &arity) < 0)
         return -1;
 
     return ei_decode_ulong(buf, index, p);
@@ -126,13 +80,7 @@ alcove_decode_atom(const char *buf, size_t len, int *index, char *p)
     int type = 0;
     int arity = 0;
 
-    if (*index < 0 || *index >= MAXMSGLEN || *index >= len)
-        return -1;
-
-    if (ei_get_type(buf, index, &type, &arity) < 0)
-        return -1;
-
-    if (*index + arity > len)
+    if (alcove_get_type(buf, len, index, &type, &arity) < 0)
         return -1;
 
     /* ei_decode_atom will return an error if p >= MAXATOMLEN */
@@ -842,4 +790,94 @@ alcove_encode_binary(char *buf, size_t len, int *index, const void *p, long plen
         return -1;
 
     return ei_encode_binary(buf, index, p, plen);
+}
+
+
+    int
+alcove_get_type(const char *buf, size_t len, const int *index,
+        int *type, int *arity)
+{
+    const char *s = buf + *index;
+    int n = *index + 1;
+
+    if (*index < 0 || *index >= MAXMSGLEN || *index >= len)
+        return -1;
+
+    *type = get_int8(s);
+    s += 1;
+
+    switch (*type) {
+        case ERL_SMALL_ATOM_EXT:
+        case ERL_SMALL_ATOM_UTF8_EXT:
+            *type = ERL_ATOM_EXT;
+        case ERL_SMALL_TUPLE_EXT:
+            n += 1;
+            if (n > len)
+                return -1;
+
+            *arity = get_int8(s);
+            break;
+
+        case ERL_ATOM_UTF8_EXT:
+            *type = ERL_ATOM_EXT;
+        case ERL_ATOM_EXT:
+        case ERL_STRING_EXT:
+            n += 2;
+            if (n > len)
+                return -1;
+
+            *arity = get_int16(s);
+            break;
+
+        case ERL_LARGE_TUPLE_EXT:
+        case ERL_LIST_EXT:
+        case ERL_BINARY_EXT:
+            n += 4;
+            if (n > len)
+                return -1;
+
+            *arity = get_int32(s);
+            break;
+
+        case ERL_SMALL_BIG_EXT:
+            n += 1;
+            if (n > len)
+                return -1;
+
+            *arity = get_int8(s);
+            break;
+
+        case ERL_LARGE_BIG_EXT:
+            n += 4;
+            if (n > len)
+                return -1;
+
+            *arity = get_int32(s);
+            break;
+
+        case ERL_SMALL_INTEGER_EXT:
+            n += 1;
+            if (n > len)
+                return -1;
+
+            *arity = 0;
+            break;
+
+        case ERL_INTEGER_EXT:
+            n += 4;
+            if (n > len)
+                return -1;
+
+            *arity = 0;
+            break;
+
+        case ERL_NIL_EXT:
+            *arity = 0;
+            break;
+
+        default:
+            return -1;
+    }
+
+    return 0;
 }

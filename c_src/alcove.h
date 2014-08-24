@@ -114,6 +114,8 @@
                             ((char*)(s))[1] = (char)(i)        & 0xff;} \
                         while (0)
 
+#define get_int8(s) (((unsigned char*)  (s))[0])
+
 enum {
     alcove_opt_exit_status = 1 << 0,   /* Report child exit status */
     alcove_opt_termsig = 1 << 1,       /* Report child termination signal */
@@ -160,6 +162,7 @@ int pid_foreach(alcove_state_t *ap, pid_t pid, void *arg1, void *arg2,
 int pid_equal(pid_t p1, pid_t p2);
 int pid_not_equal(pid_t p1, pid_t p2);
 
+int alcove_get_type(const char *, size_t, const int *, int *, int *);
 int alcove_decode_int(const char *, size_t, int *, int *);
 int alcove_decode_uint(const char *, size_t, int *, u_int32_t *);
 int alcove_decode_long(const char *, size_t, int *, long *);

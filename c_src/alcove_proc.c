@@ -63,7 +63,7 @@ alcove_prctl(alcove_state_t *ap, const char *arg, size_t len,
 
     /* arg2, arg3, arg4, arg5 */
     for (i = 0; i < 4; i++) {
-        if (ei_get_type(arg, &index, &type, &arity) < 0)
+        if (alcove_get_type(arg, len, &index, &type, &arity) < 0)
             return -1;
 
         switch (type) {

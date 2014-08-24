@@ -142,7 +142,7 @@ alcove_select(alcove_state_t *ap, const char *arg, size_t len,
         return alcove_errno(reply, rlen, EBADF);
 
     /* timeout */
-    if (ei_get_type(arg, &index, &type, &arity) < 0)
+    if (alcove_get_type(arg, len, &index, &type, &arity) < 0)
         return -1;
 
     switch (type) {
@@ -421,7 +421,7 @@ alcove_list_to_fd_set(const char *arg, size_t len, int *index,
     int i = 0;
     int fd = -1;
 
-    if (ei_get_type(arg, index, &type, &arity) < 0)
+    if (alcove_get_type(arg, len, index, &type, &arity) < 0)
         return -1;
 
     if (arity >= FD_SETSIZE)
