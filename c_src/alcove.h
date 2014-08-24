@@ -190,7 +190,7 @@ ssize_t alcove_mk_ulong(char *, size_t, unsigned long);
 void *alcove_malloc(ssize_t);
 int alcove_define(char *, size_t, int *, char *, alcove_define_t *);
 int alcove_constant(char *, size_t, int *, u_int64_t, alcove_define_t *);
-char **alcove_list_to_argv(const char *, int *);
+char **alcove_list_to_argv(const char *, size_t, int *);
 void alcove_free_argv(char **);
 
 ssize_t alcove_call(alcove_state_t *ap, u_int32_t call,

@@ -14,7 +14,8 @@
  */
 #include "alcove.h"
 
-char * alcove_x_decode_iolist_to_string(const char *buf, int *index);
+char * alcove_x_decode_iolist_to_string(const char *buf, size_t len,
+        int *index);
 int alcove_decode_iolist_internal(const char *buf, size_t len, int *index,
         char *res, size_t rlen, int *rindex, int depth);
 
@@ -206,7 +207,7 @@ alcove_decode_iolist_internal(const char *buf, size_t len, int *index,
 }
 
     char *
-alcove_x_decode_iolist_to_string(const char *buf, int *index)
+alcove_x_decode_iolist_to_string(const char *buf, size_t len, int *index)
 {
     int type = 0;
     int arity = 0;
@@ -215,7 +216,7 @@ alcove_x_decode_iolist_to_string(const char *buf, int *index)
     long rlen = 0;
 
     /* XXX should take an iolist */
-    if (ei_get_type(buf, index, &type, &arity) < 0)
+    if (alcove_get_type(buf, len, index, &type, &arity) < 0)
         return NULL;
 
     res = calloc(arity+1, 1);
@@ -375,7 +376,7 @@ alcove_constant(char *buf, size_t len, int *index, u_int64_t val,
 }
 
     char **
-alcove_list_to_argv(const char *arg, int *index)
+alcove_list_to_argv(const char *arg, size_t len, int *index)
 {
     int arity = 0;
 
@@ -396,7 +397,7 @@ alcove_list_to_argv(const char *arg, int *index)
         err(EXIT_FAILURE, "calloc");
 
     for (i = 0; i < arity; i++) {
-        argv[i] = alcove_x_decode_iolist_to_string(arg, index);
+        argv[i] = alcove_x_decode_iolist_to_string(arg, len, index);
         if (!argv[i])
             goto ERR;
     }

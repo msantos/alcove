@@ -37,7 +37,7 @@ alcove_execvp(alcove_state_t *ap, const char *arg, size_t len,
 
     /* argv */
     /* XXX returns NULL for emtpy list AND failures */
-    argv = alcove_list_to_argv(arg, &index);
+    argv = alcove_list_to_argv(arg, len, &index);
 
     execvp(progname, argv);
 
@@ -71,11 +71,11 @@ alcove_execve(alcove_state_t *ap, const char *arg, size_t len,
 
     /* argv */
     /* XXX returns NULL for emtpy list AND failures */
-    argv = alcove_list_to_argv(arg, &index);
+    argv = alcove_list_to_argv(arg, len, &index);
 
     /* envp */
     /* XXX returns NULL for emtpy list AND failures */
-    envp = alcove_list_to_argv(arg, &index);
+    envp = alcove_list_to_argv(arg, len, &index);
 
     execve(filename, argv, envp);
 
