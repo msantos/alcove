@@ -14,8 +14,7 @@
  */
 #include "alcove.h"
 
-char * alcove_x_decode_iolist_to_string(const char *buf, size_t len,
-        int *index);
+char *alcove_x_decode_iolist_to_string(const char *buf, size_t len, int *index);
 int alcove_decode_iolist_internal(const char *buf, size_t len, int *index,
         char *res, size_t rlen, int *rindex, int depth);
 
@@ -258,43 +257,18 @@ alcove_decode_iolist_internal(const char *buf, size_t len, int *index,
     char *
 alcove_x_decode_iolist_to_string(const char *buf, size_t len, int *index)
 {
-    int type = 0;
-    int arity = 0;
-
+    char tmp[MAXMSGLEN] = {0};
+    size_t tmplen = sizeof(tmp) - 1;
     char *res = NULL;
-    long rlen = 0;
 
-    /* XXX should take an iolist */
-    if (alcove_get_type(buf, len, index, &type, &arity) < 0)
+    if (alcove_decode_iolist(buf, len, index, tmp, &tmplen) < 0)
         return NULL;
 
-    res = calloc(arity+1, 1);
-
+    res = strdup(tmp);
     if (!res)
-        err(EXIT_FAILURE, "calloc");
-
-    switch (type) {
-        case ERL_STRING_EXT:
-            if (ei_decode_string(buf, index, res) < 0)
-                goto BADARG;
-
-            break;
-
-        case ERL_BINARY_EXT:
-            if (ei_decode_binary(buf, index, res, &rlen) < 0)
-                goto BADARG;
-
-            break;
-
-        default:
-            goto BADARG;
-    }
+        err(EXIT_FAILURE, "strdup");
 
     return res;
-
-BADARG:
-    free(res);
-    return NULL;
 }
 
     ssize_t
