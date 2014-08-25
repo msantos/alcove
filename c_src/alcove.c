@@ -240,14 +240,15 @@ alcove_event_loop(alcove_state_t *ap)
 
         if (fds[STDIN_FILENO].revents & (POLLIN|POLLERR|POLLHUP|POLLNVAL)) {
             switch (alcove_stdin(ap)) {
-                case -1:
-                    err(EXIT_FAILURE, "alcove_stdin");
+                case 0:
+                    break;
                 case 1:
                     /* EOF */
                     free(fds);
                     return;
-                case 0:
-                    break;
+                case -1:
+                default:
+                    err(EXIT_FAILURE, "alcove_stdin");
             }
         }
 
