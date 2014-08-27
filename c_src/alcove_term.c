@@ -640,6 +640,9 @@ alcove_encode_buf_to_list(char *reply, size_t rlen, int *rindex,
     if (alcove_encode_empty_list(reply, rlen, rindex) < 0)
         return -1;
 
+    free(ptr);
+    ptr = NULL;
+
     return 0;
 }
 
