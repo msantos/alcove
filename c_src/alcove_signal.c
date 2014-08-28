@@ -43,7 +43,7 @@ alcove_kill(alcove_state_t *ap, const char *arg, size_t len,
     rv = kill(pid, sig);
 
     return (rv < 0)
-        ? alcove_errno(reply, rlen, errno)
+        ? alcove_mk_errno(reply, rlen, errno)
         : alcove_mk_atom(reply, rlen, "ok");
 }
 
@@ -67,7 +67,7 @@ alcove_sigaction(alcove_state_t *ap, const char *arg, size_t len,
         return -1;
 
     if (signum == SIGCHLD)
-        return alcove_errno(reply, rlen, EINVAL);
+        return alcove_mk_errno(reply, rlen, EINVAL);
 
     /* handler */
     if (alcove_decode_atom(arg, len, &index, handler) < 0)
@@ -89,7 +89,7 @@ alcove_sigaction(alcove_state_t *ap, const char *arg, size_t len,
     rv = sigaction(signum, &act, NULL);
 
     return (rv < 0)
-        ? alcove_errno(reply, rlen, errno)
+        ? alcove_mk_errno(reply, rlen, errno)
         : alcove_mk_atom(reply, rlen, "ok");
 }
 

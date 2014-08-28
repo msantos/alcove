@@ -80,7 +80,7 @@ alcove_mount(alcove_state_t *ap, const char *arg, size_t len,
 #endif
 
     return (rv < 0)
-        ? alcove_errno(reply, rlen, errno)
+        ? alcove_mk_errno(reply, rlen, errno)
         : alcove_mk_atom(reply, rlen, "ok");
 }
 
@@ -111,7 +111,7 @@ alcove_umount(alcove_state_t *ap, const char *arg, size_t len,
 #endif
 
     return (rv < 0)
-        ? alcove_errno(reply, rlen, errno)
+        ? alcove_mk_errno(reply, rlen, errno)
         : alcove_mk_atom(reply, rlen, "ok");
 }
 

@@ -105,7 +105,7 @@ alcove_prctl(alcove_state_t *ap, const char *arg, size_t len,
             PRARG(prarg[2]), PRARG(prarg[3]));
 
     if (rv < 0)
-        return alcove_errno(reply, rlen, errno);
+        return alcove_mk_errno(reply, rlen, errno);
 
     ALCOVE_ERR(alcove_encode_version(reply, rlen, &rindex));
     ALCOVE_ERR(alcove_encode_tuple_header(reply, rlen, &rindex, 6));
@@ -135,7 +135,7 @@ alcove_prctl(alcove_state_t *ap, const char *arg, size_t len,
 
     return rindex;
 #else
-    return alcove_error(reply, rlen, "unsupported");
+    return alcove_mk_error(reply, rlen, "unsupported");
 #endif
 }
 
@@ -186,7 +186,7 @@ alcove_getsid(alcove_state_t *ap, const char *arg, size_t len,
     rv = getsid(pid);
 
     if (rv < 0)
-        return alcove_errno(reply, rlen, errno);
+        return alcove_mk_errno(reply, rlen, errno);
 
     ALCOVE_OK(reply, &rindex,
         alcove_encode_long(reply, rlen, &rindex, rv));
@@ -205,7 +205,7 @@ alcove_setsid(alcove_state_t *ap, const char *arg, size_t len,
     pid_t pid = setsid();
 
     if (pid < 0)
-        return alcove_errno(reply, rlen, errno);
+        return alcove_mk_errno(reply, rlen, errno);
 
     ALCOVE_OK(reply, &rindex,
         alcove_encode_long(reply, rlen, &rindex, pid));

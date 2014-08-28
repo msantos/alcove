@@ -56,7 +56,7 @@ alcove_setgid(alcove_state_t *ap, const char *arg, size_t len,
     rv = setgid(gid);
 
     return (rv < 0)
-        ? alcove_errno(reply, rlen, errno)
+        ? alcove_mk_errno(reply, rlen, errno)
         : alcove_mk_atom(reply, rlen, "ok");
 }
 
@@ -79,6 +79,6 @@ alcove_setuid(alcove_state_t *ap, const char *arg, size_t len,
     rv = setuid(uid);
 
     return (rv < 0)
-        ? alcove_errno(reply, rlen, errno)
+        ? alcove_mk_errno(reply, rlen, errno)
         : alcove_mk_atom(reply, rlen, "ok");
 }

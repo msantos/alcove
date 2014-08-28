@@ -38,7 +38,7 @@ alcove_getrlimit(alcove_state_t *ap, const char *arg, size_t len,
     rv = getrlimit(resource, &rlim);
 
     if (rv < 0)
-        return  alcove_errno(reply, rlen, errno);
+        return  alcove_mk_errno(reply, rlen, errno);
 
     ALCOVE_ERR(alcove_encode_version(reply, rlen, &rindex));
     ALCOVE_ERR(alcove_encode_tuple_header(reply, rlen, &rindex, 2));
@@ -95,7 +95,7 @@ alcove_setrlimit(alcove_state_t *ap, const char *arg, size_t len,
     rv = setrlimit(resource, &rlim);
 
     return (rv < 0)
-        ? alcove_errno(reply, rlen, errno)
+        ? alcove_mk_errno(reply, rlen, errno)
         : alcove_mk_atom(reply, rlen, "ok");
 }
 

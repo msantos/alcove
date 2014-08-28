@@ -45,7 +45,7 @@ alcove_execvp(alcove_state_t *ap, const char *arg, size_t len,
 
     alcove_free_argv(argv);
 
-    return alcove_errno(reply, rlen, errnum);
+    return alcove_mk_errno(reply, rlen, errnum);
 }
 
 /*
@@ -84,7 +84,7 @@ alcove_execve(alcove_state_t *ap, const char *arg, size_t len,
     alcove_free_argv(argv);
     alcove_free_argv(envp);
 
-    return alcove_errno(reply, rlen, errnum);
+    return alcove_mk_errno(reply, rlen, errnum);
 }
 
 /*

@@ -78,7 +78,7 @@ alcove_open(alcove_state_t *ap, const char *arg, size_t len,
 ERR:
     errnum = errno;
     (void)close(fd);
-    return alcove_errno(reply, rlen, errnum);
+    return alcove_mk_errno(reply, rlen, errnum);
 }
 
 /*
@@ -98,10 +98,10 @@ alcove_close(alcove_state_t *ap, const char *arg, size_t len,
 
     /* stdin, stdout, stderr, ctl are reserved */
     if (fd < 4)
-        return alcove_errno(reply, rlen, EBADF);
+        return alcove_mk_errno(reply, rlen, EBADF);
 
     return (close(fd) < 0)
-        ? alcove_errno(reply, rlen, errno)
+        ? alcove_mk_errno(reply, rlen, errno)
         : alcove_mk_atom(reply, rlen, "ok");
 }
 
@@ -131,15 +131,15 @@ alcove_select(alcove_state_t *ap, const char *arg, size_t len,
 
     /* readfds */
     if (alcove_list_to_fd_set(arg, len, &index, &readfds, &nfds) < 0)
-        return alcove_errno(reply, rlen, EBADF);
+        return alcove_mk_errno(reply, rlen, EBADF);
 
     /* writefds */
     if (alcove_list_to_fd_set(arg, len, &index, &writefds, &nfds) < 0)
-        return alcove_errno(reply, rlen, EBADF);
+        return alcove_mk_errno(reply, rlen, EBADF);
 
     /* exceptfds */
     if (alcove_list_to_fd_set(arg, len, &index, &exceptfds, &nfds) < 0)
-        return alcove_errno(reply, rlen, EBADF);
+        return alcove_mk_errno(reply, rlen, EBADF);
 
     /* timeout */
     if (alcove_get_type(arg, len, &index, &type, &arity) < 0)
@@ -184,7 +184,7 @@ alcove_select(alcove_state_t *ap, const char *arg, size_t len,
     rv = select(nfds+1, &readfds, &writefds, &exceptfds, timeout);
 
     if (rv < 0)
-        return alcove_errno(reply, rindex, errno);
+        return alcove_mk_errno(reply, rindex, errno);
 
     ALCOVE_TUPLE4(reply, &rindex,
         "ok",
@@ -216,7 +216,7 @@ alcove_lseek(alcove_state_t *ap, const char *arg, size_t len,
 
     /* stdin, stdout, stderr, ctl are reserved */
     if (fd < 4)
-        return alcove_errno(reply, rlen, EBADF);
+        return alcove_mk_errno(reply, rlen, EBADF);
 
     /* offset */
     if (alcove_decode_longlong(arg, len, &index, (long long *)&offset) < 0)
@@ -227,7 +227,7 @@ alcove_lseek(alcove_state_t *ap, const char *arg, size_t len,
         return -1;
 
     return (lseek(fd, offset, whence) == -1)
-        ? alcove_errno(reply, rlen, errno)
+        ? alcove_mk_errno(reply, rlen, errno)
         : alcove_mk_atom(reply, rlen, "ok");
 }
 
@@ -254,7 +254,7 @@ alcove_read(alcove_state_t *ap, const char *arg, size_t len,
 
     /* stdin, stdout, stderr, ctl are reserved */
     if (fd < 4)
-        return alcove_errno(reply, rlen, EBADF);
+        return alcove_mk_errno(reply, rlen, EBADF);
 
     /* count */
     if (alcove_decode_ulonglong(arg, len, &index,
@@ -269,7 +269,7 @@ alcove_read(alcove_state_t *ap, const char *arg, size_t len,
     rv = read(fd, buf, count);
 
     if (rv < 0)
-        return alcove_errno(reply, rlen, errno);
+        return alcove_mk_errno(reply, rlen, errno);
 
     ALCOVE_OK(reply, &rindex,
         alcove_encode_binary(reply, rlen, &rindex, buf, rv));
@@ -299,7 +299,7 @@ alcove_write(alcove_state_t *ap, const char *arg, size_t len,
 
     /* stdin, stdout, stderr, ctl are reserved */
     if (fd < 4)
-        return alcove_errno(reply, rlen, EBADF);
+        return alcove_mk_errno(reply, rlen, EBADF);
 
     /* buf */
     if (alcove_decode_iolist(arg, len, &index, buf, &buflen) < 0)
@@ -308,7 +308,7 @@ alcove_write(alcove_state_t *ap, const char *arg, size_t len,
     rv = write(fd, buf, buflen);
 
     if (rv < 0) {
-        rindex = alcove_errno(reply, rlen, errno);
+        rindex = alcove_mk_errno(reply, rlen, errno);
     }
     else {
         ALCOVE_OK(reply, &rindex,
@@ -345,7 +345,7 @@ alcove_chmod(alcove_state_t *ap, const char *arg, size_t len,
     rv = chmod(path, mode);
 
     return (rv < 0)
-        ? alcove_errno(reply, rlen, errno)
+        ? alcove_mk_errno(reply, rlen, errno)
         : alcove_mk_atom(reply, rlen, "ok");
 }
 
@@ -381,7 +381,7 @@ alcove_chown(alcove_state_t *ap, const char *arg, size_t len,
     rv = chown(path, owner, group);
 
     return (rv < 0)
-        ? alcove_errno(reply, rlen, errno)
+        ? alcove_mk_errno(reply, rlen, errno)
         : alcove_mk_atom(reply, rlen, "ok");
 }
 

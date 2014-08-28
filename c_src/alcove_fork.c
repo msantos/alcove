@@ -70,13 +70,13 @@ alcove_fork(alcove_state_t *ap, const char *arg, size_t len,
     pid_t pid = 0;
 
     if (ap->depth >= ap->maxforkdepth)
-        return alcove_errno(reply, rlen, EAGAIN);
+        return alcove_mk_errno(reply, rlen, EAGAIN);
 
     if (pid_foreach(ap, 0, NULL, NULL, pid_equal, avail_pid) != 0)
-        return alcove_errno(reply, rlen, EAGAIN);
+        return alcove_mk_errno(reply, rlen, EAGAIN);
 
     if (alcove_stdio(&fd) < 0)
-        return alcove_errno(reply, rlen, errno);
+        return alcove_mk_errno(reply, rlen, errno);
 
     child_arg.ap = ap;
     child_arg.fd = &fd;
@@ -85,13 +85,13 @@ alcove_fork(alcove_state_t *ap, const char *arg, size_t len,
 
     switch (pid) {
         case -1:
-            return alcove_errno(reply, rlen, errno);
+            return alcove_mk_errno(reply, rlen, errno);
         case 0:
             (void)alcove_child_fun(&child_arg);
             err(EXIT_FAILURE, "fork");
         default:
             if (alcove_parent_fd(ap, &fd, pid) < 0)
-                return alcove_errno(reply, rlen, errno);
+                return alcove_mk_errno(reply, rlen, errno);
 
             ALCOVE_OK(reply, &rindex,
                 alcove_encode_long(reply, rlen, &rindex, pid));
@@ -121,21 +121,21 @@ alcove_clone(alcove_state_t *ap, const char *arg, size_t len,
     int errnum = 0;
 
     if (ap->depth >= ap->maxforkdepth)
-        return alcove_errno(reply, rlen, EAGAIN);
+        return alcove_mk_errno(reply, rlen, EAGAIN);
 
     if (pid_foreach(ap, 0, NULL, NULL, pid_equal, avail_pid) != 0)
-        return alcove_errno(reply, rlen, EAGAIN);
+        return alcove_mk_errno(reply, rlen, EAGAIN);
 
     /* flags */
     if (alcove_decode_int(arg, len, &index, &flags) < 0)
         return -1;
 
     if (getrlimit(RLIMIT_STACK, &stack_size) < 0)
-        return alcove_errno(reply, rlen, errno);
+        return alcove_mk_errno(reply, rlen, errno);
 
     child_stack = calloc(stack_size.rlim_cur, 1);
     if (!child_stack)
-        return alcove_errno(reply, rlen, errno);
+        return alcove_mk_errno(reply, rlen, errno);
 
     if (alcove_stdio(&fd) < 0)
         goto ERR;
@@ -152,7 +152,7 @@ alcove_clone(alcove_state_t *ap, const char *arg, size_t len,
     free(child_stack);
 
     if (alcove_parent_fd(ap, &fd, pid) < 0)
-        return alcove_errno(reply, rlen, errno);
+        return alcove_mk_errno(reply, rlen, errno);
 
     ALCOVE_OK(reply, &rindex,
         alcove_encode_long(reply, rlen, &rindex, pid)
@@ -163,9 +163,9 @@ alcove_clone(alcove_state_t *ap, const char *arg, size_t len,
 ERR:
     errnum = errno;
     free(child_stack);
-    return alcove_errno(reply, rlen, errnum);
+    return alcove_mk_errno(reply, rlen, errnum);
 #else
-    return alcove_error(reply, rlen, "unsupported");
+    return alcove_mk_error(reply, rlen, "unsupported");
 #endif
 }
 
@@ -208,7 +208,7 @@ alcove_setns(alcove_state_t *ap, const char *arg, size_t len,
 
     fd = open(path, O_RDONLY);
     if (fd < 0)
-        return alcove_errno(reply, rlen, errno);
+        return alcove_mk_errno(reply, rlen, errno);
 
     rv = setns(fd, 0);
 
@@ -217,11 +217,11 @@ alcove_setns(alcove_state_t *ap, const char *arg, size_t len,
     (void)close(fd);
 
     if (rv < 0)
-        return alcove_errno(reply, rlen, errnum);
+        return alcove_mk_errno(reply, rlen, errnum);
 
     return alcove_mk_atom(reply, rlen, "ok");
 #else
-    return alcove_error(reply, rlen, "unsupported");
+    return alcove_mk_error(reply, rlen, "unsupported");
 #endif
 }
 
@@ -243,10 +243,10 @@ alcove_unshare(alcove_state_t *ap, const char *arg, size_t len,
         return -1;
 
     return (unshare(flags) < 0)
-        ? alcove_errno(reply, rlen, errno)
+        ? alcove_mk_errno(reply, rlen, errno)
         : alcove_mk_atom(reply, rlen, "ok");
 #else
-    return alcove_error(reply, rlen, "unsupported");
+    return alcove_mk_error(reply, rlen, "unsupported");
 #endif
 }
 

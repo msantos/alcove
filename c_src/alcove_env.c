@@ -98,7 +98,7 @@ alcove_setenv(alcove_state_t *ap, const char *arg, size_t len,
     rv = setenv(name, value, overwrite);
 
     return (rv < 0)
-        ? alcove_errno(reply, rlen, errno)
+        ? alcove_mk_errno(reply, rlen, errno)
         : alcove_mk_atom(reply, rlen, "ok");
 }
 
@@ -123,7 +123,7 @@ alcove_unsetenv(alcove_state_t *ap, const char *arg, size_t len,
     rv = unsetenv(name);
 
     return (rv < 0)
-        ? alcove_errno(reply, rlen, errno)
+        ? alcove_mk_errno(reply, rlen, errno)
         : alcove_mk_atom(reply, rlen, "ok");
 }
 
@@ -141,7 +141,7 @@ alcove_clearenv(alcove_state_t *ap, const char *arg, size_t len,
     rv = clearenv();
 
     return (rv < 0)
-        ? alcove_errno(reply, rlen, errno)
+        ? alcove_mk_errno(reply, rlen, errno)
         : alcove_mk_atom(reply, rlen, "ok");
 #else
     environ = NULL;

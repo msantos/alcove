@@ -272,13 +272,13 @@ alcove_x_decode_iolist_to_string(const char *buf, size_t len, int *index)
 }
 
     ssize_t
-alcove_errno(char *buf, size_t len, int errnum)
+alcove_mk_errno(char *buf, size_t len, int errnum)
 {
-    return alcove_error(buf, len, erl_errno_id(errnum));
+    return alcove_mk_error(buf, len, erl_errno_id(errnum));
 }
 
     ssize_t
-alcove_error(char *buf, size_t len, const char *reason)
+alcove_mk_error(char *buf, size_t len, const char *reason)
 {
     int index = 0;
 

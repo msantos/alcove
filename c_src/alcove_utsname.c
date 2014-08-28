@@ -35,7 +35,7 @@ alcove_gethostname(alcove_state_t *ap, const char *arg, size_t len,
     rv = gethostname(name, HOST_NAME_MAX-1);
 
     if (rv < 0)
-       return alcove_errno(reply, rlen, errno);
+       return alcove_mk_errno(reply, rlen, errno);
 
     ALCOVE_OK(reply, &rindex,
         alcove_encode_binary(reply, rlen, &rindex, name, strlen(name)));
@@ -66,6 +66,6 @@ alcove_sethostname(alcove_state_t *ap, const char *arg, size_t len,
     rv = sethostname(name, strlen(name));
 
     return (rv < 0)
-        ? alcove_errno(reply, rlen, errnum)
+        ? alcove_mk_errno(reply, rlen, errnum)
         : alcove_mk_atom(reply, rlen, "ok");
 }

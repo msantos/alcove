@@ -40,7 +40,7 @@ alcove_chdir(alcove_state_t *ap, const char *arg, size_t len,
     rv = chdir(path);
 
     return (rv < 0)
-        ? alcove_errno(reply, rlen, errno)
+        ? alcove_mk_errno(reply, rlen, errno)
         : alcove_mk_atom(reply, rlen, "ok");
 }
 
@@ -70,7 +70,7 @@ alcove_mkdir(alcove_state_t *ap, const char *arg, size_t len,
     rv = mkdir(pathname, mode);
 
     return (rv < 0)
-        ? alcove_errno(reply, rlen, errno)
+        ? alcove_mk_errno(reply, rlen, errno)
         : alcove_mk_atom(reply, rlen, "ok");
 }
 
@@ -95,7 +95,7 @@ alcove_rmdir(alcove_state_t *ap, const char *arg, size_t len,
     rv = rmdir(pathname);
 
     return (rv < 0)
-        ? alcove_errno(reply, rlen, errno)
+        ? alcove_mk_errno(reply, rlen, errno)
         : alcove_mk_atom(reply, rlen, "ok");
 }
 
@@ -120,7 +120,7 @@ alcove_chroot(alcove_state_t *ap, const char *arg, size_t len,
     rv = chroot(path);
 
     return (rv < 0)
-        ? alcove_errno(reply, rlen, errno)
+        ? alcove_mk_errno(reply, rlen, errno)
         : alcove_mk_atom(reply, rlen, "ok");
 }
 
@@ -136,7 +136,7 @@ alcove_getcwd(alcove_state_t *ap, const char *arg, size_t len,
     char buf[PATH_MAX] = {0};
 
     if (!getcwd(buf, sizeof(buf)))
-        return alcove_errno(reply, rlen, errno);
+        return alcove_mk_errno(reply, rlen, errno);
 
     ALCOVE_OK(reply, &rindex,
             alcove_encode_binary(reply, rlen, &rindex, buf, strlen(buf)));
@@ -168,7 +168,7 @@ alcove_readdir(alcove_state_t *ap, const char *arg, size_t len,
     dirp = opendir(name);
 
     if (!dirp)
-        return alcove_errno(reply, rlen, errno);
+        return alcove_mk_errno(reply, rlen, errno);
 
     ALCOVE_ERR(alcove_encode_version(reply, rlen, &rindex));
     ALCOVE_ERR(alcove_encode_tuple_header(reply, rlen, &rindex, 2));
@@ -186,10 +186,10 @@ alcove_readdir(alcove_state_t *ap, const char *arg, size_t len,
     }
 
     if (errno != 0)
-        return alcove_errno(reply, rlen, errno);
+        return alcove_mk_errno(reply, rlen, errno);
 
     if (closedir(dirp) < 0)
-        return alcove_errno(reply, rlen, errno);
+        return alcove_mk_errno(reply, rlen, errno);
 
     ALCOVE_ERR(alcove_encode_empty_list(reply, rlen, &rindex));
 

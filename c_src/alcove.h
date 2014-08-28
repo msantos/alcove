@@ -185,8 +185,8 @@ int alcove_encode_ulonglong(char *, size_t, int *, unsigned long long);
 int alcove_encode_atom(char *, size_t, int *, const char *);
 int alcove_encode_binary(char *, size_t, int *, const void *, long);
 
-ssize_t alcove_errno(char *buf, size_t len, int errnum);
-ssize_t alcove_error(char *buf, size_t len, const char *reason);
+ssize_t alcove_mk_errno(char *buf, size_t len, int errnum);
+ssize_t alcove_mk_error(char *buf, size_t len, const char *reason);
 ssize_t alcove_mk_atom(char *buf, size_t len, const char *atom);
 ssize_t alcove_mk_binary(char *, size_t, const void *, size_t);
 ssize_t alcove_mk_long(char *, size_t, long);
