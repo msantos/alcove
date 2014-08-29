@@ -108,6 +108,8 @@ get(Drv, Pids, MntOpt, Namespace, Key) ->
     end,
     fold(Drv, MntOpt, Namespace, Fun, []).
 
+-spec write(alcove_drv:ref(),alcove:fork_path(),file:name_all(),iodata()) ->
+    {'error',file:posix()} | {'ok',non_neg_integer()}.
 write(Drv, Pids, File, Bytes) ->
     Flags = alcove:define(Drv, 'O_WRONLY'),
     Reply = case alcove:open(Drv, Pids, File, Flags, 0) of
@@ -120,6 +122,8 @@ write(Drv, Pids, File, Bytes) ->
     end,
     Reply.
 
+-spec read(alcove_drv:ref(),alcove:fork_path(),file:name_all()) ->
+    {'error',file:posix()} | {'ok',binary()}.
 read(Drv, Pids, File) ->
     Flags = alcove:define(Drv, 'O_RDONLY'),
     Reply = case alcove:open(Drv, Pids, File, Flags, 0) of
