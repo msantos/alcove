@@ -604,8 +604,6 @@ stream(#state{pid = Drv}) ->
     Count = 1 * 1024 * 1024,
     ok = alcove:execvp(Drv, Chain, "/bin/sh",
         ["/bin/sh", "-c", "yes | head -" ++ integer_to_list(Count)]),
-    % XXX magic timeout: give OS time to exec shell command
-    timer:sleep(100),
     % <<"y\n">>
     Reply = stream_count(Drv, Chain, Count*2),
     ?_assertEqual(ok, Reply).
@@ -660,9 +658,10 @@ chain(Drv, Fork, N) ->
 stream_count(_Drv, _Chain, 0) ->
     ok;
 stream_count(Drv, Chain, N) ->
-    case alcove:stdout(Drv, Chain) of
-        false ->
-            {error, N};
-        Bin ->
+    receive
+        {alcove_stdout, Drv, Chain, Bin} ->
             stream_count(Drv, Chain, N - byte_size(Bin))
+    after
+        1000 ->
+            {error, N}
     end.
