@@ -67,7 +67,8 @@ run(State) ->
         execvp(State),
         stdout(State),
         stderr(State),
-        execve(State)
+        execve(State),
+        stream(State)
     ].
 
 start() ->
@@ -598,6 +599,17 @@ execve(#state{pid = Drv}) ->
         ?_assertEqual(false, Stdout1)
     ].
 
+stream(#state{pid = Drv}) ->
+    Chain = chain(Drv, 16),
+    Count = 1 * 1024 * 1024,
+    ok = alcove:execvp(Drv, Chain, "/bin/sh",
+        ["/bin/sh", "-c", "yes | head -" ++ integer_to_list(Count)]),
+    % XXX magic timeout: give OS time to exec shell command
+    timer:sleep(100),
+    % <<"y\n">>
+    Reply = stream_count(Drv, Chain, Count*2),
+    ?_assertEqual(ok, Reply).
+
 %%
 %% Utility functions
 %%
@@ -635,3 +647,22 @@ forkstress_1(Drv, Child, N) ->
     Version = alcove:version(Drv, [Child]),
     Version = alcove:version(Drv, [Child]),
     forkstress_1(Drv, Child, N-1).
+
+chain(Drv, N) ->
+    chain(Drv, [], N).
+
+chain(_Drv, Fork, 0) ->
+    Fork;
+chain(Drv, Fork, N) ->
+    {ok, Child} = alcove:fork(Drv, Fork),
+    chain(Drv, Fork ++ [Child], N-1).
+
+stream_count(_Drv, _Chain, 0) ->
+    ok;
+stream_count(Drv, Chain, N) ->
+    case alcove:stdout(Drv, Chain) of
+        false ->
+            {error, N};
+        Bin ->
+            stream_count(Drv, Chain, N - byte_size(Bin))
+    end.
