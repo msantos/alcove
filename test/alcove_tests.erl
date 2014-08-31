@@ -599,11 +599,14 @@ execve(#state{pid = Drv}) ->
         ?_assertEqual(false, Stdout1)
     ].
 
-stream(#state{pid = Drv}) ->
+stream(#state{pid = Drv, os = OS}) ->
     Chain = chain(Drv, 16),
     Count = 1 * 1024 * 1024,
-    ok = alcove:execvp(Drv, Chain, "/bin/sh",
-        ["/bin/sh", "-c", "yes | head -" ++ integer_to_list(Count)]),
+    Cmd = case OS of
+        {unix,openbsd} -> "jot -b y " ++ integer_to_list(Count);
+        _ -> "yes | head -" ++ integer_to_list(Count)
+    end,
+    ok = alcove:execvp(Drv, Chain, "/bin/sh", ["/bin/sh", "-c", Cmd]),
     % <<"y\n">>
     Reply = stream_count(Drv, Chain, Count*2),
     ?_assertEqual(ok, Reply).
