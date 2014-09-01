@@ -73,15 +73,8 @@ run(State) ->
 
 start() ->
     % export ALCOVE_TEST_EXEC="sudo valgrind --leak-check=yes --log-file=/tmp/alcove.log"
-    Exec = case os:getenv("ALCOVE_TEST_EXEC") of
-        false -> "sudo";
-        Env -> Env
-    end,
-
-    Use_fork = case os:getenv("ALCOVE_TEST_USE_FORK") of
-        false -> false;
-        _ -> true
-    end,
+    Exec = getenv("ALCOVE_TEST_EXEC", "sudo"),
+    Use_fork = false =/= getenv("ALCOVE_TEST_USE_FORK", false),
 
     {ok, Drv} = alcove_drv:start([{exec, Exec}, {maxchild, 8}]),
 
@@ -614,6 +607,12 @@ stream(#state{pid = Drv, os = OS}) ->
 %%
 %% Utility functions
 %%
+getenv(Name, Default) ->
+    case os:getenv(Name) of
+        false -> Default;
+        Env -> Env
+    end.
+
 waitpid(Drv, Pids, Child) ->
     SIGCHLD = alcove:signal_define(Drv, 'SIGCHLD'),
     case alcove:event(Drv, Pids, 5000) of
