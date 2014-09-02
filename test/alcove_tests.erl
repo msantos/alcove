@@ -596,10 +596,7 @@ stream(#state{pid = Drv, os = OS}) ->
     Chain = chain(Drv, 16),
     Default = integer_to_list(1 * 1024 * 1024),
     Count = list_to_integer(getenv("ALCOVE_TEST_STREAM_COUNT", Default)),
-    Cmd = case OS of
-        {unix,openbsd} -> "jot -b y " ++ integer_to_list(Count);
-        _ -> "yes | head -" ++ integer_to_list(Count)
-    end,
+    Cmd = "yes | head -" ++ integer_to_list(Count),
     ok = alcove:execvp(Drv, Chain, "/bin/sh", ["/bin/sh", "-c", Cmd]),
     % <<"y\n">>
     Reply = stream_count(Drv, Chain, Count*2),

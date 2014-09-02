@@ -100,6 +100,10 @@ main(int argc, char *argv[])
     if (sigaction(SIGCHLD, &act, NULL) < 0)
         err(EXIT_FAILURE, "sigaction");
 
+    act.sa_handler = SIG_DFL;
+    if (sigaction(SIGPIPE, &act, NULL) < 0)
+        err(EXIT_FAILURE, "sigaction");
+
     ap->maxfd = sysconf(_SC_OPEN_MAX);
     ap->maxchild = ap->maxfd / 4 - 4;
     ap->maxforkdepth = MAXFORKDEPTH;
