@@ -371,7 +371,7 @@ alcove_malloc(ssize_t size)
 }
 
     int
-alcove_define(char *buf, size_t len, int *index, char *name,
+alcove_encode_define(char *buf, size_t len, int *index, char *name,
         alcove_define_t *constants)
 {
     alcove_define_t *dp = NULL;
@@ -385,7 +385,7 @@ alcove_define(char *buf, size_t len, int *index, char *name,
 }
 
     int
-alcove_constant(char *buf, size_t len, int *index, u_int64_t val,
+alcove_encode_constant(char *buf, size_t len, int *index, u_int64_t val,
         alcove_define_t *constants)
 {
     alcove_define_t *dp = NULL;

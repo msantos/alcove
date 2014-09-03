@@ -269,7 +269,7 @@ alcove_clone_define(alcove_state_t *ap, const char *arg, size_t len,
         return -1;
 
     ALCOVE_ERR(alcove_encode_version(reply, rlen, &rindex));
-    ALCOVE_ERR(alcove_define(reply, rlen, &rindex,
+    ALCOVE_ERR(alcove_encode_define(reply, rlen, &rindex,
                 flag, alcove_clone_constants));
     return rindex;
 #else
