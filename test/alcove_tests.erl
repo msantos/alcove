@@ -592,7 +592,7 @@ execve(#state{pid = Drv}) ->
         ?_assertEqual(false, Stdout1)
     ].
 
-stream(#state{pid = Drv, os = OS}) ->
+stream(#state{pid = Drv}) ->
     Chain = chain(Drv, 16),
     Default = integer_to_list(1 * 1024 * 1024),
     Count = list_to_integer(getenv("ALCOVE_TEST_STREAM_COUNT", Default)),
