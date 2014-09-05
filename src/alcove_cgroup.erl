@@ -94,6 +94,8 @@ destroy(Drv, Pids, Namespace) ->
     end,
     fold(Drv, <<>>, [], Fun, []).
 
+-spec set(alcove_drv:ref(),alcove:fork_path(),binary(),
+    [binary()],string() | binary(),string() | binary()) -> {ok,non_neg_integer()}.
 set(Drv, Pids, MntOpt, Namespace, Key, Value) ->
     Fun = fun(Cgroup, _Acc) ->
             File = join(Cgroup, [Key]),
@@ -101,6 +103,8 @@ set(Drv, Pids, MntOpt, Namespace, Key, Value) ->
     end,
     fold(Drv, MntOpt, Namespace, Fun, []).
 
+-spec get(alcove_drv:ref(),alcove:fork_path(),
+    binary(),[binary()],string() | binary()) -> {ok,binary()}.
 get(Drv, Pids, MntOpt, Namespace, Key) ->
     Fun = fun(Cgroup, _Acc) ->
             File = join(Cgroup, [Key]),
