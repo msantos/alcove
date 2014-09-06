@@ -52,8 +52,7 @@ start_link(Owner, Options) ->
 stop(Drv) ->
     gen_server:call(Drv, stop).
 
--spec call(ref(),[integer()],iodata(),timeout()) ->
-    any().
+-spec call(ref(),[integer()],iodata(),timeout()) -> term().
 call(Drv, Pids, Data, Timeout) ->
     case send(Drv, Data) of
         true ->
@@ -88,7 +87,7 @@ stdout(Drv, Pids, Timeout) ->
 stderr(Drv, Pids, Timeout) ->
     reply(Drv, Pids, ?ALCOVE_MSG_STDERR, Timeout).
 
--spec event(ref(),[integer()],timeout()) -> any().
+-spec event(ref(),[integer()],timeout()) -> term().
 event(Drv, Pids, Timeout) ->
     reply(Drv, Pids, ?ALCOVE_MSG_EVENT, Timeout).
 
