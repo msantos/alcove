@@ -319,7 +319,6 @@ alcove_drv
                 | {exec, string()}
                 | {progname, string()}
                 | {exit_status, boolean()}
-                | {sigchld, boolean()}
                 | {termsig, boolean()}
                 | verbose | {verbose, non_neg_integer()}
                 | {maxchild, non_neg_integer()}
@@ -508,7 +507,7 @@ probably confuse the process.
     getopt(Drv, Pids, Options) -> integer() | false
 
         Types   Options = verbose | childlimit | exit_status | maxchild |
-                          maxforkdepth | sigchld | termsig
+                          maxforkdepth | termsig
 
         Retrieve port options for event loop. These options are
         configurable per process, with the default settings inherited
@@ -542,11 +541,6 @@ probably confuse the process.
             maxforkdepth : non_neg_integer() : 16
 
                 Sets the maximum length of the fork path.
-
-            sigchld : 1 | 0 : 1
-
-                Inform the controlling Erlang process when a child
-                process exits.
 
             termisg : 1 | 0 : 0
 

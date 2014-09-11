@@ -142,9 +142,6 @@ alcove_getopt(alcove_state_t *ap, const char *arg, size_t len,
     else if (!strncmp(opt, "maxforkdepth", 12)) {
         val = ap->maxforkdepth;
     }
-    else if (!strncmp(opt, "sigchld", 7)) {
-        val = ap->opt & alcove_opt_sigchld ? 1 : 0;
-    }
     else if (!strncmp(opt, "termsig", 7)) {
         val = ap->opt & alcove_opt_termsig ? 1 : 0;
     }
@@ -182,9 +179,6 @@ alcove_setopt(alcove_state_t *ap, const char *arg, size_t len,
     }
     else if (!strncmp(opt, "maxforkdepth", 12)) {
         ap->maxforkdepth = val;
-    }
-    else if (!strncmp(opt, "sigchld", 7)) {
-        ALCOVE_SETOPT(ap, alcove_opt_sigchld, val);
     }
     else if (!strncmp(opt, "termsig", 7)) {
         ALCOVE_SETOPT(ap, alcove_opt_termsig, val);

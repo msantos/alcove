@@ -262,7 +262,6 @@ getopts(Options) when is_list(Options) ->
     [find_executable(Cmd)|Argv].
 
 optarg({exit_status, Bool})     -> switch("e", bool(Bool));
-optarg({sigchld, Bool})         -> switch("s", bool(Bool));
 optarg({termsig, Bool})         -> switch("S", bool(Bool));
 optarg({verbose, Arg})          -> switch(string:copies("v", Arg));
 optarg({maxchild, Arg})         -> switch("m", Arg);

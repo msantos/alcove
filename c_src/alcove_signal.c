@@ -66,9 +66,6 @@ alcove_sigaction(alcove_state_t *ap, const char *arg, size_t len,
     if (alcove_decode_int(arg, len, &index, &signum) < 0)
         return -1;
 
-    if (signum == SIGCHLD)
-        return alcove_mk_errno(reply, rlen, EINVAL);
-
     /* handler */
     if (alcove_decode_atom(arg, len, &index, handler) < 0)
         return -1;
@@ -84,6 +81,12 @@ alcove_sigaction(alcove_state_t *ap, const char *arg, size_t len,
     }
     else {
         return -1;
+    }
+
+    if (signum == SIGCHLD) {
+        ALCOVE_SETOPT(ap, alcove_opt_sigchld,
+                ((act.sa_handler == sighandler) ? 1 : 0));
+        return alcove_mk_atom(reply, rlen, "ok");
     }
 
     rv = sigaction(signum, &act, NULL);

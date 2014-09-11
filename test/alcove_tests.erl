@@ -78,7 +78,8 @@ start() ->
 
     {ok, Drv} = alcove_drv:start([{exec, Exec}, {maxchild, 8}]),
 
-    true = alcove:setopt(Drv, sigchld, 1),
+    SIGCHLD = alcove:define(Drv, 'SIGCHLD'),
+    ok = alcove:sigaction(Drv, SIGCHLD, trap),
 
     case {Use_fork, os:type()} of
         {false, {unix,linux} = OS} ->
