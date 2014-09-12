@@ -222,3 +222,29 @@ alcove_getpgrp(alcove_state_t *ap, const char *arg, size_t len,
 {
     return alcove_mk_long(reply, rlen, getpgrp());
 }
+
+/*
+ * setpgid(2)
+ */
+    ssize_t
+alcove_setpgid(alcove_state_t *ap, const char *arg, size_t len,
+        char *reply, size_t rlen)
+{
+    int index = 0;
+
+    pid_t pid = 0;
+    pid_t pgid = 0;
+
+    /* pid */
+    if (alcove_decode_int(arg, len, &index, &pid) < 0)
+        return -1;
+
+    /* pgid */
+    if (alcove_decode_int(arg, len, &index, &pgid) < 0)
+        return -1;
+
+    if (setpgid(pid, pgid) < 0)
+        return alcove_mk_errno(reply, rlen, errno);
+
+    return alcove_mk_atom(reply, rlen, "ok");
+}

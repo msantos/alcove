@@ -43,6 +43,7 @@ setgid/1
 sethostname/1
 setns/1
 setopt/2
+setpgid/2
 setrlimit/2
 setsid/0
 setuid/1
