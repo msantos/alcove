@@ -195,47 +195,37 @@ static({define,3}) ->
 "
 define(Drv, Pids, Const) when is_atom(Const) ->
     define(Drv, Pids, [Const]);
-define(Drv, Pids, Consts) when is_list(Consts) ->
-    lists:foldl(fun(Const,A) ->
-                N = case atom_to_list(Const) of
-                    \"CLONE_\" ++ _ ->
-                        alcove:clone_define(Drv, Pids, Const);
-                    \"MS_\" ++ _ ->
-                        alcove:mount_define(Drv, Pids, Const);
-                    \"MNT_\" ++ _ ->
-                        alcove:mount_define(Drv, Pids, Const);
-                    \"O_\" ++ _ ->
-                        alcove:file_define(Drv, Pids, Const);
-                    \"PR_\" ++ _ ->
-                        alcove:prctl_define(Drv, Pids, Const);
-                    \"SECCOMP_\" ++ _ ->
-                        alcove:prctl_define(Drv, Pids, Const);
-                    \"RLIMIT_\" ++ _ ->
-                        alcove:rlimit_define(Drv, Pids, Const);
-                    \"AUDIT_ARCH_\" ++ _ ->
-                        alcove:syscall_define(Drv, Pids, Const);
-                    \"__NR_\" ++ _ ->
-                        alcove:syscall_define(Drv, Pids, Const);
-                    \"SYS_\" ++ Rest ->
-                        alcove:syscall_define(Drv, Pids,
-                            list_to_atom(\"__NR_\" ++ Rest));
-                    \"SIG\" ++ _ ->
-                        alcove:signal_define(Drv, Pids, Const);
-                    Flag when
-                        Flag =:= \"rdonly\";
-                        Flag =:= \"nosuid\";
-                        Flag =:= \"noexec\";
-                        Flag =:= \"noatime\" ->
-                            alcove:mount_define(Drv, Pids, Const);
-                    _ -> false
-                end,
-                if
-                    is_integer(N) -> N bxor A;
-                    true -> false
+define(Drv, Pids, Consts0) when is_list(Consts0) ->
+    Consts = [ begin
+                case atom_to_list(Const) of
+                    \"SYS_\" ++ Rest -> \"__NR_\" ++ Rest;
+                    X -> X
                 end
-        end,
-        0,
-        Consts).
+        end || Const <- Consts0 ],
+
+    try lists:foldl(fun(Const, Acc) ->
+                Fun = const(Const),
+                Acc bxor alcove:Fun(Drv, Pids, list_to_atom(Const))
+        end, 0, Consts)
+    catch
+        error:badarith -> false;
+        error:function_clause -> false
+    end.
+
+const(\"CLONE_\" ++ _) -> clone_define;
+const(\"MS_\" ++ _) -> mount_define;
+const(\"MNT_\" ++ _) -> mount_define;
+const(\"O_\" ++ _) -> file_define;
+const(\"PR_\" ++ _) -> prctl_define;
+const(\"SECCOMP_\" ++ _) -> prctl_define;
+const(\"RLIMIT_\" ++ _) -> rlimit_define;
+const(\"AUDIT_ARCH_\" ++ _) -> syscall_define;
+const(\"__NR_\" ++ _) -> syscall_define;
+const(\"SIG\" ++ _) -> signal_define;
+const(\"rdonly\") -> mount_define;
+const(\"nosuid\") -> mount_define;
+const(\"noexec\") -> mount_define;
+const(\"noatime\") -> mount_define.
 ";
 
 static({stdin,2}) ->
