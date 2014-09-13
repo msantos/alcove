@@ -55,7 +55,7 @@ start() ->
 
     #state{
         pid = Drv,
-        seccomp = alcove:define(Drv, 'SECCOMP_MODE_FILTER') =/= false
+        seccomp = alcove:define(Drv, 'SECCOMP_MODE_FILTER') =/= unknown
     }.
 
 stop(#state{pid = Drv}) ->
@@ -131,7 +131,7 @@ trap(#state{pid = Drv}) ->
 
 allow_syscall(Drv, Syscall) ->
     case alcove:define(Drv, Syscall) of
-        false -> [];
+        unknown -> [];
         NR -> ?ALLOW_SYSCALL(NR)
     end.
 

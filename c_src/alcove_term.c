@@ -381,7 +381,7 @@ alcove_encode_define(char *buf, size_t len, int *index, char *name,
             return alcove_encode_ulonglong(buf, len, index, dp->val);
     }
 
-    return alcove_encode_atom(buf, len, index, "false");
+    return alcove_encode_atom(buf, len, index, "unknown");
 }
 
     int
@@ -395,7 +395,7 @@ alcove_encode_constant(char *buf, size_t len, int *index, u_int64_t val,
             return alcove_encode_atom(buf, len, index, dp->name);
     }
 
-    return alcove_encode_atom(buf, len, index, "false");
+    return alcove_encode_atom(buf, len, index, "unknown");
 }
 
     char **

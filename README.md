@@ -423,8 +423,8 @@ probably confuse the process.
 
         clone(2) : create a new process
 
-    clone_define(Drv, atom()) -> integer() | false
-    clone_define(Drv, Pids, atom()) -> integer() | false
+    clone_define(Drv, atom()) -> integer() | unknown
+    clone_define(Drv, Pids, atom()) -> integer() | unknown
 
         Linux only.
 
@@ -473,8 +473,8 @@ probably confuse the process.
 
         exit(3) : cause the child process to exit
 
-    file_define(Drv, atom()) -> integer() | false
-    file_define(Drv, Pids, atom()) -> integer() | false
+    file_define(Drv, atom()) -> integer() | unknown
+    file_define(Drv, Pids, atom()) -> integer() | unknown
 
         Constants for open(2).
 
@@ -613,8 +613,8 @@ probably confuse the process.
 
             mount(FSType, Target, Flags, Data);
 
-    mount_define(Drv, Flag) -> integer() | false
-    mount_define(Drv, Pids, Flag) -> integer() | false
+    mount_define(Drv, Flag) -> integer() | unknown
+    mount_define(Drv, Pids, Flag) -> integer() | unknown
 
         Types   Flag = rdonly | nosuid | noexec | noatime | ...
 
@@ -653,8 +653,8 @@ probably confuse the process.
         This function can be used to set BPF syscall filters on processes
         (seccomp mode).
 
-    prctl_define(Drv, atom()) -> integer() | false
-    prctl_define(Drv, Pids, atom()) -> integer() | false
+    prctl_define(Drv, atom()) -> integer() | unknown
+    prctl_define(Drv, Pids, atom()) -> integer() | unknown
 
         Convert prctl option names to integers.
 
@@ -670,8 +670,8 @@ probably confuse the process.
 
         readdir(3) : retrieve list of objects in a directory
 
-    rlimit_define(Drv, atom()) -> integer() | false
-    rlimit_define(Drv, Pids, atom()) -> integer() | false
+    rlimit_define(Drv, atom()) -> integer() | unknown
+    rlimit_define(Drv, Pids, atom()) -> integer() | unknown
 
         Convert an RLIMIT_* flag to an integer().
 
@@ -813,13 +813,13 @@ probably confuse the process.
 
         Multiple trapped signals may be reported as one event.
 
-    signal_constant(Drv, integer()) -> atom() | false
-    signal_constant(Drv, Pids, integer()) -> atom() | false
+    signal_constant(Drv, integer()) -> atom() | unknown
+    signal_constant(Drv, Pids, integer()) -> atom() | unknown
 
         Convert integers to signal names.
 
-    signal_define(Drv, atom()) -> integer() | false
-    signal_define(Drv, Pids, atom()) -> integer() | false
+    signal_define(Drv, atom()) -> integer() | unknown
+    signal_define(Drv, Pids, atom()) -> integer() | unknown
 
         Convert signal names to integers.
 
