@@ -374,14 +374,28 @@ alcove_malloc(ssize_t size)
 alcove_encode_define(char *buf, size_t len, int *index, char *name,
         alcove_define_t *constants)
 {
+    unsigned long long val = 0;
+
+    if (alcove_lookup_define(name, &val, constants) < 0)
+        return alcove_encode_atom(buf, len, index, "unknown");
+
+    return alcove_encode_ulonglong(buf, len, index, val);
+}
+
+    int
+alcove_lookup_define(char *name, unsigned long long *val,
+        alcove_define_t *constants)
+{
     alcove_define_t *dp = NULL;
 
     for (dp = constants; dp->name != NULL; dp++) {
-        if (!strcmp(name, dp->name))
-            return alcove_encode_ulonglong(buf, len, index, dp->val);
+        if (!strcmp(name, dp->name)) {
+            *val = dp->val;
+            return 0;
+        }
     }
 
-    return alcove_encode_atom(buf, len, index, "unknown");
+    return -1;
 }
 
     int

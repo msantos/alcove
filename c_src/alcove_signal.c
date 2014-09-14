@@ -14,8 +14,6 @@
  */
 #include "alcove.h"
 #include "alcove_call.h"
-
-#include <signal.h>
 #include "alcove_signal.h"
 
 /*
@@ -56,15 +54,39 @@ alcove_sigaction(alcove_state_t *ap, const char *arg, size_t len,
         char *reply, size_t rlen)
 {
     int index = 0;
+    int type = 0;
+    int arity = 0;
 
     int signum = 0;
+    char signame[MAXATOMLEN] = {0};
     char handler[MAXATOMLEN] = {0};
     struct sigaction act = {{0}};
     int rv = 0;
 
     /* signum */
-    if (alcove_decode_int(arg, len, &index, &signum) < 0)
+    if (alcove_get_type(arg, len, &index, &type, &arity) < 0)
         return -1;
+
+    switch (type) {
+        case ERL_ATOM_EXT:
+            if (alcove_decode_atom(arg, len, &index, signame) < 0)
+                return -1;
+
+            if (alcove_lookup_define(signame, (unsigned long long *)&signum,
+                        alcove_signal_constants) < 0)
+                return -1;
+
+            break;
+
+        case ERL_SMALL_INTEGER_EXT:
+        case ERL_INTEGER_EXT:
+            if (alcove_decode_int(arg, len, &index, &signum) < 0)
+                return -1;
+            break;
+
+        default:
+            return -1;
+    }
 
     /* handler */
     if (alcove_decode_atom(arg, len, &index, handler) < 0)
