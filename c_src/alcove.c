@@ -583,7 +583,7 @@ exited_pid(alcove_state_t *ap, alcove_child_t *c, void *arg1, void *arg2)
     if (WIFSIGNALED(*status) && (ap->opt & alcove_opt_termsig)) {
         ALCOVE_TUPLE2(t, &index,
             "termsig",
-            ei_encode_long(t, &index, WTERMSIG(*status))
+            alcove_signal_name(t, sizeof(t), &index, WTERMSIG(*status))
         );
 
         if (alcove_call_fake_reply(c->pid, ALCOVE_MSG_EVENT, t, index) < 0)
@@ -745,7 +745,7 @@ alcove_handle_signal(alcove_state_t *ap) {
 
         ALCOVE_TUPLE2(reply, &index,
             "signal",
-            ei_encode_long(reply, &index, signum)
+            alcove_signal_name(reply, sizeof(reply), &index, signum)
         );
 
         if (alcove_call_reply(ALCOVE_MSG_EVENT, reply, index) < 0)

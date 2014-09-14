@@ -78,8 +78,7 @@ start() ->
 
     {ok, Drv} = alcove_drv:start([{exec, Exec}, {maxchild, 8}]),
 
-    SIGCHLD = alcove:define(Drv, 'SIGCHLD'),
-    ok = alcove:sigaction(Drv, SIGCHLD, trap),
+    ok = alcove:sigaction(Drv, 'SIGCHLD', trap),
 
     case {Use_fork, os:type()} of
         {false, {unix,linux} = OS} ->
@@ -399,14 +398,14 @@ badpid(#state{pid = Drv}) ->
 signal(#state{pid = Drv}) ->
     {ok, Child1} = alcove:fork(Drv),
 
-    TERM = alcove:signal_define(Drv, 'SIGTERM'),
+    SIGTERM = alcove:signal_define(Drv, 'SIGTERM'),
 
-    SA0 = alcove:sigaction(Drv, [Child1], TERM, ign),
-    Kill0 = alcove:kill(Drv, Child1, TERM),
+    SA0 = alcove:sigaction(Drv, [Child1], SIGTERM, ign),
+    Kill0 = alcove:kill(Drv, Child1, SIGTERM),
     Pid0 = alcove:getpid(Drv, [Child1]),
 
-    SA1 = alcove:sigaction(Drv, [Child1], TERM, dfl),
-    Kill1 = alcove:kill(Drv, Child1, TERM),
+    SA1 = alcove:sigaction(Drv, [Child1], 'SIGTERM', dfl),
+    Kill1 = alcove:kill(Drv, Child1, SIGTERM),
     waitpid(Drv, [], Child1),
     alcove:kill(Drv, Child1, 0),
     Search = alcove:kill(Drv, Child1, 0),
@@ -613,9 +612,8 @@ getenv(Name, Default) ->
     end.
 
 waitpid(Drv, Pids, Child) ->
-    SIGCHLD = alcove:signal_define(Drv, 'SIGCHLD'),
     case alcove:event(Drv, Pids, 5000) of
-        {signal, SIGCHLD} ->
+        {signal, 'SIGCHLD'} ->
             waitpid_1(Drv, Pids, Child);
         false ->
             false

@@ -162,6 +162,8 @@ int pid_foreach(alcove_state_t *ap, pid_t pid, void *arg1, void *arg2,
 int pid_equal(pid_t p1, pid_t p2);
 int pid_not_equal(pid_t p1, pid_t p2);
 
+ssize_t alcove_signal_name(char *, size_t, int *, int);
+
 int alcove_get_type(const char *, size_t, const int *, int *, int *);
 int alcove_decode_int(const char *, size_t, int *, int *);
 int alcove_decode_uint(const char *, size_t, int *, u_int32_t *);

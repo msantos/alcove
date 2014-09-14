@@ -536,8 +536,8 @@ specs() ->
 -spec setuid(alcove_drv:ref(),non_neg_integer()) -> 'ok' | {'error', file:posix()}.
 -spec setuid(alcove_drv:ref(),fork_path(),non_neg_integer()) -> 'ok' | {'error', file:posix()}.
 
--spec sigaction(alcove_drv:ref(),integer(),atom()) -> 'ok' | {'error', file:posix()}.
--spec sigaction(alcove_drv:ref(),fork_path(),integer(),atom()) -> 'ok' | {'error', file:posix()}.
+-spec sigaction(alcove_drv:ref(),integer() | atom(),atom()) -> 'ok' | {'error', file:posix()}.
+-spec sigaction(alcove_drv:ref(),fork_path(),integer() | atom(),atom()) -> 'ok' | {'error', file:posix()}.
 
 -spec signal_constant(alcove_drv:ref(),non_neg_integer()) -> 'unknown' | atom().
 -spec signal_constant(alcove_drv:ref(),fork_path(),non_neg_integer()) -> 'unknown' | atom().

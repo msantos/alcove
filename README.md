@@ -225,9 +225,7 @@ true
 
 % If we check the parent for events, we can see the child has exited
 10> alcove:event(P).
-{signal,17}
-11> alcove:signal_constant(P, 17).
-'SIGCHLD'
+{signal,'SIGCHLD'}
 ```
 
 Creating a Container Using Linux Namespaces
@@ -440,14 +438,12 @@ probably confuse the process.
 
         environ(7) : return the process environment variables
 
-    event(Drv) -> {Tag, Val} | false
-    event(Drv, Pids) -> {Tag, Val} | false
-
-        Types   Tag = signal
-                Val = integer()
+    event(Drv) -> term()
+    event(Drv, Pids) -> term()
 
         event/1,2 is used to retrieve async messages returned from the
-        port, such as trapped signals.
+        port, such as trapped signals, the exit status or the termination
+        signal.
 
     execve(Drv, Arg0, [Arg0, Args], Env) -> ok | {error, posix()}
     execve(Drv, Pids, Arg0, [Arg0, Args], Env) -> ok | {error, posix()}
@@ -542,7 +538,7 @@ probably confuse the process.
 
                 Sets the maximum length of the fork path.
 
-            termisg : 1 | 0 : 0
+            termsig : 1 | 0 : 0
 
                 If a child process exits because of a signal, notify
                 the controlling Erlang process.
@@ -796,7 +792,7 @@ probably confuse the process.
     sigaction(Drv, Signum, Handler) -> ok | {error, posix()}
     sigaction(Drv, Pids, Signum, Handler) -> ok | {error, posix()}
 
-        Types   Signum = integer()
+        Types   Signum = integer() | atom()
                 Handler = dfl | ign | trap
 
         sigaction(2) : set process behaviour for signals

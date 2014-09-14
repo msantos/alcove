@@ -161,3 +161,10 @@ alcove_signal_constant(alcove_state_t *ap, const char *arg, size_t len,
 
     return rindex;
 }
+
+    ssize_t
+alcove_signal_name(char *buf, size_t len, int *index, int signum)
+{
+    return alcove_encode_constant(buf, len, index, signum,
+            alcove_signal_constants);
+}

@@ -62,8 +62,6 @@ stop(#state{pid = Drv}) ->
     alcove_drv:stop(Drv).
 
 kill(#state{pid = Drv}) ->
-    SIGSYS = alcove:define(Drv, 'SIGSYS'),
-
     {ok, Pid} = alcove:fork(Drv),
     enforce(Drv, [Pid], ?BPF_STMT(?BPF_RET+?BPF_K, ?SECCOMP_RET_KILL)),
     % Allowed: cached by process
@@ -80,7 +78,7 @@ kill(#state{pid = Drv}) ->
 
     [
         ?_assertEqual(Pid, Reply0),
-        ?_assertEqual({termsig, SIGSYS}, Event),
+        ?_assertEqual({termsig, 'SIGSYS'}, Event),
         ?_assertEqual({error, esrch}, Reply3)
     ].
 
@@ -99,10 +97,8 @@ allow(#state{pid = Drv}) ->
     ].
 
 trap(#state{pid = Drv}) ->
-    SIGSYS = alcove:define(Drv, 'SIGSYS'),
-
     {ok, Pid} = alcove:fork(Drv),
-    ok = alcove:sigaction(Drv, [Pid], SIGSYS, trap),
+    ok = alcove:sigaction(Drv, [Pid], 'SIGSYS', trap),
 
     enforce(Drv, [Pid], ?BPF_STMT(?BPF_RET+?BPF_K, ?SECCOMP_RET_TRAP)),
 
@@ -125,7 +121,7 @@ trap(#state{pid = Drv}) ->
     [
         ?_assertEqual(Pid, Reply0),
         ?_assertEqual(true, Reply1),
-        ?_assertEqual({signal, SIGSYS}, Event),
+        ?_assertEqual({signal, 'SIGSYS'}, Event),
         ?_assertEqual(ok, Reply3)
     ].
 
