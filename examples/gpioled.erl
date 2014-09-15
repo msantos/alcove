@@ -37,8 +37,8 @@
 %%
 %%  gpioled:start(11).
 %%
--define(O_WRONLY, alcove:define(Drv, 'O_WRONLY')).
--define(O_RDWR, alcove:define(Drv, 'O_RDWR')).
+-define(O_WRONLY, alcove:define(Drv, o_wronly)).
+-define(O_RDWR, alcove:define(Drv, o_rdwr)).
 
 -record(state, {
         drv,
@@ -56,11 +56,11 @@ start(GPIO, N) ->
     export(Drv, GPIO),
 
     Flags = alcove:define(Drv, [
-            'CLONE_NEWIPC',
-            'CLONE_NEWNS',
-            'CLONE_NEWNET',
-            'CLONE_NEWPID',
-            'CLONE_NEWUTS'
+            clone_newipc,
+            clone_newns,
+            clone_newnet,
+            clone_newpid,
+            clone_newuts
         ]),
 
     % Child

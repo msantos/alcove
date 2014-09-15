@@ -120,9 +120,9 @@ limits. In this case, we'll use setrlimit(2):
 ```erlang
 setlimits(Drv, Child) ->
     % Convert atoms to integers defined on this platform
-    RLIMIT_FSIZE = alcove:rlimit_define(Drv, 'RLIMIT_FSIZE'),
-    RLIMIT_NOFILE = alcove:rlimit_define(Drv, 'RLIMIT_NOFILE'),
-    RLIMIT_NPROC = alcove:rlimit_define(Drv, 'RLIMIT_NPROC'),
+    RLIMIT_FSIZE = alcove:rlimit_define(Drv, rlimit_fsize),
+    RLIMIT_NOFILE = alcove:rlimit_define(Drv, rlimit_nofile),
+    RLIMIT_NPROC = alcove:rlimit_define(Drv, rlimit_nproc),
 
     % Disable creation of files
     ok = alcove:setrlimit(Drv, [Child], RLIMIT_FSIZE,
@@ -225,7 +225,7 @@ true
 
 % If we check the parent for events, we can see the child has exited
 10> alcove:event(P).
-{signal,'SIGCHLD'}
+{signal,sigchld}
 ```
 
 Creating a Container Using Linux Namespaces
@@ -288,11 +288,11 @@ sandbox(Drv, Argv) ->
     {Path, Arg0, Args} = argv(Argv),
 
     Flags = alcove:define(Drv, [
-            'CLONE_NEWIPC', % IPC
-            'CLONE_NEWNET', % network
-            'CLONE_NEWNS',  % mounts
-            'CLONE_NEWPID', % PID, Child is PID 1 in the namespace
-            'CLONE_NEWUTS'  % hostname
+            clone_newipc, % IPC
+            clone_newnet, % network
+            clone_newns,  % mounts
+            clone_newpid, % PID, Child is PID 1 in the namespace
+            clone_newuts  % hostname
             ]),
 
     {ok, Child} = alcove:clone(Drv, Flags),
@@ -761,7 +761,7 @@ probably confuse the process.
 
         For example, to attach to another process' network namespace:
 
-            Flags = alcove:define(Drv, 'CLONE_NEWNET'),
+            Flags = alcove:define(Drv, clone_newnet),
             {ok, Child1} = alcove:clone(Drv, Flags),
             {ok, Child2} = alcove:fork(Drv),
 
@@ -802,10 +802,7 @@ probably confuse the process.
             ign : ignores the signal
 
             trap : catches the signal and sends the controlling Erlang
-                   process an event, {signal, Signum}
-
-        The behaviour of SIGCHLD cannot be changed using this interface
-        (see getopt/2,3).
+                   process an event, {signal, atom()}
 
         Multiple trapped signals may be reported as one event.
 
@@ -842,7 +839,7 @@ probably confuse the process.
 
         unshare(2) lets you make a new namespace without calling clone(2):
 
-            Flags = alcove:define(Drv, 'CLONE_NEWNET'),
+            Flags = alcove:define(Drv, clone_newnet),
             ok = alcove:unshare(Drv, Flags).
 
             % The port is now running in a namespace without network access.

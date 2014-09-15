@@ -13,10 +13,13 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 #include "alcove.h"
+#include <ctype.h>
 
 char *alcove_x_decode_iolist_to_string(const char *buf, size_t len, int *index);
 int alcove_decode_iolist_internal(const char *buf, size_t len, int *index,
         char *res, size_t rlen, int *rindex, int depth);
+int alcove_encode_atom_to_lower(char *buf, size_t len, int *index,
+        const char *p);
 
     int
 alcove_decode_int(const char *buf, size_t len, int *index, int *n)
@@ -389,7 +392,7 @@ alcove_lookup_define(char *name, unsigned long long *val,
     alcove_define_t *dp = NULL;
 
     for (dp = constants; dp->name != NULL; dp++) {
-        if (!strcmp(name, dp->name)) {
+        if (!strcasecmp(name, dp->name)) {
             *val = dp->val;
             return 0;
         }
@@ -406,7 +409,7 @@ alcove_encode_constant(char *buf, size_t len, int *index, u_int64_t val,
 
     for (dp = constants; dp->name != NULL; dp++) {
         if (val == dp->val)
-            return alcove_encode_atom(buf, len, index, dp->name);
+            return alcove_encode_atom_to_lower(buf, len, index, dp->name);
     }
 
     return alcove_encode_atom(buf, len, index, "unknown");
@@ -813,6 +816,18 @@ alcove_encode_atom(char *buf, size_t len, int *index, const char *p)
         return -1;
 
     return ei_encode_atom(buf, index, p);
+}
+
+    int
+alcove_encode_atom_to_lower(char *buf, size_t len, int *index, const char *p)
+{
+    char atom[MAXATOMLEN] = {0};
+    char *q = atom;
+
+    for ( ; *p; p++, q++)
+        *q = tolower(*p);
+
+    return alcove_encode_atom(buf, len, index, atom);
 }
 
     int

@@ -78,16 +78,16 @@ start() ->
 
     {ok, Drv} = alcove_drv:start([{exec, Exec}, {maxchild, 8}]),
 
-    ok = alcove:sigaction(Drv, 'SIGCHLD', trap),
+    ok = alcove:sigaction(Drv, sigchld, trap),
 
     case {Use_fork, os:type()} of
         {false, {unix,linux} = OS} ->
             Flags = alcove:define(Drv, [
-                    'CLONE_NEWIPC',
-                    'CLONE_NEWNET',
-                    'CLONE_NEWNS',
-                    'CLONE_NEWPID',
-                    'CLONE_NEWUTS'
+                    clone_newipc,
+                    clone_newnet,
+                    clone_newns,
+                    clone_newpid,
+                    clone_newuts
                 ]),
             {ok, Child} = alcove:clone(Drv, Flags),
             #state{
@@ -270,7 +270,7 @@ setns(_) ->
 unshare(#state{clone = true, pid = Drv}) ->
     {ok, Child1} = alcove:fork(Drv),
     ok = alcove:unshare(Drv, [Child1],
-        alcove:clone_define(Drv, 'CLONE_NEWUTS')),
+        alcove:clone_define(Drv, clone_newuts)),
     Reply = alcove:sethostname(Drv, [Child1], "unshare"),
     Hostname = alcove:gethostname(Drv, [Child1]),
     [?_assertEqual(ok, Reply),
@@ -289,9 +289,9 @@ mount_define(#state{pid = Drv}) ->
 
 mount(#state{clone = true, pid = Drv, child = Child}) ->
     Flags = alcove:define(Drv, [
-            'MS_BIND',
-            'MS_RDONLY',
-            'MS_NOEXEC'
+            ms_bind,
+            ms_rdonly,
+            ms_noexec
             ]),
     Mount = alcove:mount(Drv, [Child], "/tmp", "/mnt", "", Flags, ""),
     Umount = alcove:umount(Drv, [Child], "/mnt"),
@@ -303,7 +303,7 @@ mount(_) ->
     [].
 
 tmpfs(#state{clone = true, pid = Drv, child = Child}) ->
-    Flags = alcove:define(Drv, ['MS_NOEXEC']),
+    Flags = alcove:define(Drv, [ms_noexec]),
     Mount = alcove:mount(Drv, [Child], "tmpfs", "/mnt", "tmpfs", Flags, <<"size=16M", 0>>),
     Umount = alcove:umount(Drv, [Child], "/mnt"),
     [
@@ -331,7 +331,7 @@ chdir(#state{pid = Drv, child = Child}) ->
     ].
 
 setrlimit(#state{pid = Drv, child = Child}) ->
-    RLIMIT_NOFILE = alcove:rlimit_define(Drv, 'RLIMIT_NOFILE'),
+    RLIMIT_NOFILE = alcove:rlimit_define(Drv, rlimit_nofile),
     Reply = alcove:setrlimit(Drv, [Child], RLIMIT_NOFILE, #alcove_rlimit{cur = 64, max = 64}),
     Rlimit = alcove:getrlimit(Drv, [Child], RLIMIT_NOFILE),
     [
@@ -398,13 +398,13 @@ badpid(#state{pid = Drv}) ->
 signal(#state{pid = Drv}) ->
     {ok, Child1} = alcove:fork(Drv),
 
-    SIGTERM = alcove:signal_define(Drv, 'SIGTERM'),
+    SIGTERM = alcove:signal_define(Drv, sigterm),
 
     SA0 = alcove:sigaction(Drv, [Child1], SIGTERM, ign),
     Kill0 = alcove:kill(Drv, Child1, SIGTERM),
     Pid0 = alcove:getpid(Drv, [Child1]),
 
-    SA1 = alcove:sigaction(Drv, [Child1], 'SIGTERM', dfl),
+    SA1 = alcove:sigaction(Drv, [Child1], sigterm, dfl),
     Kill1 = alcove:kill(Drv, Child1, SIGTERM),
     waitpid(Drv, [], Child1),
     alcove:kill(Drv, Child1, 0),
@@ -495,27 +495,27 @@ prctl(#state{os = {unix,linux}, pid = Drv}) ->
 
     % capability is set:
     %   returns 0 | 1 in function result, arg2 = int
-    PR_CAPBSET_READ = alcove:prctl_define(Drv, 'PR_CAPBSET_READ'),
+    PR_CAPBSET_READ = alcove:prctl_define(Drv, pr_capbset_read),
     Reply0 = alcove:prctl(Drv, [Fork], PR_CAPBSET_READ, 0, 0,0,0),
 
     % set process name:
     %   arg2 = char *, up to 16 bytes, NULL terminated
-    PR_SET_NAME = alcove:prctl_define(Drv, 'PR_SET_NAME'),
+    PR_SET_NAME = alcove:prctl_define(Drv, pr_set_name),
     Reply1 = alcove:prctl(Drv, [Fork], PR_SET_NAME, <<"test",0>>, 0,0,0),
 
     % get process name
     %   value returned in arg2 = char *, up to 16 bytes
-    PR_GET_NAME = alcove:prctl_define(Drv, 'PR_GET_NAME'),
+    PR_GET_NAME = alcove:prctl_define(Drv, pr_get_name),
     Reply2 = alcove:prctl(Drv, [Fork], PR_GET_NAME, <<0:(17*8)>>, 0,0,0),
 
     % set parent death signal
     %  arg2 = signal
-    PR_SET_PDEATHSIG = alcove:prctl_define(Drv, 'PR_SET_PDEATHSIG'),
+    PR_SET_PDEATHSIG = alcove:prctl_define(Drv, pr_set_pdeathsig),
     Reply3 = alcove:prctl(Drv, [Fork], PR_SET_PDEATHSIG, 9, 0,0,0),
 
     % get parent death signal
     %  arg2 = int *
-    PR_GET_PDEATHSIG = alcove:prctl_define(Drv, 'PR_GET_PDEATHSIG'),
+    PR_GET_PDEATHSIG = alcove:prctl_define(Drv, pr_get_pdeathsig),
     Reply4 = alcove:prctl(Drv, [Fork], PR_GET_PDEATHSIG, <<0:32>>, 0,0,0),
 
     [
@@ -613,7 +613,7 @@ getenv(Name, Default) ->
 
 waitpid(Drv, Pids, Child) ->
     case alcove:event(Drv, Pids, 5000) of
-        {signal, 'SIGCHLD'} ->
+        {signal, sigchld} ->
             waitpid_1(Drv, Pids, Child);
         false ->
             false

@@ -173,10 +173,10 @@ static() ->
 static({audit_arch,0}) ->
 "audit_arch() ->
     Arches = [
-        {{\"armv6l\",\"linux\",4}, 'AUDIT_ARCH_ARM'},
-        {{\"armv7l\",\"linux\",4}, 'AUDIT_ARCH_ARM'},
-        {{\"i386\",\"linux\",4}, 'AUDIT_ARCH_I386'},
-        {{\"x86_64\",\"linux\",8}, 'AUDIT_ARCH_X86_64'}
+        {{\"armv6l\",\"linux\",4}, audit_arch_arm},
+        {{\"armv7l\",\"linux\",4}, audit_arch_arm},
+        {{\"i386\",\"linux\",4}, audit_arch_i386},
+        {{\"x86_64\",\"linux\",8}, audit_arch_x86_64}
     ],
     [Arch,_,OS|_] = string:tokens(
         erlang:system_info(system_architecture),
@@ -198,7 +198,7 @@ define(Drv, Pids, Const) when is_atom(Const) ->
 define(Drv, Pids, Consts0) when is_list(Consts0) ->
     Consts = [ begin
                 case atom_to_list(Const) of
-                    \"SYS_\" ++ Rest -> \"__NR_\" ++ Rest;
+                    \"sys_\" ++ Rest -> \"__nr_\" ++ Rest;
                     X -> X
                 end
         end || Const <- Consts0 ],
@@ -212,16 +212,16 @@ define(Drv, Pids, Consts0) when is_list(Consts0) ->
         error:function_clause -> unknown
     end.
 
-const(\"CLONE_\" ++ _) -> clone_define;
-const(\"MS_\" ++ _) -> mount_define;
-const(\"MNT_\" ++ _) -> mount_define;
-const(\"O_\" ++ _) -> file_define;
-const(\"PR_\" ++ _) -> prctl_define;
-const(\"SECCOMP_\" ++ _) -> prctl_define;
-const(\"RLIMIT_\" ++ _) -> rlimit_define;
-const(\"AUDIT_ARCH_\" ++ _) -> syscall_define;
-const(\"__NR_\" ++ _) -> syscall_define;
-const(\"SIG\" ++ _) -> signal_define;
+const(\"clone_\" ++ _) -> clone_define;
+const(\"ms_\" ++ _) -> mount_define;
+const(\"mnt_\" ++ _) -> mount_define;
+const(\"o_\" ++ _) -> file_define;
+const(\"pr_\" ++ _) -> prctl_define;
+const(\"seccomp_\" ++ _) -> prctl_define;
+const(\"rlimit_\" ++ _) -> rlimit_define;
+const(\"audit_arch_\" ++ _) -> syscall_define;
+const(\"__nr_\" ++ _) -> syscall_define;
+const(\"sig\" ++ _) -> signal_define;
 const(\"rdonly\") -> mount_define;
 const(\"nosuid\") -> mount_define;
 const(\"noexec\") -> mount_define;

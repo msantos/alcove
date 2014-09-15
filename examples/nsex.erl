@@ -44,11 +44,11 @@ sandbox(Drv, Argv) ->
     {Path, Arg0, Args} = argv(Argv),
 
     Flags = alcove:define(Drv, [
-            'CLONE_NEWIPC',
-            'CLONE_NEWNET',
-            'CLONE_NEWNS',
-            'CLONE_NEWPID',
-            'CLONE_NEWUTS'
+            clone_newipc,
+            clone_newnet,
+            clone_newns,
+            clone_newpid,
+            clone_newuts
         ]),
     {ok, Child} = alcove:clone(Drv, Flags),
 

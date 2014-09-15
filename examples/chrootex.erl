@@ -43,9 +43,9 @@ argv([Arg0, Args]) ->
     {Path, Progname, Args}.
 
 setlimits(Drv, Child) ->
-    RLIMIT_FSIZE = alcove:rlimit_define(Drv, 'RLIMIT_FSIZE'),
-    RLIMIT_NPROC = alcove:rlimit_define(Drv, 'RLIMIT_NPROC'),
-    RLIMIT_NOFILE = alcove:rlimit_define(Drv, 'RLIMIT_NOFILE'),
+    RLIMIT_FSIZE = alcove:rlimit_define(Drv, rlimit_fsize),
+    RLIMIT_NPROC = alcove:rlimit_define(Drv, rlimit_nproc),
+    RLIMIT_NOFILE = alcove:rlimit_define(Drv, rlimit_nofile),
 
     ok = alcove:setrlimit(Drv, [Child], RLIMIT_FSIZE,
         #alcove_rlimit{cur = 0, max = 0}),

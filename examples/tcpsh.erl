@@ -46,11 +46,11 @@ create(Socket, _Options) ->
     ok = alcove:chdir(Drv, "/"),
 
     Flags = alcove:define(Drv, [
-            'CLONE_NEWIPC',
-            'CLONE_NEWNET',
-            'CLONE_NEWNS',
-            'CLONE_NEWPID',
-            'CLONE_NEWUTS'
+            clone_newipc,
+            clone_newnet,
+            clone_newns,
+            clone_newpid,
+            clone_newuts
         ]),
     {ok, PID} = alcove:clone(Drv, Flags),
 
@@ -60,9 +60,9 @@ create(Socket, _Options) ->
 
     % proc on /proc type proc (rw,noexec,nosuid,nodev)
     MountFlags= alcove:define(Drv, [
-            'MS_NOEXEC',
-            'MS_NOSUID',
-            'MS_NODEV'
+            ms_noexec,
+            ms_nosuid,
+            ms_nodev
         ]),
     ok = alcove:mount(Drv, [PID], "proc", "/proc", "proc", MountFlags, <<>>),
 

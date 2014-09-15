@@ -55,7 +55,7 @@ start() ->
 
     #state{
         pid = Drv,
-        seccomp = alcove:define(Drv, 'SECCOMP_MODE_FILTER') =/= unknown
+        seccomp = alcove:define(Drv, seccomp_mode_filter) =/= unknown
     }.
 
 stop(#state{pid = Drv}) ->
@@ -78,7 +78,7 @@ kill(#state{pid = Drv}) ->
 
     [
         ?_assertEqual(Pid, Reply0),
-        ?_assertEqual({termsig, 'SIGSYS'}, Event),
+        ?_assertEqual({termsig, sigsys}, Event),
         ?_assertEqual({error, esrch}, Reply3)
     ].
 
@@ -98,7 +98,7 @@ allow(#state{pid = Drv}) ->
 
 trap(#state{pid = Drv}) ->
     {ok, Pid} = alcove:fork(Drv),
-    ok = alcove:sigaction(Drv, [Pid], 'SIGSYS', trap),
+    ok = alcove:sigaction(Drv, [Pid], sigsys, trap),
 
     enforce(Drv, [Pid], ?BPF_STMT(?BPF_RET+?BPF_K, ?SECCOMP_RET_TRAP)),
 
@@ -121,7 +121,7 @@ trap(#state{pid = Drv}) ->
     [
         ?_assertEqual(Pid, Reply0),
         ?_assertEqual(true, Reply1),
-        ?_assertEqual({signal, 'SIGSYS'}, Event),
+        ?_assertEqual({signal, sigsys}, Event),
         ?_assertEqual(ok, Reply3)
     ].
 
@@ -136,24 +136,24 @@ filter(Drv) ->
     [
         ?VALIDATE_ARCHITECTURE(Arch),
         ?EXAMINE_SYSCALL,
-        allow_syscall(Drv, 'SYS_rt_sigreturn'),
-        allow_syscall(Drv, 'SYS_sigreturn'),
-        allow_syscall(Drv, 'SYS_exit_group'),
-        allow_syscall(Drv, 'SYS_exit'),
-        allow_syscall(Drv, 'SYS_read'),
-        allow_syscall(Drv, 'SYS_write'),
-        allow_syscall(Drv, 'SYS_writev'),
-        allow_syscall(Drv, 'SYS_setrlimit'),
-        allow_syscall(Drv, 'SYS_getrlimit'),
-        allow_syscall(Drv, 'SYS_ugetrlimit'),
-        allow_syscall(Drv, 'SYS_poll')
+        allow_syscall(Drv, sys_rt_sigreturn),
+        allow_syscall(Drv, sys_sigreturn),
+        allow_syscall(Drv, sys_exit_group),
+        allow_syscall(Drv, sys_exit),
+        allow_syscall(Drv, sys_read),
+        allow_syscall(Drv, sys_write),
+        allow_syscall(Drv, sys_writev),
+        allow_syscall(Drv, sys_setrlimit),
+        allow_syscall(Drv, sys_getrlimit),
+        allow_syscall(Drv, sys_ugetrlimit),
+        allow_syscall(Drv, sys_poll)
     ].
 
 enforce(Drv, Pids, Filter0) ->
     Filter = filter(Drv) ++ [Filter0],
-    PR_SET_NO_NEW_PRIVS = alcove:define(Drv, 'PR_SET_NO_NEW_PRIVS'),
-    PR_SET_SECCOMP = alcove:define(Drv, 'PR_SET_SECCOMP'),
-    SECCOMP_MODE_FILTER = alcove:define(Drv, 'SECCOMP_MODE_FILTER'),
+    PR_SET_NO_NEW_PRIVS = alcove:define(Drv, pr_set_no_new_privs),
+    PR_SET_SECCOMP = alcove:define(Drv, pr_set_seccomp),
+    SECCOMP_MODE_FILTER = alcove:define(Drv, seccomp_mode_filter),
 
     {ok,_,_,_,_,_} = alcove:prctl(Drv, Pids, PR_SET_NO_NEW_PRIVS, 1, 0, 0, 0),
 

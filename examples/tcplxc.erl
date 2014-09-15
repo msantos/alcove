@@ -31,19 +31,19 @@ start(Options) ->
 
 init(Options) ->
     {ok, Drv} = alcove_drv:start(Options ++ [
-                                             {exec, "sudo"},
-                                             {exit_status, true},
-                                             {termsig, true}
-                                            ]),
+            {exec, "sudo"},
+            {exit_status, true},
+            {termsig, true}
+        ]),
     ok = alcove:chdir(Drv, "/"),
 
     chroot_init(),
     cgroup_init(Drv,
-                [<<"alcove">>],
-                Options ++ [
-                            {<<"memory.memsw.limit_in_bytes">>, <<"128m">>},
-                            {<<"memory.limit_in_bytes">>, <<"128m">>}
-                           ]),
+        [<<"alcove">>],
+        Options ++ [
+            {<<"memory.memsw.limit_in_bytes">>, <<"128m">>},
+            {<<"memory.limit_in_bytes">>, <<"128m">>}
+        ]),
 
     shell(Drv, Options, dict:new()).
 
@@ -117,11 +117,11 @@ shell(Drv, Options, State) ->
 
 clone(Drv, _Options) ->
     Flags = alcove:define(Drv, [
-            'CLONE_NEWIPC',
-            'CLONE_NEWNET',
-            'CLONE_NEWNS',
-            'CLONE_NEWPID',
-            'CLONE_NEWUTS'
+            clone_newipc,
+            clone_newnet,
+            clone_newns,
+            clone_newpid,
+            clone_newuts
         ]),
     alcove:clone(Drv, Flags).
 
@@ -149,16 +149,16 @@ clone_init(Drv, Child, Options) ->
             "/dev" ] ],
 
     ok = mount(Drv, [Child], "tmpfs", "/tmp/tcplxc/etc", "tmpfs", [
-            'MS_NODEV',
-            'MS_NOATIME',
-            'MS_NOSUID'
+            ms_nodev,
+            ms_noatime,
+            ms_nosuid
         ], [<<"mode=755,size=16M">>]),
 
     ok = mount(Drv, [Child], "tmpfs",
         "/tmp/tcplxc/home", "tmpfs", [
-            'MS_NODEV',
-            'MS_NOATIME',
-            'MS_NOSUID'
+            ms_nodev,
+            ms_noatime,
+            ms_nosuid
         ], [<<"uid=">>, integer_to_binary(Id),
          <<",gid=">>, integer_to_binary(Id),
          <<",mode=700,size=16M">>]),
@@ -166,9 +166,9 @@ clone_init(Drv, Child, Options) ->
     % proc on /proc type proc (rw,noexec,nosuid,nodev)
     ok = mount(Drv, [Child], "proc",
         "/proc", "proc", [
-            'MS_NOEXEC',
-            'MS_NOSUID',
-            'MS_NODEV'
+            ms_noexec,
+            ms_nosuid,
+            ms_nodev
         ], <<>>),
 
     [ alcove:umount(Drv, [Child], Dir) || Dir <- mounts(),
@@ -188,14 +188,14 @@ clone_init(Drv, Child, Options) ->
 
     % devpts on /dev/pts type devpts (rw,noexec,nosuid,gid=5,mode=0620)
     ok = mount(Drv, [Child], "devpts",
-        "/dev/pts", "devpts", ['MS_NOEXEC', 'MS_NOSUID'],
+        "/dev/pts", "devpts", [ms_noexec, ms_nosuid],
         [<<"mode=620,gid=5">>]),
 
     ok = mount(Drv, [Child], "proc",
         "/proc", "proc", [
-            'MS_NOEXEC',
-            'MS_NOSUID',
-            'MS_NODEV'
+            ms_noexec,
+            ms_nosuid,
+            ms_nodev
         ], <<>>),
 
     SysFiles = proplists:get_value(system_files, Options, []),
@@ -215,7 +215,7 @@ alcove:x:", Id, ":"])}
     Files = proplists:get_value(files, Options, []),
     write_files(Drv, [Child], Files),
 
-    RLIMIT_NPROC = alcove:rlimit_define(Drv, 'RLIMIT_NPROC'),
+    RLIMIT_NPROC = alcove:rlimit_define(Drv, rlimit_nproc),
 
     ok = alcove:setrlimit(Drv, [Child], RLIMIT_NPROC,
                           #alcove_rlimit{cur = 16, max = 16}),
@@ -342,12 +342,12 @@ bindmount(Drv, Pids, Src, DstPath) ->
             ok;
         {ok, _} ->
             ok = mount(Drv, Pids, Src, join(DstPath, Src),
-                "", ['MS_BIND'], <<>>),
+                "", [ms_bind], <<>>),
             mount(Drv, Pids, Src, join(DstPath, Src), "", [
-                    'MS_REMOUNT',
-                    'MS_BIND',
-                    'MS_RDONLY',
-                    'MS_NOSUID'
+                    ms_remount,
+                    ms_bind,
+                    ms_rdonly,
+                    ms_nosuid
                 ], <<>>)
     end.
 
@@ -403,7 +403,7 @@ join(Root, Path) ->
 write_files(_Drv, _Pid, []) ->
     ok;
 write_files(Drv, Pid, [{Path, Contents, Mode}|Rest]) ->
-    Flags = alcove:define(Drv, ['O_WRONLY', 'O_CREAT']),
+    Flags = alcove:define(Drv, [o_wronly, o_creat]),
     {ok, FD} = alcove:open(Drv, Pid, Path, Flags, Mode),
     {ok, _} = alcove:write(Drv, Pid, FD, Contents),
     ok = alcove:close(Drv, Pid, FD),
