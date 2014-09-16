@@ -74,7 +74,7 @@ alcove_sigaction(alcove_state_t *ap, const char *arg, size_t len,
 
             if (alcove_lookup_define(signame, (unsigned long long *)&signum,
                         alcove_signal_constants) < 0)
-                return -1;
+                return alcove_mk_errno(reply, rlen, EINVAL);
 
             break;
 
