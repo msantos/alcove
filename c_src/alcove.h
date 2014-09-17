@@ -175,6 +175,7 @@ int alcove_decode_atom(const char *, size_t, int *, char *);
 int alcove_decode_list_header(const char *, size_t, int *, int *);
 int alcove_decode_tuple_header(const char *, size_t, int *, int *);
 int alcove_decode_iolist(const char *, size_t, int *, char *, size_t *);
+int alcove_decode_define(const char *, size_t, int *, int *, alcove_define_t *);
 
 int alcove_encode_version(char *, size_t, int *);
 int alcove_encode_list_header(char *, size_t, int *, int);

@@ -374,7 +374,9 @@ specs() ->
 -type fd() :: integer().
 -type fd_set() :: [fd()].
 
--export_type([os_pid/0,fork_path/0]).
+-type define() :: atom() | integer().
+
+-export_type([os_pid/0,fork_path/0,define/0]).
 
 -spec audit_arch() -> atom().
 
@@ -465,8 +467,8 @@ specs() ->
 -spec getuid(alcove_drv:ref()) -> non_neg_integer().
 -spec getuid(alcove_drv:ref(),fork_path()) -> non_neg_integer().
 
--spec kill(alcove_drv:ref(), integer(), integer()) -> 'ok' | {'error', file:posix()}.
--spec kill(alcove_drv:ref(), fork_path(), integer(), integer()) -> 'ok' | {'error', file:posix()}.
+-spec kill(alcove_drv:ref(), integer(), define()) -> 'ok' | {'error', file:posix()}.
+-spec kill(alcove_drv:ref(), fork_path(), integer(), define()) -> 'ok' | {'error', file:posix()}.
 
 -spec lseek(alcove_drv:ref(),integer(),integer(),integer()) -> 'ok' | {'error', file:posix()}.
 -spec lseek(alcove_drv:ref(),fork_path(),integer(),integer(),integer()) -> 'ok' | {'error', file:posix()}.
@@ -536,8 +538,8 @@ specs() ->
 -spec setuid(alcove_drv:ref(),non_neg_integer()) -> 'ok' | {'error', file:posix()}.
 -spec setuid(alcove_drv:ref(),fork_path(),non_neg_integer()) -> 'ok' | {'error', file:posix()}.
 
--spec sigaction(alcove_drv:ref(),integer() | atom(),atom()) -> 'ok' | {'error', file:posix()}.
--spec sigaction(alcove_drv:ref(),fork_path(),integer() | atom(),atom()) -> 'ok' | {'error', file:posix()}.
+-spec sigaction(alcove_drv:ref(),define(),atom()) -> 'ok' | {'error', file:posix()}.
+-spec sigaction(alcove_drv:ref(),fork_path(),define(),atom()) -> 'ok' | {'error', file:posix()}.
 
 -spec signal_constant(alcove_drv:ref(),non_neg_integer()) -> 'unknown' | atom().
 -spec signal_constant(alcove_drv:ref(),fork_path(),non_neg_integer()) -> 'unknown' | atom().

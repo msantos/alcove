@@ -579,7 +579,7 @@ probably confuse the process.
     kill(Drv, Pid, Signal) -> ok | {error, posix()}
     kill(Drv, Pids, Pid, Signal) -> ok | {error, posix()}
 
-        Types   Signal = integer()
+        Types   Signal = atom() | integer()
 
         kill(2) : terminate a process
 

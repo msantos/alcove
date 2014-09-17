@@ -27,7 +27,7 @@ alcove_kill(alcove_state_t *ap, const char *arg, size_t len,
     int index = 0;
 
     pid_t pid = 0;
-    int sig = 0;
+    int signum = 0;
     int rv = 0;
 
     /* pid */
@@ -35,10 +35,20 @@ alcove_kill(alcove_state_t *ap, const char *arg, size_t len,
         return -1;
 
     /* signal */
-    if (alcove_decode_int(arg, len, &index, &sig) < 0)
-        return -1;
+    switch (alcove_decode_define(arg, len, &index, &signum,
+                alcove_signal_constants)) {
+        case 0:
+            break;
 
-    rv = kill(pid, sig);
+        case 1:
+            return alcove_mk_errno(reply, rlen, EINVAL);
+
+        case -1:
+        default:
+            return -1;
+    }
+
+    rv = kill(pid, signum);
 
     return (rv < 0)
         ? alcove_mk_errno(reply, rlen, errno)
@@ -54,36 +64,22 @@ alcove_sigaction(alcove_state_t *ap, const char *arg, size_t len,
         char *reply, size_t rlen)
 {
     int index = 0;
-    int type = 0;
-    int arity = 0;
 
     int signum = 0;
-    char signame[MAXATOMLEN] = {0};
     char handler[MAXATOMLEN] = {0};
     struct sigaction act = {{0}};
     int rv = 0;
 
     /* signum */
-    if (alcove_get_type(arg, len, &index, &type, &arity) < 0)
-        return -1;
-
-    switch (type) {
-        case ERL_ATOM_EXT:
-            if (alcove_decode_atom(arg, len, &index, signame) < 0)
-                return -1;
-
-            if (alcove_lookup_define(signame, (unsigned long long *)&signum,
-                        alcove_signal_constants) < 0)
-                return alcove_mk_errno(reply, rlen, EINVAL);
-
+    switch (alcove_decode_define(arg, len, &index, &signum,
+                alcove_signal_constants)) {
+        case 0:
             break;
 
-        case ERL_SMALL_INTEGER_EXT:
-        case ERL_INTEGER_EXT:
-            if (alcove_decode_int(arg, len, &index, &signum) < 0)
-                return -1;
-            break;
+        case 1:
+            return alcove_mk_errno(reply, rlen, EINVAL);
 
+        case -1:
         default:
             return -1;
     }
