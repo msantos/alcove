@@ -283,6 +283,11 @@ alcove_decode_define(const char *buf, size_t len, int *index, int *val,
 
     char define[MAXATOMLEN] = {0};
 
+    union {
+        int i;
+        unsigned long long ull;
+    } constant;
+
     if (alcove_get_type(buf, len, index, &type, &arity) < 0)
         return -1;
 
@@ -291,9 +296,10 @@ alcove_decode_define(const char *buf, size_t len, int *index, int *val,
             if (alcove_decode_atom(buf, len, index, define) < 0)
                 return -1;
 
-            if (alcove_lookup_define(define, (unsigned long long *)val,
-                        constants) < 0)
+            if (alcove_lookup_define(define, &constant.ull, constants) < 0)
                 return 1;
+
+            *val = constant.i;
 
             break;
 
