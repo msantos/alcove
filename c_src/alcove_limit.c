@@ -32,8 +32,18 @@ alcove_getrlimit(alcove_state_t *ap, const char *arg, size_t len,
     int rv = 0;
 
     /* resource */
-    if (alcove_decode_int(arg, len, &index, &resource) < 0)
-        return -1;
+    switch (alcove_decode_define(arg, len, &index, &resource,
+                alcove_rlimit_constants)) {
+        case 0:
+            break;
+
+        case 1:
+            return alcove_mk_errno(reply, rlen, EINVAL);
+
+        case -1:
+        default:
+            return -1;
+    }
 
     rv = getrlimit(resource, &rlim);
 
@@ -69,8 +79,18 @@ alcove_setrlimit(alcove_state_t *ap, const char *arg, size_t len,
     int rv = 0;
 
     /* resource */
-    if (alcove_decode_int(arg, len, &index, &resource) < 0)
-        return -1;
+    switch (alcove_decode_define(arg, len, &index, &resource,
+                alcove_rlimit_constants)) {
+        case 0:
+            break;
+
+        case 1:
+            return alcove_mk_errno(reply, rlen, EINVAL);
+
+        case -1:
+        default:
+            return -1;
+    }
 
     /* {alcove_rlimit, rlim_cur, rlim_max} */
     if (alcove_decode_tuple_header(arg, len, &index, &arity) < 0 || arity != 3)
