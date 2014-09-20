@@ -68,7 +68,8 @@ run(State) ->
         stdout(State),
         stderr(State),
         execve(State),
-        stream(State)
+        stream(State),
+        open(State)
     ].
 
 start() ->
@@ -593,6 +594,21 @@ stream(#state{pid = Drv}) ->
     % <<"y\n">>
     Reply = stream_count(Drv, Chain, Count*2),
     ?_assertEqual(ok, Reply).
+
+open(#state{pid = Drv}) ->
+    O_RDONLY = alcove:define(Drv, o_rdonly),
+
+    File = "/nonexistent",
+
+    Reply0 = alcove:open(Drv, File, 0, 0),
+    Reply1 = alcove:open(Drv, File, [0,0,0,0], 0),
+    Reply2 = alcove:open(Drv, File, [o_rdonly, o_rdonly, o_rdonly], 0),
+
+    [
+        ?_assertEqual({error,enoent}, Reply0),
+        ?_assertEqual({error,enoent}, Reply1),
+        ?_assertEqual({error,enoent}, Reply2)
+    ].
 
 %%
 %% Utility functions

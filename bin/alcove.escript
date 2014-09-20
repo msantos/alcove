@@ -482,8 +482,8 @@ specs() ->
 -spec mount_define(alcove_drv:ref(),atom()) -> 'unknown' | non_neg_integer().
 -spec mount_define(alcove_drv:ref(),fork_path(),atom()) -> 'unknown' | non_neg_integer().
 
--spec open(alcove_drv:ref(),iodata(),integer(),integer()) -> {'ok',fd()} | {'error', file:posix()}.
--spec open(alcove_drv:ref(),fork_path(),iodata(),integer(),integer()) -> {'ok',fd()} | {'error', file:posix()}.
+-spec open(alcove_drv:ref(),iodata(),integer() | [define()],integer()) -> {'ok',fd()} | {'error', file:posix()}.
+-spec open(alcove_drv:ref(),fork_path(),iodata(),integer() | [define()],integer()) -> {'ok',fd()} | {'error', file:posix()}.
 
 -spec pid(alcove_drv:ref()) -> [#alcove_pid{}].
 -spec pid(alcove_drv:ref(),fork_path()) -> [#alcove_pid{}].

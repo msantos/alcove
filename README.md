@@ -620,9 +620,14 @@ probably confuse the process.
     open(Drv, Path, Flags, Mode) -> {ok, integer()} | {error, posix()}
     open(Drv, Pids, Path, Flags, Mode) -> {ok, integer()} | {error, posix()}
 
-        Types   Flags = Mode = integer()
+        Types   Flags = integer() | [atom() | integer()]
+                Mode = integer()
 
         open(2) : returns a file descriptor associated with a file
+
+        Lists of values are OR'ed:
+
+            alcove:open(Drv, "/tmp/test", [o_wronly,o_creat], 8#644)
 
     pid(Drv) -> [Pid]
     pid(Drv, Pids) -> [Pid]

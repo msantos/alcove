@@ -48,7 +48,8 @@ alcove_open(alcove_state_t *ap, const char *arg, size_t len,
         return -1;
 
     /* flags */
-    if (alcove_decode_int(arg, len, &index, &flags) < 0)
+    if (alcove_decode_define_list(arg, len, &index, &flags,
+                alcove_file_constants) < 0)
         return -1;
 
     /* mode */

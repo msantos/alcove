@@ -316,6 +316,70 @@ alcove_decode_define(const char *buf, size_t len, int *index, int *val,
     return 0;
 }
 
+    int
+alcove_decode_define_list(const char *buf, size_t len, int *index, int *val,
+        alcove_define_t *constants)
+{
+    int type = 0;
+    int arity = 0;
+
+    if (alcove_get_type(buf, len, index, &type, &arity) < 0)
+        return -1;
+
+    switch (type) {
+        case ERL_SMALL_INTEGER_EXT:
+        case ERL_INTEGER_EXT:
+            if (alcove_decode_int(buf, len, index, val) < 0)
+                return -1;
+            break;
+
+        case ERL_STRING_EXT: {
+            char tmp[MAXMSGLEN] = {0};
+            char *p = tmp;
+
+            if (arity >= sizeof(tmp))
+                return -1;
+
+            if (ei_decode_string(buf, index, tmp) < 0)
+                return -1;
+
+            for ( ; *p; p++)
+                *val |= *p;
+
+            }
+            break;
+
+        case ERL_LIST_EXT: {
+            int i = 0;
+            int length = 0;
+            int constant = 0;
+
+            if (ei_decode_list_header(buf, index, &length) < 0)
+                return -1;
+
+            for (i = 0; i < length; i++) {
+                if (alcove_decode_define(buf, len, index, &constant,
+                            constants) < 0)
+                    return -1;
+
+                *val |= constant;
+            }
+
+            /* [] */
+            if (alcove_decode_list_header(buf, len, index, &length) < 0
+                    || length != 0)
+                return -1;
+
+            }
+            break;
+
+        default:
+            return -1;
+    }
+
+    return 0;
+}
+
     ssize_t
 alcove_mk_errno(char *buf, size_t len, int errnum)
 {
