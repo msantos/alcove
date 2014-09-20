@@ -310,8 +310,7 @@ network_drain(Socket, Child) ->
 id() ->
     crypto:rand_uniform(16#f0000000, 16#f000ffff).
 
-mount(Drv, Pids, Source, Target, Type, MountFlags, Data) ->
-    Flags = alcove:define(Drv, MountFlags),
+mount(Drv, Pids, Source, Target, Type, Flags, Data) ->
     alcove:mount(Drv, Pids, Source, Target, Type, Flags, Data).
 
 mounts() ->

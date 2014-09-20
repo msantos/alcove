@@ -476,8 +476,8 @@ specs() ->
 -spec mkdir(alcove_drv:ref(),iodata(),integer()) -> 'ok' | {'error', file:posix()}.
 -spec mkdir(alcove_drv:ref(),fork_path(),iodata(),integer()) -> 'ok' | {'error', file:posix()}.
 
--spec mount(alcove_drv:ref(),iodata(),iodata(),iodata(),integer(),iodata()) -> 'ok' | {'error', file:posix()}.
--spec mount(alcove_drv:ref(),fork_path(),iodata(),iodata(),iodata(),integer(),iodata()) -> 'ok' | {'error', file:posix()}.
+-spec mount(alcove_drv:ref(),iodata(),iodata(),iodata(),integer() | [define()],iodata()) -> 'ok' | {'error', file:posix()}.
+-spec mount(alcove_drv:ref(),fork_path(),iodata(),iodata(),iodata(),integer() | [define()],iodata()) -> 'ok' | {'error', file:posix()}.
 
 -spec mount_define(alcove_drv:ref(),atom()) -> 'unknown' | non_neg_integer().
 -spec mount_define(alcove_drv:ref(),fork_path(),atom()) -> 'unknown' | non_neg_integer().

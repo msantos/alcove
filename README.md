@@ -593,7 +593,7 @@ probably confuse the process.
         | {error, posix()}
 
         Types   Source = Target = FSType = Data = iodata()
-                Flags = integer()
+                Flags = integer() | [atom() | integer()]
 
         mount(2) : mount a filesystem, Linux style
 

@@ -287,12 +287,11 @@ mount_define(#state{pid = Drv}) ->
     ?_assertEqual(true, is_integer(Flags)).
 
 mount(#state{clone = true, pid = Drv, child = Child}) ->
-    Flags = alcove:define(Drv, [
+    Mount = alcove:mount(Drv, [Child], "/tmp", "/mnt", "", [
             ms_bind,
             ms_rdonly,
             ms_noexec
-            ]),
-    Mount = alcove:mount(Drv, [Child], "/tmp", "/mnt", "", Flags, ""),
+        ], ""),
     Umount = alcove:umount(Drv, [Child], "/mnt"),
     [
         ?_assertEqual(ok, Mount),
@@ -302,8 +301,7 @@ mount(_) ->
     [].
 
 tmpfs(#state{clone = true, pid = Drv, child = Child}) ->
-    Flags = alcove:define(Drv, [ms_noexec]),
-    Mount = alcove:mount(Drv, [Child], "tmpfs", "/mnt", "tmpfs", Flags, <<"size=16M", 0>>),
+    Mount = alcove:mount(Drv, [Child], "tmpfs", "/mnt", "tmpfs", [ms_noexec], <<"size=16M", 0>>),
     Umount = alcove:umount(Drv, [Child], "/mnt"),
     [
         ?_assertEqual(ok, Mount),

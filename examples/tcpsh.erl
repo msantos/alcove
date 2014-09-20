@@ -58,11 +58,11 @@ create(Socket, _Options) ->
     ok = alcove:sethostname(Drv, [PID], ["alcove", integer_to_list(Id)]),
 
     % proc on /proc type proc (rw,noexec,nosuid,nodev)
-    MountFlags= alcove:define(Drv, [
-            ms_noexec,
-            ms_nosuid,
-            ms_nodev
-        ]),
+    MountFlags= [
+        ms_noexec,
+        ms_nosuid,
+        ms_nodev
+    ],
     ok = alcove:mount(Drv, [PID], "proc", "/proc", "proc", MountFlags, <<>>),
 
     ok = alcove:setgid(Drv, [PID], Id),
