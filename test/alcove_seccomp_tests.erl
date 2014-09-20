@@ -151,11 +151,8 @@ filter(Drv) ->
 
 enforce(Drv, Pids, Filter0) ->
     Filter = filter(Drv) ++ [Filter0],
-    PR_SET_NO_NEW_PRIVS = alcove:define(Drv, pr_set_no_new_privs),
-    PR_SET_SECCOMP = alcove:define(Drv, pr_set_seccomp),
-    SECCOMP_MODE_FILTER = alcove:define(Drv, seccomp_mode_filter),
 
-    {ok,_,_,_,_,_} = alcove:prctl(Drv, Pids, PR_SET_NO_NEW_PRIVS, 1, 0, 0, 0),
+    {ok,_,_,_,_,_} = alcove:prctl(Drv, Pids, pr_set_no_new_privs, 1, 0, 0, 0),
 
     Pad = (erlang:system_info({wordsize,external}) - 2) * 8,
 
@@ -165,4 +162,4 @@ enforce(Drv, Pids, Filter0) ->
         {ptr, list_to_binary(Filter)}
     ],
     alcove:prctl(Drv, Pids,
-        PR_SET_SECCOMP, SECCOMP_MODE_FILTER, Prog, 0, 0).
+        pr_set_seccomp, seccomp_mode_filter, Prog, 0, 0).

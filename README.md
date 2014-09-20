@@ -119,20 +119,15 @@ limits. In this case, we'll use setrlimit(2):
 
 ```erlang
 setlimits(Drv, Child) ->
-    % Convert atoms to integers defined on this platform
-    RLIMIT_FSIZE = alcove:rlimit_define(Drv, rlimit_fsize),
-    RLIMIT_NOFILE = alcove:rlimit_define(Drv, rlimit_nofile),
-    RLIMIT_NPROC = alcove:rlimit_define(Drv, rlimit_nproc),
-
     % Disable creation of files
-    ok = alcove:setrlimit(Drv, [Child], RLIMIT_FSIZE,
+    ok = alcove:setrlimit(Drv, [Child], rlimit_fsize,
             #alcove_rlimit{cur = 0, max = 0}),
 
-    ok = alcove:setrlimit(Drv, [Child], RLIMIT_NOFILE,
+    ok = alcove:setrlimit(Drv, [Child], rlimit_nofile,
             #alcove_rlimit{cur = 0, max = 0}),
 
     % Limit to one process
-    ok = alcove:setrlimit(Drv, [Child], RLIMIT_NPROC,
+    ok = alcove:setrlimit(Drv, [Child], rlimit_nproc,
             #alcove_rlimit{cur = 1, max = 1}).
 ```
 
@@ -553,8 +548,8 @@ probably confuse the process.
 
         getpid(2) : retrieve the system PID of the process.
 
-    getrlimit(Drv, integer() -> {ok, #alcove_rlimit{}} | {error, posix()}
-    getrlimit(Drv, Pids, integer() -> {ok, #alcove_rlimit{}} | {error, posix()}
+    getrlimit(Drv, atom() | integer()) -> {ok, #alcove_rlimit{}} | {error, posix()}
+    getrlimit(Drv, Pids, atom() | integer()) -> {ok, #alcove_rlimit{}} | {error, posix()}
 
         getrlimit(2) : retrive the resource limits for a process. Returns
         a record:
@@ -639,8 +634,8 @@ probably confuse the process.
     prctl(Drv, Pids, Option, Arg2, Arg3, Arg4, Arg5) ->
         {ok, integer(), Val2, Val3, Val4, Val5} | {error, posix()}
 
-        Types   Option = integer()
-                Arg2 = Arg3 = Arg4 = Arg5 = integer() | iodata()
+        Types   Option = integer() | atom()
+                Arg2 = Arg3 = Arg4 = Arg5 = integer() | iodata() | atom()
 
         Linux only.
 
@@ -777,7 +772,7 @@ probably confuse the process.
     setrlimit(Drv, Resource, Limit) -> ok | {error, posix()}
     setrlimit(Drv, Pids, Resource, Limit) -> ok | {error, posix()}
 
-        Types   Opt = integer()
+        Types   Resource = integer() | atom()
                 Val = #alcove_rlimit{}
 
         setrlimit(2) : set a resource limit

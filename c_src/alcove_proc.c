@@ -58,8 +58,18 @@ alcove_prctl(alcove_state_t *ap, const char *arg, size_t len,
     int rv = 0;
 
     /* option */
-    if (alcove_decode_int(arg, len, &index, &option) < 0)
-        return -1;
+    switch (alcove_decode_define(arg, len, &index, &option,
+                alcove_prctl_constants)) {
+        case 0:
+            break;
+
+        case 1:
+            return alcove_mk_errno(reply, rlen, EINVAL);
+
+        case -1:
+        default:
+            return -1;
+    }
 
     /* arg2, arg3, arg4, arg5 */
     for (i = 0; i < 4; i++) {
@@ -72,6 +82,24 @@ alcove_prctl(alcove_state_t *ap, const char *arg, size_t len,
                 if (ei_decode_ulong(arg, &index, &prarg[i].arg) < 0)
                     return -1;
 
+                break;
+
+            case ERL_ATOM_EXT: {
+                char define[MAXATOMLEN] = {0};
+                union {
+                    unsigned long ul;
+                    unsigned long long ull;
+                } constant;
+
+                if (alcove_decode_atom(arg, len, &index, define) < 0)
+                    return -1;
+
+                if (alcove_lookup_define(define, &constant.ull,
+                            alcove_prctl_constants) < 0)
+                    return 1;
+
+                prarg[i].arg = constant.ul;
+                }
                 break;
 
             case ERL_LIST_EXT:

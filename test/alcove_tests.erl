@@ -331,9 +331,8 @@ chdir(#state{pid = Drv, child = Child}) ->
     ].
 
 setrlimit(#state{pid = Drv, child = Child}) ->
-    RLIMIT_NOFILE = alcove:rlimit_define(Drv, rlimit_nofile),
-    Reply = alcove:setrlimit(Drv, [Child], RLIMIT_NOFILE, #alcove_rlimit{cur = 64, max = 64}),
-    Rlimit = alcove:getrlimit(Drv, [Child], RLIMIT_NOFILE),
+    Reply = alcove:setrlimit(Drv, [Child], rlimit_nofile, #alcove_rlimit{cur = 64, max = 64}),
+    Rlimit = alcove:getrlimit(Drv, [Child], rlimit_nofile),
     [
         ?_assertEqual(ok, Reply),
         ?_assertEqual({ok, #alcove_rlimit{cur = 64, max = 64}}, Rlimit)
@@ -495,28 +494,23 @@ prctl(#state{os = {unix,linux}, pid = Drv}) ->
 
     % capability is set:
     %   returns 0 | 1 in function result, arg2 = int
-    PR_CAPBSET_READ = alcove:prctl_define(Drv, pr_capbset_read),
-    Reply0 = alcove:prctl(Drv, [Fork], PR_CAPBSET_READ, 0, 0,0,0),
+    Reply0 = alcove:prctl(Drv, [Fork], pr_capbset_read, 0, 0,0,0),
 
     % set process name:
     %   arg2 = char *, up to 16 bytes, NULL terminated
-    PR_SET_NAME = alcove:prctl_define(Drv, pr_set_name),
-    Reply1 = alcove:prctl(Drv, [Fork], PR_SET_NAME, <<"test",0>>, 0,0,0),
+    Reply1 = alcove:prctl(Drv, [Fork], pr_set_name, <<"test",0>>, 0,0,0),
 
     % get process name
     %   value returned in arg2 = char *, up to 16 bytes
-    PR_GET_NAME = alcove:prctl_define(Drv, pr_get_name),
-    Reply2 = alcove:prctl(Drv, [Fork], PR_GET_NAME, <<0:(17*8)>>, 0,0,0),
+    Reply2 = alcove:prctl(Drv, [Fork], pr_get_name, <<0:(17*8)>>, 0,0,0),
 
     % set parent death signal
     %  arg2 = signal
-    PR_SET_PDEATHSIG = alcove:prctl_define(Drv, pr_set_pdeathsig),
-    Reply3 = alcove:prctl(Drv, [Fork], PR_SET_PDEATHSIG, 9, 0,0,0),
+    Reply3 = alcove:prctl(Drv, [Fork], pr_set_pdeathsig, 9, 0,0,0),
 
     % get parent death signal
     %  arg2 = int *
-    PR_GET_PDEATHSIG = alcove:prctl_define(Drv, pr_get_pdeathsig),
-    Reply4 = alcove:prctl(Drv, [Fork], PR_GET_PDEATHSIG, <<0:32>>, 0,0,0),
+    Reply4 = alcove:prctl(Drv, [Fork], pr_get_pdeathsig, <<0:32>>, 0,0,0),
 
     [
         ?_assertEqual({ok,1,0,0,0,0}, Reply0),

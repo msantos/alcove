@@ -458,8 +458,8 @@ specs() ->
 -spec getpid(alcove_drv:ref()) -> os_pid().
 -spec getpid(alcove_drv:ref(),fork_path()) -> os_pid().
 
--spec getrlimit(alcove_drv:ref(),non_neg_integer()) -> {'ok', #alcove_rlimit{}} | {'error', file:posix()}.
--spec getrlimit(alcove_drv:ref(),fork_path(),non_neg_integer()) -> {'ok', #alcove_rlimit{}} | {'error', file:posix()}.
+-spec getrlimit(alcove_drv:ref(),define()) -> {'ok', #alcove_rlimit{}} | {'error', file:posix()}.
+-spec getrlimit(alcove_drv:ref(),fork_path(),define()) -> {'ok', #alcove_rlimit{}} | {'error', file:posix()}.
 
 -spec getsid(alcove_drv:ref(), integer()) -> {'ok', integer()} | {'error', file:posix()}.
 -spec getsid(alcove_drv:ref(), fork_path(), integer()) -> {'ok', integer()} | {'error', file:posix()}.
@@ -488,11 +488,11 @@ specs() ->
 -spec pid(alcove_drv:ref()) -> [#alcove_pid{}].
 -spec pid(alcove_drv:ref(),fork_path()) -> [#alcove_pid{}].
 
--type prctl_arg() :: [binary() | {ptr, binary() | non_neg_integer()} ] | binary() | non_neg_integer().
+-type prctl_arg() :: [binary() | {ptr, binary() | non_neg_integer()} ] | binary() | non_neg_integer() | atom().
 -type prctl_val() :: binary() | non_neg_integer().
 
--spec prctl(alcove_drv:ref(),integer(),prctl_arg(),prctl_arg(),prctl_arg(),prctl_arg()) -> {'ok',integer(),prctl_val(),prctl_val(),prctl_val(),prctl_val()}.
--spec prctl(alcove_drv:ref(),fork_path(),integer(),prctl_arg(),prctl_arg(),prctl_arg(),prctl_arg()) -> {'ok',integer(),prctl_val(),prctl_val(),prctl_val(),prctl_val()}.
+-spec prctl(alcove_drv:ref(),define(),prctl_arg(),prctl_arg(),prctl_arg(),prctl_arg()) -> {'ok',integer(),prctl_val(),prctl_val(),prctl_val(),prctl_val()}.
+-spec prctl(alcove_drv:ref(),fork_path(),define(),prctl_arg(),prctl_arg(),prctl_arg(),prctl_arg()) -> {'ok',integer(),prctl_val(),prctl_val(),prctl_val(),prctl_val()}.
 
 -spec prctl_define(alcove_drv:ref(),atom()) -> 'unknown' | non_neg_integer().
 -spec prctl_define(alcove_drv:ref(),fork_path(),atom()) -> 'unknown' | non_neg_integer().
@@ -529,8 +529,8 @@ specs() ->
 -spec setopt(alcove_drv:ref(),atom(), non_neg_integer()) -> boolean().
 -spec setopt(alcove_drv:ref(),fork_path(),atom(),non_neg_integer()) -> boolean().
 
--spec setrlimit(alcove_drv:ref(),non_neg_integer(),#alcove_rlimit{}) -> 'ok' | {'error', file:posix()}.
--spec setrlimit(alcove_drv:ref(),fork_path(),non_neg_integer(),#alcove_rlimit{}) -> 'ok' | {'error', file:posix()}.
+-spec setrlimit(alcove_drv:ref(),define(),#alcove_rlimit{}) -> 'ok' | {'error', file:posix()}.
+-spec setrlimit(alcove_drv:ref(),fork_path(),define(),#alcove_rlimit{}) -> 'ok' | {'error', file:posix()}.
 
 -spec setsid(alcove_drv:ref()) -> {ok,os_pid()} | {error, file:posix()}.
 -spec setsid(alcove_drv:ref(),fork_path()) -> {ok,os_pid()} | {error, file:posix()}.
