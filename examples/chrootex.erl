@@ -43,17 +43,13 @@ argv([Arg0, Args]) ->
     {Path, Progname, Args}.
 
 setlimits(Drv, Child) ->
-    RLIMIT_FSIZE = alcove:rlimit_define(Drv, rlimit_fsize),
-    RLIMIT_NPROC = alcove:rlimit_define(Drv, rlimit_nproc),
-    RLIMIT_NOFILE = alcove:rlimit_define(Drv, rlimit_nofile),
-
-    ok = alcove:setrlimit(Drv, [Child], RLIMIT_FSIZE,
+    ok = alcove:setrlimit(Drv, [Child], rlimit_fsize,
         #alcove_rlimit{cur = 0, max = 0}),
 
-    ok = alcove:setrlimit(Drv, [Child], RLIMIT_NPROC,
+    ok = alcove:setrlimit(Drv, [Child], rlimit_nproc,
         #alcove_rlimit{cur = 1, max = 1}),
 
-    ok = alcove:setrlimit(Drv, [Child], RLIMIT_NOFILE,
+    ok = alcove:setrlimit(Drv, [Child], rlimit_nofile,
         #alcove_rlimit{cur = 0, max = 0}).
 
 chroot(Drv, Child, Path) ->

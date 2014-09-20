@@ -215,9 +215,7 @@ alcove:x:", Id, ":"])}
     Files = proplists:get_value(files, Options, []),
     write_files(Drv, [Child], Files),
 
-    RLIMIT_NPROC = alcove:rlimit_define(Drv, rlimit_nproc),
-
-    ok = alcove:setrlimit(Drv, [Child], RLIMIT_NPROC,
+    ok = alcove:setrlimit(Drv, [Child], rlimit_nproc,
                           #alcove_rlimit{cur = 16, max = 16}),
 
     Exe = proplists:get_value(exe, Options, ["/bin/bash", "-i"]),

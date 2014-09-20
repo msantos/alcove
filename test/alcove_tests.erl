@@ -397,14 +397,12 @@ badpid(#state{pid = Drv}) ->
 signal(#state{pid = Drv}) ->
     {ok, Child1} = alcove:fork(Drv),
 
-    SIGTERM = alcove:signal_define(Drv, sigterm),
-
-    SA0 = alcove:sigaction(Drv, [Child1], SIGTERM, ign),
-    Kill0 = alcove:kill(Drv, Child1, SIGTERM),
+    SA0 = alcove:sigaction(Drv, [Child1], sigterm, ign),
+    Kill0 = alcove:kill(Drv, Child1, sigterm),
     Pid0 = alcove:getpid(Drv, [Child1]),
 
     SA1 = alcove:sigaction(Drv, [Child1], sigterm, dfl),
-    Kill1 = alcove:kill(Drv, Child1, SIGTERM),
+    Kill1 = alcove:kill(Drv, Child1, sigterm),
     waitpid(Drv, [], Child1),
     alcove:kill(Drv, Child1, 0),
     Search = alcove:kill(Drv, Child1, 0),
