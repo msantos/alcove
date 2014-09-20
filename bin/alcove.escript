@@ -400,8 +400,8 @@ specs() ->
 -spec clearenv(alcove_drv:ref()) -> 'ok' | {'error', file:posix()}.
 -spec clearenv(alcove_drv:ref(),fork_path()) -> 'ok' | {'error', file:posix()}.
 
--spec clone(alcove_drv:ref(),non_neg_integer()) -> {'ok', os_pid()} | {'error', file:posix()}.
--spec clone(alcove_drv:ref(),fork_path(),non_neg_integer()) -> {'ok', os_pid()} | {'error', file:posix()}.
+-spec clone(alcove_drv:ref(),integer() | [define()]) -> {'ok', os_pid()} | {'error', file:posix()}.
+-spec clone(alcove_drv:ref(),fork_path(),integer() | [define()]) -> {'ok', os_pid()} | {'error', file:posix()}.
 
 -spec clone_define(alcove_drv:ref(),atom()) -> 'unknown' | non_neg_integer().
 -spec clone_define(alcove_drv:ref(),fork_path(),atom()) -> 'unknown' | non_neg_integer().
@@ -567,8 +567,8 @@ specs() ->
 -spec unsetenv(alcove_drv:ref(),iodata()) -> 'ok' | {error, file:posix()}.
 -spec unsetenv(alcove_drv:ref(),fork_path(),iodata()) -> 'ok' | {error, file:posix()}.
 
--spec unshare(alcove_drv:ref(),non_neg_integer()) -> 'ok' | {'error', file:posix()}.
--spec unshare(alcove_drv:ref(),fork_path(),non_neg_integer()) -> 'ok' | {'error', file:posix()}.
+-spec unshare(alcove_drv:ref(),integer() | [define()]) -> 'ok' | {'error', file:posix()}.
+-spec unshare(alcove_drv:ref(),fork_path(),integer() | [define()]) -> 'ok' | {'error', file:posix()}.
 
 -spec write(alcove_drv:ref(),fd(),iodata()) -> {'ok', non_neg_integer()} | {'error', file:posix()}.
 -spec write(alcove_drv:ref(),fork_path(),fd(),iodata()) -> {'ok', non_neg_integer()} | {'error', file:posix()}.

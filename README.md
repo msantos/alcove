@@ -282,15 +282,13 @@ setlimits(Drv, Child) ->
 sandbox(Drv, Argv) ->
     {Path, Arg0, Args} = argv(Argv),
 
-    Flags = alcove:define(Drv, [
+    {ok, Child} = alcove:clone(Drv, [
             clone_newipc, % IPC
             clone_newnet, % network
             clone_newns,  % mounts
             clone_newpid, % PID, Child is PID 1 in the namespace
             clone_newuts  % hostname
             ]),
-
-    {ok, Child} = alcove:clone(Drv, Flags),
 
     setlimits(Drv, Child),
     chroot(Drv, Child, Path),
@@ -410,7 +408,7 @@ probably confuse the process.
     clone(Drv, Flags) -> {ok, integer()} | {error, posix()}
     clone(Drv, Pids, Flags) -> {ok, integer()} | {error, posix()}
 
-        Types   Flags = integer()
+        Types   Flags = integer() | [atom() | integer()]
 
         Linux only.
 
@@ -732,8 +730,7 @@ probably confuse the process.
 
         This function is probably only useful if running in a uts namespace:
 
-            Flags = alcove:define(Drv, 'CLONE_NEWUTS'),
-            {ok, Child} = alcove:clone(Drv, Flags),
+            {ok, Child} = alcove:clone(Drv, [clone_newuts]),
             ok = alcove:sethostname(Drv, [Child], "test"),
             Hostname1 = alcove:gethostname(Drv),
             Hostname2 = alcove:gethostname(Drv, [Child]),
@@ -761,8 +758,7 @@ probably confuse the process.
 
         For example, to attach to another process' network namespace:
 
-            Flags = alcove:define(Drv, clone_newnet),
-            {ok, Child1} = alcove:clone(Drv, Flags),
+            {ok, Child1} = alcove:clone(Drv, [clone_newnet]),
             {ok, Child2} = alcove:fork(Drv),
 
             % Move Child2 into the Child1 network namespace
@@ -839,8 +835,7 @@ probably confuse the process.
 
         unshare(2) lets you make a new namespace without calling clone(2):
 
-            Flags = alcove:define(Drv, clone_newnet),
-            ok = alcove:unshare(Drv, Flags).
+            ok = alcove:unshare(Drv, [clone_newnet]).
 
             % The port is now running in a namespace without network access.
 

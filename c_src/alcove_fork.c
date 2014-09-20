@@ -127,7 +127,8 @@ alcove_clone(alcove_state_t *ap, const char *arg, size_t len,
         return alcove_mk_errno(reply, rlen, EAGAIN);
 
     /* flags */
-    if (alcove_decode_int(arg, len, &index, &flags) < 0)
+    if (alcove_decode_define_list(arg, len, &index, &flags,
+                alcove_clone_constants) < 0)
         return -1;
 
     if (getrlimit(RLIMIT_STACK, &stack_size) < 0)
@@ -239,7 +240,8 @@ alcove_unshare(alcove_state_t *ap, const char *arg, size_t len,
     int flags = 0;
 
     /* flags */
-    if (alcove_decode_int(arg, len, &index, &flags) < 0)
+    if (alcove_decode_define_list(arg, len, &index, &flags,
+                alcove_clone_constants) < 0)
         return -1;
 
     return (unshare(flags) < 0)

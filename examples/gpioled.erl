@@ -37,9 +37,6 @@
 %%
 %%  gpioled:start(11).
 %%
--define(O_WRONLY, alcove:define(Drv, o_wronly)).
--define(O_RDWR, alcove:define(Drv, o_rdwr)).
-
 -record(state, {
         drv,
         pid,
@@ -55,27 +52,27 @@ start(GPIO, N) ->
 
     export(Drv, GPIO),
 
-    Flags = alcove:define(Drv, [
-            clone_newipc,
-            clone_newns,
-            clone_newnet,
-            clone_newpid,
-            clone_newuts
-        ]),
-
     % Child
+    Flags = [
+        clone_newipc,
+        clone_newns,
+        clone_newnet,
+        clone_newpid,
+        clone_newuts
+    ],
     {ok, Child} = alcove:clone(Drv, Flags),
+
     ok = alcove:chroot(Drv, [Child],
         ["/sys/class/gpio/gpio", integer_to_list(GPIO)]),
     ok = alcove:chdir(Drv, [Child], "/"),
-    {ok, FD} = alcove:open(Drv, [Child], "/direction", ?O_RDWR, 0),
+    {ok, FD} = alcove:open(Drv, [Child], "/direction", [o_rdwr], 0),
 
     Id = id(),
     ok = alcove:setgid(Drv, [Child], Id),
     ok = alcove:setuid(Drv, [Child], Id),
 
     % Drop privs in the port
-    {ok, UFD} = alcove:open(Drv, "/sys/class/gpio/unexport", ?O_WRONLY, 0),
+    {ok, UFD} = alcove:open(Drv, "/sys/class/gpio/unexport", [o_wronly], 0),
 
     ok = alcove:unshare(Drv, Flags),
     ok = alcove:chroot(Drv, "priv"),
@@ -112,7 +109,7 @@ id() ->
     crypto:rand_uniform(16#f0000000, 16#f000ffff).
 
 export(Drv, Pin) ->
-    {ok, FD} = alcove:open(Drv, "/sys/class/gpio/export", ?O_WRONLY, 0),
+    {ok, FD} = alcove:open(Drv, "/sys/class/gpio/export", [o_wronly], 0),
     case alcove:write(Drv, FD, integer_to_list(Pin)) of
         {ok, _} -> ok;
         {error,ebusy} -> ok

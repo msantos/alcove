@@ -43,14 +43,13 @@ sandbox(Drv) ->
 sandbox(Drv, Argv) ->
     {Path, Arg0, Args} = argv(Argv),
 
-    Flags = alcove:define(Drv, [
+    {ok, Child} = alcove:clone(Drv, [
             clone_newipc,
             clone_newnet,
             clone_newns,
             clone_newpid,
             clone_newuts
         ]),
-    {ok, Child} = alcove:clone(Drv, Flags),
 
     setlimits(Drv, Child),
     chroot(Drv, Child, Path),

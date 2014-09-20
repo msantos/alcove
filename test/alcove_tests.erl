@@ -83,14 +83,13 @@ start() ->
 
     case {Use_fork, os:type()} of
         {false, {unix,linux} = OS} ->
-            Flags = alcove:define(Drv, [
+            {ok, Child} = alcove:clone(Drv, [
                     clone_newipc,
                     clone_newnet,
                     clone_newns,
                     clone_newpid,
                     clone_newuts
                 ]),
-            {ok, Child} = alcove:clone(Drv, Flags),
             #state{
                 pid = Drv,
                 child = Child,
@@ -270,8 +269,7 @@ setns(_) ->
 
 unshare(#state{clone = true, pid = Drv}) ->
     {ok, Child1} = alcove:fork(Drv),
-    ok = alcove:unshare(Drv, [Child1],
-        alcove:clone_define(Drv, clone_newuts)),
+    ok = alcove:unshare(Drv, [Child1], [clone_newuts]),
     Reply = alcove:sethostname(Drv, [Child1], "unshare"),
     Hostname = alcove:gethostname(Drv, [Child1]),
     [?_assertEqual(ok, Reply),
@@ -600,8 +598,8 @@ open(#state{pid = Drv}) ->
 
     File = "/nonexistent",
 
-    Reply0 = alcove:open(Drv, File, 0, 0),
-    Reply1 = alcove:open(Drv, File, [0,0,0,0], 0),
+    Reply0 = alcove:open(Drv, File, O_RDONLY, 0),
+    Reply1 = alcove:open(Drv, File, [O_RDONLY,O_RDONLY,O_RDONLY,O_RDONLY], 0),
     Reply2 = alcove:open(Drv, File, [o_rdonly, o_rdonly, o_rdonly], 0),
 
     [

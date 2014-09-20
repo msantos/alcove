@@ -1,7 +1,7 @@
 {application, alcove,
     [
     {description, "Erlang application container/sandbox"},
-    {vsn, "0.10.1"},
+    {vsn, "0.10.2"},
     {registered, []},
     {applications, [
         kernel,

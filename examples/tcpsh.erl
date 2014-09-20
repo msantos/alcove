@@ -45,14 +45,13 @@ create(Socket, _Options) ->
 
     ok = alcove:chdir(Drv, "/"),
 
-    Flags = alcove:define(Drv, [
+    {ok, PID} = alcove:clone(Drv, [
             clone_newipc,
             clone_newnet,
             clone_newns,
             clone_newpid,
             clone_newuts
         ]),
-    {ok, PID} = alcove:clone(Drv, Flags),
 
     Id = id(),
 

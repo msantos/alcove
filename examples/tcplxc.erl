@@ -116,14 +116,13 @@ shell(Drv, Options, State) ->
     end.
 
 clone(Drv, _Options) ->
-    Flags = alcove:define(Drv, [
+    alcove:clone(Drv, [
             clone_newipc,
             clone_newnet,
             clone_newns,
             clone_newpid,
             clone_newuts
-        ]),
-    alcove:clone(Drv, Flags).
+        ]).
 
 clone_init(Drv, Child, Options) ->
     Id = id(),
@@ -401,8 +400,7 @@ join(Root, Path) ->
 write_files(_Drv, _Pid, []) ->
     ok;
 write_files(Drv, Pid, [{Path, Contents, Mode}|Rest]) ->
-    Flags = alcove:define(Drv, [o_wronly, o_creat]),
-    {ok, FD} = alcove:open(Drv, Pid, Path, Flags, Mode),
+    {ok, FD} = alcove:open(Drv, Pid, Path, [o_wronly, o_creat], Mode),
     {ok, _} = alcove:write(Drv, Pid, FD, Contents),
     ok = alcove:close(Drv, Pid, FD),
     write_files(Drv, Pid, Rest);
