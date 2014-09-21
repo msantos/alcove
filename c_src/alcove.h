@@ -180,6 +180,8 @@ int alcove_decode_define_list(const char *, size_t, int *, int *,
         alcove_define_t *);
 int alcove_decode_list_to_buf(const char *, size_t, int *, char *, size_t *,
         alcove_alloc_t **, ssize_t *);
+int alcove_decode_list_to_argv(const char *, size_t, int *, char ***);
+void alcove_free_argv(char **);
 
 int alcove_encode_version(char *, size_t, int *);
 int alcove_encode_list_header(char *, size_t, int *, int);
@@ -203,8 +205,6 @@ ssize_t alcove_mk_atom(char *buf, size_t len, const char *atom);
 ssize_t alcove_mk_binary(char *, size_t, const void *, size_t);
 ssize_t alcove_mk_long(char *, size_t, long);
 ssize_t alcove_mk_ulong(char *, size_t, unsigned long);
-char **alcove_list_to_argv(const char *, size_t, int *);
-void alcove_free_argv(char **);
 
 ssize_t alcove_call(alcove_state_t *ap, u_int32_t call,
         const char *arg, size_t len, char *reply, size_t rlen);

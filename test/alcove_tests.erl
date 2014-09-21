@@ -565,17 +565,20 @@ execve(#state{pid = Drv}) ->
     {ok, Child0} = alcove:fork(Drv),
     {ok, Child1} = alcove:fork(Drv),
 
-    Reply0 = alcove:execve(Drv, [Child0], "/usr/bin/env",
+    Reply0 = (catch alcove:execve(Drv, [Child0], "/usr/bin/env",
+            ["/usr/bin/env"], ["A=1", "B=2", "C=3", false])),
+    Reply1 = alcove:execve(Drv, [Child0], "/usr/bin/env",
         ["/usr/bin/env"], ["FOO=bar", "BAR=1234567"]),
-    Reply1 = alcove:execve(Drv, [Child1], "/usr/bin/env",
+    Reply2 = alcove:execve(Drv, [Child1], "/usr/bin/env",
         ["/usr/bin/env"], []),
 
     Stdout0 = alcove:stdout(Drv, [Child0], 5000),
     Stdout1 = alcove:stdout(Drv, [Child1], 5000),
 
     [
-        ?_assertEqual(ok, Reply0),
+        ?_assertMatch({'EXIT',{badarg,_}}, Reply0),
         ?_assertEqual(ok, Reply1),
+        ?_assertEqual(ok, Reply2),
 
         ?_assertEqual(<<"FOO=bar\nBAR=1234567\n">>, Stdout0),
         ?_assertEqual(false, Stdout1)

@@ -395,42 +395,44 @@ alcove_malloc(ssize_t size)
     return buf;
 }
 
-    char **
-alcove_list_to_argv(const char *arg, size_t len, int *index)
+    int
+alcove_decode_list_to_argv(const char *arg, size_t len, int *index,
+        char ***argv)
 {
     int arity = 0;
+    int empty = 0;
 
     int i = 0;
-    char **argv = NULL;
     long maxarg = sysconf(_SC_ARG_MAX);
 
     if (alcove_decode_list_header(arg, len, index, &arity) < 0)
-        return NULL;
+        return -1;
 
     if (arity < 0 || arity >= maxarg)
-        return NULL;
+        return -1;
 
     /* NULL terminate */
-    argv = calloc(arity + 1, sizeof(char *));
+    *argv = calloc(arity + 1, sizeof(char *));
 
-    if (!argv)
+    if (!*argv)
         err(EXIT_FAILURE, "calloc");
 
     for (i = 0; i < arity; i++) {
-        argv[i] = alcove_x_decode_iolist_to_string(arg, len, index);
-        if (!argv[i])
+        (*argv)[i] = alcove_x_decode_iolist_to_string(arg, len, index);
+        if (!(*argv)[i])
             goto ERR;
     }
 
     /* list tail */
-    if (alcove_decode_list_header(arg, len, index, &arity) < 0 || arity != 0)
+    if (arity > 0 && (alcove_decode_list_header(arg, len, index, &empty) < 0
+                || empty != 0))
         goto ERR;
 
-    return argv;
+    return 0;
 
 ERR:
-    alcove_free_argv(argv);
-    return NULL;
+    alcove_free_argv(*argv);
+    return -1;
 }
 
     void
@@ -441,10 +443,13 @@ alcove_free_argv(char **argv)
     if (argv == NULL)
         return;
 
-    for (i = 0; argv[i]; i++)
+    for (i = 0; argv[i]; i++) {
         free(argv[i]);
+        argv[i] = NULL;
+    }
 
     free(argv);
+    argv = NULL;
 }
 
     int

@@ -36,7 +36,8 @@ alcove_execvp(alcove_state_t *ap, const char *arg, size_t len,
         return -1;
 
     /* argv */
-    argv = alcove_list_to_argv(arg, len, &index);
+    if (alcove_decode_list_to_argv(arg, len, &index, &argv) < 0)
+        return -1;
 
     execvp(progname, argv);
 
@@ -69,10 +70,12 @@ alcove_execve(alcove_state_t *ap, const char *arg, size_t len,
         return -1;
 
     /* argv */
-    argv = alcove_list_to_argv(arg, len, &index);
+    if (alcove_decode_list_to_argv(arg, len, &index, &argv) < 0)
+        return -1;
 
     /* envp */
-    envp = alcove_list_to_argv(arg, len, &index);
+    if (alcove_decode_list_to_argv(arg, len, &index, &envp) < 0)
+        return -1;
 
     execve(filename, argv, envp);
 
