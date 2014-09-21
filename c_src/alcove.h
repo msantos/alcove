@@ -178,6 +178,8 @@ int alcove_decode_iolist(const char *, size_t, int *, char *, size_t *);
 int alcove_decode_define(const char *, size_t, int *, int *, alcove_define_t *);
 int alcove_decode_define_list(const char *, size_t, int *, int *,
         alcove_define_t *);
+int alcove_decode_list_to_buf(const char *, size_t, int *, char *, size_t *,
+        alcove_alloc_t **, ssize_t *);
 
 int alcove_encode_version(char *, size_t, int *);
 int alcove_encode_list_header(char *, size_t, int *, int);
@@ -192,6 +194,8 @@ int alcove_encode_binary(char *, size_t, int *, const void *, long);
 int alcove_encode_define(char *, size_t, int *, char *, alcove_define_t *);
 int alcove_lookup_define(char *, unsigned long long *, alcove_define_t *);
 int alcove_encode_constant(char *, size_t, int *, u_int64_t, alcove_define_t *);
+int alcove_encode_buf_to_list(char *, size_t, int *, const char *, size_t,
+        alcove_alloc_t *, ssize_t);
 
 ssize_t alcove_mk_errno(char *buf, size_t len, int errnum);
 ssize_t alcove_mk_error(char *buf, size_t len, const char *reason);

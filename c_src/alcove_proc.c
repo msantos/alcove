@@ -104,13 +104,17 @@ alcove_prctl(alcove_state_t *ap, const char *arg, size_t len,
 
             case ERL_LIST_EXT:
                 prarg[i].type = ALCOVE_PRARG_CSTRUCT;
-                prarg[i].data = alcove_list_to_buf(arg, len, &index,
-                        &(prarg[i].len), &(elem[i]), &(nelem[i]));
+                prarg[i].len = sizeof(prarg[i].data);
+                if (alcove_decode_list_to_buf(arg, len, &index, prarg[i].data,
+                        &(prarg[i].len), &(elem[i]), &(nelem[i])) < 0)
+                    return -1;
+
                 break;
 
             case ERL_BINARY_EXT:
                 prarg[i].type = ALCOVE_PRARG_BINARY;
-                prarg[i].data = alcove_malloc(arity);
+                if (arity > sizeof(prarg[i].data))
+                    return -1;
                 if (ei_decode_binary(arg, &index, prarg[i].data,
                             (long int *)&(prarg[i].len)) < 0)
                     return -1;
@@ -149,12 +153,10 @@ alcove_prctl(alcove_state_t *ap, const char *arg, size_t len,
                 ALCOVE_ERR(alcove_encode_buf_to_list(reply, rlen, &rindex,
                             prarg[i].data, prarg[i].len,
                             elem[i], nelem[i]));
-                free(prarg[i].data);
                 break;
             case ALCOVE_PRARG_BINARY:
                 ALCOVE_ERR(alcove_encode_binary(reply, rlen, &rindex, prarg[i].data,
                             prarg[i].len));
-                free(prarg[i].data);
                 break;
             default:
                 return -1;

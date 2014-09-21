@@ -22,13 +22,13 @@ alcove_alloc(alcove_state_t *ap, const char *arg, size_t len,
 {
     int index = 0;
     int rindex = 0;
-    size_t size = 0;
-    char *buf = NULL;
+    char buf[MAXMSGLEN] = {0};
+    size_t size = sizeof(buf);
     alcove_alloc_t *elem = NULL;
     ssize_t nelem = 0;
 
-    buf = alcove_list_to_buf(arg, len, &index, &size, &elem, &nelem);
-    if (!buf)
+    if (alcove_decode_list_to_buf(arg, len, &index, buf, &size,
+                &elem, &nelem) < 0)
         return -1;
 
     ALCOVE_TUPLE3(reply, &rindex,
@@ -36,8 +36,6 @@ alcove_alloc(alcove_state_t *ap, const char *arg, size_t len,
         alcove_encode_binary(reply, rlen, &rindex, buf, size),
         alcove_encode_buf_to_list(reply, rlen, &rindex, buf, size, elem, nelem)
     );
-
-    free(buf);
 
     return rindex;
 }

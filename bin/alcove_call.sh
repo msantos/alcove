@@ -27,10 +27,3 @@ while read line; do
 ssize_t alcove_$1(alcove_state_t *, const char *, size_t, char *, size_t);
 EOF
 done < $PROTO
-
-cat<< 'EOF'
-void *alcove_list_to_buf(const char *, size_t, int *, size_t *,
-    alcove_alloc_t **, ssize_t *);
-int alcove_encode_buf_to_list(char *, size_t, int *, const char *, size_t,
-    alcove_alloc_t *, ssize_t);
-EOF

@@ -15,7 +15,7 @@
 typedef struct {
     u_char type;
     unsigned long arg;
-    char *data;
+    char data[MAXMSGLEN];
     size_t len;
 } alcove_prctl_arg_t;
 
