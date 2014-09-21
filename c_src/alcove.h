@@ -203,7 +203,6 @@ ssize_t alcove_mk_atom(char *buf, size_t len, const char *atom);
 ssize_t alcove_mk_binary(char *, size_t, const void *, size_t);
 ssize_t alcove_mk_long(char *, size_t, long);
 ssize_t alcove_mk_ulong(char *, size_t, unsigned long);
-void *alcove_malloc(ssize_t);
 char **alcove_list_to_argv(const char *, size_t, int *);
 void alcove_free_argv(char **);
 

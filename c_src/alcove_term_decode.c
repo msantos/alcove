@@ -14,6 +14,7 @@
  */
 #include "alcove.h"
 
+void *alcove_malloc(ssize_t);
 char *alcove_x_decode_iolist_to_string(const char *buf, size_t len, int *index);
 int alcove_decode_iolist_internal(const char *buf, size_t len, int *index,
         char *res, size_t rlen, int *rindex, int depth);
