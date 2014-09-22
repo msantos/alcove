@@ -210,7 +210,7 @@ event(#state{pid = Drv}) ->
     {ok, Fork} = alcove:fork(Drv),
     Reply0 = alcove:exit(Drv, [Fork], 0),
     Reply1 = alcove:event(Drv, [Fork]),
-    Reply2 = alcove:event(Drv, []),
+    Reply2 = alcove:event(Drv, [], 5000),
 
     [
         ?_assertEqual(ok, Reply0),
