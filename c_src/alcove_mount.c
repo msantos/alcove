@@ -77,6 +77,9 @@ alcove_mount(alcove_state_t *ap, const char *arg, size_t len,
             target,
             mountflags,
             (dlen == 0 ? NULL : data)
+#ifdef __NetBSD__
+            , dlen
+#endif
             );
 #endif
 
