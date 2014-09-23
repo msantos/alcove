@@ -383,7 +383,7 @@ badpid(#state{pid = Drv}) ->
                 ["/bin/sh", "-c", "echo > /dev/null"]], 1000)),
 
     % PID not found
-    Reply1 = (catch alcove:call(Drv, [12345], execvp, ["/bin/sh",
+    Reply1 = (catch alcove:call(Drv, [2952790015], execvp, ["/bin/sh",
                 ["/bin/sh", "-c", "echo > /dev/null"]], 1000)),
 
     [
