@@ -345,7 +345,7 @@ alcove_encode_atom_to_lower(char *buf, size_t len, int *index, const char *p)
     char *q = atom;
 
     for ( ; *p; p++, q++)
-        *q = tolower(*p);
+        *q = tolower((int)(unsigned char)*p);
 
     return alcove_encode_atom(buf, len, index, atom);
 }
