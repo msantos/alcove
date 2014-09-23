@@ -382,8 +382,10 @@ badpid(#state{pid = Drv}) ->
     Reply0 = (catch alcove:call(Drv, [Child], execvp, ["/bin/sh",
                 ["/bin/sh", "-c", "echo > /dev/null"]], 1000)),
 
+    PID = get_unused_pid(Drv),
+
     % PID not found
-    Reply1 = (catch alcove:call(Drv, [2952790015], execvp, ["/bin/sh",
+    Reply1 = (catch alcove:call(Drv, [PID], execvp, ["/bin/sh",
                 ["/bin/sh", "-c", "echo > /dev/null"]], 1000)),
 
     [
@@ -641,6 +643,13 @@ flush(stdout, Drv, Pids) ->
             ok;
         _ ->
             flush(stdout, Drv, Pids)
+    end.
+
+get_unused_pid(Drv) ->
+    PID = crypto:rand_uniform(16#0affffff, 16#0fffffff),
+    case alcove:kill(Drv, PID, 0) of
+        {error,esrch} -> PID;
+        _ -> get_unused_pid(Drv)
     end.
 
 forkstress_1(_Drv, _Child, 0) ->
