@@ -278,3 +278,29 @@ alcove_setpgid(alcove_state_t *ap, const char *arg, size_t len,
 
     return alcove_mk_atom(reply, rlen, "ok");
 }
+
+/*
+ * setproctitle(3)
+ */
+    ssize_t
+alcove_setproctitle(alcove_state_t *ap, const char *arg, size_t len,
+        char *reply, size_t rlen)
+{
+#ifdef __linux__
+    return alcove_mk_error(reply, rlen, "unsupported");
+#else
+    int index = 0;
+
+    char name[MAXMSGLEN] = {0};
+    size_t nlen = sizeof(name);
+
+    if (alcove_decode_iolist(arg, len, &index, name, &nlen) < 0)
+        return -1;
+
+    (nlen == 0)
+        ? setproctitle(NULL)
+        : setproctitle("%s", name);
+
+    return alcove_mk_atom(reply, rlen, "ok");
+#endif
+}

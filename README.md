@@ -770,6 +770,20 @@ probably confuse the process.
 
         Set port options. See getopt/2,3 for the list of options.
 
+    setproctitle(Drv, Name) -> ok
+    setproctitle(Drv, Pids, Name) -> ok
+
+        Types   Name = iolist()
+
+	BSD only.
+
+	setproctitle(3) : set the process title
+
+        On Linux, use prctl/6,7:
+
+		{ok,Fork} = alcove:fork(Drv),
+		alcove:prctl(Drv, [Fork], pr_set_name, <<"pseudonym">>, 0,0,0).
+
     setrlimit(Drv, Resource, Limit) -> ok | {error, posix()}
     setrlimit(Drv, Pids, Resource, Limit) -> ok | {error, posix()}
 
