@@ -773,7 +773,7 @@ probably confuse the process.
     setproctitle(Drv, Name) -> ok
     setproctitle(Drv, Pids, Name) -> ok
 
-        Types   Name = iolist()
+        Types   Name = iodata()
 
 	BSD only.
 

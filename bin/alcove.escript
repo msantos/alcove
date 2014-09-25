@@ -529,6 +529,9 @@ specs() ->
 -spec setopt(alcove_drv:ref(),atom(), non_neg_integer()) -> boolean().
 -spec setopt(alcove_drv:ref(),fork_path(),atom(),non_neg_integer()) -> boolean().
 
+-spec setproctitle(pid(),iodata()) -> 'ok'.
+-spec setproctitle(pid(),fork_path(),iodata()) -> 'ok'.
+
 -spec setrlimit(alcove_drv:ref(),define(),#alcove_rlimit{}) -> 'ok' | {'error', file:posix()}.
 -spec setrlimit(alcove_drv:ref(),fork_path(),define(),#alcove_rlimit{}) -> 'ok' | {'error', file:posix()}.
 
