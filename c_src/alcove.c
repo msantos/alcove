@@ -96,6 +96,8 @@ main(int argc, char *argv[])
     if (!ap)
         err(EXIT_FAILURE, "calloc");
 
+    ALCOVE_SETOPT(ap, alcove_opt_termsig, 1);
+
     act.sa_handler = sighandler;
     if (sigaction(SIGCHLD, &act, NULL) < 0)
         err(EXIT_FAILURE, "sigaction");
@@ -566,28 +568,36 @@ exited_pid(alcove_state_t *ap, alcove_child_t *c, void *arg1, void *arg2)
     int index = 0;
     char t[MAXMSGLEN] = {0};
 
-    c->exited = 1;
+    c->exited = 1 << 8;
     (void)close(c->fdin);
     c->fdin = -1;
 
-    if (WIFEXITED(*status) && (ap->opt & alcove_opt_exit_status)) {
-        ALCOVE_TUPLE2(t, &index,
-                "exit_status",
-                ei_encode_long(t, &index, WEXITSTATUS(*status))
-        );
+    if (WIFEXITED(*status)) {
+        c->exited |= WEXITSTATUS(*status);
 
-        if (alcove_call_fake_reply(c->pid, ALCOVE_MSG_EVENT, t, index))
-            return -1;
+        if (ap->opt & alcove_opt_exit_status) {
+            ALCOVE_TUPLE2(t, &index,
+                    "exit_status",
+                    ei_encode_long(t, &index, WEXITSTATUS(*status))
+                    );
+
+            if (alcove_call_fake_reply(c->pid, ALCOVE_MSG_EVENT, t, index))
+                return -1;
+        }
     }
 
-    if (WIFSIGNALED(*status) && (ap->opt & alcove_opt_termsig)) {
-        ALCOVE_TUPLE2(t, &index,
-            "termsig",
-            alcove_signal_name(t, sizeof(t), &index, WTERMSIG(*status))
-        );
+    if (WIFSIGNALED(*status)) {
+        c->termsig = WTERMSIG(*status);
 
-        if (alcove_call_fake_reply(c->pid, ALCOVE_MSG_EVENT, t, index) < 0)
-            return -1;
+        if (ap->opt & alcove_opt_termsig) {
+            ALCOVE_TUPLE2(t, &index,
+                "termsig",
+                alcove_signal_name(t, sizeof(t), &index, c->termsig)
+            );
+
+            if (alcove_call_fake_reply(c->pid, ALCOVE_MSG_EVENT, t, index) < 0)
+                return -1;
+        }
     }
 
     return 0;
@@ -620,6 +630,7 @@ set_pid(alcove_state_t *ap, alcove_child_t *c, void *arg1, void *arg2)
     if (c->exited && c->fdout == -1 && c->fderr == -1 && c->fdctl < 0) {
         c->pid = 0;
         c->exited = 0;
+        c->termsig = 0;
     }
 
     return 1;
@@ -666,12 +677,17 @@ read_from_pid(alcove_state_t *ap, alcove_child_t *c, void *arg1, void *arg2)
             int index = 0;
             char t[MAXMSGLEN] = {0};
 
-            c->fdctl = ALCOVE_CHILD_EXEC;
-            (void)ei_encode_version(t, &index);
-            (void)ei_encode_atom(t, &index, "ok");
-
-            if (alcove_call_fake_reply(c->pid, ALCOVE_MSG_CALL, t, index) < 0)
+            if (alcove_handle_signal(ap) < 0)
                 return -1;
+
+            if (c->termsig == 0) {
+                c->fdctl = ALCOVE_CHILD_EXEC;
+                (void)ei_encode_version(t, &index);
+                (void)ei_encode_atom(t, &index, "ok");
+
+                if (alcove_call_fake_reply(c->pid, ALCOVE_MSG_CALL, t, index) < 0)
+                    return -1;
+            }
         }
     }
 

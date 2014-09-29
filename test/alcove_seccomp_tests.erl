@@ -67,19 +67,14 @@ kill(#state{pid = Drv}) ->
     % Allowed: cached by process
     Reply0 = alcove:getpid(Drv, [Pid]),
     % Not allowed: SIGSYS
-    alcove:getcwd(Drv, [Pid]),
+    Reply1 = (catch alcove:getcwd(Drv, [Pid])),
 
-    receive
-        {alcove_event,Drv,[Pid],Event} ->
-            ok
-    end,
-
-    Reply3 = alcove:kill(Drv, Pid, 0),
+    Reply2 = alcove:kill(Drv, Pid, 0),
 
     [
         ?_assertEqual(Pid, Reply0),
-        ?_assertEqual({termsig, sigsys}, Event),
-        ?_assertEqual({error, esrch}, Reply3)
+        ?_assertEqual({'EXIT',{termsig,sigsys}}, Reply1),
+        ?_assertEqual({error, esrch}, Reply2)
     ].
 
 allow(#state{pid = Drv}) ->
@@ -117,6 +112,7 @@ trap(#state{pid = Drv}) ->
     end,
 
     Reply3 = alcove:kill(Drv, Pid, 0),
+    alcove:exit(Drv, [Pid], 0),
 
     [
         ?_assertEqual(Pid, Reply0),
