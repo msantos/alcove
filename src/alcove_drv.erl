@@ -18,7 +18,7 @@
 %% API
 -export([start/0, start/1, stop/1]).
 -export([start_link/2]).
--export([call/4, encode/2, encode/3]).
+-export([call/5, encode/2, encode/3]).
 -export([stdin/3, stdout/3, stderr/3, event/3, send/2]).
 -export([atom_to_type/1, type_to_atom/1]).
 -export([msg/2, decode/1]).
@@ -52,11 +52,11 @@ start_link(Owner, Options) ->
 stop(Drv) ->
     gen_server:call(Drv, stop).
 
--spec call(ref(),[integer()],iodata(),timeout()) -> term().
-call(Drv, Pids, Data, Timeout) ->
+-spec call(ref(),[integer()],iodata(),boolean(),timeout()) -> term().
+call(Drv, Pids, Data, Returns, Timeout) ->
     case send(Drv, Data) of
         true ->
-            reply(Drv, Pids, ?ALCOVE_MSG_CALL, Timeout);
+            call_reply(Drv, Pids, Returns, Timeout);
         Error ->
             Error
     end.
@@ -225,23 +225,24 @@ handle_info(Info, State) ->
 %%--------------------------------------------------------------------
 %%% Internal functions
 %%--------------------------------------------------------------------
-reply(Drv, Pids, ?ALCOVE_MSG_CALL, Timeout) ->
+call_reply(Drv, Pids, Returns, Timeout) ->
     receive
         {alcove_event, Drv, Pids, {termsig,_} = Signal} ->
             exit(Signal);
-        {alcove_event, Drv, Pids, fdctl_closed} ->
+        {alcove_event, Drv, Pids, fdctl_closed} when Returns =:= false ->
+            ok;
+        {alcove_event, Drv, Pids, fdctl_closed} when Returns =:= true ->
             receive
                 {alcove_event, Drv, Pids, {termsig,_} = Signal} ->
                     exit(Signal)
-            after
-                0 -> ok
             end;
         {alcove_call, Drv, Pids, Event} ->
             Event
     after
         Timeout ->
             exit(timeout)
-    end;
+    end.
+
 reply(Drv, Pids, Type, Timeout) ->
     Tag = type_to_atom(Type),
     receive

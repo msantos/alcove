@@ -354,12 +354,18 @@ call(Drv, Pids, Command, Argv) ->
 static({call,5}) ->
 "
 call(Drv, Pids, Command, Argv, Timeout) when is_pid(Drv), is_list(Argv) ->
-    case alcove_drv:call(Drv, Pids, encode(Command, Pids, Argv), Timeout) of
+    case alcove_drv:call(Drv, Pids, encode(Command, Pids, Argv),
+            call_returns(Command), Timeout) of
         badarg ->
             erlang:error(badarg, [Drv, Command, Argv]);
         Reply ->
             Reply
     end.
+
+call_returns(execve) -> false;
+call_returns(execvp) -> false;
+call_returns(exit) -> false;
+call_returns(_) -> true.
 ".
 
 includes(Header) ->
