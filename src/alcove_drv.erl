@@ -229,6 +229,13 @@ reply(Drv, Pids, ?ALCOVE_MSG_CALL, Timeout) ->
     receive
         {alcove_event, Drv, Pids, {termsig,_} = Signal} ->
             exit(Signal);
+        {alcove_event, Drv, Pids, fdctl_closed} ->
+            receive
+                {alcove_event, Drv, Pids, {termsig,_} = Signal} ->
+                    exit(Signal)
+            after
+                0 -> ok
+            end;
         {alcove_call, Drv, Pids, Event} ->
             Event
     after

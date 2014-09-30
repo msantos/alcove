@@ -683,9 +683,9 @@ read_from_pid(alcove_state_t *ap, alcove_child_t *c, void *arg1, void *arg2)
             if (c->termsig == 0) {
                 c->fdctl = ALCOVE_CHILD_EXEC;
                 (void)ei_encode_version(t, &index);
-                (void)ei_encode_atom(t, &index, "ok");
+                (void)ei_encode_atom(t, &index, "fdctl_closed");
 
-                if (alcove_call_fake_reply(c->pid, ALCOVE_MSG_CALL, t, index) < 0)
+                if (alcove_call_fake_reply(c->pid, ALCOVE_MSG_EVENT, t, index) < 0)
                     return -1;
             }
         }
