@@ -65,6 +65,7 @@ run(State) ->
         alloc(State),
         prctl(State),
         execvp(State),
+        execvp_with_signal(State),
         stdout(State),
         stderr(State),
         execve(State),
@@ -530,6 +531,17 @@ execvp(#state{os = {unix,OS}, pid = Drv, child = Child}) when OS =:= freebsd; OS
     ?_assertEqual(ok, Reply);
 execvp(_) ->
     [].
+
+execvp_with_signal(#state{pid = Drv}) ->
+    {ok, Fork} = alcove:fork(Drv),
+    Reply0 = alcove:execvp(Drv, [Fork], "/bin/sh",
+        ["/bin/sh", "-c", "kill -9 $$"]),
+    Reply1 = alcove:event(Drv, [Fork], 5000),
+
+    [
+        ?_assertEqual(ok, Reply0),
+        ?_assertEqual({termsig,sigkill}, Reply1)
+    ].
 
 stdout(#state{pid = Drv, child = Child}) ->
     Reply = alcove:stdin(Drv, [Child], "echo 0123456789\n"),
