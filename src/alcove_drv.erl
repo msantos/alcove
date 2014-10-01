@@ -225,13 +225,21 @@ handle_info(Info, State) ->
 %%--------------------------------------------------------------------
 %%% Internal functions
 %%--------------------------------------------------------------------
-call_reply(Drv, Pids, Returns, Timeout) ->
+call_reply(Drv, Pids, false, Timeout) ->
+    receive
+        {alcove_event, Drv, Pids, fdctl_closed} ->
+            ok;
+        {alcove_call, Drv, Pids, Event} ->
+            Event
+    after
+        Timeout ->
+            exit(timeout)
+    end;
+call_reply(Drv, Pids, true, Timeout) ->
     receive
         {alcove_event, Drv, Pids, {termsig,_} = Signal} ->
             exit(Signal);
-        {alcove_event, Drv, Pids, fdctl_closed} when Returns =:= false ->
-            ok;
-        {alcove_event, Drv, Pids, fdctl_closed} when Returns =:= true ->
+        {alcove_event, Drv, Pids, fdctl_closed} ->
             receive
                 {alcove_event, Drv, Pids, {termsig,_} = Signal} ->
                     exit(Signal)
