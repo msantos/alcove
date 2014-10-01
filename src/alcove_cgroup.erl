@@ -115,8 +115,7 @@ get(Drv, Pids, MntOpt, Namespace, Key) ->
 -spec write(alcove_drv:ref(),alcove:fork_path(),file:name_all(),iodata()) ->
     {'error',file:posix()} | {'ok',non_neg_integer()}.
 write(Drv, Pids, File, Bytes) ->
-    Flags = alcove:define(Drv, 'O_WRONLY'),
-    Reply = case alcove:open(Drv, Pids, File, Flags, 0) of
+    Reply = case alcove:open(Drv, Pids, File, [o_wronly], 0) of
         {ok, FH} ->
             N = alcove:write(Drv, Pids, FH, Bytes),
             alcove:close(Drv, Pids, FH),
@@ -129,8 +128,7 @@ write(Drv, Pids, File, Bytes) ->
 -spec read(alcove_drv:ref(),alcove:fork_path(),file:name_all()) ->
     {'error',file:posix()} | {'ok',binary()}.
 read(Drv, Pids, File) ->
-    Flags = alcove:define(Drv, 'O_RDONLY'),
-    Reply = case alcove:open(Drv, Pids, File, Flags, 0) of
+    Reply = case alcove:open(Drv, Pids, File, [o_rdonly], 0) of
         {ok, FH} ->
             N = readbuf(Drv, Pids, FH),
             alcove:close(Drv, Pids, FH),
@@ -187,8 +185,7 @@ cgroup(Drv, Pids) ->
 mounts(Drv) ->
     mounts(Drv, []).
 mounts(Drv, Pids) ->
-    Flags = alcove:define(Drv, 'O_RDONLY'),
-    case alcove:open(Drv, Pids, "/proc/mounts", Flags, 0) of
+    case alcove:open(Drv, Pids, "/proc/mounts", [o_rdonly], 0) of
         {ok, FD} ->
             Reply = case readbuf(Drv, Pids, FD) of
                 {ok, Buf} ->
@@ -220,8 +217,7 @@ fsentry(Buf) ->
         Entry <- Entries ].
 
 is_dir(Drv, Pids, Path) ->
-    Flags = alcove:define(Drv, 'O_WRONLY'),
-    case alcove:open(Drv, Pids, Path, Flags, 0) of
+    case alcove:open(Drv, Pids, Path, [o_wronly], 0) of
         {error,eisdir} -> true;
         {error,_} -> false;
         {ok, FH} ->
@@ -230,8 +226,7 @@ is_dir(Drv, Pids, Path) ->
     end.
 
 is_file(Drv, Pids, File) ->
-    Flags = alcove:define(Drv, ['O_RDONLY']),
-    case alcove:open(Drv, Pids, File, Flags, 0) of
+    case alcove:open(Drv, Pids, File, [o_rdonly], 0) of
         {ok, FH} ->
             alcove:close(Drv, FH),
             true;
