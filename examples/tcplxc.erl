@@ -315,7 +315,9 @@ mount(Drv, Pids, Source, Target, Type, Flags, Data) ->
 
 mounts() ->
     {ok, FH} = file:open("/proc/mounts", [read,raw,binary]),
-    mountdir(FH).
+    Reply = mountdir(FH),
+    file:close(FH),
+    Reply.
 
 mountdir(FH) ->
     mountdir(FH, []).
