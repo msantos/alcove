@@ -534,8 +534,8 @@ execvp(_) ->
 
 execvp_with_signal(#state{pid = Drv}) ->
     {ok, Fork} = alcove:fork(Drv),
-    Reply0 = alcove:execvp(Drv, [Fork], "/bin/sh",
-        ["/bin/sh", "-c", "kill -9 $$"]),
+    Reply0 = (catch alcove:execvp(Drv, [Fork], "/bin/sh",
+            ["/bin/sh", "-c", "kill -9 $$"])),
     Reply1 = alcove:event(Drv, [Fork], 5000),
 
     [
