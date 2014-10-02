@@ -15,7 +15,7 @@
 #include "alcove.h"
 #include <ctype.h>
 
-int alcove_encode_atom_to_lower(char *buf, size_t len, int *index,
+static int alcove_encode_atom_to_lower(char *buf, size_t len, int *index,
         const char *p);
 
     ssize_t
@@ -338,7 +338,7 @@ alcove_encode_atom(char *buf, size_t len, int *index, const char *p)
     return ei_encode_atom(buf, index, p);
 }
 
-    int
+    static int
 alcove_encode_atom_to_lower(char *buf, size_t len, int *index, const char *p)
 {
     char atom[MAXATOMLEN] = {0};

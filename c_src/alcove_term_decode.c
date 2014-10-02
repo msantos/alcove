@@ -14,10 +14,11 @@
  */
 #include "alcove.h"
 
-void *alcove_malloc(ssize_t);
-char *alcove_x_decode_iolist_to_string(const char *buf, size_t len, int *index);
-int alcove_decode_iolist_internal(const char *buf, size_t len, int *index,
-        char *res, size_t rlen, int *rindex, int depth);
+static void *alcove_malloc(ssize_t);
+static char *alcove_x_decode_iolist_to_string(const char *buf, size_t len,
+        int *index);
+static int alcove_decode_iolist_internal(const char *buf, size_t len,
+        int *index, char *res, size_t rlen, int *rindex, int depth);
 
     int
 alcove_decode_int(const char *buf, size_t len, int *index, int *n)
@@ -167,7 +168,7 @@ alcove_decode_iolist(const char *buf, size_t len, int *index,
     return 0;
 }
 
-    int
+    static int
 alcove_decode_iolist_internal(const char *buf, size_t len, int *index,
         char *res, size_t rlen, int *rindex, int depth)
 {
@@ -255,7 +256,7 @@ alcove_decode_iolist_internal(const char *buf, size_t len, int *index,
     return 0;
 }
 
-    char *
+    static char *
 alcove_x_decode_iolist_to_string(const char *buf, size_t len, int *index)
 {
     char tmp[MAXMSGLEN] = {0};
@@ -378,7 +379,7 @@ alcove_decode_define_list(const char *buf, size_t len, int *index, int *val,
     return 0;
 }
 
-    void *
+    static void *
 alcove_malloc(ssize_t size)
 {
     void *buf = NULL;
