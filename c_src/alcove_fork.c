@@ -88,7 +88,7 @@ alcove_fork(alcove_state_t *ap, const char *arg, size_t len,
             return alcove_mk_errno(reply, rlen, errno);
         case 0:
             (void)alcove_child_fun(&child_arg);
-            err(EXIT_FAILURE, "fork");
+            exit(0);
         default:
             if (alcove_parent_fd(ap, &fd, pid) < 0)
                 return alcove_mk_errno(reply, rlen, errno);
