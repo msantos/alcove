@@ -326,6 +326,12 @@ alcove_decode_define_list(const char *buf, size_t len, int *index, int *val,
         return -1;
 
     switch (type) {
+        case ERL_NIL_EXT:
+            if (ei_decode_list_header(buf, index, &arity) < 0)
+                return -1;
+            *val = 0;
+            break;
+
         case ERL_SMALL_INTEGER_EXT:
         case ERL_INTEGER_EXT:
             if (alcove_decode_int(buf, len, index, val) < 0)
