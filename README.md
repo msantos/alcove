@@ -203,19 +203,19 @@ herding cat's:
 31861
 
 % Test the shell is working
-6> alcove:stdin(P, [31861], "echo hello\n").
+6> alcove:stdin(P, [Sh], "echo hello\n").
 true
-7> alcove:stdout(P, [31861]).
+7> alcove:stdout(P, [Sh]).
 <<"hello\n">>
 
 % Attempt to create a file
 6> alcove:stdin(Drv, [Sh], "> foo\n").
 true
-7> alcove:stderr(P, [31861]).
+7> alcove:stderr(P, [Sh]).
 <<"sh: can't create foo: Too many open files\n">>
 
 % Try to fork a new process
-8> alcove:stderr(P, [31861]).
+8> alcove:stderr(P, [Sh]).
 <<"sh: can't fork\n">>
 
 % If we check the parent for events, we can see the child has exited
