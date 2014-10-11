@@ -401,7 +401,8 @@ join(Root, Path) ->
 write_files(_Drv, _Pid, []) ->
     ok;
 write_files(Drv, Pid, [{Path, Contents, Mode}|Rest]) ->
-    {ok, FD} = alcove:open(Drv, Pid, Path, [o_wronly, o_creat], Mode),
+    {ok, FD} = alcove:open(Drv, Pid, Path,
+        [o_wronly, o_creat, o_cloexec], Mode),
     {ok, _} = alcove:write(Drv, Pid, FD, Contents),
     ok = alcove:close(Drv, Pid, FD),
     write_files(Drv, Pid, Rest);

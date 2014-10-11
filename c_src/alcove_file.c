@@ -61,13 +61,6 @@ alcove_open(alcove_state_t *ap, const char *arg, size_t len,
     if (fd < 0)
         goto ERR;
 
-    flags = fcntl(fd, F_GETFD, 0);
-    if (flags < 0)
-        goto ERR;
-
-    if (fcntl(fd, F_SETFD, flags | FD_CLOEXEC) < 0)
-        goto ERR;
-
     ALCOVE_OK(
         reply,
         &rindex,
