@@ -90,10 +90,6 @@ alcove_close(alcove_state_t *ap, const char *arg, size_t len,
     if (alcove_decode_int(arg, len, &index, &fd) < 0)
         return -1;
 
-    /* stdin, stdout, stderr, ctl are reserved */
-    if (fd < 4)
-        return alcove_mk_errno(reply, rlen, EBADF);
-
     return (close(fd) < 0)
         ? alcove_mk_errno(reply, rlen, errno)
         : alcove_mk_atom(reply, rlen, "ok");
@@ -208,10 +204,6 @@ alcove_lseek(alcove_state_t *ap, const char *arg, size_t len,
     if (alcove_decode_int(arg, len, &index, &fd) < 0)
         return -1;
 
-    /* stdin, stdout, stderr, ctl are reserved */
-    if (fd < 4)
-        return alcove_mk_errno(reply, rlen, EBADF);
-
     /* offset */
     if (alcove_decode_longlong(arg, len, &index, (long long *)&offset) < 0)
         return -1;
@@ -245,10 +237,6 @@ alcove_read(alcove_state_t *ap, const char *arg, size_t len,
     /* fd */
     if (alcove_decode_int(arg, len, &index, &fd) < 0)
         return -1;
-
-    /* stdin, stdout, stderr, ctl are reserved */
-    if (fd < 4)
-        return alcove_mk_errno(reply, rlen, EBADF);
 
     /* count */
     if (alcove_decode_ulonglong(arg, len, &index,
@@ -290,10 +278,6 @@ alcove_write(alcove_state_t *ap, const char *arg, size_t len,
     /* fd */
     if (alcove_decode_int(arg, len, &index, &fd) < 0)
         return -1;
-
-    /* stdin, stdout, stderr, ctl are reserved */
-    if (fd < 4)
-        return alcove_mk_errno(reply, rlen, EBADF);
 
     /* buf */
     if (alcove_decode_iolist(arg, len, &index, buf, &buflen) < 0)
@@ -434,7 +418,7 @@ alcove_list_to_fd_set(const char *arg, size_t len, int *index,
             for (i = 0; i < arity; i++) {
                 fd = tmp[i];
 
-                if (fd < 4 || fd >= FD_SETSIZE || fcntl(fd, F_GETFD, 0) < 0)
+                if (fd >= FD_SETSIZE || fcntl(fd, F_GETFD, 0) < 0)
                     return -1;
 
                 FD_SET(fd, fdset);
@@ -451,8 +435,7 @@ alcove_list_to_fd_set(const char *arg, size_t len, int *index,
                 if (alcove_decode_int(arg, len, index, &fd) < 0)
                     return -1;
 
-                /* stdin, stdout, stderr, ctl are reserved */
-                if (fd < 4 || fd >= FD_SETSIZE || fcntl(fd, F_GETFD, 0) < 0)
+                if (fd >= FD_SETSIZE || fcntl(fd, F_GETFD, 0) < 0)
                     return -1;
 
                 FD_SET(fd, fdset);
