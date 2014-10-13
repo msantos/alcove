@@ -48,6 +48,8 @@ static int avail_pid(alcove_state_t *ap, alcove_child_t *c,
         void *arg1, void *arg2);
 static int stdio_pid(alcove_state_t *ap, alcove_child_t *c,
         void *arg1, void *arg2);
+static int close_parent_fd(alcove_state_t *ap, alcove_child_t *c,
+        void *arg1, void *arg2);
 
 #ifdef __linux__
 #ifndef HAVE_SETNS
@@ -331,8 +333,9 @@ alcove_child_fun(void *arg)
     alcove_arg_t *child_arg = arg;
     alcove_state_t *ap = child_arg->ap;
     alcove_stdio_t *fd = child_arg->fd;
-    long maxfd = sysconf(_SC_OPEN_MAX);
-    int n = 0;
+
+    if (pid_foreach(ap, 0, NULL, NULL, pid_not_equal, close_parent_fd) < 0)
+        return -1;
 
     if ( (close(fd->ctl[PIPE_WRITE]) < 0)
             || (close(fd->in[PIPE_WRITE]) < 0)
@@ -346,14 +349,11 @@ alcove_child_fun(void *arg)
             || (dup2(fd->ctl[PIPE_READ], ALCOVE_FDCTL) < 0))
         return -1;
 
-    /* Close all other fd's inherited from the parent. */
-    for (n = 0; n < maxfd; n++) {
-        if ( (n != ALCOVE_FDCTL)
-                && (n != STDIN_FILENO)
-                && (n != STDOUT_FILENO)
-                && (n != STDERR_FILENO))
-            (void)close(n);
-    }
+    if ( (close(fd->in[PIPE_READ]) < 0)
+            || (close(fd->out[PIPE_WRITE]) < 0)
+            || (close(fd->err[PIPE_WRITE]) < 0)
+            || (close(fd->ctl[PIPE_READ]) < 0))
+        return -1;
 
     if (alcove_set_cloexec(ALCOVE_FDCTL) < 0)
         return -1;
@@ -405,4 +405,15 @@ stdio_pid(alcove_state_t *ap, alcove_child_t *c, void *arg1, void *arg2)
     c->fderr = fd->err[PIPE_READ];
 
     return 0;
+}
+
+    static int
+close_parent_fd(alcove_state_t *ap, alcove_child_t *c, void *arg1, void *arg2)
+{
+    (void)close(c->fdctl);
+    (void)close(c->fdin);
+    (void)close(c->fdout);
+    (void)close(c->fderr);
+
+    return 1;
 }
