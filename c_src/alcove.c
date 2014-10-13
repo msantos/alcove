@@ -40,6 +40,7 @@ enum {
 #endif
 
 static int alcove_set_rlimits(void);
+int alcove_fdmove(int fd, int dst);
 
 static int alcove_stdin(alcove_state_t *ap);
 static ssize_t alcove_msg_call(alcove_state_t *ap, unsigned char *buf,
@@ -91,6 +92,7 @@ main(int argc, char *argv[])
     alcove_state_t *ap = NULL;
     int ch = 0;
     struct sigaction act = {{0}};
+    int fdctl = 0;
 
     ap = calloc(1, sizeof(alcove_state_t));
     if (!ap)
@@ -143,15 +145,24 @@ main(int argc, char *argv[])
         err(EXIT_FAILURE, "calloc");
 
     /* Unlike the child processes, the port does not use a control fd.
-     * An fd is acquired and leaked here to prevent calls to open()
-     * at the port level from returning an uncloseable fd.
+     * An fd is acquired and leaked here to for consistency.
      *
      * The fd may have been opened by another program. For example,
      * valgrind will use the first available fd for the log file.
      */
-    if ( (fcntl(ALCOVE_FDCTL, F_GETFD) < 0)
-            && (open("/dev/null", O_RDWR) != ALCOVE_FDCTL))
-            errx(EXIT_FAILURE, "could not acquire ctl fd");
+    if (alcove_fdmove(ALCOVE_FDCTL, 8) < 0)
+        err(EXIT_FAILURE, "fdmove");
+
+    fdctl = open("/dev/null", O_RDWR|O_CLOEXEC);
+    if (fdctl < 0)
+        err(EXIT_FAILURE, "could not acquire ctl fd");
+
+    if (fdctl != ALCOVE_FDCTL) {
+        if (dup2(fdctl, ALCOVE_FDCTL) < 0)
+            err(EXIT_FAILURE, "dup2");
+        if (close(fdctl) < 0)
+            err(EXIT_FAILURE, "close");
+    }
 
     alcove_event_loop(ap);
     exit(0);
@@ -764,6 +775,33 @@ alcove_handle_signal(alcove_state_t *ap) {
     }
 
     return 0;
+}
+
+    int
+alcove_fdmove(int fd, int dst)
+{
+    int flags = 0;
+
+    flags = fcntl(fd, F_GETFD);
+
+    if (flags < 0)
+        return 0;
+
+    if (fcntl(fd, F_DUPFD, dst) < 0)
+        return -1;
+
+    /* According to fcntl(2) on FreeBSD, the close-on-exec flag is reset
+     * by F_DUPFD:
+     *
+     * The close-on-exec flag FD_CLOEXEC associated
+     * with the new file descriptor is cleared, so the
+     * file descriptor is to remain open across
+     * execve(2) system calls.
+     *
+     * Restore the flag if it was set:
+     *
+     */
+    return fcntl(dst, F_SETFD, flags);
 }
 
     static void
