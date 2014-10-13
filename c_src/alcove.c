@@ -220,7 +220,6 @@ alcove_event_loop(alcove_state_t *ap)
     for ( ; ; ) {
         long maxfd = sysconf(_SC_OPEN_MAX);
         int i = 0;
-        nfds_t nfds = STDIN_FILENO;
 
         if (alcove_handle_signal(ap) < 0)
             err(EXIT_FAILURE, "alcove_handle_signal");
@@ -241,9 +240,9 @@ alcove_event_loop(alcove_state_t *ap)
         fds[STDIN_FILENO].fd = STDIN_FILENO;
         fds[STDIN_FILENO].events = POLLIN;
 
-        (void)pid_foreach(ap, 0, fds, &nfds, pid_not_equal, set_pid);
+        (void)pid_foreach(ap, 0, fds, NULL, pid_not_equal, set_pid);
 
-        if (poll(fds, nfds+1, -1) < 0) {
+        if (poll(fds, maxfd, -1) < 0) {
             switch (errno) {
                 case EINTR:
                     continue;
@@ -618,24 +617,20 @@ exited_pid(alcove_state_t *ap, alcove_child_t *c, void *arg1, void *arg2)
 set_pid(alcove_state_t *ap, alcove_child_t *c, void *arg1, void *arg2)
 {
     struct pollfd *fds = arg1;
-    nfds_t *nfds = arg2;
 
     if (c->fdctl > -1) {
         fds[c->fdctl].fd = c->fdctl;
         fds[c->fdctl].events = POLLIN;
-        *nfds = MAX(*nfds, c->fdctl);
     }
 
     if (c->fdout > -1) {
         fds[c->fdout].fd = c->fdout;
         fds[c->fdout].events = POLLIN;
-        *nfds = MAX(*nfds, c->fdout);
     }
 
     if (c->fderr > -1) {
         fds[c->fderr].fd = c->fderr;
         fds[c->fderr].events = POLLIN;
-        *nfds = MAX(*nfds, c->fderr);
     }
 
     if (c->exited && c->fdout == -1 && c->fderr == -1 && c->fdctl < 0) {
