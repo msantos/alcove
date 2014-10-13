@@ -410,10 +410,17 @@ stdio_pid(alcove_state_t *ap, alcove_child_t *c, void *arg1, void *arg2)
     static int
 close_parent_fd(alcove_state_t *ap, alcove_child_t *c, void *arg1, void *arg2)
 {
-    (void)close(c->fdctl);
-    (void)close(c->fdin);
-    (void)close(c->fdout);
-    (void)close(c->fderr);
+    if (c->fdctl >= 0)
+        (void)close(c->fdctl);
+
+    if (c->fdin >= 0)
+        (void)close(c->fdin);
+
+    if (c->fdout >= 0)
+        (void)close(c->fdout);
+
+    if (c->fderr >= 0)
+        (void)close(c->fderr);
 
     return 1;
 }
