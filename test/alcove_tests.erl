@@ -70,7 +70,8 @@ run(State) ->
         stderr(State),
         execve(State),
         stream(State),
-        open(State)
+        open(State),
+        execvp_mid_chain(State)
     ].
 
 start() ->
@@ -621,6 +622,30 @@ open(#state{pid = Drv}) ->
         ?_assertEqual({error,enoent}, Reply0),
         ?_assertEqual({error,enoent}, Reply1),
         ?_assertEqual({error,enoent}, Reply2)
+    ].
+
+execvp_mid_chain(#state{pid = Drv}) ->
+    Chain = chain(Drv, 8),
+    {Pids, Rest} = lists:split(3, Chain),
+    ok = alcove:execvp(Drv, Pids, "/bin/cat", ["/bin/cat"]),
+
+    alcove:stdin(Drv, Pids, "test\n"),
+    Reply0 = alcove:stdout(Drv, Pids, 5000),
+    % XXX allow time for the system processes to exit
+    timer:sleep(1000),
+    Reply1 = [ alcove:kill(Drv, Pid, 0) || Pid <- Rest ],
+
+    % The child spawned by the exec'ed process becomes a zombie
+    % because the PID will not be reaped.
+    [
+        ?_assertEqual(<<"test\n">>, Reply0),
+        ?_assertEqual([
+                ok,
+                {error,esrch},
+                {error,esrch},
+                {error,esrch},
+                {error,esrch}
+            ], Reply1)
     ].
 
 %%
