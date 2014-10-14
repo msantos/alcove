@@ -42,8 +42,6 @@
 #define ERL_VERSION_MAGIC 131
 #endif
 
-#define ALCOVE_FDCTL 3
-
 #define MAXFORKDEPTH    16
 #define MAXMSGLEN       UINT16_MAX
 #define MAXHDRLEN       8 /* 2 bytes length + 2 bytes type + 4 bytes PID */
@@ -122,6 +120,12 @@ enum {
     alcove_opt_sigchld = 1 << 2,       /* Report SIGCHLD */
 };
 
+enum {
+    ALCOVE_FDSIO = 3,
+    ALCOVE_FDSII = 4,
+    ALCOVE_FDCTL = 5
+};
+
 typedef struct {
     pid_t pid;
     int exited;
@@ -164,6 +168,7 @@ int pid_equal(pid_t p1, pid_t p2);
 int pid_not_equal(pid_t p1, pid_t p2);
 
 ssize_t alcove_signal_name(char *, size_t, int *, int);
+int alcove_setfd(int, int);
 
 int alcove_get_type(const char *, size_t, const int *, int *, int *);
 int alcove_decode_int(const char *, size_t, int *, int *);

@@ -41,7 +41,8 @@ typedef struct {
 
 static int alcove_stdio(alcove_stdio_t *fd);
 static int alcove_set_cloexec(int fd);
-static void alcove_close_pipe(int fd[2]);
+static int alcove_close_pipe(int fd[2]);
+static int alcove_close_fd(int fd);
 static int alcove_child_fun(void *arg);
 static int alcove_parent_fd(alcove_state_t *ap, alcove_stdio_t *fd, pid_t pid);
 static int avail_pid(alcove_state_t *ap, alcove_child_t *c,
@@ -294,10 +295,10 @@ alcove_stdio(alcove_stdio_t *fd)
     if ( (pipe(fd->in) < 0)
             || (pipe(fd->out) < 0)
             || (pipe(fd->err) < 0)) {
-        alcove_close_pipe(fd->ctl);
-        alcove_close_pipe(fd->in);
-        alcove_close_pipe(fd->out);
-        alcove_close_pipe(fd->err);
+        (void)alcove_close_pipe(fd->ctl);
+        (void)alcove_close_pipe(fd->in);
+        (void)alcove_close_pipe(fd->out);
+        (void)alcove_close_pipe(fd->err);
         return -1;
     }
 
@@ -307,24 +308,40 @@ alcove_stdio(alcove_stdio_t *fd)
     static int
 alcove_set_cloexec(int fd)
 {
+    return alcove_setfd(fd, FD_CLOEXEC);
+}
+
+    int
+alcove_setfd(int fd, int flag)
+{
     int flags = 0;
 
     flags = fcntl(fd, F_GETFD, 0);
     if (flags < 0)
         return -1;
 
-    return fcntl(fd, F_SETFD, flags | FD_CLOEXEC);
+    return fcntl(fd, F_SETFD, flags | flag);
 }
 
-    static void
+    static int
 alcove_close_pipe(int fd[2])
 {
-    /* fd should be above 0 since STDIN_FILENO is still open */
-    if (fd[0] > 0)
-        (void)close(fd[0]);
+    if (alcove_close_fd(fd[0]) < 0)
+        return -1;
 
-    if (fd[1] > 0)
-        (void)close(fd[1]);
+    if (alcove_close_fd(fd[1]) < 0)
+        return -1;
+
+    return 0;
+}
+
+    static int
+alcove_close_fd(int fd)
+{
+    if (fd >= 0)
+        return close(fd);
+
+    return 0;
 }
 
     int
@@ -333,29 +350,38 @@ alcove_child_fun(void *arg)
     alcove_arg_t *child_arg = arg;
     alcove_state_t *ap = child_arg->ap;
     alcove_stdio_t *fd = child_arg->fd;
+    int sigpipe[2] = {0};
 
-    if (pid_foreach(ap, 0, NULL, NULL, pid_not_equal, close_parent_fd) < 0)
+    /* TODO block/unblock signals */
+    if (pipe(sigpipe) < 0)
         return -1;
 
-    if ( (close(fd->ctl[PIPE_WRITE]) < 0)
-            || (close(fd->in[PIPE_WRITE]) < 0)
-            || (close(fd->out[PIPE_READ]) < 0)
-            || (close(fd->err[PIPE_READ]) < 0))
+    if ( (dup2(sigpipe[PIPE_READ], ALCOVE_FDSIO) < 0)
+            || (dup2(sigpipe[PIPE_WRITE], ALCOVE_FDSII) < 0))
         return -1;
 
+    if ( (alcove_setfd(ALCOVE_FDSIO, FD_CLOEXEC|O_NONBLOCK) < 0)
+            || (alcove_setfd(ALCOVE_FDSII, FD_CLOEXEC|O_NONBLOCK) < 0))
+        return -1;
+
+    /* TODO ensure fd's do not overlap */
     if ( (dup2(fd->in[PIPE_READ], STDIN_FILENO) < 0)
             || (dup2(fd->out[PIPE_WRITE], STDOUT_FILENO) < 0)
             || (dup2(fd->err[PIPE_WRITE], STDERR_FILENO) < 0)
             || (dup2(fd->ctl[PIPE_READ], ALCOVE_FDCTL) < 0))
         return -1;
 
-    if ( (close(fd->in[PIPE_READ]) < 0)
-            || (close(fd->out[PIPE_WRITE]) < 0)
-            || (close(fd->err[PIPE_WRITE]) < 0)
-            || (close(fd->ctl[PIPE_READ]) < 0))
+    if ( (alcove_close_pipe(fd->in) < 0)
+            || (alcove_close_pipe(fd->out) < 0)
+            || (alcove_close_pipe(fd->err) < 0)
+            || (alcove_close_pipe(fd->ctl) < 0)
+            || (alcove_close_pipe(sigpipe) < 0))
         return -1;
 
     if (alcove_set_cloexec(ALCOVE_FDCTL) < 0)
+        return -1;
+
+    if (pid_foreach(ap, 0, NULL, NULL, pid_not_equal, close_parent_fd) < 0)
         return -1;
 
     ap->depth++;
@@ -416,17 +442,10 @@ stdio_pid(alcove_state_t *ap, alcove_child_t *c, void *arg1, void *arg2)
     static int
 close_parent_fd(alcove_state_t *ap, alcove_child_t *c, void *arg1, void *arg2)
 {
-    if (c->fdctl >= 0)
-        (void)close(c->fdctl);
-
-    if (c->fdin >= 0)
-        (void)close(c->fdin);
-
-    if (c->fdout >= 0)
-        (void)close(c->fdout);
-
-    if (c->fderr >= 0)
-        (void)close(c->fderr);
+    (void)alcove_close_fd(c->fdctl);
+    (void)alcove_close_fd(c->fdin);
+    (void)alcove_close_fd(c->fdout);
+    (void)alcove_close_fd(c->fderr);
 
     return 1;
 }

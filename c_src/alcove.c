@@ -76,14 +76,11 @@ static void usage(alcove_state_t *);
 
 extern char *__progname;
 
-u_int64_t sigcaught = 0;
-
     void
 sighandler(int sig)
 {
-    if (sig < sizeof(sigcaught) * 8) {
-        sigcaught ^= (1 << sig);
-    }
+    if (write(ALCOVE_FDSII, &sig, sizeof(sig)) != sizeof(sig))
+        (void)close(ALCOVE_FDSII);
 }
 
     int
@@ -92,6 +89,7 @@ main(int argc, char *argv[])
     alcove_state_t *ap = NULL;
     int ch = 0;
     struct sigaction act = {{0}};
+    int sigpipe[2] = {0};
     int fdctl = 0;
 
     ap = calloc(1, sizeof(alcove_state_t));
@@ -150,8 +148,36 @@ main(int argc, char *argv[])
      * The fd may have been opened by another program. For example,
      * valgrind will use the first available fd for the log file.
      */
+    if (alcove_fdmove(ALCOVE_FDSIO, 8) < 0)
+        err(EXIT_FAILURE, "fdmove");
+
+    if (alcove_fdmove(ALCOVE_FDSII, 8) < 0)
+        err(EXIT_FAILURE, "fdmove");
+
     if (alcove_fdmove(ALCOVE_FDCTL, 8) < 0)
         err(EXIT_FAILURE, "fdmove");
+
+    if (pipe(sigpipe) < 0)
+        err(EXIT_FAILURE, "sigpipe");
+
+    /* XXX fd's will overlap */
+    if (sigpipe[0] != ALCOVE_FDSIO) {
+        if (dup2(sigpipe[0], ALCOVE_FDSIO) < 0)
+            err(EXIT_FAILURE, "dup2");
+        if (close(sigpipe[0]) < 0)
+            err(EXIT_FAILURE, "close");
+    }
+
+    if (sigpipe[1] != ALCOVE_FDSII) {
+        if (dup2(sigpipe[1], ALCOVE_FDSII) < 0)
+            err(EXIT_FAILURE, "dup2");
+        if (close(sigpipe[1]) < 0)
+            err(EXIT_FAILURE, "close");
+    }
+
+    if ( (alcove_setfd(ALCOVE_FDSIO, FD_CLOEXEC|O_NONBLOCK) < 0)
+            || (alcove_setfd(ALCOVE_FDSII, FD_CLOEXEC|O_NONBLOCK) < 0))
+        err(EXIT_FAILURE, "alcove_set_nonblock");
 
     fdctl = open("/dev/null", O_RDWR|O_CLOEXEC);
     if (fdctl < 0)
@@ -198,8 +224,6 @@ alcove_event_loop(alcove_state_t *ap)
 {
     struct pollfd *fds = NULL;
 
-    sigcaught = 0;
-
     if (ap->fdsetsize != ap->maxchild) {
         /* the array may be shrinking */
         (void)memset(ap->child, 0, sizeof(alcove_child_t) * ap->fdsetsize);
@@ -221,9 +245,6 @@ alcove_event_loop(alcove_state_t *ap)
         long maxfd = sysconf(_SC_OPEN_MAX);
         int i = 0;
 
-        if (alcove_handle_signal(ap) < 0)
-            err(EXIT_FAILURE, "alcove_handle_signal");
-
         if (ap->maxfd < maxfd) {
             ap->maxfd = maxfd;
             fds = realloc(fds, sizeof(struct pollfd) * maxfd);
@@ -239,6 +260,9 @@ alcove_event_loop(alcove_state_t *ap)
 
         fds[STDIN_FILENO].fd = STDIN_FILENO;
         fds[STDIN_FILENO].events = POLLIN;
+
+        fds[ALCOVE_FDSIO].fd = ALCOVE_FDSIO;
+        fds[ALCOVE_FDSIO].events = POLLIN;
 
         (void)pid_foreach(ap, 0, fds, NULL, pid_not_equal, set_pid);
 
@@ -263,6 +287,11 @@ alcove_event_loop(alcove_state_t *ap)
                 default:
                     err(EXIT_FAILURE, "alcove_stdin");
             }
+        }
+
+        if (fds[ALCOVE_FDSIO].revents & (POLLIN|POLLERR|POLLHUP|POLLNVAL)) {
+            if (alcove_handle_signal(ap) < 0)
+                err(EXIT_FAILURE, "alcove_handle_signal");
         }
 
         (void)pid_foreach(ap, 0, fds, NULL, pid_not_equal, read_from_pid);
@@ -729,45 +758,45 @@ alcove_handle_signal(alcove_state_t *ap) {
     char reply[MAXMSGLEN] = {0};
     int signum = 0;
     int status = 0;
+    ssize_t n = 0;
 
-    if (!sigcaught)
-        return 0;
+    n = read(ALCOVE_FDSIO, &signum, sizeof(signum));
 
-    for (signum = 0; signum < sizeof(sigcaught) * 8; signum++) {
-        if (!(sigcaught & (1 << signum)))
-            continue;
+    if (n < 0) {
+        if (errno == EAGAIN || errno == EINTR)
+            return 0;
 
-        sigcaught &= ~(1 << signum);
-
-        if (signum == SIGCHLD) {
-            pid_t pid = 0;
-
-            for ( ; ; ) {
-                errno = 0;
-                pid = waitpid(-1, &status, WNOHANG);
-
-                if (errno == ECHILD || pid == 0)
-                    break;
-
-                if (pid < 0)
-                    return -1;
-
-                (void)pid_foreach(ap, pid, &status, NULL,
-                        pid_equal, exited_pid);
-            }
-
-            if (!(ap->opt & alcove_opt_sigchld))
-                continue;
-        }
-
-        ALCOVE_TUPLE2(reply, &index,
-            "signal",
-            alcove_signal_name(reply, sizeof(reply), &index, signum)
-        );
-
-        if (alcove_call_reply(ALCOVE_MSG_EVENT, reply, index) < 0)
-            return -1;
+        return -1;
     }
+    else if (n == 0 || n != sizeof(signum))
+        return -1;
+
+    if (signum == SIGCHLD) {
+        pid_t pid = 0;
+
+        errno = 0;
+        pid = waitpid(-1, &status, WNOHANG);
+
+        if (errno == ECHILD || pid == 0)
+            return -1;
+
+        if (pid < 0)
+            return -1;
+
+        (void)pid_foreach(ap, pid, &status, NULL,
+                pid_equal, exited_pid);
+
+        if (!(ap->opt & alcove_opt_sigchld))
+            return 0;
+    }
+
+    ALCOVE_TUPLE2(reply, &index,
+        "signal",
+        alcove_signal_name(reply, sizeof(reply), &index, signum)
+    );
+
+    if (alcove_call_reply(ALCOVE_MSG_EVENT, reply, index) < 0)
+        return -1;
 
     return 0;
 }
