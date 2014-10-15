@@ -103,6 +103,9 @@ main(int argc, char *argv[])
         err(EXIT_FAILURE, "sigaction");
 
     act.sa_handler = SIG_DFL;
+
+    (void)sigfillset(&act.sa_mask);
+
     if (sigaction(SIGPIPE, &act, NULL) < 0)
         err(EXIT_FAILURE, "sigaction");
 

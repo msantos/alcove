@@ -107,6 +107,8 @@ alcove_sigaction(alcove_state_t *ap, const char *arg, size_t len,
         return alcove_mk_atom(reply, rlen, "ok");
     }
 
+    (void)sigfillset(&act.sa_mask);
+
     rv = sigaction(signum, &act, NULL);
 
     return (rv < 0)
