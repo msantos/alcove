@@ -37,6 +37,7 @@ typedef struct {
 typedef struct {
     alcove_state_t *ap;
     alcove_stdio_t *fd;
+    sigset_t *sigset;
 } alcove_arg_t;
 
 static int alcove_stdio(alcove_stdio_t *fd);
@@ -71,6 +72,9 @@ alcove_fork(alcove_state_t *ap, const char *arg, size_t len,
     alcove_arg_t child_arg = {0};
     alcove_stdio_t fd = {{0}};
     pid_t pid = 0;
+    sigset_t oldset = {{0}};
+    sigset_t set = {{0}};
+    int errnum = 0;
 
     if (ap->depth >= ap->maxforkdepth)
         return alcove_mk_errno(reply, rlen, EAGAIN);
@@ -81,19 +85,32 @@ alcove_fork(alcove_state_t *ap, const char *arg, size_t len,
     if (alcove_stdio(&fd) < 0)
         return alcove_mk_errno(reply, rlen, errno);
 
+    (void)sigfillset(&set);
+    (void)sigemptyset(&oldset);
+
+    if (sigprocmask(SIG_BLOCK, &set, &oldset) < 0)
+        return alcove_mk_errno(reply, rlen, errno);
+
     child_arg.ap = ap;
     child_arg.fd = &fd;
+    child_arg.sigset = &oldset;
 
     pid = fork();
 
     switch (pid) {
         case -1:
-            return alcove_mk_errno(reply, rlen, errno);
+            errnum = errno;
+            if (sigprocmask(SIG_SETMASK, &oldset, NULL) < 0)
+                exit(errno);
+            return alcove_mk_errno(reply, rlen, errnum);
         case 0:
             if (alcove_child_fun(&child_arg) < 0)
-                exit(errno+128);
+                exit(errno);
             exit(0);
         default:
+            if (sigprocmask(SIG_SETMASK, &oldset, NULL) < 0)
+                return alcove_mk_errno(reply, rlen, errno);
+
             if (alcove_parent_fd(ap, &fd, pid) < 0)
                 return alcove_mk_errno(reply, rlen, errno);
 
@@ -123,6 +140,8 @@ alcove_clone(alcove_state_t *ap, const char *arg, size_t len,
     int flags = 0;
     pid_t pid = 0;
     int errnum = 0;
+    sigset_t oldset = {{0}};
+    sigset_t set = {{0}};
 
     if (ap->depth >= ap->maxforkdepth)
         return alcove_mk_errno(reply, rlen, EAGAIN);
@@ -145,11 +164,21 @@ alcove_clone(alcove_state_t *ap, const char *arg, size_t len,
     if (alcove_stdio(&fd) < 0)
         goto ERR;
 
+    (void)sigfillset(&set);
+    (void)sigemptyset(&oldset);
+
+    if (sigprocmask(SIG_BLOCK, &set, &oldset) < 0)
+        goto ERR;
+
     child_arg.ap = ap;
     child_arg.fd = &fd;
+    child_arg.sigset = &oldset;
 
     pid = clone(alcove_child_fun, child_stack + stack_size.rlim_cur,
             flags | SIGCHLD, &child_arg);
+
+    if (sigprocmask(SIG_SETMASK, &oldset, NULL) < 0)
+        goto ERR;
 
     if (pid < 0)
         goto ERR;
@@ -350,9 +379,9 @@ alcove_child_fun(void *arg)
     alcove_arg_t *child_arg = arg;
     alcove_state_t *ap = child_arg->ap;
     alcove_stdio_t *fd = child_arg->fd;
+    sigset_t *sigset = child_arg->sigset;
     int sigpipe[2] = {0};
 
-    /* TODO block/unblock signals */
     if (pipe(sigpipe) < 0)
         return -1;
 
@@ -385,6 +414,10 @@ alcove_child_fun(void *arg)
         return -1;
 
     ap->depth++;
+
+    if (sigprocmask(SIG_SETMASK, sigset, NULL) < 0)
+        return -1;
+
     alcove_event_loop(ap);
 
     return 0;
