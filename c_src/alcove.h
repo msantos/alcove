@@ -181,9 +181,10 @@ int alcove_decode_atom(const char *, size_t, int *, char *);
 int alcove_decode_list_header(const char *, size_t, int *, int *);
 int alcove_decode_tuple_header(const char *, size_t, int *, int *);
 int alcove_decode_iolist(const char *, size_t, int *, char *, size_t *);
-int alcove_decode_define(const char *, size_t, int *, int *, alcove_define_t *);
+int alcove_decode_define(const char *, size_t, int *, int *,
+        const alcove_define_t *);
 int alcove_decode_define_list(const char *, size_t, int *, int *,
-        alcove_define_t *);
+        const alcove_define_t *);
 int alcove_decode_list_to_buf(const char *, size_t, int *, char *, size_t *,
         alcove_alloc_t **, ssize_t *);
 int alcove_decode_list_to_argv(const char *, size_t, int *, char ***);
@@ -199,9 +200,11 @@ int alcove_encode_longlong(char *, size_t, int *, long long);
 int alcove_encode_ulonglong(char *, size_t, int *, unsigned long long);
 int alcove_encode_atom(char *, size_t, int *, const char *);
 int alcove_encode_binary(char *, size_t, int *, const void *, long);
-int alcove_encode_define(char *, size_t, int *, char *, alcove_define_t *);
-int alcove_lookup_define(char *, unsigned long long *, alcove_define_t *);
-int alcove_encode_constant(char *, size_t, int *, u_int64_t, alcove_define_t *);
+int alcove_encode_define(char *, size_t, int *, char *,
+        const alcove_define_t *);
+int alcove_lookup_define(char *, unsigned long long *, const alcove_define_t *);
+int alcove_encode_constant(char *, size_t, int *, u_int64_t,
+        const alcove_define_t *);
 int alcove_encode_buf_to_list(char *, size_t, int *, const char *, size_t,
         alcove_alloc_t *, ssize_t);
 

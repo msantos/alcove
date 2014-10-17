@@ -12,7 +12,7 @@
  * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
-alcove_define_t alcove_file_constants[] = {
+const alcove_define_t alcove_file_constants[] = {
 #ifdef O_ACCMODE
     ALCOVE_DEFINE(O_ACCMODE),
 #endif

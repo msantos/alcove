@@ -27,7 +27,7 @@ enum {
 
 #define PRARG(x) (((x).type) ? (unsigned long)(x).data : (x).arg)
 
-alcove_define_t alcove_prctl_constants[] = {
+const alcove_define_t alcove_prctl_constants[] = {
 #ifdef PR_SET_PDEATHSIG
     ALCOVE_DEFINE(PR_SET_PDEATHSIG),
 #endif

@@ -102,7 +102,7 @@ alcove_mk_ulong(char *buf, size_t len, unsigned long n)
 
     int
 alcove_encode_define(char *buf, size_t len, int *index, char *name,
-        alcove_define_t *constants)
+        const alcove_define_t *constants)
 {
     unsigned long long val = 0;
 
@@ -114,9 +114,9 @@ alcove_encode_define(char *buf, size_t len, int *index, char *name,
 
     int
 alcove_lookup_define(char *name, unsigned long long *val,
-        alcove_define_t *constants)
+        const alcove_define_t *constants)
 {
-    alcove_define_t *dp = NULL;
+    const alcove_define_t *dp = NULL;
 
     for (dp = constants; dp->name != NULL; dp++) {
         if (!strcasecmp(name, dp->name)) {
@@ -130,9 +130,9 @@ alcove_lookup_define(char *name, unsigned long long *val,
 
     int
 alcove_encode_constant(char *buf, size_t len, int *index, u_int64_t val,
-        alcove_define_t *constants)
+        const alcove_define_t *constants)
 {
-    alcove_define_t *dp = NULL;
+    const alcove_define_t *dp = NULL;
 
     for (dp = constants; dp->name != NULL; dp++) {
         if (val == dp->val)

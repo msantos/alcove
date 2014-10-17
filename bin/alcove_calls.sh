@@ -27,7 +27,7 @@ typedef struct {
     u_int8_t narg;
 } alcove_call_t;
 
-alcove_call_t calls[] = {
+const alcove_call_t calls[] = {
 EOF
 
 while read line; do

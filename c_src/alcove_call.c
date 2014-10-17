@@ -40,7 +40,7 @@ alcove_call(alcove_state_t *ap, u_int32_t call,
     int arity = 0;
     int version = 0;
 
-    alcove_call_t *fun = NULL;
+    const alcove_call_t *fun = NULL;
     ssize_t written = 0;
 
     if (call >= sizeof(calls)/sizeof(calls[0]))

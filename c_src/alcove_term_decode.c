@@ -275,7 +275,7 @@ alcove_x_decode_iolist_to_string(const char *buf, size_t len, int *index)
 
     int
 alcove_decode_define(const char *buf, size_t len, int *index, int *val,
-        alcove_define_t *constants)
+        const alcove_define_t *constants)
 {
     int type = 0;
     int arity = 0;
@@ -317,7 +317,7 @@ alcove_decode_define(const char *buf, size_t len, int *index, int *val,
 
     int
 alcove_decode_define_list(const char *buf, size_t len, int *index, int *val,
-        alcove_define_t *constants)
+        const alcove_define_t *constants)
 {
     int type = 0;
     int arity = 0;

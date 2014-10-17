@@ -12,7 +12,7 @@
  * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
-alcove_define_t alcove_rlimit_constants[] = {
+const alcove_define_t alcove_rlimit_constants[] = {
 #ifdef RLIMIT_CPU
     ALCOVE_DEFINE(RLIMIT_CPU),
 #endif
