@@ -41,6 +41,7 @@ enum {
 
 static int alcove_signal_init();
 static int alcove_rlimit_init();
+static int alcove_fd_init();
 int alcove_fdmove(int fd, int dst);
 
 static int alcove_stdin(alcove_state_t *ap);
@@ -89,8 +90,6 @@ main(int argc, char *argv[])
 {
     alcove_state_t *ap = NULL;
     int ch = 0;
-    int sigpipe[2] = {0};
-    int fdctl = 0;
 
     ap = calloc(1, sizeof(alcove_state_t));
     if (!ap)
@@ -137,53 +136,8 @@ main(int argc, char *argv[])
     if (!ap->child)
         err(EXIT_FAILURE, "calloc");
 
-    /* Unlike the child processes, the port does not use a control fd.
-     * An fd is acquired and leaked here to for consistency.
-     *
-     * The fd may have been opened by another program. For example,
-     * valgrind will use the first available fd for the log file.
-     */
-    if (alcove_fdmove(ALCOVE_FDSIO, 8) < 0)
-        err(EXIT_FAILURE, "fdmove");
-
-    if (alcove_fdmove(ALCOVE_FDSII, 8) < 0)
-        err(EXIT_FAILURE, "fdmove");
-
-    if (alcove_fdmove(ALCOVE_FDCTL, 8) < 0)
-        err(EXIT_FAILURE, "fdmove");
-
-    if (pipe(sigpipe) < 0)
-        err(EXIT_FAILURE, "sigpipe");
-
-    /* XXX fd's will overlap */
-    if (sigpipe[0] != ALCOVE_FDSIO) {
-        if (dup2(sigpipe[0], ALCOVE_FDSIO) < 0)
-            err(EXIT_FAILURE, "dup2");
-        if (close(sigpipe[0]) < 0)
-            err(EXIT_FAILURE, "close");
-    }
-
-    if (sigpipe[1] != ALCOVE_FDSII) {
-        if (dup2(sigpipe[1], ALCOVE_FDSII) < 0)
-            err(EXIT_FAILURE, "dup2");
-        if (close(sigpipe[1]) < 0)
-            err(EXIT_FAILURE, "close");
-    }
-
-    if ( (alcove_setfd(ALCOVE_FDSIO, FD_CLOEXEC|O_NONBLOCK) < 0)
-            || (alcove_setfd(ALCOVE_FDSII, FD_CLOEXEC|O_NONBLOCK) < 0))
-        err(EXIT_FAILURE, "alcove_set_nonblock");
-
-    fdctl = open("/dev/null", O_RDWR|O_CLOEXEC);
-    if (fdctl < 0)
-        err(EXIT_FAILURE, "could not acquire ctl fd");
-
-    if (fdctl != ALCOVE_FDCTL) {
-        if (dup2(fdctl, ALCOVE_FDCTL) < 0)
-            err(EXIT_FAILURE, "dup2");
-        if (close(fdctl) < 0)
-            err(EXIT_FAILURE, "close");
-    }
+    if (alcove_fd_init() < 0)
+        err(EXIT_FAILURE, "alcove_fd_init");
 
     alcove_event_loop(ap);
     exit(0);
@@ -234,6 +188,63 @@ alcove_rlimit_init()
     if (stack_size.rlim_cur == RLIM_INFINITY) {
         stack_size.rlim_cur = 8 * 1024 * 1024;
         if (setrlimit(RLIMIT_STACK, &stack_size) < 0)
+            return -1;
+    }
+
+    return 0;
+}
+
+    static int
+alcove_fd_init()
+{
+    int sigpipe[2] = {0};
+    int fdctl = 0;
+
+    /* Unlike the child processes, the port does not use a control fd.
+     * An fd is acquired and leaked here to for consistency.
+     *
+     * The fd may have been opened by another program. For example,
+     * valgrind will use the first available fd for the log file.
+     */
+    if (alcove_fdmove(ALCOVE_FDSIO, 8) < 0)
+        return -1;
+
+    if (alcove_fdmove(ALCOVE_FDSII, 8) < 0)
+        return -1;
+
+    if (alcove_fdmove(ALCOVE_FDCTL, 8) < 0)
+        return -1;
+
+    if (pipe(sigpipe) < 0)
+        return -1;
+
+    /* XXX fd's will overlap */
+    if (sigpipe[0] != ALCOVE_FDSIO) {
+        if (dup2(sigpipe[0], ALCOVE_FDSIO) < 0)
+            return -1;
+        if (close(sigpipe[0]) < 0)
+            return -1;
+    }
+
+    if (sigpipe[1] != ALCOVE_FDSII) {
+        if (dup2(sigpipe[1], ALCOVE_FDSII) < 0)
+            return -1;
+        if (close(sigpipe[1]) < 0)
+            return -1;
+    }
+
+    if ( (alcove_setfd(ALCOVE_FDSIO, FD_CLOEXEC|O_NONBLOCK) < 0)
+            || (alcove_setfd(ALCOVE_FDSII, FD_CLOEXEC|O_NONBLOCK) < 0))
+        return -1;
+
+    fdctl = open("/dev/null", O_RDWR|O_CLOEXEC);
+    if (fdctl < 0)
+        return -1;
+
+    if (fdctl != ALCOVE_FDCTL) {
+        if (dup2(fdctl, ALCOVE_FDCTL) < 0)
+            return -1;
+        if (close(fdctl) < 0)
             return -1;
     }
 
