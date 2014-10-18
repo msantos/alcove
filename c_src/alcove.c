@@ -39,7 +39,8 @@ enum {
 #pragma message "Support for namespaces using clone(2) disabled"
 #endif
 
-static int alcove_set_rlimits(void);
+static int alcove_signal_init();
+static int alcove_rlimit_init();
 int alcove_fdmove(int fd, int dst);
 
 static int alcove_stdin(alcove_state_t *ap);
@@ -88,7 +89,6 @@ main(int argc, char *argv[])
 {
     alcove_state_t *ap = NULL;
     int ch = 0;
-    struct sigaction act = {{0}};
     int sigpipe[2] = {0};
     int fdctl = 0;
 
@@ -98,23 +98,15 @@ main(int argc, char *argv[])
 
     ALCOVE_SETOPT(ap, alcove_opt_termsig, 1);
 
-    act.sa_handler = sighandler;
-    if (sigaction(SIGCHLD, &act, NULL) < 0)
-        err(EXIT_FAILURE, "sigaction");
-
-    act.sa_handler = SIG_DFL;
-
-    (void)sigfillset(&act.sa_mask);
-
-    if (sigaction(SIGPIPE, &act, NULL) < 0)
-        err(EXIT_FAILURE, "sigaction");
-
     ap->maxfd = sysconf(_SC_OPEN_MAX);
     ap->maxchild = ap->maxfd / 4 - 4;
     ap->maxforkdepth = MAXFORKDEPTH;
 
-    if (alcove_set_rlimits() < 0)
-        err(EXIT_FAILURE, "alcove_set_rlimits");
+    if (alcove_signal_init() < 0)
+        err(EXIT_FAILURE, "alcove_signal_init");
+
+    if (alcove_rlimit_init() < 0)
+        err(EXIT_FAILURE, "alcove_rlimit_init");
 
     while ( (ch = getopt(argc, argv, "ae:m:M:hS:v")) != -1) {
         switch (ch) {
@@ -198,7 +190,33 @@ main(int argc, char *argv[])
 }
 
     static int
-alcove_set_rlimits(void)
+alcove_signal_init()
+{
+    struct sigaction act = {{0}};
+    int sig = 0;
+
+    act.sa_handler = SIG_DFL;
+    (void)sigfillset(&act.sa_mask);
+
+    for (sig = 1; sig < NSIG; sig++) {
+        if (sigaction(sig, &act, NULL) < 0) {
+            if (errno == EINVAL)
+                continue;
+
+            return -1;
+        }
+    }
+
+    act.sa_handler = sighandler;
+
+    if (sigaction(SIGCHLD, &act, NULL) < 0)
+        return -1;
+
+    return 0;
+}
+
+    static int
+alcove_rlimit_init()
 {
     struct rlimit stack_size = {0};
 
