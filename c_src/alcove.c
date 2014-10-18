@@ -81,8 +81,8 @@ extern char *__progname;
     void
 sighandler(int sig)
 {
-    if (write(ALCOVE_FDSII, &sig, sizeof(sig)) != sizeof(sig))
-        (void)close(ALCOVE_FDSII);
+    if (write(ALCOVE_FDSIW, &sig, sizeof(sig)) != sizeof(sig))
+        (void)close(ALCOVE_FDSIW);
 }
 
     int
@@ -200,16 +200,10 @@ alcove_fd_init()
     int sigpipe[2] = {0};
     int fdctl = 0;
 
-    /* Unlike the child processes, the port does not use a control fd.
-     * An fd is acquired and leaked here to for consistency.
-     *
-     * The fd may have been opened by another program. For example,
-     * valgrind will use the first available fd for the log file.
-     */
-    if (alcove_fdmove(ALCOVE_FDSIO, 8) < 0)
+    if (alcove_fdmove(ALCOVE_FDSIR, 8) < 0)
         return -1;
 
-    if (alcove_fdmove(ALCOVE_FDSII, 8) < 0)
+    if (alcove_fdmove(ALCOVE_FDSIW, 8) < 0)
         return -1;
 
     if (alcove_fdmove(ALCOVE_FDCTL, 8) < 0)
@@ -219,24 +213,30 @@ alcove_fd_init()
         return -1;
 
     /* XXX fd's will overlap */
-    if (sigpipe[0] != ALCOVE_FDSIO) {
-        if (dup2(sigpipe[0], ALCOVE_FDSIO) < 0)
+    if (sigpipe[0] != ALCOVE_FDSIR) {
+        if (dup2(sigpipe[0], ALCOVE_FDSIR) < 0)
             return -1;
         if (close(sigpipe[0]) < 0)
             return -1;
     }
 
-    if (sigpipe[1] != ALCOVE_FDSII) {
-        if (dup2(sigpipe[1], ALCOVE_FDSII) < 0)
+    if (sigpipe[1] != ALCOVE_FDSIW) {
+        if (dup2(sigpipe[1], ALCOVE_FDSIW) < 0)
             return -1;
         if (close(sigpipe[1]) < 0)
             return -1;
     }
 
-    if ( (alcove_setfd(ALCOVE_FDSIO, FD_CLOEXEC|O_NONBLOCK) < 0)
-            || (alcove_setfd(ALCOVE_FDSII, FD_CLOEXEC|O_NONBLOCK) < 0))
+    if ( (alcove_setfd(ALCOVE_FDSIR, FD_CLOEXEC|O_NONBLOCK) < 0)
+            || (alcove_setfd(ALCOVE_FDSIW, FD_CLOEXEC|O_NONBLOCK) < 0))
         return -1;
 
+    /* Unlike the child processes, the port does not use a control fd.
+     * An fd is acquired and leaked here to for consistency.
+     *
+     * The fd may have been opened by another program. For example,
+     * valgrind will use the first available fd for the log file.
+     */
     fdctl = open("/dev/null", O_RDWR|O_CLOEXEC);
     if (fdctl < 0)
         return -1;
@@ -293,8 +293,8 @@ alcove_event_loop(alcove_state_t *ap)
         fds[STDIN_FILENO].fd = STDIN_FILENO;
         fds[STDIN_FILENO].events = POLLIN;
 
-        fds[ALCOVE_FDSIO].fd = ALCOVE_FDSIO;
-        fds[ALCOVE_FDSIO].events = POLLIN;
+        fds[ALCOVE_FDSIR].fd = ALCOVE_FDSIR;
+        fds[ALCOVE_FDSIR].events = POLLIN;
 
         (void)pid_foreach(ap, 0, fds, NULL, pid_not_equal, set_pid);
 
@@ -321,7 +321,7 @@ alcove_event_loop(alcove_state_t *ap)
             }
         }
 
-        if (fds[ALCOVE_FDSIO].revents & (POLLIN|POLLERR|POLLHUP|POLLNVAL)) {
+        if (fds[ALCOVE_FDSIR].revents & (POLLIN|POLLERR|POLLHUP|POLLNVAL)) {
             if (alcove_handle_signal(ap) < 0)
                 err(EXIT_FAILURE, "alcove_handle_signal");
         }
@@ -792,7 +792,7 @@ alcove_handle_signal(alcove_state_t *ap) {
     int status = 0;
     ssize_t n = 0;
 
-    n = read(ALCOVE_FDSIO, &signum, sizeof(signum));
+    n = read(ALCOVE_FDSIR, &signum, sizeof(signum));
 
     if (n < 0) {
         if (errno == EAGAIN || errno == EINTR)

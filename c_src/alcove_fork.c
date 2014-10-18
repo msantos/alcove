@@ -385,12 +385,12 @@ alcove_child_fun(void *arg)
     if (pipe(sigpipe) < 0)
         return -1;
 
-    if ( (dup2(sigpipe[PIPE_READ], ALCOVE_FDSIO) < 0)
-            || (dup2(sigpipe[PIPE_WRITE], ALCOVE_FDSII) < 0))
+    if ( (dup2(sigpipe[PIPE_READ], ALCOVE_FDSIR) < 0)
+            || (dup2(sigpipe[PIPE_WRITE], ALCOVE_FDSIW) < 0))
         return -1;
 
-    if ( (alcove_setfd(ALCOVE_FDSIO, FD_CLOEXEC|O_NONBLOCK) < 0)
-            || (alcove_setfd(ALCOVE_FDSII, FD_CLOEXEC|O_NONBLOCK) < 0))
+    if ( (alcove_setfd(ALCOVE_FDSIR, FD_CLOEXEC|O_NONBLOCK) < 0)
+            || (alcove_setfd(ALCOVE_FDSIW, FD_CLOEXEC|O_NONBLOCK) < 0))
         return -1;
 
     /* TODO ensure fd's do not overlap */

@@ -121,8 +121,8 @@ enum {
 };
 
 enum {
-    ALCOVE_FDSIO = 3,
-    ALCOVE_FDSII = 4,
+    ALCOVE_FDSIR = 3,
+    ALCOVE_FDSIW = 4,
     ALCOVE_FDCTL = 5
 };
 
