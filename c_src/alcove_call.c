@@ -127,22 +127,22 @@ alcove_getopt(alcove_state_t *ap, const char *arg, size_t len,
     if (alcove_decode_atom(arg, len, &index, opt) < 0)
         return -1;
 
-    if (!strncmp(opt, "verbose", 7)) {
+    if (!strcmp(opt, "verbose")) {
         val = ap->verbose;
     }
-    else if (!strncmp(opt, "childlimit", 10)) {
+    else if (!strcmp(opt, "childlimit")) {
         val = ap->fdsetsize;
     }
-    else if (!strncmp(opt, "exit_status", 11)) {
+    else if (!strcmp(opt, "exit_status")) {
         val = ap->opt & alcove_opt_exit_status ? 1 : 0;
     }
-    else if (!strncmp(opt, "maxchild", 8)) {
+    else if (!strcmp(opt, "maxchild")) {
         val = ap->maxchild;
     }
-    else if (!strncmp(opt, "maxforkdepth", 12)) {
+    else if (!strcmp(opt, "maxforkdepth")) {
         val = ap->maxforkdepth;
     }
-    else if (!strncmp(opt, "termsig", 7)) {
+    else if (!strcmp(opt, "termsig")) {
         val = ap->opt & alcove_opt_termsig ? 1 : 0;
     }
 
@@ -168,19 +168,19 @@ alcove_setopt(alcove_state_t *ap, const char *arg, size_t len,
     if (alcove_decode_uint(arg, len, &index, &val) < 0)
         return -1;
 
-    if (!strncmp(opt, "verbose", 7)) {
+    if (!strcmp(opt, "verbose")) {
         ap->verbose = val;
     }
-    else if (!strncmp(opt, "exit_status", 11)) {
+    else if (!strcmp(opt, "exit_status")) {
         ALCOVE_SETOPT(ap, alcove_opt_exit_status, val);
     }
-    else if (!strncmp(opt, "maxchild", 8)) {
+    else if (!strcmp(opt, "maxchild")) {
         ap->maxchild = val;
     }
-    else if (!strncmp(opt, "maxforkdepth", 12)) {
+    else if (!strcmp(opt, "maxforkdepth")) {
         ap->maxforkdepth = val;
     }
-    else if (!strncmp(opt, "termsig", 7)) {
+    else if (!strcmp(opt, "termsig")) {
         ALCOVE_SETOPT(ap, alcove_opt_termsig, val);
     }
     else

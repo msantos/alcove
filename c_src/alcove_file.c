@@ -154,7 +154,7 @@ alcove_select(alcove_state_t *ap, const char *arg, size_t len,
             if (alcove_decode_atom(arg, len, &index, buf) < 0)
                 return -1;
 
-            if (strncmp(buf, "alcove_timeval", 14))
+            if (strcmp(buf, "alcove_timeval"))
                 return -1;
 
             /* sec */
