@@ -145,6 +145,12 @@ alcove_getopt(alcove_state_t *ap, const char *arg, size_t len,
     else if (!strcmp(opt, "termsig")) {
         val = ap->opt & alcove_opt_termsig ? 1 : 0;
     }
+    else if (!strcmp(opt, "stdout_closed")) {
+        val = ap->opt & alcove_opt_stdout_closed ? 1 : 0;
+    }
+    else if (!strcmp(opt, "stderr_closed")) {
+        val = ap->opt & alcove_opt_stderr_closed ? 1 : 0;
+    }
 
     return (val == -1)
         ? alcove_mk_atom(reply, rlen, "false")
@@ -182,6 +188,12 @@ alcove_setopt(alcove_state_t *ap, const char *arg, size_t len,
     }
     else if (!strcmp(opt, "termsig")) {
         ALCOVE_SETOPT(ap, alcove_opt_termsig, val);
+    }
+    else if (!strcmp(opt, "stdout_closed")) {
+        ALCOVE_SETOPT(ap, alcove_opt_stdout_closed, val);
+    }
+    else if (!strcmp(opt, "stderr_closed")) {
+        ALCOVE_SETOPT(ap, alcove_opt_stderr_closed, val);
     }
     else
         return alcove_mk_atom(reply, rlen, "false");

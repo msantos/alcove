@@ -730,6 +730,8 @@ write_to_pid(alcove_state_t *ap, alcove_child_t *c, void *arg1, void *arg2)
 read_from_pid(alcove_state_t *ap, alcove_child_t *c, void *arg1, void *arg2)
 {
     struct pollfd *fds = arg1;
+    int len = 0;
+    char t[MAXMSGLEN] = {0};
 
     if (c->fdctl > -1 &&
             (fds[c->fdctl].revents & (POLLIN|POLLERR|POLLHUP|POLLNVAL))) {
@@ -741,14 +743,10 @@ read_from_pid(alcove_state_t *ap, alcove_child_t *c, void *arg1, void *arg2)
         c->fdctl = -1;
 
         if (n == 0) {
-            int index = 0;
-            char t[MAXMSGLEN] = {0};
-
             c->fdctl = ALCOVE_CHILD_EXEC;
-            (void)ei_encode_version(t, &index);
-            (void)ei_encode_atom(t, &index, "fdctl_closed");
+            len = alcove_mk_atom(t, sizeof(t), "fdctl_closed");
 
-            if (alcove_call_fake_reply(c->pid, ALCOVE_MSG_EVENT, t, index) < 0)
+            if (alcove_call_fake_reply(c->pid, ALCOVE_MSG_EVENT, t, len) < 0)
                 return -1;
         }
     }
@@ -757,8 +755,15 @@ read_from_pid(alcove_state_t *ap, alcove_child_t *c, void *arg1, void *arg2)
             (fds[c->fdout].revents & (POLLIN|POLLERR|POLLHUP|POLLNVAL))) {
         switch (alcove_child_stdio(c->fdout, ap->depth,
                     c, ALCOVE_MSG_TYPE(c))) {
-            case -1:
             case 0:
+                if (ap->opt & alcove_opt_stdout_closed) {
+                    len = alcove_mk_atom(t, sizeof(t), "stdout_closed");
+                    if (alcove_call_fake_reply(c->pid, ALCOVE_MSG_EVENT,
+                                t, len) < 0)
+                        return -1;
+                }
+                /* fall through */
+            case -1:
                 (void)close(c->fdout);
                 c->fdout = -1;
                 break;
@@ -771,8 +776,15 @@ read_from_pid(alcove_state_t *ap, alcove_child_t *c, void *arg1, void *arg2)
             (fds[c->fderr].revents & (POLLIN|POLLERR|POLLHUP|POLLNVAL))) {
         switch (alcove_child_stdio(c->fderr, ap->depth,
                     c, ALCOVE_MSG_STDERR)) {
-            case -1:
             case 0:
+                if (ap->opt & alcove_opt_stderr_closed) {
+                    len = alcove_mk_atom(t, sizeof(t), "stderr_closed");
+                    if (alcove_call_fake_reply(c->pid, ALCOVE_MSG_EVENT,
+                                t, len) < 0)
+                        return -1;
+                }
+                /* fall through */
+            case -1:
                 (void)close(c->fderr);
                 c->fderr = -1;
                 break;
