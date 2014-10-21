@@ -98,7 +98,7 @@ main(int argc, char *argv[])
     ALCOVE_SETOPT(ap, alcove_opt_termsig, 1);
 
     ap->maxfd = sysconf(_SC_OPEN_MAX);
-    ap->maxchild = ap->maxfd / 4 - 4;
+    ap->maxchild = ap->maxfd / ALCOVE_MAXFILENO - ALCOVE_MAXFILENO;
     ap->maxforkdepth = MAXFORKDEPTH;
 
     if (alcove_signal_init() < 0)

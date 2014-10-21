@@ -125,8 +125,9 @@ enum {
 
 enum {
     ALCOVE_FDSIR = 3,
-    ALCOVE_FDSIW = 4,
-    ALCOVE_FDCTL = 5
+    ALCOVE_FDSIW,
+    ALCOVE_FDCTL,
+    ALCOVE_MAXFILENO
 };
 
 typedef struct {
