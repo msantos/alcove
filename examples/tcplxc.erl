@@ -30,11 +30,8 @@ start(Options) ->
     accept(Init, LSock).
 
 init(Options) ->
-    {ok, Drv} = alcove_drv:start(Options ++ [
-            {exec, "sudo"},
-            {exit_status, true},
-            {termsig, true}
-        ]),
+    {ok, Drv} = alcove_drv:start(Options ++ [{exec, "sudo"}]),
+    alcove:setopt(Drv, exit_status, 1),
     ok = alcove:chdir(Drv, "/"),
 
     chroot_init(),

@@ -107,19 +107,10 @@ main(int argc, char *argv[])
     if (alcove_rlimit_init() < 0)
         err(EXIT_FAILURE, "alcove_rlimit_init");
 
-    while ( (ch = getopt(argc, argv, "ae:m:M:hS:v")) != -1) {
+    while ( (ch = getopt(argc, argv, "m:hv")) != -1) {
         switch (ch) {
-            case 'e':
-                ALCOVE_SETOPT(ap, alcove_opt_exit_status, atoi(optarg));
-                break;
             case 'm':
                 ap->maxchild = (u_int16_t)atoi(optarg);
-                break;
-            case 'M':
-                ap->maxforkdepth = (u_int16_t)atoi(optarg);
-                break;
-            case 'S':
-                ALCOVE_SETOPT(ap, alcove_opt_termsig, atoi(optarg));
                 break;
             case 'v':
                 ap->verbose++;
@@ -880,9 +871,6 @@ usage(alcove_state_t *ap)
     (void)fprintf(stderr,
             "usage: %s <options>\n"
             "   -m <num>        max children\n"
-            "   -M <num>        max fork depth\n"
-            "   -e <0|1>        child exit status\n"
-            "   -S <0|1>        child termination signal\n"
             "   -v              verbose mode\n",
             __progname
             );

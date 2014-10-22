@@ -279,8 +279,6 @@ getopts(Options) when is_list(Options) ->
     [Cmd|Argv] = [ N || N <- string:tokens(Exec, " ") ++ [Progname|Switches], N /= ""],
     [find_executable(Cmd)|Argv].
 
-optarg({exit_status, Bool})     -> switch("e", bool(Bool));
-optarg({termsig, Bool})         -> switch("S", bool(Bool));
 optarg({verbose, Arg})          -> switch(string:copies("v", Arg));
 optarg({maxchild, Arg})         -> switch("m", Arg);
 optarg({maxforkdepth, Arg})     -> switch("M", Arg);
@@ -293,9 +291,6 @@ switch(Switch, Arg) when is_binary(Arg) ->
     switch(Switch, binary_to_list(Arg));
 switch(Switch, Arg) ->
     [lists:concat(["-", Switch, " ", Arg])].
-
-bool(true) -> 1;
-bool(false) -> 0.
 
 find_executable(Exe) ->
     case os:find_executable(Exe) of
