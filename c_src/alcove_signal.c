@@ -67,8 +67,10 @@ alcove_sigaction(alcove_state_t *ap, const char *arg, size_t len,
 
     int signum = 0;
     char handler[MAXATOMLEN] = {0};
-    struct sigaction act = {{0}};
+    struct sigaction act;
     int rv = 0;
+
+    (void)memset(&act, 0, sizeof(act));
 
     /* signum */
     switch (alcove_decode_define(arg, len, &index, &signum,

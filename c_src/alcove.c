@@ -137,9 +137,10 @@ main(int argc, char *argv[])
     static int
 alcove_signal_init()
 {
-    struct sigaction act = {{0}};
+    struct sigaction act;
     int sig = 0;
 
+    (void)memset(&act, 0, sizeof(act));
     act.sa_handler = SIG_DFL;
     (void)sigfillset(&act.sa_mask);
 
