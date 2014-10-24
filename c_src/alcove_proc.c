@@ -286,7 +286,7 @@ alcove_setpgid(alcove_state_t *ap, const char *arg, size_t len,
 alcove_setproctitle(alcove_state_t *ap, const char *arg, size_t len,
         char *reply, size_t rlen)
 {
-#ifdef __linux__
+#if defined(__linux__) || defined(__sunos__)
     return alcove_mk_error(reply, rlen, "unsupported");
 #else
     int index = 0;

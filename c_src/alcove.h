@@ -22,6 +22,7 @@
 #include <sys/types.h>
 #include <signal.h>
 #include <sys/socket.h>
+#include <limits.h>
 
 #include <arpa/inet.h>
 #include <stdint.h>
@@ -33,10 +34,21 @@
 
 #include <err.h>
 
-#include <err.h>
-
 #include "erl_errno.h"
 #include "alcove_version.h"
+
+#if defined(__sun) && defined(__SVR4)
+#define u_int8_t        uint8_t
+#define u_int16_t       uint16_t
+#define u_int32_t       uint32_t
+#define u_int64_t       uint64_t
+
+#define __sunos__
+#endif
+
+#ifndef MAX
+#define MAX(x, y) ((x) > (y) ? (x) : (y))
+#endif
 
 #ifndef ERL_VERSION_MAGIC
 #define ERL_VERSION_MAGIC 131

@@ -108,7 +108,7 @@ alcove_umount(alcove_state_t *ap, const char *arg, size_t len,
             slen == 0)
         return -1;
 
-#ifdef __linux__
+#if defined(__linux__) || defined(__sunos__)
     rv = umount(source);
 #else
     rv = unmount(source, 0);

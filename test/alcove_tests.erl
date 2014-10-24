@@ -279,6 +279,12 @@ unshare(#state{clone = true, pid = Drv}) ->
 unshare(_) ->
     [].
 
+mount_define(#state{os = {unix,sunos}, pid = Drv}) ->
+    Flags = alcove:define(Drv, [
+            rdonly,
+            nosuid
+        ]),
+    ?_assertEqual(true, is_integer(Flags));
 mount_define(#state{pid = Drv}) ->
     Flags = alcove:define(Drv, [
             rdonly,
@@ -529,6 +535,10 @@ execvp(#state{os = {unix,linux}, pid = Drv, child = Child}) ->
 execvp(#state{os = {unix,OS}, pid = Drv, child = Child}) when OS =:= freebsd; OS =:= openbsd; OS =:= netbsd ->
     % cwd = /, chroot'ed in /rescue
     Reply = alcove:execvp(Drv, [Child], "/sh", ["/sh"]),
+    ?_assertEqual(ok, Reply);
+execvp(#state{os = {unix,OS}, pid = Drv, child = Child}) when OS =:= sunos ->
+    % not in a chroot
+    Reply = alcove:execvp(Drv, [Child], "/bin/sh", ["/bin/sh"]),
     ?_assertEqual(ok, Reply);
 execvp(_) ->
     [].
