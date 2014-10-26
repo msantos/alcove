@@ -18,6 +18,8 @@
 #include <sys/mount.h>
 #include "alcove_mount.h"
 
+#define MAYBE_NULL(_len, _buf) ((_len) == 0 ? NULL : (_buf))
+
 
 /*
  * mount(2)
@@ -38,6 +40,8 @@ alcove_mount(alcove_state_t *ap, const char *arg, size_t len,
     unsigned long mountflags = 0;
     char data[MAXMSGLEN] = {0};
     size_t dlen = sizeof(data);
+    char opt[MAXMSGLEN] = {0};
+    size_t olen = sizeof(opt);
 
     int rv = 0;
 
@@ -63,20 +67,45 @@ alcove_mount(alcove_state_t *ap, const char *arg, size_t len,
     if (alcove_decode_iolist(arg, len, &index, data, &dlen) < 0)
         return -1;
 
+    /* options */
+    if (alcove_decode_iolist(arg, len, &index, opt, &olen) < 0)
+        return -1;
+
 #ifdef __linux__
     rv = mount(
-            (slen == 0 ? NULL : source),
+            MAYBE_NULL(slen, source),
             target,
-            (flen == 0 ? NULL : filesystemtype),
+            MAYBE_NULL(flen, filesystemtype),
             mountflags,
-            (dlen == 0 ? NULL : data)
+            MAYBE_NULL(dlen, data)
+            );
+#elif defined(__sunos__)
+    /* The option buffer is input/output with the mount options placed
+     * in the buf on return. The option buffer must be large enough to
+     * hold the returned options string.
+     *
+     * * if the buffer is too small, the return value is {error,eoverflow}
+     *   and the mount is successful
+     *
+     * * if the buffer is too large(?), the return value is {error,einval}
+     *   and the mount fails
+     */
+    rv = mount(
+            MAYBE_NULL(slen, source),
+            target,
+            mountflags,
+            MAYBE_NULL(flen, filesystemtype),
+            MAYBE_NULL(dlen, data),
+            dlen,
+            MAYBE_NULL(olen, opt),
+            olen
             );
 #else
     rv = mount(
-            (flen == 0 ? NULL : filesystemtype),
+            MAYBE_NULL(flen, filesystemtype),
             target,
             mountflags,
-            (dlen == 0 ? NULL : data)
+            MAYBE_NULL(dlen, data)
 #ifdef __NetBSD__
             , dlen
 #endif

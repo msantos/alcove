@@ -299,7 +299,7 @@ mount(#state{clone = true, pid = Drv, child = Child}) ->
             ms_bind,
             ms_rdonly,
             ms_noexec
-        ], ""),
+        ], "", ""),
     Umount = alcove:umount(Drv, [Child], "/mnt"),
     [
         ?_assertEqual(ok, Mount),
@@ -309,8 +309,18 @@ mount(_) ->
     [].
 
 tmpfs(#state{clone = true, pid = Drv, child = Child}) ->
-    Mount = alcove:mount(Drv, [Child], "tmpfs", "/mnt", "tmpfs", [ms_noexec], <<"size=16M", 0>>),
+    Mount = alcove:mount(Drv, [Child], "tmpfs", "/mnt", "tmpfs", [ms_noexec], <<"size=16M", 0>>, <<>>),
     Umount = alcove:umount(Drv, [Child], "/mnt"),
+    [
+        ?_assertEqual(ok, Mount),
+        ?_assertEqual(ok, Umount)
+    ];
+tmpfs(#state{os = {unix,sunos}, pid = Drv, child = Child}) ->
+    Dir = "/tmp/alcove." ++ [ crypto:rand_uniform(16#30,16#39) || _ <- lists:seq(1,8) ],
+    ok = alcove:mkdir(Drv, [Child], Dir, 8#700),
+    Mount = alcove:mount(Drv, [Child], "swap", Dir, "tmpfs", [ms_optionstr],
+        <<>>, <<"size=16m", 0:4096>>),
+    Umount = alcove:umount(Drv, [Child], Dir),
     [
         ?_assertEqual(ok, Mount),
         ?_assertEqual(ok, Umount)

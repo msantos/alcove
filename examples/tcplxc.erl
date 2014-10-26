@@ -308,7 +308,7 @@ id() ->
     crypto:rand_uniform(16#f0000000, 16#f000ffff).
 
 mount(Drv, Pids, Source, Target, Type, Flags, Data) ->
-    alcove:mount(Drv, Pids, Source, Target, Type, Flags, Data).
+    alcove:mount(Drv, Pids, Source, Target, Type, Flags, Data, <<>>).
 
 mounts() ->
     {ok, FH} = file:open("/proc/mounts", [read,raw,binary]),

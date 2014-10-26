@@ -63,7 +63,7 @@ create(Socket, _Options) ->
         ms_nosuid,
         ms_nodev
     ],
-    ok = alcove:mount(Drv, [PID], "proc", "/proc", "proc", MountFlags, <<>>),
+    ok = alcove:mount(Drv, [PID], "proc", "/proc", "proc", MountFlags, <<>>, <<>>),
 
     ok = alcove:setgid(Drv, [PID], Id),
     ok = alcove:setuid(Drv, [PID], Id),

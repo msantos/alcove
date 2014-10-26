@@ -101,6 +101,47 @@ const alcove_define_t alcove_mount_constants[] = {
 #ifdef MS_MGC_MSK
     ALCOVE_DEFINE(MS_MGC_MSK),
 #endif
+
+#ifdef MS_FSS
+    ALCOVE_DEFINE(MS_FSS),
+#endif
+#ifdef MS_DATA
+    ALCOVE_DEFINE(MS_DATA),
+#endif
+#ifdef MS_NOTRUNC
+    ALCOVE_DEFINE(MS_NOTRUNC),
+#endif
+#ifdef MS_OVERLAY
+    ALCOVE_DEFINE(MS_OVERLAY),
+#endif
+#ifdef MS_OPTIONSTR
+    ALCOVE_DEFINE(MS_OPTIONSTR),
+#endif
+#ifdef MS_GLOBAL
+    ALCOVE_DEFINE(MS_GLOBAL),
+#endif
+#ifdef MS_FORCE
+    ALCOVE_DEFINE(MS_FORCE),
+#endif
+#ifdef MS_NOMNTTAB
+    ALCOVE_DEFINE(MS_NOMNTTAB),
+#endif
+#ifdef MS_SYSSPACE
+    ALCOVE_DEFINE(MS_SYSSPACE),
+#endif
+#ifdef MS_NOSPLICE
+    ALCOVE_DEFINE(MS_NOSPLICE),
+#endif
+#ifdef MS_NOCHECK
+    ALCOVE_DEFINE(MS_NOCHECK),
+#endif
+#ifdef MS_MASK
+    ALCOVE_DEFINE(MS_MASK),
+#endif
+#ifdef MS_UMOUNT_MASK
+    ALCOVE_DEFINE(MS_UMOUNT_MASK),
+#endif
+
 #ifdef MNT_FORCE
     ALCOVE_DEFINE(MNT_FORCE),
 #endif

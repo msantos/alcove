@@ -585,11 +585,11 @@ probably confuse the process.
 
         mkdir(2) : create a directory
 
-    mount(Drv, Source, Target, FSType, Flags, Data) -> ok | {error, posix()}
-    mount(Drv, Pids, Source, Target, FSType, Flags, Data) -> ok
+    mount(Drv, Source, Target, FSType, Flags, Data, Options) -> ok | {error, posix()}
+    mount(Drv, Pids, Source, Target, FSType, Flags, Data, Options) -> ok
         | {error, posix()}
 
-        Types   Source = Target = FSType = Data = iodata()
+        Types   Source = Target = FSType = Data = Options = iodata()
                 Flags = integer() | [atom() | integer()]
 
         mount(2) : mount a filesystem, Linux style
@@ -598,6 +598,10 @@ probably confuse the process.
         the system mount call as:
 
             mount(FSType, Target, Flags, Data);
+
+        On Solaris, some mount options are passed in the Options argument
+        as a string of comma separated values terminated by a NULL.
+        Other platforms ignore the Options parameter.
 
     mount_define(Drv, Flag) -> integer() | unknown
     mount_define(Drv, Pids, Flag) -> integer() | unknown
