@@ -321,9 +321,11 @@ tmpfs(#state{os = {unix,sunos}, pid = Drv, child = Child}) ->
     Mount = alcove:mount(Drv, [Child], "swap", Dir, "tmpfs", [ms_optionstr],
         <<>>, <<"size=16m", 0:4096>>),
     Umount = alcove:umount(Drv, [Child], Dir),
+    Rmdir = alcove:rmdir(Drv, [Child], Dir),
     [
         ?_assertEqual(ok, Mount),
-        ?_assertEqual(ok, Umount)
+        ?_assertEqual(ok, Umount),
+        ?_assertEqual(ok, Rmdir)
     ];
 tmpfs(_) ->
     [].
