@@ -315,6 +315,19 @@ tmpfs(#state{clone = true, pid = Drv, child = Child}) ->
         ?_assertEqual(ok, Mount),
         ?_assertEqual(ok, Umount)
     ];
+tmpfs(#state{os = {unix,linux}, pid = Drv, child = Child}) ->
+    % Linux: running in a fork in the global namespace
+    Dir = "/tmp/alcove." ++ [ crypto:rand_uniform(16#30,16#39) || _ <- lists:seq(1,8) ],
+    ok = alcove:mkdir(Drv, [Child], Dir, 8#700),
+    Mount = alcove:mount(Drv, [Child], "tmpfs", Dir, "tmpfs", [ms_noexec],
+        <<"size=16M", 0>>, <<>>),
+    Umount = alcove:umount(Drv, [Child], Dir),
+    Rmdir = alcove:rmdir(Drv, [Child], Dir),
+    [
+        ?_assertEqual(ok, Mount),
+        ?_assertEqual(ok, Umount),
+        ?_assertEqual(ok, Rmdir)
+    ];
 tmpfs(#state{os = {unix,sunos}, pid = Drv, child = Child}) ->
     Dir = "/tmp/alcove." ++ [ crypto:rand_uniform(16#30,16#39) || _ <- lists:seq(1,8) ],
     ok = alcove:mkdir(Drv, [Child], Dir, 8#700),
