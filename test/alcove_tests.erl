@@ -315,7 +315,7 @@ tmpfs(#state{clone = true, pid = Drv, child = Child}) ->
         ?_assertEqual(ok, Mount),
         ?_assertEqual(ok, Umount)
     ];
-tmpfs(#state{os = {unix,linux}, pid = Drv, child = Child}) ->
+tmpfs(#state{os = {unix,OS}, pid = Drv, child = Child}) when OS =:= linux; OS =:= openbsd ->
     % Linux: running in a fork in the global namespace
     Dir = "/tmp/alcove." ++ [ crypto:rand_uniform(16#30,16#39) || _ <- lists:seq(1,8) ],
     ok = alcove:mkdir(Drv, [Child], Dir, 8#700),
