@@ -659,23 +659,27 @@ open(#state{pid = Drv}) ->
         ?_assertEqual({error,enoent}, Reply2)
     ].
 
-execvp_mid_chain(#state{pid = Drv}) ->
+execvp_mid_chain(#state{os = {unix,OS}, pid = Drv}) ->
     Chain = chain(Drv, 8),
-    {Pids, Rest} = lists:split(3, Chain),
+    {Pids, [_Child1,Child2|_] = Rest} = lists:split(3, Chain),
     ok = alcove:execvp(Drv, Pids, "/bin/cat", ["/bin/cat"]),
 
     alcove:stdin(Drv, Pids, "test\n"),
     Reply0 = alcove:stdout(Drv, Pids, 5000),
-    % XXX allow time for the system processes to exit
-    timer:sleep(1000),
+    waitpid_exit(Drv, [], Child2),
     Reply1 = [ alcove:kill(Drv, Pid, 0) || Pid <- Rest ],
+
+    ChildState = case OS of
+        openbsd -> {error,esrch};
+        _ -> ok
+    end,
 
     % The child spawned by the exec'ed process becomes a zombie
     % because the PID will not be reaped.
     [
         ?_assertEqual(<<"test\n">>, Reply0),
         ?_assertEqual([
-                ok,
+                ChildState,
                 {error,esrch},
                 {error,esrch},
                 {error,esrch},
@@ -695,16 +699,16 @@ getenv(Name, Default) ->
 waitpid(Drv, Pids, Child) ->
     case alcove:event(Drv, Pids, 5000) of
         {signal, sigchld} ->
-            waitpid_1(Drv, Pids, Child);
+            waitpid_exit(Drv, Pids, Child);
         false ->
             false
     end.
 
-waitpid_1(Drv, Pids, Child) ->
+waitpid_exit(Drv, Pids, Child) ->
     case alcove:kill(Drv, Pids, Child, 0) of
         ok ->
             timer:sleep(10),
-            waitpid_1(Drv, Pids, Child);
+            waitpid_exit(Drv, Pids, Child);
         {error,esrch} ->
             ok
     end.
