@@ -661,12 +661,12 @@ open(#state{pid = Drv}) ->
 
 execvp_mid_chain(#state{os = {unix,OS}, pid = Drv}) ->
     Chain = chain(Drv, 8),
-    {Pids, [_Child1,Child2|_] = Rest} = lists:split(3, Chain),
+    {Pids, Rest} = lists:split(3, Chain),
     ok = alcove:execvp(Drv, Pids, "/bin/cat", ["/bin/cat"]),
 
     alcove:stdin(Drv, Pids, "test\n"),
     Reply0 = alcove:stdout(Drv, Pids, 5000),
-    waitpid_exit(Drv, [], Child2),
+    waitpid_exit(Drv, [], lists:last(Rest)),
     Reply1 = [ alcove:kill(Drv, Pid, 0) || Pid <- Rest ],
 
     ChildState = case OS of
