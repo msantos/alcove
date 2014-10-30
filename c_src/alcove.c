@@ -256,14 +256,14 @@ alcove_event_loop(alcove_state_t *ap)
         ap->child = realloc(ap->child, sizeof(alcove_child_t) * ap->fdsetsize);
 
         if (!ap->child)
-            err(EXIT_FAILURE, "realloc");
+            err(errno, "realloc");
     }
 
     (void)memset(ap->child, 0, sizeof(alcove_child_t) * ap->fdsetsize);
 
     fds = calloc(sizeof(struct pollfd), ap->maxfd);
     if (!fds)
-        err(EXIT_FAILURE, "calloc");
+        err(errno, "calloc");
 
     for ( ; ; ) {
         long maxfd = sysconf(_SC_OPEN_MAX);
@@ -273,7 +273,7 @@ alcove_event_loop(alcove_state_t *ap)
             ap->maxfd = maxfd;
             fds = realloc(fds, sizeof(struct pollfd) * maxfd);
             if (!fds)
-                err(EXIT_FAILURE, "realloc");
+                err(errno, "realloc");
             (void)memset(fds, 0, sizeof(struct pollfd) * maxfd);
         }
 
@@ -309,13 +309,13 @@ alcove_event_loop(alcove_state_t *ap)
                     return;
                 case -1:
                 default:
-                    err(EXIT_FAILURE, "alcove_stdin");
+                    err(errno, "alcove_stdin");
             }
         }
 
         if (fds[ALCOVE_FDSIR].revents & (POLLIN|POLLERR|POLLHUP|POLLNVAL)) {
             if (alcove_handle_signal(ap) < 0)
-                err(EXIT_FAILURE, "alcove_handle_signal");
+                err(errno, "alcove_handle_signal");
         }
 
         (void)pid_foreach(ap, 0, fds, NULL, pid_not_equal, read_from_pid);

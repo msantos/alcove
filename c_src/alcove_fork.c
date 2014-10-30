@@ -436,13 +436,13 @@ alcove_parent_fd(alcove_state_t *ap, alcove_stdio_t *fd, pid_t pid)
             || (close(fd->in[PIPE_READ]) < 0)
             || (close(fd->out[PIPE_WRITE]) < 0)
             || (close(fd->err[PIPE_WRITE]) < 0))
-        err(EXIT_FAILURE, "alcove_parent_fd:close");
+        err(errno, "close");
 
     if ( (alcove_set_cloexec(fd->ctl[PIPE_WRITE]) < 0)
             || (alcove_set_cloexec(fd->in[PIPE_WRITE]) < 0)
             || (alcove_set_cloexec(fd->out[PIPE_READ]) < 0)
             || (alcove_set_cloexec(fd->err[PIPE_READ]) < 0))
-        err(EXIT_FAILURE, "alcove_parent_fd:alcove_set_cloexec");
+        err(errno, "alcove_set_cloexec");
 
     return pid_foreach(ap, 0, fd, &pid, pid_equal, stdio_pid);
 }

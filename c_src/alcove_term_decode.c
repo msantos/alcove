@@ -268,7 +268,7 @@ alcove_x_decode_iolist_to_string(const char *buf, size_t len, int *index)
 
     res = strdup(tmp);
     if (!res)
-        err(EXIT_FAILURE, "strdup");
+        err(errno, "strdup");
 
     return res;
 }
@@ -391,13 +391,13 @@ alcove_malloc(ssize_t size)
     void *buf = NULL;
 
     if (size <= 0 || size >= INT32_MAX)
-        errx(EXIT_FAILURE, "malloc:invalid size:%ld",
+        errx(ENOMEM, "malloc:invalid size:%ld",
                 (unsigned long)size);
 
     buf = malloc(size);
 
     if (!buf)
-        err(EXIT_FAILURE, "malloc");
+        err(ENOMEM, "malloc");
 
     return buf;
 }
@@ -422,7 +422,7 @@ alcove_decode_list_to_argv(const char *arg, size_t len, int *index,
     *argv = calloc(arity + 1, sizeof(char *));
 
     if (!*argv)
-        err(EXIT_FAILURE, "calloc");
+        err(errno, "calloc");
 
     for (i = 0; i < arity; i++) {
         (*argv)[i] = alcove_x_decode_iolist_to_string(arg, len, index);
@@ -583,7 +583,7 @@ alcove_decode_list_to_buf(const char *arg, size_t len, int *index,
 
                         p = calloc(val, 1);
                         if (!p)
-                            err(EXIT_FAILURE, "calloc");
+                            err(errno, "calloc");
 
                         (void)memcpy(res, &p, sizeof(void *));
                         res += sizeof(void *);

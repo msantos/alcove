@@ -67,7 +67,7 @@
     (x)->opt = (v) ? (x)->opt | (k) : (x)->opt & ~(k)
 
 #define ALCOVE_ERR(_x) \
-    if ((_x) < 0) errx(EXIT_FAILURE, "internal error")
+    if ((_x) < 0) errx(errno, "internal error")
 
 #define ALCOVE_TUPLE2(_msg, _index, _tag, _term) do { \
     ALCOVE_ERR(ei_encode_version(_msg, _index)); \
