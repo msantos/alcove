@@ -81,8 +81,8 @@ extern char *__progname;
     void
 sighandler(int sig)
 {
-    if (write(ALCOVE_FDSIW, &sig, sizeof(sig)) != sizeof(sig))
-        (void)close(ALCOVE_FDSIW);
+    if (write(ALCOVE_SIGWRITE_FILENO, &sig, sizeof(sig)) != sizeof(sig))
+        (void)close(ALCOVE_SIGWRITE_FILENO);
 }
 
     int
@@ -192,35 +192,35 @@ alcove_fd_init()
     int sigpipe[2] = {0};
     int fdctl = 0;
 
-    if (alcove_fdmove(ALCOVE_FDSIR, 8) < 0)
+    if (alcove_fdmove(ALCOVE_SIGREAD_FILENO, 8) < 0)
         return -1;
 
-    if (alcove_fdmove(ALCOVE_FDSIW, 8) < 0)
+    if (alcove_fdmove(ALCOVE_SIGWRITE_FILENO, 8) < 0)
         return -1;
 
-    if (alcove_fdmove(ALCOVE_FDCTL, 8) < 0)
+    if (alcove_fdmove(ALCOVE_FDCTL_FILENO, 8) < 0)
         return -1;
 
     if (pipe(sigpipe) < 0)
         return -1;
 
     /* XXX fd's will overlap */
-    if (sigpipe[0] != ALCOVE_FDSIR) {
-        if (dup2(sigpipe[0], ALCOVE_FDSIR) < 0)
+    if (sigpipe[0] != ALCOVE_SIGREAD_FILENO) {
+        if (dup2(sigpipe[0], ALCOVE_SIGREAD_FILENO) < 0)
             return -1;
         if (close(sigpipe[0]) < 0)
             return -1;
     }
 
-    if (sigpipe[1] != ALCOVE_FDSIW) {
-        if (dup2(sigpipe[1], ALCOVE_FDSIW) < 0)
+    if (sigpipe[1] != ALCOVE_SIGWRITE_FILENO) {
+        if (dup2(sigpipe[1], ALCOVE_SIGWRITE_FILENO) < 0)
             return -1;
         if (close(sigpipe[1]) < 0)
             return -1;
     }
 
-    if ( (alcove_setfd(ALCOVE_FDSIR, FD_CLOEXEC|O_NONBLOCK) < 0)
-            || (alcove_setfd(ALCOVE_FDSIW, FD_CLOEXEC|O_NONBLOCK) < 0))
+    if ( (alcove_setfd(ALCOVE_SIGREAD_FILENO, FD_CLOEXEC|O_NONBLOCK) < 0)
+            || (alcove_setfd(ALCOVE_SIGWRITE_FILENO, FD_CLOEXEC|O_NONBLOCK) < 0))
         return -1;
 
     /* Unlike the child processes, the port does not use a control fd.
@@ -233,8 +233,8 @@ alcove_fd_init()
     if (fdctl < 0)
         return -1;
 
-    if (fdctl != ALCOVE_FDCTL) {
-        if (dup2(fdctl, ALCOVE_FDCTL) < 0)
+    if (fdctl != ALCOVE_FDCTL_FILENO) {
+        if (dup2(fdctl, ALCOVE_FDCTL_FILENO) < 0)
             return -1;
         if (close(fdctl) < 0)
             return -1;
@@ -285,8 +285,8 @@ alcove_event_loop(alcove_state_t *ap)
         fds[STDIN_FILENO].fd = STDIN_FILENO;
         fds[STDIN_FILENO].events = POLLIN;
 
-        fds[ALCOVE_FDSIR].fd = ALCOVE_FDSIR;
-        fds[ALCOVE_FDSIR].events = POLLIN;
+        fds[ALCOVE_SIGREAD_FILENO].fd = ALCOVE_SIGREAD_FILENO;
+        fds[ALCOVE_SIGREAD_FILENO].events = POLLIN;
 
         (void)pid_foreach(ap, 0, fds, NULL, pid_not_equal, set_pid);
 
@@ -313,7 +313,7 @@ alcove_event_loop(alcove_state_t *ap)
             }
         }
 
-        if (fds[ALCOVE_FDSIR].revents & (POLLIN|POLLERR|POLLHUP|POLLNVAL)) {
+        if (fds[ALCOVE_SIGREAD_FILENO].revents & (POLLIN|POLLERR|POLLHUP|POLLNVAL)) {
             if (alcove_handle_signal(ap) < 0)
                 err(errno, "alcove_handle_signal");
         }
@@ -796,7 +796,7 @@ alcove_handle_signal(alcove_state_t *ap) {
     int status = 0;
     ssize_t n = 0;
 
-    n = read(ALCOVE_FDSIR, &signum, sizeof(signum));
+    n = read(ALCOVE_SIGREAD_FILENO, &signum, sizeof(signum));
 
     if (n < 0) {
         if (errno == EAGAIN || errno == EINTR)

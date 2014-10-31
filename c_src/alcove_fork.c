@@ -385,19 +385,19 @@ alcove_child_fun(void *arg)
     if (pipe(sigpipe) < 0)
         return -1;
 
-    if ( (dup2(sigpipe[PIPE_READ], ALCOVE_FDSIR) < 0)
-            || (dup2(sigpipe[PIPE_WRITE], ALCOVE_FDSIW) < 0))
+    if ( (dup2(sigpipe[PIPE_READ], ALCOVE_SIGREAD_FILENO) < 0)
+            || (dup2(sigpipe[PIPE_WRITE], ALCOVE_SIGWRITE_FILENO) < 0))
         return -1;
 
-    if ( (alcove_setfd(ALCOVE_FDSIR, FD_CLOEXEC|O_NONBLOCK) < 0)
-            || (alcove_setfd(ALCOVE_FDSIW, FD_CLOEXEC|O_NONBLOCK) < 0))
+    if ( (alcove_setfd(ALCOVE_SIGREAD_FILENO, FD_CLOEXEC|O_NONBLOCK) < 0)
+            || (alcove_setfd(ALCOVE_SIGWRITE_FILENO, FD_CLOEXEC|O_NONBLOCK) < 0))
         return -1;
 
     /* TODO ensure fd's do not overlap */
     if ( (dup2(fd->in[PIPE_READ], STDIN_FILENO) < 0)
             || (dup2(fd->out[PIPE_WRITE], STDOUT_FILENO) < 0)
             || (dup2(fd->err[PIPE_WRITE], STDERR_FILENO) < 0)
-            || (dup2(fd->ctl[PIPE_READ], ALCOVE_FDCTL) < 0))
+            || (dup2(fd->ctl[PIPE_READ], ALCOVE_FDCTL_FILENO) < 0))
         return -1;
 
     if ( (alcove_close_pipe(fd->in) < 0)
@@ -407,7 +407,7 @@ alcove_child_fun(void *arg)
             || (alcove_close_pipe(sigpipe) < 0))
         return -1;
 
-    if (alcove_set_cloexec(ALCOVE_FDCTL) < 0)
+    if (alcove_set_cloexec(ALCOVE_FDCTL_FILENO) < 0)
         return -1;
 
     if (pid_foreach(ap, 0, NULL, NULL, pid_not_equal, close_parent_fd) < 0)
