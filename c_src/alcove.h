@@ -70,6 +70,7 @@
     if ((_x) < 0) errx(errno, "internal error")
 
 #define ALCOVE_TUPLE2(_msg, _index, _tag, _term) do { \
+    *(_index) = 0; \
     ALCOVE_ERR(ei_encode_version(_msg, _index)); \
     ALCOVE_ERR(ei_encode_tuple_header(_msg, _index, 2)); \
     ALCOVE_ERR(ei_encode_atom(_msg, _index, _tag)); \
@@ -77,6 +78,7 @@
     } while (0)
 
 #define ALCOVE_TUPLE3(_msg, _index, _tag, _term1, _term2) do { \
+    *(_index) = 0; \
     ALCOVE_ERR(ei_encode_version(_msg, _index)); \
     ALCOVE_ERR(ei_encode_tuple_header(_msg, _index, 3)); \
     ALCOVE_ERR(ei_encode_atom(_msg, _index, _tag)); \
@@ -85,6 +87,7 @@
     } while (0)
 
 #define ALCOVE_TUPLE4(_msg, _index, _tag, _term1, _term2, _term3) do { \
+    *(_index) = 0; \
     ALCOVE_ERR(ei_encode_version(_msg, _index)); \
     ALCOVE_ERR(ei_encode_tuple_header(_msg, _index, 4)); \
     ALCOVE_ERR(ei_encode_atom(_msg, _index, _tag)); \
@@ -94,6 +97,7 @@
     } while (0)
 
 #define ALCOVE_TUPLE5(_msg, _index, _tag, _term1, _term2, _term3, _term4) do { \
+    *(_index) = 0; \
     ALCOVE_ERR(ei_encode_version(_msg, _index)); \
     ALCOVE_ERR(ei_encode_tuple_header(_msg, _index, 3)); \
     ALCOVE_ERR(ei_encode_atom(_msg, _index, _tag)); \
