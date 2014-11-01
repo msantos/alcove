@@ -145,6 +145,9 @@ alcove_getopt(alcove_state_t *ap, const char *arg, size_t len,
     else if (!strcmp(opt, "termsig")) {
         val = ap->opt & alcove_opt_termsig ? 1 : 0;
     }
+    else if (!strcmp(opt, "stdin_closed")) {
+        val = ap->opt & alcove_opt_stdin_closed ? 1 : 0;
+    }
     else if (!strcmp(opt, "stdout_closed")) {
         val = ap->opt & alcove_opt_stdout_closed ? 1 : 0;
     }
@@ -188,6 +191,9 @@ alcove_setopt(alcove_state_t *ap, const char *arg, size_t len,
     }
     else if (!strcmp(opt, "termsig")) {
         ALCOVE_SETOPT(ap, alcove_opt_termsig, val);
+    }
+    else if (!strcmp(opt, "stdin_closed")) {
+        ALCOVE_SETOPT(ap, alcove_opt_stdin_closed, val);
     }
     else if (!strcmp(opt, "stdout_closed")) {
         ALCOVE_SETOPT(ap, alcove_opt_stdout_closed, val);

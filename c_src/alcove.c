@@ -631,6 +631,12 @@ exited_pid(alcove_state_t *ap, alcove_child_t *c, void *arg1, void *arg2)
     int index = 0;
     char t[MAXMSGLEN] = {0};
 
+    if ( (c->fdin >= 0) && (ap->opt & alcove_opt_stdin_closed)) {
+        index = alcove_mk_atom(t, sizeof(t), "stdin_closed");
+        if (alcove_call_fake_reply(c->pid, ALCOVE_MSG_EVENT, t, index) < 0)
+            return -1;
+    }
+
     c->exited = 1 << 8;
     (void)close(c->fdin);
     c->fdin = -1;
