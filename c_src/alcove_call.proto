@@ -45,6 +45,7 @@ setns/1
 setopt/2
 setpgid/2
 setproctitle/1
+setresuid/3
 setrlimit/2
 setsid/0
 setuid/1
