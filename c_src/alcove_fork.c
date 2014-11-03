@@ -72,8 +72,8 @@ alcove_fork(alcove_state_t *ap, const char *arg, size_t len,
     alcove_arg_t child_arg = {0};
     alcove_stdio_t fd = {{0}};
     pid_t pid = 0;
-    sigset_t oldset = {{0}};
-    sigset_t set = {{0}};
+    sigset_t oldset;
+    sigset_t set;
     int errnum = 0;
 
     if (ap->depth >= ap->maxforkdepth)
@@ -140,8 +140,8 @@ alcove_clone(alcove_state_t *ap, const char *arg, size_t len,
     int flags = 0;
     pid_t pid = 0;
     int errnum = 0;
-    sigset_t oldset = {{0}};
-    sigset_t set = {{0}};
+    sigset_t oldset;
+    sigset_t set;
 
     if (ap->depth >= ap->maxforkdepth)
         return alcove_mk_errno(reply, rlen, EAGAIN);
