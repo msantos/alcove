@@ -20,6 +20,7 @@ gethostname/0
 getopt/1
 getpgrp/0
 getpid/0
+getresuid/0
 getrlimit/1
 getsid/1
 getuid/0

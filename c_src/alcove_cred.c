@@ -84,6 +84,38 @@ alcove_setuid(alcove_state_t *ap, const char *arg, size_t len,
 }
 
 /*
+ * getresuid(2)
+ */
+    ssize_t
+alcove_getresuid(alcove_state_t *ap, const char *arg, size_t len,
+        char *reply, size_t rlen)
+{
+#if defined(__sunos__)
+    return alcove_mk_error(reply, rlen, "unsupported");
+#else
+    int rindex = 0;
+    uid_t uid = {0};
+    uid_t euid = {0};
+    uid_t suid = {0};
+    int rv = 0;
+
+    rv = getresuid(&uid, &euid, &suid);
+
+    if (rv < 0)
+        return  alcove_mk_errno(reply, rlen, errno);
+
+    ALCOVE_ERR(alcove_encode_version(reply, rlen, &rindex));
+    ALCOVE_ERR(alcove_encode_tuple_header(reply, rlen, &rindex, 4));
+    ALCOVE_ERR(alcove_encode_atom(reply, rlen, &rindex, "ok"));
+    ALCOVE_ERR(alcove_encode_ulonglong(reply, rlen, &rindex, uid));
+    ALCOVE_ERR(alcove_encode_ulonglong(reply, rlen, &rindex, euid));
+    ALCOVE_ERR(alcove_encode_ulonglong(reply, rlen, &rindex, suid));
+
+    return rindex;
+#endif
+}
+
+/*
  * setresuid(2)
  */
     ssize_t
