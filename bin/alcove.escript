@@ -464,6 +464,9 @@ specs() ->
 -spec getpid(alcove_drv:ref()) -> os_pid().
 -spec getpid(alcove_drv:ref(),fork_path()) -> os_pid().
 
+-spec getresuid(alcove_drv:ref()) -> {'ok', non_neg_integer(), non_neg_integer(), non_neg_integer()} | {'error', file:posix()}.
+-spec getresuid(alcove_drv:ref(), fork_path()) -> {'ok', non_neg_integer(), non_neg_integer(), non_neg_integer()} | {'error', file:posix()}.
+
 -spec getrlimit(alcove_drv:ref(),define()) -> {'ok', #alcove_rlimit{}} | {'error', file:posix()}.
 -spec getrlimit(alcove_drv:ref(),fork_path(),define()) -> {'ok', #alcove_rlimit{}} | {'error', file:posix()}.
 
@@ -537,6 +540,9 @@ specs() ->
 
 -spec setproctitle(pid(),iodata()) -> 'ok'.
 -spec setproctitle(pid(),fork_path(),iodata()) -> 'ok'.
+
+-spec setresuid(alcove_drv:ref(),non_neg_integer(),non_neg_integer(),non_neg_integer()) -> 'ok' | {'error', file:posix()}.
+-spec setresuid(alcove_drv:ref(),fork_path(),non_neg_integer(),non_neg_integer(),non_neg_integer()) -> 'ok' | {'error', file:posix()}.
 
 -spec setrlimit(alcove_drv:ref(),define(),#alcove_rlimit{}) -> 'ok' | {'error', file:posix()}.
 -spec setrlimit(alcove_drv:ref(),fork_path(),define(),#alcove_rlimit{}) -> 'ok' | {'error', file:posix()}.
