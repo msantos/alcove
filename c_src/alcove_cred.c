@@ -152,6 +152,38 @@ alcove_setresuid(alcove_state_t *ap, const char *arg, size_t len,
 }
 
 /*
+ * getresgid(2)
+ */
+    ssize_t
+alcove_getresgid(alcove_state_t *ap, const char *arg, size_t len,
+        char *reply, size_t rlen)
+{
+#if defined(__sunos__)
+    return alcove_mk_error(reply, rlen, "unsupported");
+#else
+    int rindex = 0;
+    gid_t gid = {0};
+    gid_t egid = {0};
+    gid_t sgid = {0};
+    int rv = 0;
+
+    rv = getresgid(&gid, &egid, &sgid);
+
+    if (rv < 0)
+        return  alcove_mk_errno(reply, rlen, errno);
+
+    ALCOVE_ERR(alcove_encode_version(reply, rlen, &rindex));
+    ALCOVE_ERR(alcove_encode_tuple_header(reply, rlen, &rindex, 4));
+    ALCOVE_ERR(alcove_encode_atom(reply, rlen, &rindex, "ok"));
+    ALCOVE_ERR(alcove_encode_ulonglong(reply, rlen, &rindex, gid));
+    ALCOVE_ERR(alcove_encode_ulonglong(reply, rlen, &rindex, egid));
+    ALCOVE_ERR(alcove_encode_ulonglong(reply, rlen, &rindex, sgid));
+
+    return rindex;
+#endif
+}
+
+/*
  * setresgid(2)
  */
     ssize_t
@@ -162,9 +194,9 @@ alcove_setresgid(alcove_state_t *ap, const char *arg, size_t len,
     return alcove_mk_error(reply, rlen, "unsupported");
 #else
     int index = 0;
-    uid_t gid = {0};
-    uid_t egid = {0};
-    uid_t sgid = {0};
+    gid_t gid = {0};
+    gid_t egid = {0};
+    gid_t sgid = {0};
     int rv = 0;
 
     /* gid */
