@@ -479,8 +479,8 @@ probably confuse the process.
 
         getenv(3) : retrieve an environment variable
 
-    getgid(Drv) -> integer()
-    getgid(Drv, Pids) -> integer()
+    getgid(Drv) -> non_neg_integer()
+    getgid(Drv, Pids) -> non_neg_integer()
 
         getgid(2) : retrieve the processes' group ID
 
@@ -542,6 +542,24 @@ probably confuse the process.
     getpid(Drv, Pids) -> integer()
 
         getpid(2) : retrieve the system PID of the process.
+
+    getresgid(Drv) -> {ok, RGID, EGID, SGID}
+    getresgid(Drv, Pids) -> {ok, RGID, EGID, SGID}
+
+        Types   RGID = EGID = SGID = non_neg_integer()
+
+        getresgid(2) : get real, effective and saved group ID
+
+        Supported on Linux and BSD's.
+
+    getresuid(Drv) -> {ok, RUID, EUID, SUID}
+    getresuid(Drv, Pids) -> {ok, RUID, EUID, SUID}
+
+        Types   RUID = EUID = SUID = non_neg_integer()
+
+        getresuid(2) : get real, effective and saved user ID
+
+        Supported on Linux and BSD's.
 
     getrlimit(Drv, atom() | integer()) -> {ok, #alcove_rlimit{}} | {error, posix()}
     getrlimit(Drv, Pids, atom() | integer()) -> {ok, #alcove_rlimit{}} | {error, posix()}
@@ -776,14 +794,32 @@ probably confuse the process.
 
         Types   Name = iodata()
 
-	BSD only.
+        BSD only.
 
-	setproctitle(3) : set the process title
+        setproctitle(3) : set the process title
 
         On Linux, use prctl/6,7:
 
-		{ok,Fork} = alcove:fork(Drv),
-		alcove:prctl(Drv, [Fork], pr_set_name, <<"pseudonym">>, 0,0,0).
+            {ok,Fork} = alcove:fork(Drv),
+            alcove:prctl(Drv, [Fork], pr_set_name, <<"pseudonym">>, 0,0,0).
+
+    setresgid(Drv, RGID, EGID, SGID) -> ok | {error, posix()}
+    setresgid(Drv, Pids, RGID, EGID, SGID) -> ok | {error, posix()}
+
+        Types   RGID = EGID = SGID = non_neg_integer()
+
+        setresgid(2) : set real, effective and saved group ID
+
+        Supported on Linux and BSD's.
+
+    setresuid(Drv, RUID, EUID, SUID) -> ok | {error, posix()}
+    setresuid(Drv, Pids, RUID, EUID, SUID) -> ok | {error, posix()}
+
+        Types   RUID = EUID = SUID = non_neg_integer()
+
+        setresuid(2) : set real, effective and saved user ID
+
+        Supported on Linux and BSD's.
 
     setrlimit(Drv, Resource, Limit) -> ok | {error, posix()}
     setrlimit(Drv, Pids, Resource, Limit) -> ok | {error, posix()}

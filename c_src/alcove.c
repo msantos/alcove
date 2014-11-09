@@ -172,7 +172,7 @@ alcove_rlimit_init()
     /* Reset an unlimited stack size to a default value. The default is
      * set to 8Mb, the default for linux (_STK_LIM in linux/resources.h).
      *
-     * The current value of RLIMIT_STACK is used for allocating for the
+     * The current value of RLIMIT_STACK is used for allocating the
      * stack of cloned processes.
      *
      */
@@ -224,7 +224,7 @@ alcove_fd_init()
         return -1;
 
     /* Unlike the child processes, the port does not use a control fd.
-     * An fd is acquired and leaked here to for consistency.
+     * An fd is acquired and leaked here to reserve it.
      *
      * The fd may have been opened by another program. For example,
      * valgrind will use the first available fd for the log file.
