@@ -21,7 +21,7 @@
  *
  */
     ssize_t
-alcove_getrlimit(alcove_state_t *ap, const char *arg, size_t len,
+alcove_sys_getrlimit(alcove_state_t *ap, const char *arg, size_t len,
         char *reply, size_t rlen)
 {
     int index = 0;
@@ -66,7 +66,7 @@ alcove_getrlimit(alcove_state_t *ap, const char *arg, size_t len,
  *
  */
     ssize_t
-alcove_setrlimit(alcove_state_t *ap, const char *arg, size_t len,
+alcove_sys_setrlimit(alcove_state_t *ap, const char *arg, size_t len,
         char *reply, size_t rlen)
 {
     int index = 0;
@@ -124,7 +124,7 @@ alcove_setrlimit(alcove_state_t *ap, const char *arg, size_t len,
  *
  */
     ssize_t
-alcove_rlimit_define(alcove_state_t *ap, const char *arg, size_t len,
+alcove_sys_rlimit_define(alcove_state_t *ap, const char *arg, size_t len,
         char *reply, size_t rlen)
 {
     int index = 0;

@@ -33,7 +33,7 @@ EOF
 while read line; do
     IFS=/
     set -- $line
-    printf "    {alcove_%s, %s},\n" $1 $2
+    printf "    {alcove_sys_%s, %s},\n" $1 $2
 done < $PROTO
 
 cat<< 'EOF'

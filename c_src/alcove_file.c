@@ -30,7 +30,7 @@ static int alcove_fd_isset(char *buf, size_t len, int *index, fd_set *set);
  *
  */
     ssize_t
-alcove_open(alcove_state_t *ap, const char *arg, size_t len,
+alcove_sys_open(alcove_state_t *ap, const char *arg, size_t len,
         char *reply, size_t rlen)
 {
     int index = 0;
@@ -80,7 +80,7 @@ ERR:
  *
  */
     ssize_t
-alcove_close(alcove_state_t *ap, const char *arg, size_t len,
+alcove_sys_close(alcove_state_t *ap, const char *arg, size_t len,
         char *reply, size_t rlen)
 {
     int index = 0;
@@ -100,7 +100,7 @@ alcove_close(alcove_state_t *ap, const char *arg, size_t len,
  *
  */
     ssize_t
-alcove_select(alcove_state_t *ap, const char *arg, size_t len,
+alcove_sys_select(alcove_state_t *ap, const char *arg, size_t len,
         char *reply, size_t rlen)
 {
     int index = 0;
@@ -191,7 +191,7 @@ alcove_select(alcove_state_t *ap, const char *arg, size_t len,
  *
  */
     ssize_t
-alcove_lseek(alcove_state_t *ap, const char *arg, size_t len,
+alcove_sys_lseek(alcove_state_t *ap, const char *arg, size_t len,
         char *reply, size_t rlen)
 {
     int index = 0;
@@ -222,7 +222,7 @@ alcove_lseek(alcove_state_t *ap, const char *arg, size_t len,
  *
  */
     ssize_t
-alcove_read(alcove_state_t *ap, const char *arg, size_t len,
+alcove_sys_read(alcove_state_t *ap, const char *arg, size_t len,
         char *reply, size_t rlen)
 {
     int index = 0;
@@ -264,7 +264,7 @@ alcove_read(alcove_state_t *ap, const char *arg, size_t len,
  *
  */
     ssize_t
-alcove_write(alcove_state_t *ap, const char *arg, size_t len,
+alcove_sys_write(alcove_state_t *ap, const char *arg, size_t len,
         char *reply, size_t rlen)
 {
     int index = 0;
@@ -301,7 +301,7 @@ alcove_write(alcove_state_t *ap, const char *arg, size_t len,
  *
  */
     ssize_t
-alcove_chmod(alcove_state_t *ap, const char *arg, size_t len,
+alcove_sys_chmod(alcove_state_t *ap, const char *arg, size_t len,
         char *reply, size_t rlen)
 {
     int index = 0;
@@ -332,7 +332,7 @@ alcove_chmod(alcove_state_t *ap, const char *arg, size_t len,
  *
  */
     ssize_t
-alcove_chown(alcove_state_t *ap, const char *arg, size_t len,
+alcove_sys_chown(alcove_state_t *ap, const char *arg, size_t len,
         char *reply, size_t rlen)
 {
     int index = 0;
@@ -368,7 +368,7 @@ alcove_chown(alcove_state_t *ap, const char *arg, size_t len,
  *
  */
     ssize_t
-alcove_file_define(alcove_state_t *ap, const char *arg, size_t len,
+alcove_sys_file_define(alcove_state_t *ap, const char *arg, size_t len,
         char *reply, size_t rlen)
 {
     int index = 0;

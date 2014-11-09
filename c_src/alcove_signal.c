@@ -21,7 +21,7 @@
  *
  */
     ssize_t
-alcove_kill(alcove_state_t *ap, const char *arg, size_t len,
+alcove_sys_kill(alcove_state_t *ap, const char *arg, size_t len,
         char *reply, size_t rlen)
 {
     int index = 0;
@@ -60,7 +60,7 @@ alcove_kill(alcove_state_t *ap, const char *arg, size_t len,
  *
  */
     ssize_t
-alcove_sigaction(alcove_state_t *ap, const char *arg, size_t len,
+alcove_sys_sigaction(alcove_state_t *ap, const char *arg, size_t len,
         char *reply, size_t rlen)
 {
     int index = 0;
@@ -123,7 +123,7 @@ alcove_sigaction(alcove_state_t *ap, const char *arg, size_t len,
  *
  */
     ssize_t
-alcove_signal_define(alcove_state_t *ap, const char *arg, size_t len,
+alcove_sys_signal_define(alcove_state_t *ap, const char *arg, size_t len,
         char *reply, size_t rlen)
 {
     int index = 0;
@@ -143,7 +143,7 @@ alcove_signal_define(alcove_state_t *ap, const char *arg, size_t len,
 }
 
     ssize_t
-alcove_signal_constant(alcove_state_t *ap, const char *arg, size_t len,
+alcove_sys_signal_constant(alcove_state_t *ap, const char *arg, size_t len,
         char *reply, size_t rlen)
 {
     int index = 0;

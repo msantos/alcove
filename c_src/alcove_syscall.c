@@ -27,7 +27,7 @@
  *
  */
     ssize_t
-alcove_syscall_define(alcove_state_t *ap, const char *arg, size_t len,
+alcove_sys_syscall_define(alcove_state_t *ap, const char *arg, size_t len,
         char *reply, size_t rlen)
 {
 #ifdef __linux__

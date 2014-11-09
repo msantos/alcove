@@ -26,7 +26,7 @@
  *
  */
     ssize_t
-alcove_mount(alcove_state_t *ap, const char *arg, size_t len,
+alcove_sys_mount(alcove_state_t *ap, const char *arg, size_t len,
         char *reply, size_t rlen)
 {
     int index = 0;
@@ -122,7 +122,7 @@ alcove_mount(alcove_state_t *ap, const char *arg, size_t len,
  *
  */
     ssize_t
-alcove_umount(alcove_state_t *ap, const char *arg, size_t len,
+alcove_sys_umount(alcove_state_t *ap, const char *arg, size_t len,
         char *reply, size_t rlen)
 {
     int index = 0;
@@ -153,7 +153,7 @@ alcove_umount(alcove_state_t *ap, const char *arg, size_t len,
  *
  */
     ssize_t
-alcove_mount_define(alcove_state_t *ap, const char *arg, size_t len,
+alcove_sys_mount_define(alcove_state_t *ap, const char *arg, size_t len,
         char *reply, size_t rlen)
 {
     int index = 0;

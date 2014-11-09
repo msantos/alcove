@@ -64,7 +64,7 @@ static int setns(int fd, int nstype);
  *
  */
     ssize_t
-alcove_fork(alcove_state_t *ap, const char *arg, size_t len,
+alcove_sys_fork(alcove_state_t *ap, const char *arg, size_t len,
         char *reply, size_t rlen)
 {
     int rindex = 0;
@@ -126,7 +126,7 @@ alcove_fork(alcove_state_t *ap, const char *arg, size_t len,
  *
  */
     ssize_t
-alcove_clone(alcove_state_t *ap, const char *arg, size_t len,
+alcove_sys_clone(alcove_state_t *ap, const char *arg, size_t len,
         char *reply, size_t rlen)
 {
 #ifdef __linux__
@@ -223,7 +223,7 @@ setns(int fd, int nstype)
 #endif
 
     ssize_t
-alcove_setns(alcove_state_t *ap, const char *arg, size_t len,
+alcove_sys_setns(alcove_state_t *ap, const char *arg, size_t len,
         char *reply, size_t rlen)
 {
 #ifdef __linux__
@@ -264,7 +264,7 @@ alcove_setns(alcove_state_t *ap, const char *arg, size_t len,
  *
  */
     ssize_t
-alcove_unshare(alcove_state_t *ap, const char *arg, size_t len,
+alcove_sys_unshare(alcove_state_t *ap, const char *arg, size_t len,
         char *reply, size_t rlen)
 {
 #ifdef __linux__
@@ -290,7 +290,7 @@ alcove_unshare(alcove_state_t *ap, const char *arg, size_t len,
  *
  */
     ssize_t
-alcove_clone_define(alcove_state_t *ap, const char *arg, size_t len,
+alcove_sys_clone_define(alcove_state_t *ap, const char *arg, size_t len,
         char *reply, size_t rlen)
 {
 #ifdef __linux__

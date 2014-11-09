@@ -23,7 +23,7 @@
  *
  */
     ssize_t
-alcove_chdir(alcove_state_t *ap, const char *arg, size_t len,
+alcove_sys_chdir(alcove_state_t *ap, const char *arg, size_t len,
         char *reply, size_t rlen)
 {
     int index = 0;
@@ -49,7 +49,7 @@ alcove_chdir(alcove_state_t *ap, const char *arg, size_t len,
  *
  */
     ssize_t
-alcove_mkdir(alcove_state_t *ap, const char *arg, size_t len,
+alcove_sys_mkdir(alcove_state_t *ap, const char *arg, size_t len,
         char *reply, size_t rlen)
 {
     int index = 0;
@@ -79,7 +79,7 @@ alcove_mkdir(alcove_state_t *ap, const char *arg, size_t len,
  *
  */
     ssize_t
-alcove_rmdir(alcove_state_t *ap, const char *arg, size_t len,
+alcove_sys_rmdir(alcove_state_t *ap, const char *arg, size_t len,
         char *reply, size_t rlen)
 {
     int index = 0;
@@ -104,7 +104,7 @@ alcove_rmdir(alcove_state_t *ap, const char *arg, size_t len,
  *
  */
     ssize_t
-alcove_chroot(alcove_state_t *ap, const char *arg, size_t len,
+alcove_sys_chroot(alcove_state_t *ap, const char *arg, size_t len,
         char *reply, size_t rlen)
 {
     int index = 0;
@@ -129,7 +129,7 @@ alcove_chroot(alcove_state_t *ap, const char *arg, size_t len,
  *
  */
     ssize_t
-alcove_getcwd(alcove_state_t *ap, const char *arg, size_t len,
+alcove_sys_getcwd(alcove_state_t *ap, const char *arg, size_t len,
         char *reply, size_t rlen)
 {
     int rindex = 0;
@@ -149,7 +149,7 @@ alcove_getcwd(alcove_state_t *ap, const char *arg, size_t len,
  *
  */
     ssize_t
-alcove_readdir(alcove_state_t *ap, const char *arg, size_t len,
+alcove_sys_readdir(alcove_state_t *ap, const char *arg, size_t len,
         char *reply, size_t rlen)
 {
     int index = 0;

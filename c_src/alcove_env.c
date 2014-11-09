@@ -22,7 +22,7 @@ extern char **environ;
  *
  */
     ssize_t
-alcove_environ(alcove_state_t *ap, const char *arg, size_t len,
+alcove_sys_environ(alcove_state_t *ap, const char *arg, size_t len,
         char *reply, size_t rlen)
 {
     int rindex = 0;
@@ -45,7 +45,7 @@ alcove_environ(alcove_state_t *ap, const char *arg, size_t len,
  *
  */
     ssize_t
-alcove_getenv(alcove_state_t *ap, const char *arg, size_t len,
+alcove_sys_getenv(alcove_state_t *ap, const char *arg, size_t len,
         char *reply, size_t rlen)
 {
     int index = 0;
@@ -71,7 +71,7 @@ alcove_getenv(alcove_state_t *ap, const char *arg, size_t len,
  */
 
     ssize_t
-alcove_setenv(alcove_state_t *ap, const char *arg, size_t len,
+alcove_sys_setenv(alcove_state_t *ap, const char *arg, size_t len,
         char *reply, size_t rlen)
 {
     int index = 0;
@@ -107,7 +107,7 @@ alcove_setenv(alcove_state_t *ap, const char *arg, size_t len,
  *
  */
     ssize_t
-alcove_unsetenv(alcove_state_t *ap, const char *arg, size_t len,
+alcove_sys_unsetenv(alcove_state_t *ap, const char *arg, size_t len,
         char *reply, size_t rlen)
 {
     int index = 0;
@@ -132,7 +132,7 @@ alcove_unsetenv(alcove_state_t *ap, const char *arg, size_t len,
  *
  */
     ssize_t
-alcove_clearenv(alcove_state_t *ap, const char *arg, size_t len,
+alcove_sys_clearenv(alcove_state_t *ap, const char *arg, size_t len,
         char *reply, size_t rlen)
 {
 #ifdef __linux__

@@ -17,7 +17,7 @@
 
 /* Probably only useful for testing */
     ssize_t
-alcove_alloc(alcove_state_t *ap, const char *arg, size_t len,
+alcove_sys_alloc(alcove_state_t *ap, const char *arg, size_t len,
         char *reply, size_t rlen)
 {
     int index = 0;
@@ -42,7 +42,7 @@ alcove_alloc(alcove_state_t *ap, const char *arg, size_t len,
 
 /* For testing conversion of iolists to binaries */
     ssize_t
-alcove_iolist_to_bin(alcove_state_t *ap, const char *arg, size_t len,
+alcove_sys_iolist_to_bin(alcove_state_t *ap, const char *arg, size_t len,
         char *reply, size_t rlen)
 {
     int index = 0;

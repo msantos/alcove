@@ -20,7 +20,7 @@
  *
  */
     ssize_t
-alcove_execvp(alcove_state_t *ap, const char *arg, size_t len,
+alcove_sys_execvp(alcove_state_t *ap, const char *arg, size_t len,
         char *reply, size_t rlen)
 {
     int index = 0;
@@ -53,7 +53,7 @@ alcove_execvp(alcove_state_t *ap, const char *arg, size_t len,
  *
  */
     ssize_t
-alcove_execve(alcove_state_t *ap, const char *arg, size_t len,
+alcove_sys_execve(alcove_state_t *ap, const char *arg, size_t len,
         char *reply, size_t rlen)
 {
     int index = 0;
@@ -92,7 +92,7 @@ alcove_execve(alcove_state_t *ap, const char *arg, size_t len,
  *
  */
     ssize_t
-alcove_exit(alcove_state_t *ap, const char *arg, size_t len,
+alcove_sys_exit(alcove_state_t *ap, const char *arg, size_t len,
         char *reply, size_t rlen)
 {
     int index = 0;

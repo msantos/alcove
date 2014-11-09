@@ -20,7 +20,7 @@
  *
  */
     ssize_t
-alcove_getgid(alcove_state_t *ap, const char *arg, size_t len,
+alcove_sys_getgid(alcove_state_t *ap, const char *arg, size_t len,
         char *reply, size_t rlen)
 {
     return alcove_mk_ulong(reply, rlen, getgid());
@@ -31,7 +31,7 @@ alcove_getgid(alcove_state_t *ap, const char *arg, size_t len,
  *
  */
     ssize_t
-alcove_getuid(alcove_state_t *ap, const char *arg, size_t len,
+alcove_sys_getuid(alcove_state_t *ap, const char *arg, size_t len,
         char *reply, size_t rlen)
 {
     return alcove_mk_ulong(reply, rlen, getuid());
@@ -42,7 +42,7 @@ alcove_getuid(alcove_state_t *ap, const char *arg, size_t len,
  *
  */
     ssize_t
-alcove_setgid(alcove_state_t *ap, const char *arg, size_t len,
+alcove_sys_setgid(alcove_state_t *ap, const char *arg, size_t len,
         char *reply, size_t rlen)
 {
     int index = 0;
@@ -65,7 +65,7 @@ alcove_setgid(alcove_state_t *ap, const char *arg, size_t len,
  *
  */
     ssize_t
-alcove_setuid(alcove_state_t *ap, const char *arg, size_t len,
+alcove_sys_setuid(alcove_state_t *ap, const char *arg, size_t len,
         char *reply, size_t rlen)
 {
     int index = 0;
@@ -87,7 +87,7 @@ alcove_setuid(alcove_state_t *ap, const char *arg, size_t len,
  * getresuid(2)
  */
     ssize_t
-alcove_getresuid(alcove_state_t *ap, const char *arg, size_t len,
+alcove_sys_getresuid(alcove_state_t *ap, const char *arg, size_t len,
         char *reply, size_t rlen)
 {
 #if defined(__sunos__)
@@ -119,7 +119,7 @@ alcove_getresuid(alcove_state_t *ap, const char *arg, size_t len,
  * setresuid(2)
  */
     ssize_t
-alcove_setresuid(alcove_state_t *ap, const char *arg, size_t len,
+alcove_sys_setresuid(alcove_state_t *ap, const char *arg, size_t len,
         char *reply, size_t rlen)
 {
 #if defined(__sunos__)
@@ -155,7 +155,7 @@ alcove_setresuid(alcove_state_t *ap, const char *arg, size_t len,
  * getresgid(2)
  */
     ssize_t
-alcove_getresgid(alcove_state_t *ap, const char *arg, size_t len,
+alcove_sys_getresgid(alcove_state_t *ap, const char *arg, size_t len,
         char *reply, size_t rlen)
 {
 #if defined(__sunos__)
@@ -187,7 +187,7 @@ alcove_getresgid(alcove_state_t *ap, const char *arg, size_t len,
  * setresgid(2)
  */
     ssize_t
-alcove_setresgid(alcove_state_t *ap, const char *arg, size_t len,
+alcove_sys_setresgid(alcove_state_t *ap, const char *arg, size_t len,
         char *reply, size_t rlen)
 {
 #if defined(__sunos__)

@@ -70,7 +70,7 @@ BADARG:
 }
 
     ssize_t
-alcove_version(alcove_state_t *ap, const char *arg, size_t len,
+alcove_sys_version(alcove_state_t *ap, const char *arg, size_t len,
         char *reply, size_t rlen)
 {
     return alcove_mk_binary(reply, rlen,
@@ -78,7 +78,7 @@ alcove_version(alcove_state_t *ap, const char *arg, size_t len,
 }
 
     ssize_t
-alcove_pid(alcove_state_t *ap, const char *arg, size_t len,
+alcove_sys_pid(alcove_state_t *ap, const char *arg, size_t len,
         char *reply, size_t rlen)
 {
     int rindex = 0;
@@ -116,7 +116,7 @@ alcove_pid(alcove_state_t *ap, const char *arg, size_t len,
 
 /* Get port options */
     ssize_t
-alcove_getopt(alcove_state_t *ap, const char *arg, size_t len,
+alcove_sys_getopt(alcove_state_t *ap, const char *arg, size_t len,
         char *reply, size_t rlen)
 {
     int index = 0;
@@ -162,7 +162,7 @@ alcove_getopt(alcove_state_t *ap, const char *arg, size_t len,
 
 /* Set port options */
     ssize_t
-alcove_setopt(alcove_state_t *ap, const char *arg, size_t len,
+alcove_sys_setopt(alcove_state_t *ap, const char *arg, size_t len,
         char *reply, size_t rlen)
 {
     int index = 0;

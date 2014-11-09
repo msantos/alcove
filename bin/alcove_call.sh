@@ -24,6 +24,6 @@ while read line; do
     IFS=/
     set -- $line
     cat << EOF
-ssize_t alcove_$1(alcove_state_t *, const char *, size_t, char *, size_t);
+ssize_t alcove_sys_$1(alcove_state_t *, const char *, size_t, char *, size_t);
 EOF
 done < $PROTO

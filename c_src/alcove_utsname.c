@@ -24,7 +24,7 @@
  *
  */
     ssize_t
-alcove_gethostname(alcove_state_t *ap, const char *arg, size_t len,
+alcove_sys_gethostname(alcove_state_t *ap, const char *arg, size_t len,
         char *reply, size_t rlen)
 {
     int rindex = 0;
@@ -48,7 +48,7 @@ alcove_gethostname(alcove_state_t *ap, const char *arg, size_t len,
  *
  */
     ssize_t
-alcove_sethostname(alcove_state_t *ap, const char *arg, size_t len,
+alcove_sys_sethostname(alcove_state_t *ap, const char *arg, size_t len,
         char *reply, size_t rlen)
 {
     int index = 0;

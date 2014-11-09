@@ -28,7 +28,7 @@
  *
  */
     ssize_t
-alcove_getpid(alcove_state_t *ap, const char *arg, size_t len,
+alcove_sys_getpid(alcove_state_t *ap, const char *arg, size_t len,
         char *reply, size_t rlen)
 {
     return alcove_mk_long(reply, rlen, getpid());
@@ -39,7 +39,7 @@ alcove_getpid(alcove_state_t *ap, const char *arg, size_t len,
  *
  */
     ssize_t
-alcove_prctl(alcove_state_t *ap, const char *arg, size_t len,
+alcove_sys_prctl(alcove_state_t *ap, const char *arg, size_t len,
         char *reply, size_t rlen)
 {
 #ifdef __linux__
@@ -174,7 +174,7 @@ alcove_prctl(alcove_state_t *ap, const char *arg, size_t len,
  *
  */
     ssize_t
-alcove_prctl_define(alcove_state_t *ap, const char *arg, size_t len,
+alcove_sys_prctl_define(alcove_state_t *ap, const char *arg, size_t len,
         char *reply, size_t rlen)
 {
 #ifdef __linux__
@@ -200,7 +200,7 @@ alcove_prctl_define(alcove_state_t *ap, const char *arg, size_t len,
  * getsid(2)
  */
     ssize_t
-alcove_getsid(alcove_state_t *ap, const char *arg, size_t len,
+alcove_sys_getsid(alcove_state_t *ap, const char *arg, size_t len,
         char *reply, size_t rlen)
 {
     int index = 0;
@@ -228,7 +228,7 @@ alcove_getsid(alcove_state_t *ap, const char *arg, size_t len,
  * setsid(2)
  */
     ssize_t
-alcove_setsid(alcove_state_t *ap, const char *arg, size_t len,
+alcove_sys_setsid(alcove_state_t *ap, const char *arg, size_t len,
         char *reply, size_t rlen)
 {
     int rindex = 0;
@@ -247,7 +247,7 @@ alcove_setsid(alcove_state_t *ap, const char *arg, size_t len,
  * getpgrp(2)
  */
     ssize_t
-alcove_getpgrp(alcove_state_t *ap, const char *arg, size_t len,
+alcove_sys_getpgrp(alcove_state_t *ap, const char *arg, size_t len,
         char *reply, size_t rlen)
 {
     return alcove_mk_long(reply, rlen, getpgrp());
@@ -257,7 +257,7 @@ alcove_getpgrp(alcove_state_t *ap, const char *arg, size_t len,
  * setpgid(2)
  */
     ssize_t
-alcove_setpgid(alcove_state_t *ap, const char *arg, size_t len,
+alcove_sys_setpgid(alcove_state_t *ap, const char *arg, size_t len,
         char *reply, size_t rlen)
 {
     int index = 0;
@@ -283,7 +283,7 @@ alcove_setpgid(alcove_state_t *ap, const char *arg, size_t len,
  * setproctitle(3)
  */
     ssize_t
-alcove_setproctitle(alcove_state_t *ap, const char *arg, size_t len,
+alcove_sys_setproctitle(alcove_state_t *ap, const char *arg, size_t len,
         char *reply, size_t rlen)
 {
 #if defined(__linux__) || defined(__sunos__)
