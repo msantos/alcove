@@ -295,7 +295,7 @@ alcove_event_loop(alcove_state_t *ap)
                 case EINTR:
                     continue;
                 default:
-                    break;
+                    err(errno, "poll");
             }
         }
 
