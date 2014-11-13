@@ -541,6 +541,9 @@ specs() ->
 -spec setopt(alcove_drv:ref(),atom(), non_neg_integer()) -> boolean().
 -spec setopt(alcove_drv:ref(),fork_path(),atom(),non_neg_integer()) -> boolean().
 
+-spec setpgid(alcove_drv:ref(),non_neg_integer(),non_neg_integer()) -> 'ok' | {'error', file:posix()}.
+-spec setpgid(alcove_drv:ref(),[non_neg_integer()],non_neg_integer(),non_neg_integer()) -> 'ok' | {'error', file:posix()}.
+
 -spec setproctitle(pid(),iodata()) -> 'ok'.
 -spec setproctitle(pid(),fork_path(),iodata()) -> 'ok'.
 

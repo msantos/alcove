@@ -729,7 +729,7 @@ probably confuse the process.
         setgid(2) : set the GID of the process
 
     setpgid(Drv, Pid, Pgid) -> ok | {error, posix()}
-    setpgid(Drv, Pids,Pid, Pgid) -> ok | {error, posix()}
+    setpgid(Drv, Pids, Pid, Pgid) -> ok | {error, posix()}
 
         Types   Pgid = integer()
 
