@@ -33,6 +33,7 @@ mount/6
 mount_define/1
 open/3
 pid/0
+pivot_root/2
 prctl/5
 prctl_define/1
 read/2
