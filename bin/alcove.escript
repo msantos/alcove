@@ -544,8 +544,8 @@ specs() ->
 -spec setpgid(alcove_drv:ref(),non_neg_integer(),non_neg_integer()) -> 'ok' | {'error', file:posix()}.
 -spec setpgid(alcove_drv:ref(),[non_neg_integer()],non_neg_integer(),non_neg_integer()) -> 'ok' | {'error', file:posix()}.
 
--spec setproctitle(pid(),iodata()) -> 'ok'.
--spec setproctitle(pid(),fork_path(),iodata()) -> 'ok'.
+-spec setproctitle(alcove_drv:ref(),iodata()) -> 'ok'.
+-spec setproctitle(alcove_drv:ref(),fork_path(),iodata()) -> 'ok'.
 
 -spec setresgid(alcove_drv:ref(),non_neg_integer(),non_neg_integer(),non_neg_integer()) -> 'ok' | {'error', file:posix()}.
 -spec setresgid(alcove_drv:ref(),fork_path(),non_neg_integer(),non_neg_integer(),non_neg_integer()) -> 'ok' | {'error', file:posix()}.
