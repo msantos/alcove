@@ -500,6 +500,9 @@ specs() ->
 -spec pid(alcove_drv:ref()) -> [#alcove_pid{}].
 -spec pid(alcove_drv:ref(),fork_path()) -> [#alcove_pid{}].
 
+-spec pivot_root(alcove_drv:ref(),iodata(),iodata()) -> 'ok' | {'error', file:posix()}.
+-spec pivot_root(alcove_drv:ref(),fork_path(),iodata(),iodata()) -> 'ok' | {'error', file:posix()}.
+
 -type prctl_arg() :: [binary() | {ptr, binary() | non_neg_integer()} ] | binary() | non_neg_integer() | atom().
 -type prctl_val() :: binary() | non_neg_integer().
 
