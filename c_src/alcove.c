@@ -96,6 +96,7 @@ main(int argc, char *argv[])
         err(EXIT_FAILURE, "calloc");
 
     ALCOVE_SETOPT(ap, alcove_opt_termsig, 1);
+    ALCOVE_SETOPT(ap, alcove_opt_exit_status, 1);
 
     ap->maxfd = sysconf(_SC_OPEN_MAX);
     ap->maxchild = ap->maxfd / ALCOVE_MAXFILENO - ALCOVE_MAXFILENO;
