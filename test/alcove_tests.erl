@@ -636,12 +636,12 @@ execve(#state{pid = Drv}) ->
 
 stream(#state{pid = Drv}) ->
     Chain = chain(Drv, 16),
-    Default = integer_to_list(1 * 1024 * 1024),
-    Count = list_to_integer(getenv("ALCOVE_TEST_STREAM_COUNT", Default)),
-    Cmd = "yes | head -" ++ integer_to_list(Count),
+    DefaultCount = 1 * 1024 * 1024,
+    Count = getenv("ALCOVE_TEST_STREAM_COUNT", integer_to_list(DefaultCount)),
+    Cmd = "yes | head -" ++ Count,
     ok = alcove:execvp(Drv, Chain, "/bin/sh", ["/bin/sh", "-c", Cmd]),
     % <<"y\n">>
-    Reply = stream_count(Drv, Chain, Count*2),
+    Reply = stream_count(Drv, Chain, list_to_integer(Count)*2),
     ?_assertEqual(ok, Reply).
 
 open(#state{pid = Drv}) ->
