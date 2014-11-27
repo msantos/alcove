@@ -211,12 +211,12 @@ setopt(#state{pid = Drv}) ->
 event(#state{pid = Drv}) ->
     {ok, Fork} = alcove:fork(Drv),
     Reply0 = alcove:exit(Drv, [Fork], 0),
-    Reply1 = alcove:event(Drv, [Fork]),
+    Reply1 = alcove:event(Drv, [Fork], 5000),
     Reply2 = alcove:event(Drv, [], 5000),
 
     [
         ?_assertEqual(ok, Reply0),
-        ?_assertEqual(false, Reply1),
+        ?_assertEqual({exit_status,0}, Reply1),
         ?_assertMatch({signal,_}, Reply2)
     ].
 
