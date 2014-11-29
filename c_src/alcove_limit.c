@@ -16,6 +16,10 @@
 #include "alcove_call.h"
 #include "alcove_limit.h"
 
+#if defined(__linux__) || defined(__sunos__)
+static int rlimit_under_maxfd(long maxfd, unsigned long long fd);
+#endif
+
 /*
  * getrlimit(2)
  *
@@ -109,6 +113,13 @@ alcove_sys_setrlimit(alcove_state_t *ap, const char *arg, size_t len,
     if (alcove_decode_ulonglong(arg, len, &index, &max) < 0)
         return -1;
 
+#if defined(__linux__) || defined(__sunos__)
+    if (resource == RLIMIT_NOFILE) {
+        if (rlimit_under_maxfd(ap->maxfd, cur) < 0)
+            return alcove_mk_errno(reply, rlen, EINVAL);
+    }
+#endif
+
     rlim.rlim_cur = cur;
     rlim.rlim_max = max;
 
@@ -141,3 +152,18 @@ alcove_sys_rlimit_define(alcove_state_t *ap, const char *arg, size_t len,
                 name, alcove_rlimit_constants));
     return rindex;
 }
+
+#if defined(__linux__) || defined(__sunos__)
+    static int
+rlimit_under_maxfd(long maxfd, unsigned long long fd)
+{
+    int i;
+
+    for (i = fd+1; i < maxfd; i++) {
+        if (fcntl(fd, F_GETFD, 0) >= 0)
+            return -1;
+    }
+
+    return 0;
+}
+#endif
