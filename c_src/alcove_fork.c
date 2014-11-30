@@ -199,7 +199,7 @@ ERR:
     free(child_stack);
     return alcove_mk_errno(reply, rlen, errnum);
 #else
-    return alcove_mk_error(reply, rlen, "unsupported");
+    return alcove_mk_atom(reply, rlen, "undef");
 #endif
 }
 
@@ -255,7 +255,7 @@ alcove_sys_setns(alcove_state_t *ap, const char *arg, size_t len,
 
     return alcove_mk_atom(reply, rlen, "ok");
 #else
-    return alcove_mk_error(reply, rlen, "unsupported");
+    return alcove_mk_atom(reply, rlen, "undef");
 #endif
 }
 
@@ -281,7 +281,7 @@ alcove_sys_unshare(alcove_state_t *ap, const char *arg, size_t len,
         ? alcove_mk_errno(reply, rlen, errno)
         : alcove_mk_atom(reply, rlen, "ok");
 #else
-    return alcove_mk_error(reply, rlen, "unsupported");
+    return alcove_mk_atom(reply, rlen, "undef");
 #endif
 }
 

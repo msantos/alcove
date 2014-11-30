@@ -165,7 +165,7 @@ alcove_sys_prctl(alcove_state_t *ap, const char *arg, size_t len,
 
     return rindex;
 #else
-    return alcove_mk_error(reply, rlen, "unsupported");
+    return alcove_mk_atom(reply, rlen, "undef");
 #endif
 }
 
@@ -287,7 +287,7 @@ alcove_sys_setproctitle(alcove_state_t *ap, const char *arg, size_t len,
         char *reply, size_t rlen)
 {
 #if defined(__linux__) || defined(__sunos__)
-    return alcove_mk_error(reply, rlen, "unsupported");
+    return alcove_mk_atom(reply, rlen, "undef");
 #else
     int index = 0;
 

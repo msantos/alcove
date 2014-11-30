@@ -91,7 +91,7 @@ alcove_sys_getresuid(alcove_state_t *ap, const char *arg, size_t len,
         char *reply, size_t rlen)
 {
 #if defined(__sunos__)
-    return alcove_mk_error(reply, rlen, "unsupported");
+    return alcove_mk_atom(reply, rlen, "undef");
 #else
     int rindex = 0;
     uid_t uid = {0};
@@ -123,7 +123,7 @@ alcove_sys_setresuid(alcove_state_t *ap, const char *arg, size_t len,
         char *reply, size_t rlen)
 {
 #if defined(__sunos__)
-    return alcove_mk_error(reply, rlen, "unsupported");
+    return alcove_mk_atom(reply, rlen, "undef");
 #else
     int index = 0;
     uid_t uid = {0};
@@ -159,7 +159,7 @@ alcove_sys_getresgid(alcove_state_t *ap, const char *arg, size_t len,
         char *reply, size_t rlen)
 {
 #if defined(__sunos__)
-    return alcove_mk_error(reply, rlen, "unsupported");
+    return alcove_mk_atom(reply, rlen, "undef");
 #else
     int rindex = 0;
     gid_t gid = {0};
@@ -191,7 +191,7 @@ alcove_sys_setresgid(alcove_state_t *ap, const char *arg, size_t len,
         char *reply, size_t rlen)
 {
 #if defined(__sunos__)
-    return alcove_mk_error(reply, rlen, "unsupported");
+    return alcove_mk_atom(reply, rlen, "undef");
 #else
     int index = 0;
     gid_t gid = {0};

@@ -160,7 +160,7 @@ alcove_sys_pivot_root(alcove_state_t *ap, const char *arg, size_t len,
         ? alcove_mk_errno(reply, rlen, errno)
         : alcove_mk_atom(reply, rlen, "ok");
 #else
-    return alcove_mk_error(reply, rlen, "unsupported");
+    return alcove_mk_atom(reply, rlen, "undef");
 #endif
 }
 

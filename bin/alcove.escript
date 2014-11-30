@@ -358,6 +358,8 @@ call(Drv, Pids, Command, Argv, Timeout) when is_pid(Drv), is_list(Argv) ->
             call_returns(Command), Timeout) of
         badarg ->
             erlang:error(badarg, [Drv, Command, Argv]);
+        undef ->
+            erlang:error(undef, [Drv, Command, Argv]);
         Reply ->
             Reply
     end.
