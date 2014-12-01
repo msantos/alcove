@@ -304,3 +304,103 @@ alcove_sys_setproctitle(alcove_state_t *ap, const char *arg, size_t len,
     return alcove_mk_atom(reply, rlen, "ok");
 #endif
 }
+
+/*
+ * getpriority(2)
+ */
+    ssize_t
+alcove_sys_getpriority(alcove_state_t *ap, const char *arg, size_t len,
+        char *reply, size_t rlen)
+{
+    int index = 0;
+    int rindex = 0;
+
+    int which = 0;
+    int who = 0;
+    int prio = 0;
+
+    switch (alcove_decode_define(arg, len, &index, &which,
+                alcove_prio_constants)) {
+        case 0:
+            break;
+
+        case 1:
+            return alcove_mk_errno(reply, rlen, EINVAL);
+
+        case -1:
+        default:
+            return -1;
+    }
+
+    switch (alcove_decode_define(arg, len, &index, &who,
+                alcove_prio_constants)) {
+        case 0:
+            break;
+
+        case 1:
+            return alcove_mk_errno(reply, rlen, EINVAL);
+
+        case -1:
+        default:
+            return -1;
+    }
+
+    errno = 0;
+    prio = getpriority(which, who);
+
+    if (errno != 0)
+        return alcove_mk_errno(reply, rlen, errno);
+
+    ALCOVE_OK(reply, &rindex,
+        alcove_encode_long(reply, rlen, &rindex, prio));
+
+    return rindex;
+}
+
+/*
+ * setpriority(2)
+ */
+    ssize_t
+alcove_sys_setpriority(alcove_state_t *ap, const char *arg, size_t len,
+        char *reply, size_t rlen)
+{
+    int index = 0;
+
+    int which = 0;
+    int who = 0;
+    int prio = 0;
+
+    switch (alcove_decode_define(arg, len, &index, &which,
+                alcove_prio_constants)) {
+        case 0:
+            break;
+
+        case 1:
+            return alcove_mk_errno(reply, rlen, EINVAL);
+
+        case -1:
+        default:
+            return -1;
+    }
+
+    switch (alcove_decode_define(arg, len, &index, &who,
+                alcove_prio_constants)) {
+        case 0:
+            break;
+
+        case 1:
+            return alcove_mk_errno(reply, rlen, EINVAL);
+
+        case -1:
+        default:
+            return -1;
+    }
+
+    if (alcove_decode_int(arg, len, &index, &prio) < 0)
+        return -1;
+
+    if (setpriority(which, who, prio) < 0)
+        return alcove_mk_errno(reply, rlen, errno);
+
+    return alcove_mk_atom(reply, rlen, "ok");
+}

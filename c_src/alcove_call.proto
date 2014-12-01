@@ -20,6 +20,7 @@ gethostname/0
 getopt/1
 getpgrp/0
 getpid/0
+getpriority/2
 getresgid/0
 getresuid/0
 getrlimit/1
@@ -47,6 +48,7 @@ sethostname/1
 setns/1
 setopt/2
 setpgid/2
+setpriority/3
 setproctitle/1
 setresgid/3
 setresuid/3

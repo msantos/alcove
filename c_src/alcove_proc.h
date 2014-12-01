@@ -272,3 +272,17 @@ const alcove_define_t alcove_prctl_constants[] = {
 
     {NULL, 0}
 };
+
+const alcove_define_t alcove_prio_constants[] = {
+#ifdef PRIO_PROCESS
+    ALCOVE_DEFINE(PRIO_PROCESS),
+#endif
+#ifdef PRIO_PPGRP
+    ALCOVE_DEFINE(PRIO_PGRP),
+#endif
+#ifdef PRIO_USER
+    ALCOVE_DEFINE(PRIO_USER),
+#endif
+
+    {NULL, 0}
+};
