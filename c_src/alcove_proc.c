@@ -20,8 +20,9 @@
 #ifdef HAVE_SECCOMP
 #include <linux/seccomp.h>
 #endif
-#include "alcove_proc.h"
 #endif
+
+#include "alcove_proc.h"
 
 /*
  * getpid(2)
