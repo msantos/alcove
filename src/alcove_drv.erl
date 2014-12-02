@@ -18,10 +18,8 @@
 %% API
 -export([start/0, start/1, stop/1]).
 -export([start_link/2]).
--export([call/5, encode/2, encode/3]).
+-export([call/5]).
 -export([stdin/3, stdout/3, stderr/3, event/3, send/2]).
--export([atom_to_type/1, type_to_atom/1]).
--export([msg/2, decode/1]).
 -export([getopts/1]).
 
 %% gen_server callbacks
@@ -52,11 +50,12 @@ start_link(Owner, Options) ->
 stop(Drv) ->
     gen_server:call(Drv, stop).
 
--spec call(ref(),[integer()],iodata(),boolean(),timeout()) -> term().
-call(Drv, Pids, Data, Returns, Timeout) ->
+-spec call(ref(),[integer()],atom(),list(),timeout()) -> term().
+call(Drv, Pids, Command, Argv, Timeout) ->
+    Data = alcove_codec:call(Command, Pids, Argv),
     case send(Drv, Data) of
         true ->
-            call_reply(Drv, Pids, Returns, Timeout);
+            call_reply(Drv, Pids, alcove_proto:returns(Command), Timeout);
         Error ->
             Error
     end.
@@ -74,88 +73,20 @@ send(Drv, Data) ->
 stdin(Drv, [], Data) ->
     send(Drv, Data);
 stdin(Drv, Pids, Data) ->
-    Stdin = hdr(lists:reverse(Pids), [Data]),
+    Stdin = alcove_codec:stdin(Pids, Data),
     send(Drv, Stdin).
 
--spec stdout(ref(),[integer()],timeout()) ->
-    'false' | binary().
+-spec stdout(ref(),[integer()],timeout()) -> 'false' | binary().
 stdout(Drv, Pids, Timeout) ->
-    reply(Drv, Pids, ?ALCOVE_MSG_STDOUT, Timeout).
+    reply(Drv, Pids, alcove_stdout, Timeout).
 
--spec stderr(ref(),[integer()],timeout()) ->
-    'false' | binary().
+-spec stderr(ref(),[integer()],timeout()) -> 'false' | binary().
 stderr(Drv, Pids, Timeout) ->
-    reply(Drv, Pids, ?ALCOVE_MSG_STDERR, Timeout).
+    reply(Drv, Pids, alcove_stderr, Timeout).
 
 -spec event(ref(),[integer()],timeout()) -> term().
 event(Drv, Pids, Timeout) ->
-    reply(Drv, Pids, ?ALCOVE_MSG_EVENT, Timeout).
-
-msg([], Data) ->
-    Data;
-msg(Pids, Data) ->
-    Size = iolist_size(Data),
-    hdr(lists:reverse(Pids), [<<?UINT16(Size)>>, Data]).
-
-hdr([], [_Length|Acc]) ->
-    Acc;
-hdr([Pid|Pids], Acc) ->
-    Size = iolist_size(Acc) + 2 + 4,
-    hdr(Pids, [<<?UINT16(Size)>>, <<?UINT16(?ALCOVE_MSG_STDIN)>>, <<?UINT32(Pid)>>|Acc]).
-
-encode(Command, Arg) when is_integer(Command), is_list(Arg) ->
-    encode(?ALCOVE_MSG_CALL, Command, Arg).
-encode(Type, Command, Arg) when is_integer(Type), is_integer(Command), is_list(Arg) ->
-    <<
-    ?UINT16(Type),
-    ?UINT16(Command),
-    (term_to_binary(list_to_tuple(Arg)))/binary
-    >>.
-
-decode(Msg) ->
-    % Re-add the message length stripped off by open_port
-    Len = byte_size(Msg),
-    decode(<<?UINT16(Len), Msg/binary>>, [], [], []).
-
-decode(<<>>, _Pids, Msg, Acc) ->
-    lists:flatten(lists:reverse([Msg|Acc]));
-
-decode(<<?UINT16(Len), ?UINT16(?ALCOVE_MSG_PROXY), ?UINT32(Pid),
-    Rest/binary>>, Pids, [], Acc) when Len =:= 2 + 4 + byte_size(Rest) ->
-    decode(Rest, [Pid|Pids], [], Acc);
-decode(<<?UINT16(Len), ?UINT16(?ALCOVE_MSG_PROXY), ?UINT32(Pid),
-    Rest/binary>>, _Pids, Msg, Acc) when Len =:= 2 + 4 + byte_size(Rest) ->
-    decode(Rest, [Pid], [], [lists:reverse(Msg)|Acc]);
-
-decode(<<?UINT16(Len), ?UINT16(?ALCOVE_MSG_STDOUT), ?UINT32(Pid),
-    Bin/binary>>, Pids, Msg, Acc) ->
-    Bytes = Len - (2 + 4),
-    <<Reply:Bytes/bytes, Rest/binary>> = Bin,
-    decode(Rest, Pids,
-        [{alcove_stdout, lists:reverse([Pid|Pids]), Reply}|Msg], Acc);
-
-decode(<<?UINT16(Len), ?UINT16(?ALCOVE_MSG_STDERR), ?UINT32(Pid),
-    Bin/binary>>, Pids, Msg, Acc) ->
-    Bytes = Len - (2 + 4),
-    <<Reply:Bytes/bytes, Rest/binary>> = Bin,
-    decode(Rest, Pids,
-        [{alcove_stderr, lists:reverse([Pid|Pids]), Reply}|Msg], Acc);
-
-decode(<<?UINT16(Len), ?UINT16(?ALCOVE_MSG_CALL),
-    Bin/binary>>, Pids, Msg, Acc) ->
-    Bytes = Len - 2,
-    <<Reply:Bytes/bytes, Rest/binary>> = Bin,
-    decode(Rest, Pids,
-        [{alcove_call, lists:reverse(Pids), binary_to_term(Reply)}|Msg],
-        Acc);
-
-decode(<<?UINT16(Len), ?UINT16(?ALCOVE_MSG_EVENT),
-    Bin/binary>>, Pids, Msg, Acc) ->
-    Bytes = Len - 2,
-    <<Reply:Bytes/bytes, Rest/binary>> = Bin,
-    decode(Rest, Pids,
-        [{alcove_event, lists:reverse(Pids), binary_to_term(Reply)}|Msg],
-        Acc).
+    reply(Drv, Pids, alcove_event, Timeout).
 
 %%--------------------------------------------------------------------
 %%% Callbacks
@@ -211,7 +142,7 @@ code_change(_OldVsn, State, _Extra) ->
 % the parent.
 handle_info({Port, {data, Data}}, #state{port = Port, pid = Pid} = State) ->
     [ Pid ! {Tag, self(), Pids, Term} ||
-        {Tag, Pids, Term} <- decode(Data) ],
+        {Tag, Pids, Term} <- alcove_codec:decode(Data) ],
     {noreply, State};
 
 handle_info({'EXIT', Port, Reason}, #state{port = Port} = State) ->
@@ -252,9 +183,8 @@ call_reply(Drv, Pids, true, Timeout) ->
     end.
 
 reply(Drv, Pids, Type, Timeout) ->
-    Tag = type_to_atom(Type),
     receive
-        {Tag, Drv, Pids, Event} ->
+        {Type, Drv, Pids, Event} ->
             Event
     after
         Timeout ->
@@ -299,20 +229,6 @@ find_executable(Exe) ->
         N ->
             N
     end.
-
-atom_to_type(alcove_call) -> ?ALCOVE_MSG_CALL;
-atom_to_type(alcove_event) -> ?ALCOVE_MSG_EVENT;
-atom_to_type(alcove_stdin) -> ?ALCOVE_MSG_STDIN;
-atom_to_type(alcove_stdout) -> ?ALCOVE_MSG_STDOUT;
-atom_to_type(alcove_stderr) -> ?ALCOVE_MSG_STDERR;
-atom_to_type(alcove_proxy) -> ?ALCOVE_MSG_PROXY.
-
-type_to_atom(?ALCOVE_MSG_CALL) -> alcove_call;
-type_to_atom(?ALCOVE_MSG_EVENT) -> alcove_event;
-type_to_atom(?ALCOVE_MSG_STDIN) -> alcove_stdin;
-type_to_atom(?ALCOVE_MSG_STDOUT) -> alcove_stdout;
-type_to_atom(?ALCOVE_MSG_STDERR) -> alcove_stderr;
-type_to_atom(?ALCOVE_MSG_PROXY) -> alcove_proxy.
 
 basedir(Module) ->
     case code:priv_dir(Module) of

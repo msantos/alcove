@@ -122,7 +122,7 @@ msg(_) ->
         0,8,  0,4, 131,100,0,2,111,107
         >>,
 
-    Reply = alcove_drv:decode(Msg),
+    Reply = alcove_codec:decode(Msg),
 
     ?_assertEqual(
         [{alcove_call,[295,551,807],<<"0.2.0">>},

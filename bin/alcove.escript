@@ -32,16 +32,6 @@ license() ->
 
     erl_syntax:comment(License).
 
-api(Proto) ->
-    Calls = calls(Proto),
-
-
-    % Generate the function
-    Pattern = [],
-    Body = erl_syntax:tuple([ erl_syntax:atom(N) || {N,_} <- Calls ]),
-    Clause = erl_syntax:clause(Pattern, [], [Body]),
-    [erl_syntax:function(erl_syntax:atom("api"), [Clause])].
-
 mkerl(File, Proto) ->
     Module = erl_syntax:attribute(
             erl_syntax:atom(module),
@@ -120,7 +110,6 @@ mkerl(File, Proto) ->
                 Exports_gen1,
 
                 Static,
-                api(Proto),
                 Functions
             ]))),
 
@@ -163,8 +152,6 @@ static_exports() ->
      {stderr,1}, {stderr,2}, {stderr,3},
      {eof,2}, {eof,3},
      {event,1}, {event,2}, {event,3},
-     {encode,3},
-     {command,1},
      {call,2}, {call,3}, {call,4}, {call,5}].
 
 static() ->
@@ -315,27 +302,6 @@ event(Drv, Pids, Timeout) ->
     alcove_drv:event(Drv, Pids, Timeout).
 ";
 
-static({encode,3}) ->
-"
-encode(Call, Pids, Arg) when is_atom(Call), is_list(Pids), is_list(Arg) ->
-    Bin = alcove_drv:encode(command(Call), Arg),
-    alcove_drv:msg(Pids, Bin).
-";
-
-static({command,1}) ->
-"
-command(Cmd) when is_atom(Cmd) ->
-    lookup(Cmd, api()).
-
-lookup(Cmd, Cmds) ->
-    lookup(Cmd, 1, Cmds, tuple_size(Cmds)).
-lookup(Cmd, N, Cmds, _Max) when Cmd =:= element(N, Cmds) ->
-    % Convert to 0 offset
-    N-1;
-lookup(Cmd, N, Cmds, Max) when N =< Max ->
-    lookup(Cmd, N+1, Cmds, Max).
-";
-
 static({call,2}) ->
 "
 call(Drv, Command) ->
@@ -354,8 +320,7 @@ call(Drv, Pids, Command, Argv) ->
 static({call,5}) ->
 "
 call(Drv, Pids, Command, Argv, Timeout) when is_pid(Drv), is_list(Argv) ->
-    case alcove_drv:call(Drv, Pids, encode(Command, Pids, Argv),
-            call_returns(Command), Timeout) of
+    case alcove_drv:call(Drv, Pids, Command, Argv, Timeout) of
         badarg ->
             erlang:error(badarg, [Drv, Command, Argv]);
         undef ->
@@ -363,11 +328,6 @@ call(Drv, Pids, Command, Argv, Timeout) when is_pid(Drv), is_list(Argv) ->
         Reply ->
             Reply
     end.
-
-call_returns(execve) -> false;
-call_returns(execvp) -> false;
-call_returns(exit) -> false;
-call_returns(_) -> true.
 ".
 
 includes(Header) ->
