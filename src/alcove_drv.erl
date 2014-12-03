@@ -173,7 +173,9 @@ call_reply(Drv, Pids, true, Timeout) ->
         {alcove_event, Drv, Pids, fdctl_closed} ->
             receive
                 {alcove_event, Drv, Pids, {termsig,_} = Signal} ->
-                    exit(Signal)
+                    exit(Signal);
+                {alcove_event, Drv, Pids, {exit_status,_} = Status} ->
+                    exit(Status)
             end;
         {alcove_call, Drv, Pids, Event} ->
             Event
