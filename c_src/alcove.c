@@ -291,7 +291,7 @@ alcove_event_loop(alcove_state_t *ap)
 
         (void)pid_foreach(ap, 0, fds, NULL, pid_not_equal, set_pid);
 
-#if defined(__linux__) || defined(__sunos__)
+#if defined(__linux__) || defined(__sunos__) || defined(__OpenBSD__)
         if (poll(fds, maxfd, -1) < 0) {
 #else
         if (poll(fds, ap->maxfd, -1) < 0) {

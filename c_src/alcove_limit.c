@@ -16,7 +16,7 @@
 #include "alcove_call.h"
 #include "alcove_limit.h"
 
-#if defined(__linux__) || defined(__sunos__)
+#if defined(__linux__) || defined(__sunos__) || defined(__OpenBSD__)
 static int rlimit_under_maxfd(long maxfd, unsigned long long fd);
 #endif
 
@@ -113,7 +113,7 @@ alcove_sys_setrlimit(alcove_state_t *ap, const char *arg, size_t len,
     if (alcove_decode_ulonglong(arg, len, &index, &max) < 0)
         return -1;
 
-#if defined(__linux__) || defined(__sunos__)
+#if defined(__linux__) || defined(__sunos__) || defined(__OpenBSD__)
     if (resource == RLIMIT_NOFILE) {
         if (rlimit_under_maxfd(ap->maxfd, cur) < 0)
             return alcove_mk_errno(reply, rlen, EINVAL);
@@ -153,7 +153,7 @@ alcove_sys_rlimit_define(alcove_state_t *ap, const char *arg, size_t len,
     return rindex;
 }
 
-#if defined(__linux__) || defined(__sunos__)
+#if defined(__linux__) || defined(__sunos__) || defined(__OpenBSD__)
     static int
 rlimit_under_maxfd(long maxfd, unsigned long long fd)
 {
