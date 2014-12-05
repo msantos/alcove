@@ -426,6 +426,9 @@ specs() ->
 -spec getpid(alcove_drv:ref()) -> os_pid().
 -spec getpid(alcove_drv:ref(),fork_path()) -> os_pid().
 
+-spec getpriority(alcove_drv:ref(),define(),integer()) -> {'ok',integer()} | {'error', file:posix()}.
+-spec getpriority(alcove_drv:ref(),fork_path(),define(),integer()) -> {'ok',integer()} | {'error', file:posix()}.
+
 -spec getresgid(alcove_drv:ref()) -> {'ok', non_neg_integer(), non_neg_integer(), non_neg_integer()} | {'error', file:posix()}.
 -spec getresgid(alcove_drv:ref(), fork_path()) -> {'ok', non_neg_integer(), non_neg_integer(), non_neg_integer()} | {'error', file:posix()}.
 
@@ -508,6 +511,9 @@ specs() ->
 
 -spec setpgid(alcove_drv:ref(),non_neg_integer(),non_neg_integer()) -> 'ok' | {'error', file:posix()}.
 -spec setpgid(alcove_drv:ref(),[non_neg_integer()],non_neg_integer(),non_neg_integer()) -> 'ok' | {'error', file:posix()}.
+
+-spec setpriority(alcove_drv:ref(),define(),integer(),integer()) -> 'ok' | {'error', file:posix()}.
+-spec setpriority(alcove_drv:ref(),fork_path(),define(),integer(),integer()) -> 'ok' | {'error', file:posix()}.
 
 -spec setproctitle(alcove_drv:ref(),iodata()) -> 'ok'.
 -spec setproctitle(alcove_drv:ref(),fork_path(),iodata()) -> 'ok'.
