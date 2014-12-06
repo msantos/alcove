@@ -15,83 +15,61 @@
 -include_lib("alcove/include/alcove.hrl").
 
 -export([call/3, stdin/2]).
--export([encode/2, encode/3, decode/1]).
+-export([decode/1]).
+-export([stream/1]).
 
+%%
+%% Encode protocol terms to iodata
+%%
 call(Call, Pids, Arg) ->
-    Bin = encode(alcove_proto:call(Call), Arg),
-    Payload = case Pids of
-        [] ->
-            Bin;
-        _ ->
-            Size = iolist_size(Bin),
-            [<<?UINT16(Size)>>, Bin]
-    end,
-    stdin(Pids, Payload).
+    Bin = <<?UINT16(?ALCOVE_MSG_CALL), ?UINT16(alcove_proto:call(Call)),
+    (term_to_binary(list_to_tuple(Arg)))/binary>>,
+    Size = byte_size(Bin),
+    stdin(Pids, [<<?UINT16(Size)>>, Bin]).
 
-stdin([], Data) ->
-    Data;
 stdin(Pids, Data) ->
-    hdr(Pids, Data).
+    lists:foldl(fun(Pid, Acc) ->
+                Size = 2 + 4 + iolist_size(Acc),
+                [<<?UINT16(Size), ?UINT16(?ALCOVE_MSG_STDIN), ?UINT32(Pid)>>|Acc]
+        end,
+        Data,
+        lists:reverse(Pids)).
 
-hdr(Pids, Data) ->
-    hdr_1(lists:reverse(Pids), Data).
+%%
+%% Decode protocol binary to term
+%%
+stream(Data) ->
+    stream(Data, []).
 
-hdr_1([], [_Length|Acc]) ->
-    Acc;
-hdr_1([Pid|Pids], Acc) ->
-    Size = iolist_size(Acc) + 2 + 4,
-    hdr_1(Pids, [<<?UINT16(Size)>>, <<?UINT16(?ALCOVE_MSG_STDIN)>>, <<?UINT32(Pid)>>|Acc]).
+stream(Data, Acc) ->
+    case message(Data) of
+        {<<>>, Rest} ->
+            {lists:reverse(Acc), Rest};
+        {Bin, Rest} ->
+            stream(Rest, [Bin|Acc])
+    end.
 
-encode(Command, Arg) when is_integer(Command), is_list(Arg) ->
-    encode(?ALCOVE_MSG_CALL, Command, Arg).
-encode(Type, Command, Arg) when is_integer(Type), is_integer(Command), is_list(Arg) ->
-    <<
-    ?UINT16(Type),
-    ?UINT16(Command),
-    (term_to_binary(list_to_tuple(Arg)))/binary
-    >>.
+message(<<?UINT16(Len), Data/binary>> = Bin) when Len =< byte_size(Data) ->
+    Size = Len + 2,
+    <<Msg:Size/bytes, Rest/binary>> = Bin,
+    {Msg, Rest};
+message(Data) ->
+    {<<>>, Data}.
 
 decode(Msg) ->
-    % Re-add the message length stripped off by open_port
-    Len = byte_size(Msg),
-    decode(<<?UINT16(Len), Msg/binary>>, [], [], []).
+    decode(Msg, []).
 
-decode(<<>>, _Pids, Msg, Acc) ->
-    lists:flatten(lists:reverse([Msg|Acc]));
+decode(<<?UINT16(Len), ?UINT16(?ALCOVE_MSG_PROXY), ?UINT32(Pid), Data/binary>>, Pids) when Len =:= 2 + 4 + byte_size(Data) ->
+    decode(Data, [Pid|Pids]);
 
-decode(<<?UINT16(Len), ?UINT16(?ALCOVE_MSG_PROXY), ?UINT32(Pid),
-    Rest/binary>>, Pids, [], Acc) when Len =:= 2 + 4 + byte_size(Rest) ->
-    decode(Rest, [Pid|Pids], [], Acc);
-decode(<<?UINT16(Len), ?UINT16(?ALCOVE_MSG_PROXY), ?UINT32(Pid),
-    Rest/binary>>, _Pids, Msg, Acc) when Len =:= 2 + 4 + byte_size(Rest) ->
-    decode(Rest, [Pid], [], [lists:reverse(Msg)|Acc]);
+decode(<<?UINT16(Len), ?UINT16(?ALCOVE_MSG_STDOUT), ?UINT32(Pid), Data/binary>>, Pids) when Len =:= 2 + 4 + byte_size(Data) ->
+    {alcove_stdout, lists:reverse([Pid|Pids]), Data};
 
-decode(<<?UINT16(Len), ?UINT16(?ALCOVE_MSG_STDOUT), ?UINT32(Pid),
-    Bin/binary>>, Pids, Msg, Acc) ->
-    Bytes = Len - (2 + 4),
-    <<Reply:Bytes/bytes, Rest/binary>> = Bin,
-    decode(Rest, Pids,
-        [{alcove_stdout, lists:reverse([Pid|Pids]), Reply}|Msg], Acc);
+decode(<<?UINT16(Len), ?UINT16(?ALCOVE_MSG_STDERR), ?UINT32(Pid), Data/binary>>, Pids) when Len =:= 2 + 4 + byte_size(Data) ->
+    {alcove_stderr, lists:reverse([Pid|Pids]), Data};
 
-decode(<<?UINT16(Len), ?UINT16(?ALCOVE_MSG_STDERR), ?UINT32(Pid),
-    Bin/binary>>, Pids, Msg, Acc) ->
-    Bytes = Len - (2 + 4),
-    <<Reply:Bytes/bytes, Rest/binary>> = Bin,
-    decode(Rest, Pids,
-        [{alcove_stderr, lists:reverse([Pid|Pids]), Reply}|Msg], Acc);
+decode(<<?UINT16(Len), ?UINT16(?ALCOVE_MSG_CALL), Data/binary>>, Pids) when Len =:= 2 + byte_size(Data) ->
+    {alcove_call, lists:reverse(Pids), binary_to_term(Data)};
 
-decode(<<?UINT16(Len), ?UINT16(?ALCOVE_MSG_CALL),
-    Bin/binary>>, Pids, Msg, Acc) ->
-    Bytes = Len - 2,
-    <<Reply:Bytes/bytes, Rest/binary>> = Bin,
-    decode(Rest, Pids,
-        [{alcove_call, lists:reverse(Pids), binary_to_term(Reply)}|Msg],
-        Acc);
-
-decode(<<?UINT16(Len), ?UINT16(?ALCOVE_MSG_EVENT),
-    Bin/binary>>, Pids, Msg, Acc) ->
-    Bytes = Len - 2,
-    <<Reply:Bytes/bytes, Rest/binary>> = Bin,
-    decode(Rest, Pids,
-        [{alcove_event, lists:reverse(Pids), binary_to_term(Reply)}|Msg],
-        Acc).
+decode(<<?UINT16(Len), ?UINT16(?ALCOVE_MSG_EVENT), Data/binary>>, Pids) when Len =:= 2 + byte_size(Data) ->
+    {alcove_event, lists:reverse(Pids), binary_to_term(Data)}.

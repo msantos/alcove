@@ -31,7 +31,8 @@
 
 -record(state, {
         pid :: pid(),
-        port :: port()
+        port :: port(),
+        buf = <<>>
     }).
 
 -spec start() -> {ok, ref()}.
@@ -103,7 +104,7 @@ init([Owner, Options]) ->
 
     Port = open_port({spawn_executable, Cmd}, [
             {args, Argv},
-            {packet, 2},
+            stream,
             binary
         ] ++ PortOpt),
 
@@ -140,10 +141,11 @@ code_change(_OldVsn, State, _Extra) ->
 %
 % Several writes from the child process may be coalesced into 1 read by
 % the parent.
-handle_info({Port, {data, Data}}, #state{port = Port, pid = Pid} = State) ->
-    [ Pid ! {Tag, self(), Pids, Term} ||
-        {Tag, Pids, Term} <- alcove_codec:decode(Data) ],
-    {noreply, State};
+handle_info({Port, {data, Data}}, #state{port = Port, pid = Pid, buf = Buf} = State) ->
+    {Msgs, Rest} = alcove_codec:stream(<<Buf/binary, Data/binary>>),
+    Terms = [ alcove_codec:decode(Msg) || Msg <- Msgs ],
+    [ Pid ! {Tag, self(), Pids, Term} || {Tag, Pids, Term} <- Terms ],
+    {noreply, State#state{buf = Rest}};
 
 handle_info({'EXIT', Port, Reason}, #state{port = Port} = State) ->
     {stop, {shutdown, Reason}, State};

@@ -113,21 +113,17 @@ stop(#state{pid = Drv}) ->
 
 msg(_) ->
     % Length, Message type, Term
-    % The length of the first message is stripped off by erlang
     Msg = <<
-              0,3, 0,0,1,39,
-        0,47, 0,3, 0,0,2,39,
-        0,39, 0,3, 0,0,3,39,
-        0,13, 0,4, 131,109,0,0,0,5,48,46,50,46,48,
-        0,16, 0,3, 0,0,3,46,
-        0,8,  0,4, 131,100,0,2,111,107
+        0,37, 0,3, 0,0,1,39,
+        0,29, 0,3, 0,0,2,39,
+        0,21, 0,3, 0,0,3,39,
+        0,13, 0,4, 131,109,0,0,0,5,48,46,50,46,48
         >>,
 
     Reply = alcove_codec:decode(Msg),
 
     ?_assertEqual(
-        [{alcove_call,[295,551,807],<<"0.2.0">>},
-            {alcove_call,[814],ok}],
+        {alcove_call,[295,551,807],<<"0.2.0">>},
         Reply
     ).
 
