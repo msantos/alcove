@@ -543,6 +543,15 @@ probably confuse the process.
 
         getpid(2) : retrieve the system PID of the process.
 
+    getpriority(Drv, Which, Who) -> {ok, Prio} | {error, posix()}
+    getpriority(Drv, Pids, Which, Who) -> {ok, Prio} | {error, posix()}
+
+        Types   Which = atom() | integer()
+                Who = Prio = integer()
+
+        getpriority(2) : retrieve scheduling priority of process,
+        process group or user
+
     getresgid(Drv) -> {ok, RGID, EGID, SGID}
     getresgid(Drv, Pids) -> {ok, RGID, EGID, SGID}
 
@@ -788,6 +797,15 @@ probably confuse the process.
     setopt(Drv, Pids, Opt, Val) -> boolean()
 
         Set port options. See getopt/2,3 for the list of options.
+
+    setpriority(Drv, Which, Who, Prio) -> ok | {error, posix()}
+    setpriority(Drv, Pids, Which, Who, Prio) -> ok | {error, posix()}
+
+        Types   Which = atom() | integer()
+                Who = Prio = integer()
+
+        setpriority(2) : set scheduling priority of process, process
+        group or user
 
     setproctitle(Drv, Name) -> ok
     setproctitle(Drv, Pids, Name) -> ok

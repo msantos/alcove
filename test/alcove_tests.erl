@@ -64,6 +64,7 @@ run(State) ->
         eof(State),
         alloc(State),
         prctl(State),
+        priority(State),
         execvp(State),
         execvp_with_signal(State),
         stdout(State),
@@ -552,6 +553,28 @@ prctl(#state{os = {unix,linux}, pid = Drv}) ->
 prctl(_) ->
     [].
 
+priority(#state{os = {unix,_}, pid = Drv}) ->
+    {ok, Fork0} = alcove:fork(Drv),
+    {ok, Fork1} = alcove:fork(Drv, [Fork0]),
+    {ok, Fork2} = alcove:fork(Drv, [Fork0]),
+
+    Prio0 = alcove:getpriority(Drv, [Fork0,Fork1], prio_process, 0),
+    ok = alcove:setpriority(Drv, [Fork0,Fork1], prio_process, 0, 10),
+    Prio1 = alcove:getpriority(Drv, [Fork0,Fork1], prio_process, 0),
+    ok = alcove:setuid(Drv, [Fork0,Fork1], 65534),
+    Eacces = alcove:setpriority(Drv, [Fork0,Fork1], prio_process, 0, 1),
+
+    ok = alcove:setpriority(Drv, [Fork0,Fork2], prio_process, 0, -1),
+    Prio2 = alcove:getpriority(Drv, [Fork0,Fork2], prio_process, 0),
+
+    alcove:exit(Drv, [Fork0], 0),
+
+    [
+        ?_assertEqual({ok,0}, Prio0),
+        ?_assertEqual({ok,10}, Prio1),
+        ?_assertEqual({error,eacces}, Eacces),
+        ?_assertEqual({ok,-1}, Prio2)
+    ].
 
 execvp(#state{os = {unix,linux}, pid = Drv, child = Child}) ->
     % cwd = /, chroot'ed in /bin
