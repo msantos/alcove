@@ -19,7 +19,7 @@
 -export([start/0, start/1, stop/1]).
 -export([start_link/2]).
 -export([call/5]).
--export([stdin/3, stdout/3, stderr/3, event/3, send/2]).
+-export([stdin/3, stdout/3, stderr/3, event/3, send/3]).
 -export([getopts/1]).
 
 %% gen_server callbacks
@@ -32,6 +32,7 @@
 -record(state, {
         pid :: pid(),
         port :: port(),
+        caller = dict:new() :: dict:dict(),
         buf = <<>>
     }).
 
@@ -54,28 +55,26 @@ stop(Drv) ->
 -spec call(ref(),[integer()],atom(),list(),timeout()) -> term().
 call(Drv, Pids, Command, Argv, Timeout) ->
     Data = alcove_codec:call(Command, Pids, Argv),
-    case send(Drv, Data) of
+    case send(Drv, Pids, Data) of
         true ->
             call_reply(Drv, Pids, alcove_proto:returns(Command), Timeout);
         Error ->
             Error
     end.
 
--spec send(ref(),iodata()) -> true | {error,closed} | badarg.
-send(Drv, Data) ->
+-spec send(ref(),[integer()],iodata()) -> true | {error,closed} | badarg.
+send(Drv, Pids, Data) ->
     case iolist_size(Data) =< 16#ffff of
         true ->
-            gen_server:call(Drv, {send, Data}, infinity);
+            gen_server:call(Drv, {send, Pids, Data}, infinity);
         false ->
             badarg
     end.
 
 -spec stdin(ref(),[integer()],iodata()) -> 'true'.
-stdin(Drv, [], Data) ->
-    send(Drv, Data);
 stdin(Drv, Pids, Data) ->
     Stdin = alcove_codec:stdin(Pids, Data),
-    send(Drv, Stdin).
+    send(Drv, Pids, Stdin).
 
 -spec stdout(ref(),[integer()],timeout()) -> 'false' | binary().
 stdout(Drv, Pids, Timeout) ->
@@ -110,7 +109,11 @@ init([Owner, Options]) ->
 
     {ok, #state{port = Port, pid = Owner}}.
 
-handle_call({send, Packet}, _From, #state{port = Port} = State) ->
+handle_call({send, OSPids, Packet}, {Pid,_Tag}, #state{port = Port, caller = Caller} = State) ->
+    case is_monitored(Pid) of
+        true -> ok;
+        false -> monitor(process, Pid)
+    end,
     Reply = try erlang:port_command(Port, Packet) of
         true ->
             true
@@ -118,7 +121,7 @@ handle_call({send, Packet}, _From, #state{port = Port} = State) ->
             error:badarg ->
                 {error,closed}
         end,
-    {reply, Reply, State};
+    {reply, Reply, State#state{caller = dict:store(OSPids, Pid, Caller)}};
 
 handle_call(stop, _From, State) ->
     {stop, normal, ok, State}.
@@ -141,11 +144,17 @@ code_change(_OldVsn, State, _Extra) ->
 %
 % Several writes from the child process may be coalesced into 1 read by
 % the parent.
-handle_info({Port, {data, Data}}, #state{port = Port, pid = Pid, buf = Buf} = State) ->
+handle_info({Port, {data, Data}}, #state{port = Port, pid = Pid, buf = Buf, caller = Caller} = State) ->
     {Msgs, Rest} = alcove_codec:stream(<<Buf/binary, Data/binary>>),
     Terms = [ alcove_codec:decode(Msg) || Msg <- Msgs ],
-    [ Pid ! {Tag, self(), Pids, Term} || {Tag, Pids, Term} <- Terms ],
+    [ get_value(Pids, Caller, Pid) ! {Tag, self(), Pids, Term}
+        || {Tag, Pids, Term} <- Terms ],
     {noreply, State#state{buf = Rest}};
+
+handle_info({'DOWN', _MonitorRef, _Type, Pid, _Info}, #state{caller = Caller} = State) ->
+    {noreply, State#state{
+            caller = dict:filter(fun(_K,V) -> V =/= Pid end, Caller)
+        }};
 
 handle_info({'EXIT', Port, Reason}, #state{port = Port} = State) ->
     {stop, {shutdown, Reason}, State};
@@ -195,6 +204,19 @@ reply(Drv, Pids, Type, Timeout) ->
             false
     end.
 
+is_monitored(Pid) ->
+    {monitored_by, Monitors} = process_info(Pid, monitored_by),
+    lists:member(self(), Monitors).
+
+get_value(Key, Dict, Default) ->
+    case dict:find(Key, Dict) of
+        error -> Default;
+        {ok,Val} -> Val
+    end.
+
+%%--------------------------------------------------------------------
+%%% Port executable
+%%--------------------------------------------------------------------
 -spec getopts(proplists:proplist()) -> list(string() | [string()]).
 getopts(Options) when is_list(Options) ->
     Exec = proplists:get_value(exec, Options, ""),

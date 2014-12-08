@@ -20,20 +20,9 @@ start() ->
     start([]).
 
 start(Options) ->
-    Init = spawn_link(fun() -> init(Options) end),
-    Port = proplists:get_value(port, Options, 31337),
-    {ok, LSock} = gen_tcp:listen(Port, [
-            binary,
-            {active,false},
-            {reuseaddr,true}
-        ]),
-    accept(Init, LSock).
-
-init(Options) ->
     {ok, Drv} = alcove_drv:start(Options ++ [{exec, "sudo"}]),
-    alcove:setopt(Drv, exit_status, 1),
-    ok = alcove:chdir(Drv, "/"),
 
+    ok = alcove:chdir(Drv, "/"),
     chroot_init(),
     cgroup_init(Drv,
         [<<"alcove">>],
@@ -42,74 +31,102 @@ init(Options) ->
             {<<"memory.limit_in_bytes">>, <<"128m">>}
         ]),
 
-    shell(Drv, Options, dict:new()).
+    Port = proplists:get_value(port, Options, 31337),
+    {ok, LSock} = gen_tcp:listen(Port, [
+            binary,
+            {active,false},
+            {reuseaddr,true}
+        ]),
+    accept(Drv, LSock, Options).
 
-shell(Drv, Options, State) ->
-    receive
-        {create, Pid} ->
-            case clone(Drv, Options) of
-                {ok, Child} ->
-                    case catch clone_init(Drv, Child, Options) of
-                        ok ->
-                            Pid ! {ok, Child},
-                            erlang:monitor(process, Pid),
-                            shell(Drv, Options, dict:store(Child, Pid, State));
-                        Error ->
-                            Pid ! Error,
-                            alcove:exit(Drv, [Child], 0),
-                            shell(Drv, Options, State)
-                    end;
+accept(Drv, LSock, Options) ->
+    {ok, Socket} = gen_tcp:accept(LSock),
+    Pid = spawn(fun() -> connection(Drv, Socket, Options) end),
+    ok = gen_tcp:controlling_process(Socket, Pid),
+    accept(Drv, LSock, Options).
+
+connection(Drv, Socket, Options) ->
+    case clone(Drv, Options) of
+        {ok, Child} ->
+            case catch clone_init(Drv, Child, Options) of
+                ok ->
+                    network(Drv, Socket, Child, Options);
                 Error ->
-                    Pid ! Error,
-                    shell(Drv, Options, State)
+                    alcove:exit(Drv, [Child], 0),
+                    Data = io_lib:format("~p", [Error]),
+                    gen_tcp:send(Socket, Data)
             end;
-        {'DOWN', _MonitorRef, _Type, Pid, _Info} ->
-            Proc = [ K || {K, P} <- dict:to_list(State), P =:= Pid ],
-            case Proc of
-                [] -> ok;
-                [Child] ->
-                    alcove:kill(Drv, Child, 9),
-                    shell(Drv, Options, dict:erase(Child, State))
-            end;
-        {stdin, Child, Data} ->
+        Error ->
+            Data = io_lib:format("~p", [Error]),
+            gen_tcp:send(Socket, Data)
+    end.
+
+network(Drv, Socket, Child, Options) ->
+    inet:setopts(Socket, [{active, once}]),
+    receive
+        {tcp, Socket, Data} ->
+            error_logger:info_report([
+                    {peer, element(2, inet:peername(Socket))},
+                    {child, Child},
+                    {stdin, Data}
+                ]),
             alcove:stdin(Drv, [Child], Data),
-            shell(Drv, Options, State);
+            network(Drv, Socket, Child, Options);
+        {tcp_closed, Socket} ->
+            error_logger:error_report([{socket, closed}]),
+            alcove:exit(Drv, [Child], 0);
+        {tcp_error, Socket, Error} ->
+            error_logger:error_report([{socket, Error}]),
+            alcove:exit(Drv, [Child], 0);
+
         {alcove_stdout, Drv, [Child], Data} ->
-            case dict:find(Child, State) of
-                error ->
-                    error_logger:error_report([
-                            {child, Child},
-                            {stdout, Data}
-                        ]);
-                {ok, Pid} ->
-                    Pid ! {stdout, Child, Data}
-            end,
-            shell(Drv, Options, State);
+            ok = gen_tcp:send(Socket, Data),
+            network(Drv, Socket, Child, Options);
         {alcove_stderr, Drv, [Child], Data} ->
-            case dict:find(Child, State) of
-                error ->
-                    error_logger:error_report([
-                            {child, Child},
-                            {stderr, Data}
-                        ]);
-                {ok, Pid} ->
-                    Pid ! {stderr, Child, Data}
-            end,
-            shell(Drv, Options, State);
+            ok = gen_tcp:send(Socket, Data),
+            network(Drv, Socket, Child, Options);
         {alcove_event, Drv, [Child], {termsig,_} = Event} ->
             error_logger:info_report([{pid, Child}, Event]),
             cgroup_finish(Drv, Child, Options),
-            shell(Drv, Options, State);
+            network_drain(Drv, Socket, Child);
         {alcove_event, Drv, [Child], {exit_status,_} = Event} ->
             error_logger:info_report([{pid, Child}, Event]),
-            case dict:find(Child, State) of
-                error ->
-                    ok;
-                {ok, Pid} ->
-                    Pid ! {exited, Child}
-            end,
             cgroup_finish(Drv, Child, Options),
-            shell(Drv, Options, State)
+            network_drain(Drv, Socket, Child);
+
+        Any ->
+            error_logger:info_report([
+                    {init, Drv},
+                    {child, Child},
+                    {unmatched, Any}
+                ])
+    end.
+
+network_drain(Drv, Socket, Child) ->
+    receive
+        {tcp, Socket, _Data} ->
+            network_drain(Drv, Socket, Child);
+        {tcp_closed, Socket} ->
+            ok;
+        {tcp_error, Socket, Error} ->
+            error_logger:error_report([{socket, Error}]),
+            ok;
+
+        {alcove_stdout, Drv, [Child], Data} ->
+            ok = gen_tcp:send(Socket, Data),
+            network_drain(Drv, Socket, Child);
+        {alcove_stderr, Drv, [Child], Data} ->
+            ok = gen_tcp:send(Socket, Data),
+            network_drain(Drv, Socket, Child);
+
+        Any ->
+            error_logger:info_report([
+                    {child, Child},
+                    {unmatched, Any}
+                ])
+    after
+        10 ->
+            ok
     end.
 
 clone(Drv, _Options) ->
@@ -217,6 +234,8 @@ alcove:x:", Id, ":"])}
     Exe = proplists:get_value(exe, Options, ["/bin/bash", "-i"]),
     Env = proplists:get_value(environ, Options, []),
 
+    ok = alcove:setpriority(Drv, [Child], prio_process, 0, 20),
+
     ok = alcove:execve(Drv, [Child], hd(Exe), Exe, [
         "PATH=/sbin:/bin:/usr/sbin:/usr/bin:/usr/local/sbin:/usr/local/bin",
         "TERM=linux",
@@ -224,85 +243,7 @@ alcove:x:", Id, ":"])}
         "HOME=/home",
         "TMPDIR=/home",
         "HOSTNAME=" ++ Hostname
-    ] ++ Env),
-    ok.
-
-accept(Init, LSock) ->
-    {ok, Socket} = gen_tcp:accept(LSock),
-    Pid = spawn(fun() -> network(Init, Socket) end),
-    ok = gen_tcp:controlling_process(Socket, Pid),
-    accept(Init, LSock).
-
-network(Init, Socket) ->
-    Init ! {create, self()},
-    receive
-        {ok, Child} ->
-            network(Init, Socket, Child);
-        Error ->
-            Data = io_lib:format("~p", [Error]),
-            gen_tcp:send(Socket, Data)
-    after
-        10000 ->
-            gen_tcp:send(Socket, "timeout")
-    end.
-
-network(Init, Socket, Child) ->
-    inet:setopts(Socket, [{active, once}]),
-    receive
-        {tcp, Socket, Data} ->
-            error_logger:info_report([
-                    {peer, element(2, inet:peername(Socket))},
-                    {child, Child},
-                    {stdin, Data}
-                ]),
-            Init ! {stdin, Child, Data},
-            network(Init, Socket, Child);
-        {tcp_closed, Socket} ->
-            error_logger:error_report([{socket, closed}]),
-            ok;
-        {tcp_error, Socket, Error} ->
-            error_logger:error_report([{socket, Error}]),
-            ok;
-        {stdout, Child, Data} ->
-            ok = gen_tcp:send(Socket, Data),
-            network(Init, Socket, Child);
-        {stderr, Child, Data} ->
-            ok = gen_tcp:send(Socket, Data),
-            network(Init, Socket, Child);
-        {exited, Child} ->
-            network_drain(Socket, Child);
-        Any ->
-            error_logger:info_report([
-                    {init, Init},
-                    {child, Child},
-                    {unmatched, Any}
-                ])
-    end.
-
-network_drain(Socket, Child) ->
-    receive
-        {tcp, Socket, _Data} ->
-            network_drain(Socket, Child);
-        {tcp_closed, Socket} ->
-            ok;
-        {tcp_error, Socket, Error} ->
-            error_logger:error_report([{socket, Error}]),
-            ok;
-        {stdout, Child, Data} ->
-            ok = gen_tcp:send(Socket, Data),
-            network_drain(Socket, Child);
-        {stderr, Child, Data} ->
-            ok = gen_tcp:send(Socket, Data),
-            network_drain(Socket, Child);
-        Any ->
-            error_logger:info_report([
-                    {child, Child},
-                    {unmatched, Any}
-                ])
-    after
-        10 ->
-            ok
-    end.
+    ] ++ Env).
 
 id() ->
     crypto:rand_uniform(16#f0000000, 16#f000ffff).
