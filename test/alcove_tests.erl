@@ -657,7 +657,9 @@ stream(#state{pid = Drv}) ->
     Chain = chain(Drv, 16),
     DefaultCount = 1 * 1024 * 1024,
     Count = getenv("ALCOVE_TEST_STREAM_COUNT", integer_to_list(DefaultCount)),
-    Cmd = "yes | head -" ++ Count,
+    % XXX procs in the fork path may exit before all the data has
+    % XXX been written
+    Cmd = ["yes | head -", Count, ";sleep 2"],
     ok = alcove:execvp(Drv, Chain, "/bin/sh", ["/bin/sh", "-c", Cmd]),
     % <<"y\n">>
     Reply = stream_count(Drv, Chain, list_to_integer(Count)*2),
