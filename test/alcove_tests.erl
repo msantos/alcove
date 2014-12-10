@@ -83,6 +83,7 @@ start() ->
     {ok, Drv} = alcove_drv:start([{exec, Exec}, {maxchild, 8}]),
 
     ok = alcove:sigaction(Drv, sigchld, trap),
+    ok = alcove:sigaction(Drv, sigpipe, ign),
 
     case {Use_fork, os:type()} of
         {false, {unix,linux} = OS} ->
@@ -655,6 +656,7 @@ execve(#state{pid = Drv}) ->
 
 stream(#state{pid = Drv}) ->
     Chain = chain(Drv, 16),
+    ok = alcove:sigaction(Drv, Chain, sigpipe, dfl),
     DefaultCount = 1 * 1024 * 1024,
     Count = getenv("ALCOVE_TEST_STREAM_COUNT", integer_to_list(DefaultCount)),
     % XXX procs in the fork path may exit before all the data has
