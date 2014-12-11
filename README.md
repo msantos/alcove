@@ -432,7 +432,7 @@ probably confuse the process.
     event(Drv, Pids) -> term()
 
         event/1,2 is used to retrieve async messages returned from the
-        port, such as trapped signals, the exit status or the termination
+        port, such as caught signals, the exit status or the termination
         signal.
 
     execve(Drv, Arg0, [Arg0, Args], Env) -> ok | {error, posix()}
@@ -858,18 +858,18 @@ probably confuse the process.
     sigaction(Drv, Pids, Signum, Handler) -> ok | {error, posix()}
 
         Types   Signum = integer() | atom()
-                Handler = dfl | ign | trap
+                Handler = sig_dfl | sig_ign | sig_catch
 
         sigaction(2) : set process behaviour for signals
 
-            dfl : uses the default behaviour for the signal
+            sig_dfl : uses the default behaviour for the signal
 
-            ign : ignores the signal
+            sig_ign : ignores the signal
 
-            trap : catches the signal and sends the controlling Erlang
-                   process an event, {signal, atom()}
+            sig_catch : catches the signal and sends the controlling Erlang
+                        process an event, {signal, atom()}
 
-        Multiple trapped signals may be reported as one event.
+        Multiple caught signals may be reported as one event.
 
     signal_constant(Drv, integer()) -> atom() | unknown
     signal_constant(Drv, Pids, integer()) -> atom() | unknown

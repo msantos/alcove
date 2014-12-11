@@ -90,13 +90,13 @@ alcove_sys_sigaction(alcove_state_t *ap, const char *arg, size_t len,
     if (alcove_decode_atom(arg, len, &index, handler) < 0)
         return -1;
 
-    if (!strcmp(handler, "dfl")) {
+    if (!strcmp(handler, "sig_dfl")) {
         act.sa_handler = SIG_DFL;
     }
-    else if (!strcmp(handler, "ign")) {
+    else if (!strcmp(handler, "sig_ign")) {
         act.sa_handler = SIG_IGN;
     }
-    else if (!strcmp(handler, "trap")) {
+    else if (!strcmp(handler, "sig_catch")) {
         act.sa_handler = sighandler;
     }
     else {

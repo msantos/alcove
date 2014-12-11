@@ -93,7 +93,7 @@ allow(#state{pid = Drv}) ->
 
 trap(#state{pid = Drv}) ->
     {ok, Pid} = alcove:fork(Drv),
-    ok = alcove:sigaction(Drv, [Pid], sigsys, trap),
+    ok = alcove:sigaction(Drv, [Pid], sigsys, sig_catch),
 
     enforce(Drv, [Pid], ?BPF_STMT(?BPF_RET+?BPF_K, ?SECCOMP_RET_TRAP)),
 
