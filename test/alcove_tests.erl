@@ -558,6 +558,17 @@ priority(#state{os = {unix,_}, pid = Drv}) ->
     Prio0 = alcove:getpriority(Drv, [Fork0,Fork1], prio_process, 0),
     ok = alcove:setpriority(Drv, [Fork0,Fork1], prio_process, 0, 10),
     Prio1 = alcove:getpriority(Drv, [Fork0,Fork1], prio_process, 0),
+
+    case alcove:getrlimit(Drv, [Fork0,Fork1], rlimit_nice) of
+        {error,einval} ->
+            ok;
+        {ok, #alcove_rlimit{cur = Cur}} when Cur =:= 0 ->
+            ok;
+        {ok, #alcove_rlimit{}} ->
+            alcove:setrlimit(Drv, [Fork0,Fork1], rlimit_nice,
+                #alcove_rlimit{cur = 0, max = 0})
+    end,
+
     ok = alcove:setuid(Drv, [Fork0,Fork1], 65534),
     Eacces = alcove:setpriority(Drv, [Fork0,Fork1], prio_process, 0, 1),
 
