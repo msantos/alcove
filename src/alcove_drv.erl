@@ -57,7 +57,7 @@ call(Drv, Pids, Command, Argv, Timeout) ->
     Data = alcove_codec:call(Command, Pids, Argv),
     case send(Drv, Pids, Data) of
         true ->
-            call_reply(Drv, Pids, alcove_proto:returns(Command), Timeout);
+            call_reply(Drv, Pids, alcove_proto:will_return(Command), Timeout);
         Error ->
             Error
     end.

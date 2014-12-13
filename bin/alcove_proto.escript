@@ -108,7 +108,7 @@ b2i(N) when is_binary(N) ->
     list_to_integer(binary_to_list(N)).
 
 static_exports() ->
-    [{call,1},{returns,1}].
+    [{call,1},{will_return,1}].
 
 static() ->
     [ static({Fun, Arity}) || {Fun, Arity} <- static_exports() ].
@@ -124,12 +124,12 @@ lookup(Call, [_|Calls], N) ->
     lookup(Call, Calls, N+1).
 ";
 
-static({returns,1}) ->
+static({will_return,1}) ->
 "
-returns(execve) -> false;
-returns(execvp) -> false;
-returns(exit) -> false;
-returns(_) -> true.
+will_return(execve) -> false;
+will_return(execvp) -> false;
+will_return(exit) -> false;
+will_return(_) -> true.
 ".
 
 includes(Header) ->
