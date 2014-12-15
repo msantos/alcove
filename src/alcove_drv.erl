@@ -53,7 +53,9 @@ stop(Drv) ->
     gen_server:call(Drv, stop).
 
 -spec call(ref(),[integer()],atom(),list(),timeout()) -> term().
-call(Drv, Pids, Command, Argv, Timeout) ->
+call(Drv, Pids, Command, Argv, Timeout)
+    when is_list(Pids), is_atom(Command), is_list(Argv),
+         (is_integer(Timeout) orelse Timeout =:= infinity) ->
     Data = alcove_codec:call(Command, Pids, Argv),
     case send(Drv, Pids, Data) of
         true ->
