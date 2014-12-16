@@ -32,7 +32,7 @@
 -record(state, {
         pid :: pid(),
         port :: port(),
-        caller = dict:new() :: dict:dict(),
+        caller = dict:new(),
         buf = <<>>
     }).
 
