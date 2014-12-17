@@ -18,15 +18,20 @@
 -export([decode/1]).
 -export([stream/1]).
 
+-type type() :: alcove_call | alcove_stdout | alcove_stderr | alcove_event.
+-export_type([type/0]).
+
 %%
 %% Encode protocol terms to iodata
 %%
+-spec call(atom(), [non_neg_integer()], [any()]) -> iodata().
 call(Call, Pids, Arg) ->
     Bin = <<?UINT16(?ALCOVE_MSG_CALL), ?UINT16(alcove_proto:call(Call)),
     (term_to_binary(list_to_tuple(Arg)))/binary>>,
     Size = byte_size(Bin),
     stdin(Pids, [<<?UINT16(Size)>>, Bin]).
 
+-spec stdin([non_neg_integer()], iodata()) -> iodata().
 stdin(Pids, Data) ->
     lists:foldl(fun(Pid, Acc) ->
                 Size = 2 + 4 + iolist_size(Acc),
@@ -38,6 +43,7 @@ stdin(Pids, Data) ->
 %%
 %% Decode protocol binary to term
 %%
+-spec stream(binary()) -> {[binary()],binary()}.
 stream(Data) ->
     stream(Data, []).
 
@@ -49,6 +55,7 @@ stream(Data, Acc) ->
             stream(Rest, [Bin|Acc])
     end.
 
+-spec message(binary()) -> {binary(),binary()}.
 message(<<?UINT16(Len), Data/binary>> = Bin) when Len =< byte_size(Data) ->
     Size = Len + 2,
     <<Msg:Size/bytes, Rest/binary>> = Bin,
@@ -56,6 +63,7 @@ message(<<?UINT16(Len), Data/binary>> = Bin) when Len =< byte_size(Data) ->
 message(Data) ->
     {<<>>, Data}.
 
+-spec decode(binary()) -> {type(), [non_neg_integer()], term()}.
 decode(Msg) ->
     decode(Msg, []).
 
