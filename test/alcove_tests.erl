@@ -670,9 +670,10 @@ stream(#state{pid = Drv}) ->
     ok = alcove:sigaction(Drv, Chain, sigpipe, sig_dfl),
     DefaultCount = 1 * 1024 * 1024,
     Count = getenv("ALCOVE_TEST_STREAM_COUNT", integer_to_list(DefaultCount)),
+    Sleep = getenv("ALCOVE_TEST_STREAM_MAGIC_SLEEP", "0"),
     % XXX procs in the fork path may exit before all the data has
     % XXX been written
-    Cmd = ["yes | head -", Count, ";sleep 5"],
+    Cmd = ["yes | head -", Count, ";sleep ", Sleep],
     ok = alcove:execvp(Drv, Chain, "/bin/sh", ["/bin/sh", "-c", Cmd]),
     % <<"y\n">>
     Reply = stream_count(Drv, Chain, list_to_integer(Count)*2),
