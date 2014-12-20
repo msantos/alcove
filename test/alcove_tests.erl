@@ -80,7 +80,7 @@ start() ->
     Exec = getenv("ALCOVE_TEST_EXEC", "sudo"),
     Use_fork = false =/= getenv("ALCOVE_TEST_USE_FORK", false),
 
-    {ok, Drv} = alcove_drv:start([{exec, Exec}, {maxchild, 8}]),
+    {ok, Drv} = alcove_drv:start_link([{exec, Exec}, {maxchild, 8}]),
 
     ok = alcove:sigaction(Drv, sigchld, sig_catch),
     ok = alcove:sigaction(Drv, sigpipe, sig_ign),

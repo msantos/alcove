@@ -16,8 +16,8 @@
 -include_lib("alcove/include/alcove.hrl").
 
 %% API
--export([start/0, start/1, stop/1]).
--export([start_link/2]).
+-export([start/0, start/1, start/2, stop/1]).
+-export([start_link/0, start_link/1, start_link/2]).
 -export([call/5]).
 -export([stdin/3, stdout/3, stderr/3, event/3, send/3]).
 -export([getopts/1]).
@@ -38,10 +38,22 @@
 
 -spec start() -> {ok, ref()}.
 start() ->
-    start_link(self(), []).
+    start(self(), []).
 
 -spec start(proplists:proplist()) -> {ok, ref()}.
 start(Options) ->
+    start(self(), Options).
+
+-spec start(pid(), proplists:proplist()) -> {ok, ref()}.
+start(Owner, Options) ->
+    gen_server:start(?MODULE, [Owner, Options], []).
+
+-spec start_link() -> {ok, ref()}.
+start_link() ->
+    start_link(self(), []).
+
+-spec start_link(proplists:proplist()) -> {ok, ref()}.
+start_link(Options) ->
     start_link(self(), Options).
 
 -spec start_link(pid(), proplists:proplist()) -> {ok, ref()}.

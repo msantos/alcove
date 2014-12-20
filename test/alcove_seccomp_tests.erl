@@ -47,7 +47,7 @@ start() ->
         Env -> Env
     end,
 
-    {ok, Drv} = alcove_drv:start([
+    {ok, Drv} = alcove_drv:start_link([
             {exec, Exec},
             {maxchild, 8},
             termsig

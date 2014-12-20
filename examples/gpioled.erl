@@ -48,7 +48,7 @@
 start(GPIO) ->
     start(GPIO, 1000).
 start(GPIO, N) ->
-    {ok, Drv} = alcove_drv:start([{exec, "sudo"}]),
+    {ok, Drv} = alcove_drv:start_link([{exec, "sudo"}]),
 
     export(Drv, GPIO),
 

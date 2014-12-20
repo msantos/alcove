@@ -20,7 +20,7 @@
     ]).
 
 start() ->
-    {ok, Drv} = alcove_drv:start([{exec, "sudo"}]),
+    {ok, Drv} = alcove_drv:start_link([{exec, "sudo"}]),
     case alcove_cgroup:supported(Drv) of
         true ->
             ok = alcove_cgroup:create(Drv, [], [<<"alcove">>]),

@@ -20,7 +20,7 @@ start() ->
     start([]).
 
 start(Options) ->
-    {ok, Drv} = alcove_drv:start(Options ++ [{exec, "sudo"}]),
+    {ok, Drv} = alcove_drv:start_link(Options ++ [{exec, "sudo"}]),
 
     ok = alcove:chdir(Drv, "/"),
     chroot_init(),

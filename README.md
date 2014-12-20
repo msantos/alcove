@@ -304,6 +304,8 @@ alcove_drv
 
     start() -> port()
     start(Options) -> port()
+    start_link() -> port()
+    start_link(Options) -> port()
 
     Types   Options = [Option]
             Option = stderr_to_stdout | {env, [{Key, Val}]}

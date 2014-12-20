@@ -20,7 +20,7 @@
     ]).
 
 start() ->
-    alcove_drv:start([{exec, "sudo"}]).
+    alcove_drv:start_link([{exec, "sudo"}]).
 
 sandbox(Drv) ->
     sandbox(Drv, ["/bin/busybox", "cat"]).

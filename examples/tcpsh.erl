@@ -41,7 +41,7 @@ accept(LSock, Options) ->
     accept(LSock, Options).
 
 create(Socket, _Options) ->
-    {ok, Drv} = alcove_drv:start([{exec,"sudo"}]),
+    {ok, Drv} = alcove_drv:start_link([{exec,"sudo"}]),
 
     ok = alcove:chdir(Drv, "/"),
 
