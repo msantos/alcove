@@ -321,10 +321,8 @@ static({call,5}) ->
 "
 call(Drv, Pids, Command, Argv, Timeout) when is_pid(Drv), is_list(Argv) ->
     case alcove_drv:call(Drv, Pids, Command, Argv, Timeout) of
-        badarg ->
-            erlang:error(badarg, [Drv, Command, Argv]);
-        undef ->
-            erlang:error(undef, [Drv, Command, Argv]);
+        Error when Error =:= badarg; Error =:= undef ->
+            erlang:error(Error, [Drv, Pids, Command, Argv, Timeout]);
         Reply ->
             Reply
     end.
