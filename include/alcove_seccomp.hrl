@@ -17,7 +17,7 @@
 %%-------------------------------------------------------------------------
 
 %% instruction classes
--define(BPF_CLASS(Code), (Code band 16#07)).
+-define(BPF_CLASS(Code), ((Code) band 16#07)).
 -define(BPF_LD, 16#00).
 -define(BPF_LDX, 16#01).
 -define(BPF_ST, 16#02).
@@ -28,11 +28,11 @@
 -define(BPF_MISC, 16#07).
 
 %% ld/ldx fields
--define(BPF_SIZE(Code), (Code band 16#18)).
+-define(BPF_SIZE(Code), ((Code) band 16#18)).
 -define(BPF_W, 16#00).
 -define(BPF_H, 16#08).
 -define(BPF_B, 16#10).
--define(BPF_MODE(Code), (Code band 16#e0)).
+-define(BPF_MODE(Code), ((Code) band 16#e0)).
 -define(BPF_IMM, 16#00).
 -define(BPF_ABS, 16#20).
 -define(BPF_IND, 16#40).
@@ -41,7 +41,7 @@
 -define(BPF_MSH, 16#a0).
 
 %% alu/jmp fields
--define(BPF_OP(Code), (Code band 16#f0)).
+-define(BPF_OP(Code), ((Code) band 16#f0)).
 -define(BPF_ADD, 16#00).
 -define(BPF_SUB, 16#10).
 -define(BPF_MUL, 16#20).
@@ -56,16 +56,16 @@
 -define(BPF_JGT, 16#20).
 -define(BPF_JGE, 16#30).
 -define(BPF_JSET, 16#40).
--define(BPF_SRC(Code), (Code band 16#08)).
+-define(BPF_SRC(Code), ((Code) band 16#08)).
 -define(BPF_K, 16#00).
 -define(BPF_X, 16#08).
 
 %% ret - BPF_K and BPF_X also apply
--define(BPF_RVAL(Code), (Code band 16#18)).
+-define(BPF_RVAL(Code), ((Code) band 16#18)).
 -define(BPF_A, 16#10).
 
 %% misc
--define(BPF_MISCOP(Code), (Code band 16#f8)).
+-define(BPF_MISCOP(Code), ((Code) band 16#f8)).
 -define(BPF_TAX, 16#00).
 -define(BPF_TXA, 16#80).
 
@@ -84,8 +84,9 @@
         k = 0 :: non_neg_integer()
     }).
 
--define(BPF_STMT(Code, K), alcove_seccomp:stmt(Code, K)).
--define(BPF_JUMP(Code, K, JT, JF), alcove_seccomp:jump(Code, K, JT, JF)).
+-define(BPF_STMT(Code, K), alcove_seccomp:stmt((Code), (K))).
+-define(BPF_JUMP(Code, K, JT, JF),
+    alcove_seccomp:jump((Code), (K), (JT), (JF))).
 
 
 % Valid values for seccomp.mode and prctl(PR_SET_SECCOMP, <mode>)
@@ -123,7 +124,7 @@
 
 -define(VALIDATE_ARCHITECTURE(Arch_nr), [
         ?BPF_STMT(?BPF_LD+?BPF_W+?BPF_ABS, ?OFFSET_ARCH_NR),
-        ?BPF_JUMP(?BPF_JMP+?BPF_JEQ+?BPF_K, Arch_nr, 1, 0),
+        ?BPF_JUMP(?BPF_JMP+?BPF_JEQ+?BPF_K, (Arch_nr), 1, 0),
         ?BPF_STMT(?BPF_RET+?BPF_K, ?SECCOMP_RET_KILL)
     ]).
 
@@ -131,5 +132,5 @@
     ?BPF_STMT(?BPF_LD+?BPF_W+?BPF_ABS, ?OFFSET_SYSCALL_NR)).
 
 -define(ALLOW_SYSCALL(Syscall),
-    [?BPF_JUMP(?BPF_JMP+?BPF_JEQ+?BPF_K, Syscall, 0, 1),
+    [?BPF_JUMP(?BPF_JMP+?BPF_JEQ+?BPF_K, (Syscall), 0, 1),
         ?BPF_STMT(?BPF_RET+?BPF_K, ?SECCOMP_RET_ALLOW)]).
