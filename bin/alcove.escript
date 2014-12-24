@@ -466,8 +466,8 @@ specs() ->
 -spec pivot_root(alcove_drv:ref(),iodata(),iodata()) -> 'ok' | {'error', file:posix()}.
 -spec pivot_root(alcove_drv:ref(),fork_path(),iodata(),iodata()) -> 'ok' | {'error', file:posix()}.
 
--type prctl_arg() :: [binary() | {ptr, binary() | non_neg_integer()} ] | binary() | non_neg_integer() | atom().
--type prctl_val() :: binary() | non_neg_integer().
+-type prctl_arg() :: [binary() | {ptr, binary() | non_neg_integer()} ] | binary() | integer() | atom().
+-type prctl_val() :: binary() | integer().
 
 -spec prctl(alcove_drv:ref(),define(),prctl_arg(),prctl_arg(),prctl_arg(),prctl_arg()) -> {'ok',integer(),prctl_val(),prctl_val(),prctl_val(),prctl_val()}.
 -spec prctl(alcove_drv:ref(),fork_path(),define(),prctl_arg(),prctl_arg(),prctl_arg(),prctl_arg()) -> {'ok',integer(),prctl_val(),prctl_val(),prctl_val(),prctl_val()}.

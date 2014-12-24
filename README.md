@@ -668,7 +668,12 @@ probably confuse the process.
         {ok, integer(), Val2, Val3, Val4, Val5} | {error, posix()}
 
         Types   Option = integer() | atom()
-                Arg2 = Arg3 = Arg4 = Arg5 = integer() | iodata() | atom()
+                Arg2 = Arg3 = Arg4 = Arg5 = integer()
+                    | binary()
+                    | atom()
+                    | Cstruct
+                Cstruct = [binary() | {ptr, non_neg_integer() | binary()}]
+                Val2 = Val3 = Val4 = Val5 = binary() | integer()
 
         Linux only.
 
@@ -676,6 +681,55 @@ probably confuse the process.
 
         This function can be used to set BPF syscall filters on processes
         (seccomp mode).
+
+        A list can be used for prctl operations requiring a C structure
+        as an argument. List elements are used to contiguously populate
+        a buffer (it is up to the caller to add padding):
+
+            * binary(): the element is copied directly into the buffer
+
+                        On return, the contents of the binary is returned
+                        to the caller.
+
+            * {ptr, N}: N bytes of memory is allocated and zero'ed. The
+                        pointer is placed in the buffer.
+
+                        On return, the contents of the memory is returned
+                        to the caller.
+
+            * {ptr, binary()}:
+
+                        Memory equal to the size of the binary is
+                        allocated and initialized with the contents of
+                        the binary.
+
+                        On return, the contents of the memory is returned
+                        to the caller.
+
+        For example, to enforce a seccomp filter:
+
+                % NOTE: this filter will cause the port to receive a SIGSYS
+                % See test/alcove_seccomp_tests.erl for all the syscalls
+                % required for the port process to run
+
+                Arch = alcove:define(Drv, alcove:audit_arch()),
+                Filter = [
+                    ?VALIDATE_ARCHITECTURE(Arch),
+                    ?EXAMINE_SYSCALL,
+                    sys_read,
+                    sys_write
+                ],
+
+                {ok,_,_,_,_,_} = alcove:prctl(Drv, pr_set_no_new_privs, 1, 0, 0, 0),
+                Pad = (erlang:system_info({wordsize,external}) - 2) * 8,
+
+                Prog = [
+                    <<(iolist_size(Filter) div 8):2/native-unsigned-integer-unit:8>>,
+                    <<0:Pad>>,
+                    {ptr, list_to_binary(Filter)}
+                ],
+                alcove:prctl(Drv, pr_set_seccomp, seccomp_mode_filter, Prog, 0, 0).
+
 
     prctl_define(Drv, atom()) -> integer() | unknown
     prctl_define(Drv, Pids, atom()) -> integer() | unknown
