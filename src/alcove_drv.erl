@@ -185,6 +185,8 @@ call_reply(Drv, Pids, false, Timeout) ->
     receive
         {alcove_event, Drv, Pids, fdctl_closed} ->
             ok;
+        {alcove_event, Drv, _Pids, badpid} ->
+            exit(badpid);
         {alcove_call, Drv, Pids, Event} ->
             Event
     after
@@ -193,6 +195,8 @@ call_reply(Drv, Pids, false, Timeout) ->
     end;
 call_reply(Drv, Pids, true, Timeout) ->
     receive
+        {alcove_event, Drv, _Pids, badpid} ->
+            exit(badpid);
         {alcove_event, Drv, Pids, {termsig,_} = Signal} ->
             exit(Signal);
         {alcove_event, Drv, Pids, fdctl_closed} ->
@@ -211,6 +215,8 @@ call_reply(Drv, Pids, true, Timeout) ->
 
 reply(Drv, Pids, Type, Timeout) ->
     receive
+        {alcove_event, Drv, _Pids, badpid} ->
+            exit(badpid);
         {Type, Drv, Pids, Event} ->
             Event
     after

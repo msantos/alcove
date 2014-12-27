@@ -410,18 +410,26 @@ badpid(#state{pid = Drv}) ->
     % EPIPE or PID not found
     ok = alcove:execvp(Drv, [Child], "/bin/sh",
         ["/bin/sh", "-c", "echo > /dev/null"]),
-    Reply0 = (catch alcove:call(Drv, [Child], execvp, ["/bin/sh",
-                ["/bin/sh", "-c", "echo > /dev/null"]], 1000)),
-
-    PID = get_unused_pid(Drv),
+    waitpid_exit(Drv, [], Child),
+    Reply0 = (catch alcove:execvp(Drv, [Child],
+            "/bin/sh", ["/bin/sh", "-c", "echo > /dev/null"])),
 
     % PID not found
-    Reply1 = (catch alcove:call(Drv, [PID], execvp, ["/bin/sh",
-                ["/bin/sh", "-c", "echo > /dev/null"]], 1000)),
+    PID = get_unused_pid(Drv),
+    Reply1 = (catch alcove:execvp(Drv, [PID],
+            "/bin/sh", ["/bin/sh", "-c", "echo > /dev/null"])),
+
+    % Invalid PIDs
+    Reply2 = (catch alcove:execvp(Drv, [-1],
+            "/bin/sh", ["/bin/sh", "-c", "echo > /dev/null"])),
+    Reply3 = (catch alcove:execvp(Drv, [0],
+            "/bin/sh", ["/bin/sh", "-c", "echo > /dev/null"])),
 
     [
-        ?_assertEqual({'EXIT',timeout}, Reply0),
-        ?_assertEqual({'EXIT',timeout}, Reply1)
+        ?_assertEqual({'EXIT',badpid}, Reply0),
+        ?_assertEqual({'EXIT',badpid}, Reply1),
+        ?_assertEqual({'EXIT',badpid}, Reply2),
+        ?_assertEqual({'EXIT',badpid}, Reply3)
     ].
 
 signal(#state{pid = Drv}) ->

@@ -377,7 +377,14 @@ alcove_stdin(alcove_state_t *ap)
             buf += 4;
             buflen -= 4;
 
-            (void)pid_foreach(ap, pid, buf, &buflen, pid_equal, write_to_pid);
+            if ( (pid <= 0) || (pid_foreach(ap, pid, buf, &buflen, pid_equal,
+                            write_to_pid) == 1)) {
+                int tlen = 0;
+                char t[MAXMSGLEN] = {0};
+                tlen = alcove_mk_atom(t, sizeof(t), "badpid");
+                if (alcove_call_fake_reply(pid, ALCOVE_MSG_EVENT, t, tlen) < 0)
+                    return -1;
+            }
 
             return 0;
 
