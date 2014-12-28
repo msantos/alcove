@@ -382,7 +382,7 @@ alcove_stdin(alcove_state_t *ap)
                 int tlen = 0;
                 char t[MAXMSGLEN] = {0};
                 tlen = alcove_mk_atom(t, sizeof(t), "badpid");
-                if (alcove_call_fake_reply(pid, ALCOVE_MSG_EVENT, t, tlen) < 0)
+                if (alcove_call_fake_reply(pid, ALCOVE_MSG_CALL, t, tlen) < 0)
                     return -1;
             }
 
