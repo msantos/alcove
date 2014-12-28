@@ -420,16 +420,13 @@ badpid(#state{pid = Drv}) ->
             "/bin/sh", ["/bin/sh", "-c", "echo > /dev/null"])),
 
     % Invalid PIDs
-    Reply2 = (catch alcove:execvp(Drv, [-1],
-            "/bin/sh", ["/bin/sh", "-c", "echo > /dev/null"])),
-    Reply3 = (catch alcove:execvp(Drv, [0],
+    Reply2 = (catch alcove:execvp(Drv, [0],
             "/bin/sh", ["/bin/sh", "-c", "echo > /dev/null"])),
 
     [
         ?_assertEqual({'EXIT',badpid}, Reply0),
         ?_assertEqual({'EXIT',badpid}, Reply1),
-        ?_assertEqual({'EXIT',badpid}, Reply2),
-        ?_assertEqual({'EXIT',badpid}, Reply3)
+        ?_assertEqual({'EXIT',badpid}, Reply2)
     ].
 
 signal(#state{pid = Drv}) ->
