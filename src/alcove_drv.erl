@@ -30,10 +30,9 @@
 -export_type([ref/0]).
 
 -record(state, {
-        pid :: pid(),
+        ps,
         port :: port(),
-        caller = dict:new(),
-        buf = <<>>
+        buf = <<>> :: binary()
     }).
 
 -spec start() -> {ok, ref()}.
@@ -121,9 +120,9 @@ init([Owner, Options]) ->
             binary
         ] ++ PortOpt),
 
-    {ok, #state{port = Port, pid = Owner}}.
+    {ok, #state{port = Port, ps = dict:store([], Owner, dict:new())}}.
 
-handle_call({send, OSPids, Packet}, {Pid,_Tag}, #state{port = Port, caller = Caller} = State) ->
+handle_call({send, ForkPath, Packet}, {Pid,_Tag}, #state{port = Port, ps = PS} = State) ->
     case is_monitored(Pid) of
         true -> ok;
         false -> monitor(process, Pid)
@@ -135,7 +134,7 @@ handle_call({send, OSPids, Packet}, {Pid,_Tag}, #state{port = Port, caller = Cal
             error:badarg ->
                 {error,closed}
         end,
-    {reply, Reply, State#state{caller = dict:store(OSPids, Pid, Caller)}};
+    {reply, Reply, State#state{ps = dict:store(ForkPath, Pid, PS)}};
 
 handle_call(stop, _From, State) ->
     {stop, normal, ok, State}.
@@ -158,16 +157,17 @@ code_change(_OldVsn, State, _Extra) ->
 %
 % Several writes from the child process may be coalesced into 1 read by
 % the parent.
-handle_info({Port, {data, Data}}, #state{port = Port, pid = Pid, buf = Buf, caller = Caller} = State) ->
+handle_info({Port, {data, Data}}, #state{port = Port, buf = Buf, ps = PS} = State) ->
     {Msgs, Rest} = alcove_codec:stream(<<Buf/binary, Data/binary>>),
     Terms = [ alcove_codec:decode(Msg) || Msg <- Msgs ],
-    [ get_value(Pids, Caller, Pid) ! {Tag, self(), Pids, Term}
+    Pid = dict:fetch([], PS),
+    [ get_value(Pids, PS, Pid) ! {Tag, self(), Pids, Term}
         || {Tag, Pids, Term} <- Terms ],
     {noreply, State#state{buf = Rest}};
 
-handle_info({'DOWN', _MonitorRef, _Type, Pid, _Info}, #state{caller = Caller} = State) ->
+handle_info({'DOWN', _MonitorRef, _Type, Pid, _Info}, #state{ps = PS} = State) ->
     {noreply, State#state{
-            caller = dict:filter(fun(_K,V) -> V =/= Pid end, Caller)
+            ps = dict:filter(fun(_K,V) -> V =/= Pid end, PS)
         }};
 
 handle_info({'EXIT', Port, Reason}, #state{port = Port} = State) ->
