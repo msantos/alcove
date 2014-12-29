@@ -19,7 +19,7 @@
 -export([start/0, start/1, start/2, stop/1]).
 -export([start_link/0, start_link/1, start_link/2]).
 -export([call/5]).
--export([stdin/3, stdout/3, stderr/3, event/3, send/3]).
+-export([stdin/3, stdout/3, stderr/3, event/3]).
 -export([getopts/1]).
 
 %% gen_server callbacks
@@ -68,18 +68,28 @@ call(Drv, Pids, Command, Argv, Timeout)
     when is_list(Pids), is_atom(Command), is_list(Argv),
          (is_integer(Timeout) orelse Timeout =:= infinity) ->
     Data = alcove_codec:call(Command, Pids, Argv),
-    case send(Drv, Pids, Data) of
+    case sync_send(Drv, Pids, Data) of
         true ->
             call_reply(Drv, Pids, alcove_proto:will_return(Command), Timeout);
         Error ->
             Error
     end.
 
+-spec sync_send(ref(),[non_neg_integer()],iodata()) -> true | badarg.
+sync_send(Drv, Pids, Data) ->
+    case iolist_size(Data) =< 16#ffff of
+        true ->
+            gen_server:call(Drv, {send, Pids, Data}, infinity);
+        false ->
+            badarg
+    end.
+
 -spec send(ref(),[non_neg_integer()],iodata()) -> true | badarg.
 send(Drv, Pids, Data) ->
     case iolist_size(Data) =< 16#ffff of
         true ->
-            gen_server:call(Drv, {send, Pids, Data}, infinity);
+            gen_server:cast(Drv, {send, Pids, Data}),
+            true;
         false ->
             badarg
     end.
@@ -133,6 +143,9 @@ handle_call({send, ForkPath, Packet}, {Pid,_Tag}, #state{port = Port, ps = PS} =
 handle_call(stop, _From, State) ->
     {stop, normal, ok, State}.
 
+handle_cast({send, _ForkPath, Packet}, #state{port = Port} = State) ->
+    erlang:port_command(Port, Packet),
+    {noreply, State};
 handle_cast(_Msg, State) ->
     {noreply, State}.
 
