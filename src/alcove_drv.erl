@@ -75,7 +75,7 @@ call(Drv, Pids, Command, Argv, Timeout)
             Error
     end.
 
--spec send(ref(),[non_neg_integer()],iodata()) -> true | {error,closed} | badarg.
+-spec send(ref(),[non_neg_integer()],iodata()) -> true | badarg.
 send(Drv, Pids, Data) ->
     case iolist_size(Data) =< 16#ffff of
         true ->
@@ -127,13 +127,7 @@ handle_call({send, ForkPath, Packet}, {Pid,_Tag}, #state{port = Port, ps = PS} =
         true -> ok;
         false -> monitor(process, Pid)
     end,
-    Reply = try erlang:port_command(Port, Packet) of
-        true ->
-            true
-        catch
-            error:badarg ->
-                {error,closed}
-        end,
+    Reply = erlang:port_command(Port, Packet),
     {reply, Reply, State#state{ps = dict:store(ForkPath, Pid, PS)}};
 
 handle_call(stop, _From, State) ->
