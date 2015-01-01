@@ -190,7 +190,7 @@ handle_info(Info, State) ->
 %%--------------------------------------------------------------------
 call_reply(Drv, Pids, false, Timeout) ->
     receive
-        {alcove_event, Drv, Pids, fdctl_closed} ->
+        {alcove_ctl, Drv, Pids, fdctl_closed} ->
             ok;
         {alcove_call, Drv, _Pids, badpid} ->
             exit(badpid);
@@ -202,15 +202,12 @@ call_reply(Drv, Pids, false, Timeout) ->
     end;
 call_reply(Drv, Pids, true, Timeout) ->
     receive
-        {alcove_event, Drv, Pids, {termsig,_} = Signal} ->
-            exit(Signal);
-        {alcove_event, Drv, Pids, fdctl_closed} ->
-            receive
-                {alcove_event, Drv, Pids, {termsig,_} = Signal} ->
-                    exit(Signal);
-                {alcove_event, Drv, Pids, {exit_status,_} = Status} ->
-                    exit(Status)
-            end;
+        {alcove_ctl, Drv, Pids, fdctl_closed} ->
+            call_reply(Drv, Pids, true, Timeout);
+        {alcove_event, Drv, Pids, {termsig,_} = Event} ->
+            exit(Event);
+        {alcove_event, Drv, Pids, {exit_status,_} = Event} ->
+            exit(Event);
         {alcove_call, Drv, _Pids, badpid} ->
             exit(badpid);
         {alcove_call, Drv, Pids, Event} ->

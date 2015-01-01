@@ -24,6 +24,7 @@ enum {
     ALCOVE_MSG_PROXY,
     ALCOVE_MSG_CALL,
     ALCOVE_MSG_EVENT,
+    ALCOVE_MSG_CTL,
 };
 
 #define ALCOVE_CHILD_EXEC -2
@@ -645,7 +646,7 @@ exited_pid(alcove_state_t *ap, alcove_child_t *c, void *arg1, void *arg2)
 
     if ( (c->fdin >= 0) && (ap->opt & alcove_opt_stdin_closed)) {
         index = alcove_mk_atom(t, sizeof(t), "stdin_closed");
-        if (alcove_call_fake_reply(c->pid, ALCOVE_MSG_EVENT, t, index) < 0)
+        if (alcove_call_fake_reply(c->pid, ALCOVE_MSG_CTL, t, index) < 0)
             return -1;
     }
 
@@ -756,7 +757,7 @@ read_from_pid(alcove_state_t *ap, alcove_child_t *c, void *arg1, void *arg2)
             c->fdctl = ALCOVE_CHILD_EXEC;
             len = alcove_mk_atom(t, sizeof(t), "fdctl_closed");
 
-            if (alcove_call_fake_reply(c->pid, ALCOVE_MSG_EVENT, t, len) < 0)
+            if (alcove_call_fake_reply(c->pid, ALCOVE_MSG_CTL, t, len) < 0)
                 return -1;
         }
     }
@@ -768,7 +769,7 @@ read_from_pid(alcove_state_t *ap, alcove_child_t *c, void *arg1, void *arg2)
             case 0:
                 if (ap->opt & alcove_opt_stdout_closed) {
                     len = alcove_mk_atom(t, sizeof(t), "stdout_closed");
-                    if (alcove_call_fake_reply(c->pid, ALCOVE_MSG_EVENT,
+                    if (alcove_call_fake_reply(c->pid, ALCOVE_MSG_CTL,
                                 t, len) < 0)
                         return -1;
                 }
@@ -789,7 +790,7 @@ read_from_pid(alcove_state_t *ap, alcove_child_t *c, void *arg1, void *arg2)
             case 0:
                 if (ap->opt & alcove_opt_stderr_closed) {
                     len = alcove_mk_atom(t, sizeof(t), "stderr_closed");
-                    if (alcove_call_fake_reply(c->pid, ALCOVE_MSG_EVENT,
+                    if (alcove_call_fake_reply(c->pid, ALCOVE_MSG_CTL,
                                 t, len) < 0)
                         return -1;
                 }

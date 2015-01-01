@@ -80,4 +80,7 @@ decode(<<?UINT16(Len), ?UINT16(?ALCOVE_MSG_CALL), Data/binary>>, Pids) when Len 
     {alcove_call, lists:reverse(Pids), binary_to_term(Data)};
 
 decode(<<?UINT16(Len), ?UINT16(?ALCOVE_MSG_EVENT), Data/binary>>, Pids) when Len =:= 2 + byte_size(Data) ->
-    {alcove_event, lists:reverse(Pids), binary_to_term(Data)}.
+    {alcove_event, lists:reverse(Pids), binary_to_term(Data)};
+
+decode(<<?UINT16(Len), ?UINT16(?ALCOVE_MSG_CTL), Data/binary>>, Pids) when Len =:= 2 + byte_size(Data) ->
+    {alcove_ctl, lists:reverse(Pids), binary_to_term(Data)}.
