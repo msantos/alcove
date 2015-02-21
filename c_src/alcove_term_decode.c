@@ -427,17 +427,17 @@ alcove_decode_list_to_argv(const char *arg, size_t len, int *index,
     for (i = 0; i < arity; i++) {
         (*argv)[i] = alcove_x_decode_iolist_to_string(arg, len, index);
         if (!(*argv)[i])
-            goto ERR;
+            goto BADARG;
     }
 
     /* list tail */
     if (arity > 0 && (alcove_decode_list_header(arg, len, index, &empty) < 0
                 || empty != 0))
-        goto ERR;
+        goto BADARG;
 
     return 0;
 
-ERR:
+BADARG:
     alcove_free_argv(*argv);
     return -1;
 }

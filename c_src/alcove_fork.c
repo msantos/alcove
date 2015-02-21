@@ -162,13 +162,13 @@ alcove_sys_clone(alcove_state_t *ap, const char *arg, size_t len,
         return alcove_mk_errno(reply, rlen, errno);
 
     if (alcove_stdio(&fd) < 0)
-        goto ERR;
+        goto ERROR;
 
     (void)sigfillset(&set);
     (void)sigemptyset(&oldset);
 
     if (sigprocmask(SIG_BLOCK, &set, &oldset) < 0)
-        goto ERR;
+        goto ERROR;
 
     child_arg.ap = ap;
     child_arg.fd = &fd;
@@ -178,10 +178,10 @@ alcove_sys_clone(alcove_state_t *ap, const char *arg, size_t len,
             flags | SIGCHLD, &child_arg);
 
     if (sigprocmask(SIG_SETMASK, &oldset, NULL) < 0)
-        goto ERR;
+        goto ERROR;
 
     if (pid < 0)
-        goto ERR;
+        goto ERROR;
 
     free(child_stack);
 
@@ -194,7 +194,7 @@ alcove_sys_clone(alcove_state_t *ap, const char *arg, size_t len,
 
     return rindex;
 
-ERR:
+ERROR:
     errnum = errno;
     free(child_stack);
     return alcove_mk_errno(reply, rlen, errnum);

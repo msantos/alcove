@@ -59,7 +59,7 @@ alcove_sys_open(alcove_state_t *ap, const char *arg, size_t len,
     fd = open(pathname, flags, mode);
 
     if (fd < 0)
-        goto ERR;
+        goto ERROR;
 
     ALCOVE_OK(
         reply,
@@ -69,7 +69,7 @@ alcove_sys_open(alcove_state_t *ap, const char *arg, size_t len,
 
     return rindex;
 
-ERR:
+ERROR:
     errnum = errno;
     (void)close(fd);
     return alcove_mk_errno(reply, rlen, errnum);
