@@ -11,8 +11,8 @@
 % ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 % OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 -record(alcove_rlimit, {
-        cur = 0 :: non_neg_integer(),
-        max = 0 :: non_neg_integer()
+        cur = 0 :: alcove:uint64_t(),
+        max = 0 :: alcove:uint64_t()
     }).
 
 -record(alcove_pid, {
