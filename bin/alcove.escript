@@ -411,15 +411,18 @@ specs() ->
 -spec define(alcove_drv:ref(),atom() | [atom()]) -> 'unknown' | integer().
 -spec define(alcove_drv:ref(),fork_path(),atom() | [atom()]) -> 'unknown' | integer().
 
+-spec environ(alcove_drv:ref()) -> [binary()].
+-spec environ(alcove_drv:ref(),fork_path()) -> [binary()].
+
 -spec eof(alcove_drv:ref(),fork_path()) -> 'ok' | {'error',file:posix()}.
 -spec eof(alcove_drv:ref(),fork_path(),'stdin' | 'stdout' | 'stderr') -> 'ok' | {'error',file:posix()}.
+
+-spec errno_id(alcove_drv:ref(),int32_t()) -> file:posix().
+-spec errno_id(alcove_drv:ref(),fork_path(),int32_t()) -> file:posix().
 
 -spec event(alcove_drv:ref()) -> term().
 -spec event(alcove_drv:ref(),fork_path()) -> term().
 -spec event(alcove_drv:ref(),fork_path(),timeout()) -> term().
-
--spec environ(alcove_drv:ref()) -> [binary()].
--spec environ(alcove_drv:ref(),fork_path()) -> [binary()].
 
 -spec execve(alcove_drv:ref(),iodata(),[iodata()],[iodata()]) -> 'ok'.
 -spec execve(alcove_drv:ref(),fork_path(),iodata(),[iodata()],[iodata()]) -> 'ok'.

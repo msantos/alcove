@@ -207,6 +207,21 @@ alcove_sys_setopt(alcove_state_t *ap, const char *arg, size_t len,
     return alcove_mk_atom(reply, rlen, "true");
 }
 
+/* Convert an errno integer to an atom */
+    ssize_t
+alcove_sys_errno_id(alcove_state_t *ap, const char *arg, size_t len,
+        char *reply, size_t rlen)
+{
+    int index = 0;
+    int errnum = 0;
+
+    /* errno */
+    if (alcove_decode_int(arg, len, &index, &errnum) < 0)
+        return -1;
+
+    return alcove_mk_atom(reply, rlen, erl_errno_id(errnum));
+}
+
 /*
  * Utility functions
  */
