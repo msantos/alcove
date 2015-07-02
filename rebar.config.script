@@ -12,21 +12,15 @@ int main(int argc, char *argv[]) {
             file:delete("test/test_setns.c"),
             case Retval of
                 "0" ->
-                    lists:map(fun
-                            ({port_env, Env}) ->
-                                Cflags = proplists:get_value("EXE_CFLAGS", Env, "")
-                                    ++ " -DHAVE_SETNS",
-                                {port_env, lists:keyreplace("EXE_CFLAGS", 1, Env,
-                                    {"EXE_CFLAGS", Cflags})};
-                            (N) ->
-                                N
-                            end, CONFIG);
+                    Cflags = os:getenv("ALCOVE_CFLAGS", "") ++ " -DHAVE_SETNS",
+                    os:putenv("ALCOVE_CFLAGS", Cflags);
                 _ ->
-                    CONFIG
+                    true
             end;
         _ ->
-            CONFIG
-    end
+            true
+    end,
+    CONFIG
 end,
 Seccomp = fun(CONFIG) -> case os:type() of
         {unix,linux} ->
@@ -44,21 +38,15 @@ int main(int argc, char *argv[]) {
             file:delete("test/test_seccomp.c"),
             case Retval of
                 "0" ->
-                    lists:map(fun
-                            ({port_env, Env}) ->
-                                Cflags = proplists:get_value("EXE_CFLAGS", Env, "")
-                                    ++ " -DHAVE_SECCOMP",
-                                {port_env, lists:keyreplace("EXE_CFLAGS", 1, Env,
-                                    {"EXE_CFLAGS", Cflags})};
-                            (N) ->
-                                N
-                            end, CONFIG);
+                    Cflags = os:getenv("ALCOVE_CFLAGS", "") ++ " -DHAVE_SECCOMP",
+                    os:putenv("ALCOVE_CFLAGS", Cflags);
                 _ ->
-                    CONFIG
+                    true
             end;
         _ ->
-            CONFIG
-    end
+            true
+    end,
+    CONFIG
 end,
 lists:foldl(fun(Fun, Cfg) ->
         Fun(Cfg)
