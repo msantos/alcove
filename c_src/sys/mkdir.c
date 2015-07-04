@@ -15,6 +15,8 @@
 #include "alcove.h"
 #include "alcove_call.h"
 
+#include <sys/stat.h>
+
 /*
  * mkdir(2)
  *
