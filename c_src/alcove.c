@@ -883,6 +883,18 @@ alcove_fdmove(int fd, int dst)
     return fcntl(dst, F_SETFD, flags);
 }
 
+    int
+alcove_setfd(int fd, int flag)
+{
+    int flags = 0;
+
+    flags = fcntl(fd, F_GETFD, 0);
+    if (flags < 0)
+        return -1;
+
+    return fcntl(fd, F_SETFD, flags | flag);
+}
+
     static void
 usage(alcove_state_t *ap)
 {
