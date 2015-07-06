@@ -12,14 +12,10 @@
  * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
-#ifdef __linux__
-#define _GNU_SOURCE
-#include <sched.h>
-#endif
-
 #include "alcove.h"
 #include "alcove_call.h"
 #include "alcove_fork.h"
+#include "alcove_clone_constants.h"
 
 /*
  * clone(2)

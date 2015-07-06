@@ -12,34 +12,29 @@
  * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
-#include "alcove.h"
-#include "alcove_call.h"
-#include "alcove_fork.h"
-#include "alcove_clone_constants.h"
-
-/*
- * unshare(2)
- *
- */
-    ssize_t
-alcove_sys_unshare(alcove_state_t *ap, const char *arg, size_t len,
-        char *reply, size_t rlen)
-{
 #ifdef __linux__
-    int index = 0;
-    int flags = 0;
-
-    /* flags */
-    if (alcove_decode_define_list(arg, len, &index, &flags,
-                alcove_clone_constants) < 0)
-        return -1;
-
-    (void)fprintf(stderr, "flags=%d\n", flags);
-
-    return (unshare(flags) < 0)
-        ? alcove_mk_errno(reply, rlen, errno)
-        : alcove_mk_atom(reply, rlen, "ok");
-#else
-    return alcove_mk_atom(reply, rlen, "undef");
+#define _GNU_SOURCE
+#include <sched.h>
 #endif
-}
+
+static const alcove_define_t alcove_clone_constants[] = {
+#ifdef CLONE_NEWNS
+    ALCOVE_DEFINE(CLONE_NEWNS),
+#endif
+#ifdef CLONE_NEWUTS
+    ALCOVE_DEFINE(CLONE_NEWUTS),
+#endif
+#ifdef CLONE_NEWIPC
+    ALCOVE_DEFINE(CLONE_NEWIPC),
+#endif
+#ifdef CLONE_NEWUSER
+    ALCOVE_DEFINE(CLONE_NEWUSER),
+#endif
+#ifdef CLONE_NEWPID
+    ALCOVE_DEFINE(CLONE_NEWPID),
+#endif
+#ifdef CLONE_NEWNET
+    ALCOVE_DEFINE(CLONE_NEWNET),
+#endif
+    {NULL, 0}
+};

@@ -14,7 +14,7 @@
  */
 #include "alcove.h"
 #include "alcove_call.h"
-#include "alcove_fork.h"
+#include "alcove_clone_constants.h"
 
 /*
  * clone flags

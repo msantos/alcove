@@ -45,6 +45,7 @@ run(State) ->
         event(State),
         sethostname(State),
         env(State),
+        clone_define(State),
         setns(State),
         unshare(State),
         mount_define(State),
@@ -254,6 +255,12 @@ env(#state{pid = Drv, child = Child}) ->
         ?_assertEqual(0, length(Reply9))
     ].
 
+clone_define(#state{clone = true, pid = Drv, child = Child}) ->
+    Reply = alcove:clone_define(Drv, [Child], clone_newns),
+    ?_assertEqual(true, is_integer(Reply));
+clone_define(_) ->
+    [].
+
 setns(#state{clone = true, pid = Drv, child = Child}) ->
     {ok, Child1} = alcove:fork(Drv),
     ok = alcove:setns(Drv, [Child1], [
@@ -268,10 +275,12 @@ setns(_) ->
     [].
 
 unshare(#state{clone = true, pid = Drv}) ->
+    Host = alcove:gethostname(Drv),
     {ok, Child1} = alcove:fork(Drv),
     ok = alcove:unshare(Drv, [Child1], [clone_newuts]),
     Reply = alcove:sethostname(Drv, [Child1], "unshare"),
     Hostname = alcove:gethostname(Drv, [Child1]),
+    Host = alcove:gethostname(Drv),
     [?_assertEqual(ok, Reply),
         ?_assertEqual({ok, <<"unshare">>}, Hostname)];
 unshare(_) ->
