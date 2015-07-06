@@ -35,25 +35,3 @@ int avail_pid(alcove_state_t *ap, alcove_child_t *c, void *arg1, void *arg2);
 int stdio_pid(alcove_state_t *ap, alcove_child_t *c, void *arg1, void *arg2);
 int close_parent_fd(alcove_state_t *ap, alcove_child_t *c,
                 void *arg1, void *arg2);
-
-static const alcove_define_t alcove_clone_constants[] = {
-#ifdef CLONE_NEWNS
-    ALCOVE_DEFINE(CLONE_NEWNS),
-#endif
-#ifdef CLONE_NEWUTS
-    ALCOVE_DEFINE(CLONE_NEWUTS),
-#endif
-#ifdef CLONE_NEWIPC
-    ALCOVE_DEFINE(CLONE_NEWIPC),
-#endif
-#ifdef CLONE_NEWUSER
-    ALCOVE_DEFINE(CLONE_NEWUSER),
-#endif
-#ifdef CLONE_NEWPID
-    ALCOVE_DEFINE(CLONE_NEWPID),
-#endif
-#ifdef CLONE_NEWNET
-    ALCOVE_DEFINE(CLONE_NEWNET),
-#endif
-    {NULL, 0}
-};
