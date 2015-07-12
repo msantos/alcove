@@ -12,22 +12,7 @@
  * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
-typedef struct {
-    u_char type;
-    unsigned long arg;
-    char data[MAXMSGLEN];
-    size_t len;
-} alcove_prctl_arg_t;
-
-enum {
-    ALCOVE_PRARG_UNSIGNED_LONG,
-    ALCOVE_PRARG_CSTRUCT,
-    ALCOVE_PRARG_BINARY
-};
-
-#define PRARG(x) (((x).type) ? (unsigned long)(x).data : (x).arg)
-
-const alcove_define_t alcove_prctl_constants[] = {
+static const alcove_define_t alcove_prctl_constants[] = {
 #ifdef PR_SET_PDEATHSIG
     ALCOVE_DEFINE(PR_SET_PDEATHSIG),
 #endif
@@ -268,20 +253,6 @@ const alcove_define_t alcove_prctl_constants[] = {
 #endif
 #ifdef SECCOMP_RET_DATA
     ALCOVE_DEFINE(SECCOMP_RET_DATA),
-#endif
-
-    {NULL, 0}
-};
-
-const alcove_define_t alcove_prio_constants[] = {
-#ifdef PRIO_PROCESS
-    ALCOVE_DEFINE(PRIO_PROCESS),
-#endif
-#ifdef PRIO_PPGRP
-    ALCOVE_DEFINE(PRIO_PGRP),
-#endif
-#ifdef PRIO_USER
-    ALCOVE_DEFINE(PRIO_USER),
 #endif
 
     {NULL, 0}
