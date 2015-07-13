@@ -12,7 +12,7 @@
  * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
-const alcove_define_t alcove_signal_constants[] = {
+static const alcove_define_t alcove_signal_constants[] = {
 #ifdef SIGHUP
     ALCOVE_DEFINE(SIGHUP),
 #endif

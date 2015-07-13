@@ -14,46 +14,7 @@
  */
 #include "alcove.h"
 #include "alcove_call.h"
-#include "alcove_signal.h"
-
-/*
- * kill(2)
- *
- */
-    ssize_t
-alcove_sys_kill(alcove_state_t *ap, const char *arg, size_t len,
-        char *reply, size_t rlen)
-{
-    int index = 0;
-
-    pid_t pid = 0;
-    int signum = 0;
-    int rv = 0;
-
-    /* pid */
-    if (alcove_decode_int(arg, len, &index, &pid) < 0)
-        return -1;
-
-    /* signal */
-    switch (alcove_decode_define(arg, len, &index, &signum,
-                alcove_signal_constants)) {
-        case 0:
-            break;
-
-        case 1:
-            return alcove_mk_errno(reply, rlen, EINVAL);
-
-        case -1:
-        default:
-            return -1;
-    }
-
-    rv = kill(pid, signum);
-
-    return (rv < 0)
-        ? alcove_mk_errno(reply, rlen, errno)
-        : alcove_mk_atom(reply, rlen, "ok");
-}
+#include "alcove_signal_constants.h"
 
 /*
  * sigaction(2)
@@ -116,55 +77,4 @@ alcove_sys_sigaction(alcove_state_t *ap, const char *arg, size_t len,
     return (rv < 0)
         ? alcove_mk_errno(reply, rlen, errno)
         : alcove_mk_atom(reply, rlen, "ok");
-}
-
-/*
- * signals
- *
- */
-    ssize_t
-alcove_sys_signal_define(alcove_state_t *ap, const char *arg, size_t len,
-        char *reply, size_t rlen)
-{
-    int index = 0;
-    int rindex = 0;
-
-    char name[MAXATOMLEN] = {0};
-
-    /* constant */
-    if (alcove_decode_atom(arg, len, &index, name) < 0)
-        return -1;
-
-    ALCOVE_ERR(alcove_encode_version(reply, rlen, &rindex));
-    ALCOVE_ERR(alcove_encode_define(reply, rlen, &rindex,
-                name, alcove_signal_constants));
-
-    return rindex;
-}
-
-    ssize_t
-alcove_sys_signal_constant(alcove_state_t *ap, const char *arg, size_t len,
-        char *reply, size_t rlen)
-{
-    int index = 0;
-    int rindex = 0;
-
-    int signum = 0;
-
-    /* signum */
-    if (alcove_decode_int(arg, len, &index, &signum) < 0)
-        return -1;
-
-    ALCOVE_ERR(alcove_encode_version(reply, rlen, &rindex));
-    ALCOVE_ERR(alcove_encode_constant(reply, rlen, &rindex,
-                signum, alcove_signal_constants));
-
-    return rindex;
-}
-
-    ssize_t
-alcove_signal_name(char *buf, size_t len, int *index, int signum)
-{
-    return alcove_encode_constant(buf, len, index, signum,
-            alcove_signal_constants);
 }
