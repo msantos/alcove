@@ -12,7 +12,7 @@
  * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
-const alcove_define_t alcove_mount_constants[] = {
+static const alcove_define_t alcove_mount_constants[] = {
 #ifdef MS_RDONLY
     {"rdonly", MS_RDONLY},
     ALCOVE_DEFINE(MS_RDONLY),
