@@ -14,56 +14,11 @@
  */
 #include "alcove.h"
 #include "alcove_call.h"
-#include "alcove_limit.h"
+#include "alcove_rlimit_constants.h"
 
 #if defined(__linux__) || defined(__sunos__) || defined(__OpenBSD__)
 static int rlimit_under_maxfd(long maxfd, unsigned long long fd);
 #endif
-
-/*
- * getrlimit(2)
- *
- */
-    ssize_t
-alcove_sys_getrlimit(alcove_state_t *ap, const char *arg, size_t len,
-        char *reply, size_t rlen)
-{
-    int index = 0;
-    int rindex = 0;
-
-    int resource = 0;
-    struct rlimit rlim = {0};
-    int rv = 0;
-
-    /* resource */
-    switch (alcove_decode_define(arg, len, &index, &resource,
-                alcove_rlimit_constants)) {
-        case 0:
-            break;
-
-        case 1:
-            return alcove_mk_errno(reply, rlen, EINVAL);
-
-        case -1:
-        default:
-            return -1;
-    }
-
-    rv = getrlimit(resource, &rlim);
-
-    if (rv < 0)
-        return  alcove_mk_errno(reply, rlen, errno);
-
-    ALCOVE_ERR(alcove_encode_version(reply, rlen, &rindex));
-    ALCOVE_ERR(alcove_encode_tuple_header(reply, rlen, &rindex, 2));
-    ALCOVE_ERR(alcove_encode_atom(reply, rlen, &rindex, "ok"));
-    ALCOVE_ERR(alcove_encode_tuple_header(reply, rlen, &rindex, 3));
-    ALCOVE_ERR(alcove_encode_atom(reply, rlen, &rindex, "alcove_rlimit"));
-    ALCOVE_ERR(alcove_encode_ulonglong(reply, rlen, &rindex, rlim.rlim_cur));
-    ALCOVE_ERR(alcove_encode_ulonglong(reply, rlen, &rindex, rlim.rlim_max));
-
-    return rindex;
-}
 
 /*
  * setrlimit(2)
@@ -128,29 +83,6 @@ alcove_sys_setrlimit(alcove_state_t *ap, const char *arg, size_t len,
     return (rv < 0)
         ? alcove_mk_errno(reply, rlen, errno)
         : alcove_mk_atom(reply, rlen, "ok");
-}
-
-/*
- * rlimit constants
- *
- */
-    ssize_t
-alcove_sys_rlimit_define(alcove_state_t *ap, const char *arg, size_t len,
-        char *reply, size_t rlen)
-{
-    int index = 0;
-    int rindex = 0;
-
-    char name[MAXATOMLEN] = {0};
-
-    /* name */
-    if (alcove_decode_atom(arg, len, &index, name) < 0)
-        return -1;
-
-    ALCOVE_ERR(alcove_encode_version(reply, rlen, &rindex));
-    ALCOVE_ERR(alcove_encode_define(reply, rlen, &rindex,
-                name, alcove_rlimit_constants));
-    return rindex;
 }
 
 #if defined(__linux__) || defined(__sunos__) || defined(__OpenBSD__)
