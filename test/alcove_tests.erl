@@ -326,7 +326,7 @@ tmpfs(#state{os = {unix,OS}, pid = Drv, child = Child}) when OS =:= linux; OS =:
     % Linux: running in a fork in the global namespace
     Dir = "/tmp/alcove." ++ [ crypto:rand_uniform(16#30,16#39) || _ <- lists:seq(1,8) ],
     ok = alcove:mkdir(Drv, [Child], Dir, 8#700),
-    Mount = alcove:mount(Drv, [Child], "tmpfs", Dir, "tmpfs", [ms_noexec],
+    Mount = alcove:mount(Drv, [Child], "tmpfs", Dir, "tmpfs", [noexec],
         <<"size=16M", 0>>, <<>>),
     Umount = alcove:umount(Drv, [Child], Dir),
     Rmdir = alcove:rmdir(Drv, [Child], Dir),
@@ -574,7 +574,7 @@ priority(#state{os = {unix,_}, pid = Drv}) ->
     Prio1 = alcove:getpriority(Drv, [Fork0,Fork1], prio_process, 0),
 
     case alcove:getrlimit(Drv, [Fork0,Fork1], rlimit_nice) of
-        {error,einval} ->
+        {error,unsupported} ->
             ok;
         {ok, #alcove_rlimit{cur = Cur}} when Cur =:= 0 ->
             ok;
