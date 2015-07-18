@@ -1,11 +1,10 @@
 alcove
 ------
 
-alcove is an Erlang interface for creating application containers like
-sandboxes or Linux containers.
-
-alcove acts like a sort of shell supporting programmatic access to system
-primitives useful for isolating and interacting with Unix processes.
+alcove is an Erlang interface for creating system and application
+containers like sandboxes or Linux containers. alcove works by giving
+Erlang processes access to the system primitives used for isolating and
+controlling Unix processes.
 
 Overview
 ========
@@ -88,7 +87,7 @@ Creating a chroot
 =================
 
 The standard Unix way of sandboxing a process is by doing a chroot(2). The
-process usually involves:
+chroot process involves:
 
 * running as root
 * setting process limits
@@ -258,7 +257,7 @@ start() ->
     % Set the amount of memory available to the process
 
     % Total memory, including swap. We allow this to fail, because some
-    % systems may not have swap set up
+    % systems may not have a swap partition/file
     alcove_cgroup:set(Drv, [], <<"memory">>, <<"alcove">>,
             <<"memory.memsw.limit_in_bytes">>, <<"16m">>),
 
@@ -371,11 +370,16 @@ Functions marked as operating system specific will return
     Path = iodata()
     FD = integer()
 
+    constant() = atom() | integer()
+
 ### Event Loop
 
 These functions can be called while the process is running in the event
 loop. Using these functions after the process has called exec(3) will
 probably confuse the process.
+
+Functions accepting a constant() will return {error, unsupported} if an
+atom is used as the argument and is not found on the platform.
 
     chdir(Drv, Path) -> ok | {error, posix()}
     chdir(Drv, Pids, Path) -> ok | {error, posix()}
@@ -404,10 +408,10 @@ probably confuse the process.
 
         clearenv(3) : zero process environment
 
-    clone(Drv, Flags) -> {ok, integer()} | {error, posix()}
-    clone(Drv, Pids, Flags) -> {ok, integer()} | {error, posix()}
+    clone(Drv, Flags) -> {ok, integer()} | {error, posix() | unsupported}
+    clone(Drv, Pids, Flags) -> {ok, integer()} | {error, posix() | unsupported}
 
-        Types   Flags = integer() | [atom() | integer()]
+        Types   Flags = integer() | [constant()]
 
         Linux only.
 
@@ -545,10 +549,10 @@ probably confuse the process.
 
         getpid(2) : retrieve the system PID of the process.
 
-    getpriority(Drv, Which, Who) -> {ok, Prio} | {error, posix()}
-    getpriority(Drv, Pids, Which, Who) -> {ok, Prio} | {error, posix()}
+    getpriority(Drv, Which, Who) -> {ok, Prio} | {error, posix() | unsupported}
+    getpriority(Drv, Pids, Which, Who) -> {ok, Prio} | {error, posix() | unsupported}
 
-        Types   Which = atom() | integer()
+        Types   Which = constant()
                 Who = Prio = integer()
 
         getpriority(2) : retrieve scheduling priority of process,
@@ -572,8 +576,8 @@ probably confuse the process.
 
         Supported on Linux and BSD's.
 
-    getrlimit(Drv, atom() | integer()) -> {ok, #alcove_rlimit{}} | {error, posix()}
-    getrlimit(Drv, Pids, atom() | integer()) -> {ok, #alcove_rlimit{}} | {error, posix()}
+    getrlimit(Drv, constant()) -> {ok, #alcove_rlimit{}} | {error, posix() | unsupported}
+    getrlimit(Drv, Pids, constant()) -> {ok, #alcove_rlimit{}} | {error, posix() | unsupported}
 
         getrlimit(2) : retrive the resource limits for a process. Returns
         a record:
@@ -595,10 +599,10 @@ probably confuse the process.
 
         getuid(2) : returns the process user ID
 
-    kill(Drv, Pid, Signal) -> ok | {error, posix()}
-    kill(Drv, Pids, Pid, Signal) -> ok | {error, posix()}
+    kill(Drv, Pid, Signal) -> ok | {error, posix() | unsupported}
+    kill(Drv, Pids, Pid, Signal) -> ok | {error, posix() | unsupported}
 
-        Types   Signal = atom() | integer()
+        Types   Signal = constant()
 
         kill(2) : terminate a process
 
@@ -614,12 +618,13 @@ probably confuse the process.
 
         mkdir(2) : create a directory
 
-    mount(Drv, Source, Target, FSType, Flags, Data, Options) -> ok | {error, posix()}
+    mount(Drv, Source, Target, FSType, Flags, Data, Options) -> ok
+        | {error, posix() | unsupported}
     mount(Drv, Pids, Source, Target, FSType, Flags, Data, Options) -> ok
-        | {error, posix()}
+        | {error, posix() | unsupported}
 
         Types   Source = Target = FSType = Data = Options = iodata()
-                Flags = integer() | [atom() | integer()]
+                Flags = integer() | [constant()]
 
         mount(2) : mount a filesystem, Linux style
 
@@ -645,10 +650,10 @@ probably confuse the process.
         'rdonly' is mapped to MS_RDONLY on Linux and MNT_RDONLY on
         FreeBSD.
 
-    open(Drv, Path, Flags, Mode) -> {ok, integer()} | {error, posix()}
-    open(Drv, Pids, Path, Flags, Mode) -> {ok, integer()} | {error, posix()}
+    open(Drv, Path, Flags, Mode) -> {ok, integer()} | {error, posix() | unsupported}
+    open(Drv, Pids, Path, Flags, Mode) -> {ok, integer()} | {error, posix() | unsupported}
 
-        Types   Flags = integer() | [atom() | integer()]
+        Types   Flags = integer() | [constant()]
                 Mode = integer()
 
         open(2) : returns a file descriptor associated with a file
@@ -663,15 +668,12 @@ probably confuse the process.
         Returns the list of child PIDs for this process.
 
     prctl(Drv, Option, Arg2, Arg3, Arg4, Arg5) ->
-        {ok, integer(), Val2, Val3, Val4, Val5} | {error, posix()}
+        {ok, integer(), Val2, Val3, Val4, Val5} | {error, posix() | unsupported}
     prctl(Drv, Pids, Option, Arg2, Arg3, Arg4, Arg5) ->
-        {ok, integer(), Val2, Val3, Val4, Val5} | {error, posix()}
+        {ok, integer(), Val2, Val3, Val4, Val5} | {error, posix() | unsupported}
 
-        Types   Option = integer() | atom()
-                Arg2 = Arg3 = Arg4 = Arg5 = integer()
-                    | binary()
-                    | atom()
-                    | Cstruct
+        Types   Option = constant()
+                Arg2 = Arg3 = Arg4 = Arg5 = constant() | binary() | Cstruct
                 Cstruct = [binary() | {ptr, non_neg_integer() | binary()}]
                 Val2 = Val3 = Val4 = Val5 = binary() | integer()
 
@@ -854,10 +856,10 @@ probably confuse the process.
 
         Set port options. See getopt/2,3 for the list of options.
 
-    setpriority(Drv, Which, Who, Prio) -> ok | {error, posix()}
-    setpriority(Drv, Pids, Which, Who, Prio) -> ok | {error, posix()}
+    setpriority(Drv, Which, Who, Prio) -> ok | {error, posix() | unsupported}
+    setpriority(Drv, Pids, Which, Who, Prio) -> ok | {error, posix() | unsupported}
 
-        Types   Which = atom() | integer()
+        Types   Which = constant()
                 Who = Prio = integer()
 
         setpriority(2) : set scheduling priority of process, process
@@ -895,10 +897,10 @@ probably confuse the process.
 
         Supported on Linux and BSD's.
 
-    setrlimit(Drv, Resource, Limit) -> ok | {error, posix()}
-    setrlimit(Drv, Pids, Resource, Limit) -> ok | {error, posix()}
+    setrlimit(Drv, Resource, Limit) -> ok | {error, posix() | unsupported}
+    setrlimit(Drv, Pids, Resource, Limit) -> ok | {error, posix() | unsupported}
 
-        Types   Resource = integer() | atom()
+        Types   Resource = constant()
                 Val = #alcove_rlimit{}
 
         setrlimit(2) : set a resource limit
@@ -910,10 +912,10 @@ probably confuse the process.
 
         setuid(2) : change UID
 
-    sigaction(Drv, Signum, Handler) -> ok | {error, posix()}
-    sigaction(Drv, Pids, Signum, Handler) -> ok | {error, posix()}
+    sigaction(Drv, Signum, Handler) -> ok | {error, posix() | unsupported}
+    sigaction(Drv, Pids, Signum, Handler) -> ok | {error, posix() | unsupported}
 
-        Types   Signum = integer() | atom()
+        Types   Signum = constant()
                 Handler = sig_dfl | sig_ign | sig_catch
 
         sigaction(2) : set process behaviour for signals
@@ -949,10 +951,10 @@ probably confuse the process.
 
         unsetenv(3) : remove an environment variable
 
-    unshare(Drv, Flags) -> ok | {error, posix()}
-    unshare(Drv, Pids, Flags) -> ok | {error, posix()}
+    unshare(Drv, Flags) -> ok | {error, posix() | unsupported}
+    unshare(Drv, Pids, Flags) -> ok | {error, posix() | unsupported}
 
-        Types   Flags = integer()
+        Types   Flags = constant()
 
         Linux only.
 

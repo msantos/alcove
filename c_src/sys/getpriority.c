@@ -34,11 +34,8 @@ alcove_sys_getpriority(alcove_state_t *ap, const char *arg, size_t len,
                 alcove_prio_constants)) {
         case 0:
             break;
-
         case 1:
-            return alcove_mk_errno(reply, rlen, EINVAL);
-
-        case -1:
+            return alcove_mk_error(reply, rlen, "unsupported");
         default:
             return -1;
     }
@@ -47,11 +44,8 @@ alcove_sys_getpriority(alcove_state_t *ap, const char *arg, size_t len,
                 alcove_prio_constants)) {
         case 0:
             break;
-
         case 1:
-            return alcove_mk_errno(reply, rlen, EINVAL);
-
-        case -1:
+            return alcove_mk_error(reply, rlen, "unsupported");
         default:
             return -1;
     }

@@ -358,14 +358,17 @@ alcove_decode_define_list(const char *buf, size_t len, int *index, int *val,
             int i = 0;
             int length = 0;
             int constant = 0;
+            int rv = 0;
 
             if (ei_decode_list_header(buf, index, &length) < 0)
                 return -1;
 
             for (i = 0; i < length; i++) {
-                if (alcove_decode_define(buf, len, index, &constant,
-                            constants) < 0)
-                    return -1;
+                rv = alcove_decode_define(buf, len, index, &constant,
+                        constants);
+
+                if (rv != 0)
+                    return rv;
 
                 *val |= constant;
             }

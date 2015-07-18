@@ -42,9 +42,15 @@ alcove_sys_open(alcove_state_t *ap, const char *arg, size_t len,
         return -1;
 
     /* flags */
-    if (alcove_decode_define_list(arg, len, &index, &flags,
-                alcove_file_constants) < 0)
-        return -1;
+    switch (alcove_decode_define_list(arg, len, &index, &flags,
+                alcove_file_constants)) {
+        case 0:
+            break;
+        case 1:
+            return alcove_mk_error(reply, rlen, "unsupported");
+        default:
+            return -1;
+    }
 
     /* mode */
     if (alcove_decode_uint(arg, len, &index, (u_int32_t *)&mode) < 0)

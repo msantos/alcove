@@ -67,11 +67,8 @@ alcove_sys_prctl(alcove_state_t *ap, const char *arg, size_t len,
                 alcove_prctl_constants)) {
         case 0:
             break;
-
         case 1:
-            return alcove_mk_errno(reply, rlen, EINVAL);
-
-        case -1:
+            return alcove_mk_error(reply, rlen, "unsupported");
         default:
             return -1;
     }
@@ -101,7 +98,7 @@ alcove_sys_prctl(alcove_state_t *ap, const char *arg, size_t len,
 
                 if (alcove_lookup_define(define, &constant.ull,
                             alcove_prctl_constants) < 0)
-                    return 1;
+                    return alcove_mk_error(reply, rlen, "unsupported");
 
                 prarg[i].arg = constant.ul;
                 }

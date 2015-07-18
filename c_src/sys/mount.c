@@ -58,9 +58,15 @@ alcove_sys_mount(alcove_state_t *ap, const char *arg, size_t len,
         return -1;
 
     /* mountflags */
-    if (alcove_decode_define_list(arg, len, &index, (int *)&mountflags,
-                alcove_mount_constants) < 0)
-        return -1;
+    switch (alcove_decode_define_list(arg, len, &index, (int *)&mountflags,
+                alcove_mount_constants)) {
+        case 0:
+            break;
+        case 1:
+            return alcove_mk_error(reply, rlen, "unsupported");
+        default:
+            return -1;
+    }
 
     /* data */
     if (alcove_decode_iolist(arg, len, &index, data, &dlen) < 0)
