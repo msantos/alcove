@@ -27,7 +27,7 @@ sandbox(Drv) ->
 sandbox(Drv, Argv) ->
     {Path, Arg0, Args} = argv(Argv),
 
-    {ok, Child} = alcove:fork(Drv),
+    {ok, Child} = alcove:fork(Drv, []),
 
     setlimits(Drv, Child),
     chroot(Drv, Child, Path),

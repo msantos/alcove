@@ -22,7 +22,7 @@ start() ->
 start(Options) ->
     {ok, Drv} = alcove_drv:start_link(Options ++ [{exec, "sudo"}]),
 
-    ok = alcove:chdir(Drv, "/"),
+    ok = alcove:chdir(Drv, [], "/"),
     chroot_init(),
     cgroup_init(Drv,
         [<<"alcove">>],
@@ -130,7 +130,7 @@ network_drain(Drv, Socket, Child) ->
     end.
 
 clone(Drv, _Options) ->
-    alcove:clone(Drv, [
+    alcove:clone(Drv, [], [
             clone_newipc,
             clone_newnet,
             clone_newns,
@@ -142,7 +142,7 @@ clone_init(Drv, Child, Options) ->
     Id = id(),
     Hostname = lists:concat(["alcove", Child]),
 
-    case alcove_cgroup:supported(Drv) of
+    case alcove_cgroup:supported(Drv, []) of
         true ->
             cgroup_init(Drv, [<<"alcove">>, Hostname], Options),
             {ok,_} = alcove_cgroup:set(Drv, [], <<>>, [<<"alcove">>, Hostname],
@@ -309,7 +309,7 @@ cgroup_init(Drv, Namespace, Options) ->
     Bytes = proplists:get_value(<<"memory.limit_in_bytes">>,
                                 Options, <<"16m">>),
 
-    case alcove_cgroup:supported(Drv) of
+    case alcove_cgroup:supported(Drv, []) of
         true ->
             alcove_cgroup:create(Drv, [], Namespace),
             alcove_cgroup:set(Drv, [], <<"cpuset">>, Namespace,

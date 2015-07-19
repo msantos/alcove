@@ -19,7 +19,7 @@ Much like a shell, alcove waits for a command. For example, alcove can
 be requested to fork(2):
 
 ```erlang
-{ok, Child1} = alcove:fork(Drv).
+{ok, Child1} = alcove:fork(Drv, []).
 ```
 
 Now there are 2 processes in a parent/child relationship, sitting in
@@ -33,7 +33,6 @@ Child2 = alcove:getpid(Drv, [Child1,Child2]).
 An empty fork path refers to the port process:
 
 ```erlang
-% Same as doing: alcove:fork(Drv).
 {ok, Child3} = alcove:fork(Drv, []).
 ```
 
@@ -157,7 +156,7 @@ sandbox(Drv) ->
 sandbox(Drv, Argv) ->
     {Path, Arg0, Args} = argv(Argv),
 
-    {ok, Child} = alcove:fork(Drv),
+    {ok, Child} = alcove:fork(Drv, []),
 
     setlimits(Drv, Child),
     chroot(Drv, Child, Path),
@@ -218,7 +217,7 @@ true
 <<"sh: can't fork\n">>
 
 % If we check the parent for events, we can see the child has exited
-10> alcove:event(P).
+10> alcove:event(P, []).
 {signal,sigchld}
 ```
 
@@ -281,7 +280,7 @@ setlimits(Drv, Child) ->
 sandbox(Drv, Argv) ->
     {Path, Arg0, Args} = argv(Argv),
 
-    {ok, Child} = alcove:clone(Drv, [
+    {ok, Child} = alcove:clone(Drv, [], [
             clone_newipc, % IPC
             clone_newnet, % network
             clone_newns,  % mounts
@@ -350,15 +349,6 @@ alcove_drv
 alcove
 ======
 
-If any of these functions do not include the fork path, the call is
-evaluated by the port. The following functions are equivalent:
-
-    alcove:getpid(Drv)
-    alcove:getpid(Drv, [])
-
-    alcove:chown(Drv, "/tmp/test", 8#600)
-    alcove:chown(Drv, [], "/tmp/test", 8#600)
-
 Functions marked as operating system specific will return
 {error,unsupported} on other platforms.
 
@@ -381,34 +371,28 @@ probably confuse the process.
 Functions accepting a constant() will return {error, unsupported} if an
 atom is used as the argument and is not found on the platform.
 
-    chdir(Drv, Path) -> ok | {error, posix()}
     chdir(Drv, Pids, Path) -> ok | {error, posix()}
 
         chdir(2) : change process current working directory.
 
-    chmod(Drv, Path, Mode) -> ok | {error, posix()}
     chmod(Drv, Pids, Path, Mode) -> ok | {error, posix()}
 
         chmod(2) : change file permissions
 
-    chown(Drv, Path, Owner, Group) -> ok | {error, posix()}
     chown(Drv, Pids, Path, Owner, Group) -> ok | {error, posix()}
 
         Types   Owner = Group = non_neg_integer()
 
         chown(2) : change file ownership
 
-    chroot(Drv, Path) -> ok | {error, posix()}
     chroot(Drv, Pids, Path) -> ok | {error, posix()}
 
         chroot(2) : change root directory
 
-    clearenv(Drv) -> ok | {error, posix()}
     clearenv(Drv, Pids) -> ok | {error, posix()}
 
         clearenv(3) : zero process environment
 
-    clone(Drv, Flags) -> {ok, integer()} | {error, posix() | unsupported}
     clone(Drv, Pids, Flags) -> {ok, integer()} | {error, posix() | unsupported}
 
         Types   Flags = integer() | [constant()]
@@ -417,31 +401,26 @@ atom is used as the argument and is not found on the platform.
 
         clone(2) : create a new process
 
-    clone_define(Drv, atom()) -> integer() | unknown
     clone_define(Drv, Pids, atom()) -> integer() | unknown
 
         Linux only.
 
         Map symbols to integer constants.
 
-    close(Drv, FD) -> ok | {error, posix()}
     close(Drv, Pids, FD) -> ok | {error, posix()}
 
         close(2) : close a file descriptor.
 
-    environ(Drv) -> [binary()]
     environ(Drv, Pids) -> [binary()]
 
         environ(7) : return the process environment variables
 
-    event(Drv) -> term()
     event(Drv, Pids) -> term()
 
         event/1,2 is used to retrieve async messages returned from the
         port, such as caught signals, the exit status or the termination
         signal.
 
-    execve(Drv, Arg0, [Arg0, Args], Env) -> ok | {error, posix()}
     execve(Drv, Pids, Arg0, [Arg0, Args], Env) -> ok | {error, posix()}
 
         Types   Arg0 = Args = iodata()
@@ -450,7 +429,6 @@ atom is used as the argument and is not found on the platform.
         execve(2) : replace the process image, specifying the environment
         for the new process image.
 
-    execvp(Drv, Arg0, [Arg0, Args]) -> ok | {error, posix()}
     execvp(Drv, Pids, Arg0, [Arg0, Args]) -> ok | {error, posix()}
 
         Types   Arg0 = Args = iodata()
@@ -458,44 +436,36 @@ atom is used as the argument and is not found on the platform.
 
         execvp(2) : replace the current process image using the search path
 
-    exit(Drv, Value) -> ok
     exit(Drv, Pids, Value) -> ok
 
         Types   Value = integer()
 
         exit(3) : cause the child process to exit
 
-    file_define(Drv, atom()) -> integer() | unknown
     file_define(Drv, Pids, atom()) -> integer() | unknown
 
         Constants for open(2).
 
-    fork(Drv) -> {ok, integer()} | {error, posix()}
     fork(Drv, Pids) -> {ok, integer()} | {error, posix()}
 
         fork(2) : create a new process
 
-    getcwd(Drv) -> {ok, binary()} | {error, posix()}
     getcwd(Drv, Pids) -> {ok, binary()} | {error, posix()}
 
         getcwd(3) : return the current working directory
 
-    getenv(Drv, iodata()) -> binary() | false
     getenv(Drv, Pids, iodata()) -> binary() | false
 
         getenv(3) : retrieve an environment variable
 
-    getgid(Drv) -> non_neg_integer()
     getgid(Drv, Pids) -> non_neg_integer()
 
         getgid(2) : retrieve the processes' group ID
 
-    gethostname(Drv) -> {ok, binary()} | {error, posix()}
     gethostname(Drv, Pids) -> {ok, binary()} | {error, posix()}
 
         gethostname(2) : retrieve the system hostname
 
-    getopt(Drv, Options) -> integer() | false
     getopt(Drv, Pids, Options) -> integer() | false
 
         Types   Options = verbose | childlimit | exit_status | maxchild |
@@ -539,17 +509,14 @@ atom is used as the argument and is not found on the platform.
                 If a child process exits because of a signal, notify
                 the controlling Erlang process.
 
-    getpgrp(Drv) -> integer()
     getpgrp(Drv, Pids) -> integer()
 
         getpgrp(2) : retrieve the process group.
 
-    getpid(Drv) -> integer()
     getpid(Drv, Pids) -> integer()
 
         getpid(2) : retrieve the system PID of the process.
 
-    getpriority(Drv, Which, Who) -> {ok, Prio} | {error, posix() | unsupported}
     getpriority(Drv, Pids, Which, Who) -> {ok, Prio} | {error, posix() | unsupported}
 
         Types   Which = constant()
@@ -558,7 +525,6 @@ atom is used as the argument and is not found on the platform.
         getpriority(2) : retrieve scheduling priority of process,
         process group or user
 
-    getresgid(Drv) -> {ok, RGID, EGID, SGID}
     getresgid(Drv, Pids) -> {ok, RGID, EGID, SGID}
 
         Types   RGID = EGID = SGID = non_neg_integer()
@@ -567,7 +533,6 @@ atom is used as the argument and is not found on the platform.
 
         Supported on Linux and BSD's.
 
-    getresuid(Drv) -> {ok, RUID, EUID, SUID}
     getresuid(Drv, Pids) -> {ok, RUID, EUID, SUID}
 
         Types   RUID = EUID = SUID = non_neg_integer()
@@ -576,7 +541,6 @@ atom is used as the argument and is not found on the platform.
 
         Supported on Linux and BSD's.
 
-    getrlimit(Drv, constant()) -> {ok, #alcove_rlimit{}} | {error, posix() | unsupported}
     getrlimit(Drv, Pids, constant()) -> {ok, #alcove_rlimit{}} | {error, posix() | unsupported}
 
         getrlimit(2) : retrive the resource limits for a process. Returns
@@ -589,37 +553,30 @@ atom is used as the argument and is not found on the platform.
                 max = integer()
                 }
 
-    getsid(Drv, Pid) -> {ok, integer()} | {error, posix()}
     getsid(Drv, Pids, Pid) -> {ok, integer()} | {error, posix()}
 
         getsid(2) : retrieve the session ID
 
-    getuid(Drv) -> integer()
     getuid(Drv, Pids) -> integer()
 
         getuid(2) : returns the process user ID
 
-    kill(Drv, Pid, Signal) -> ok | {error, posix() | unsupported}
     kill(Drv, Pids, Pid, Signal) -> ok | {error, posix() | unsupported}
 
         Types   Signal = constant()
 
         kill(2) : terminate a process
 
-    lseek(Drv, FD, Offset, Whence) -> ok | {error, posix()}
     lseek(Drv, Pids, FD, Offset, Whence) -> ok | {error, posix()}
 
         Types   Offset = Whence = integer()
 
         lseek(2) : set file offset for read/write
 
-    mkdir(Drv, Path, Mode) -> ok | {error, posix()}
     mkdir(Drv, Pids, Path, Mode) -> ok | {error, posix()}
 
         mkdir(2) : create a directory
 
-    mount(Drv, Source, Target, FSType, Flags, Data, Options) -> ok
-        | {error, posix() | unsupported}
     mount(Drv, Pids, Source, Target, FSType, Flags, Data, Options) -> ok
         | {error, posix() | unsupported}
 
@@ -637,7 +594,6 @@ atom is used as the argument and is not found on the platform.
         as a string of comma separated values terminated by a NULL.
         Other platforms ignore the Options parameter.
 
-    mount_define(Drv, Flag) -> integer() | unknown
     mount_define(Drv, Pids, Flag) -> integer() | unknown
 
         Types   Flag = rdonly | nosuid | noexec | noatime | ...
@@ -645,12 +601,11 @@ atom is used as the argument and is not found on the platform.
         Convert flag names to integers. The lower case atoms are used
         for portability:
 
-            alcove:mount_define(Drv, rdonly)
+            alcove:mount_define(Drv, [], rdonly)
 
         'rdonly' is mapped to MS_RDONLY on Linux and MNT_RDONLY on
         FreeBSD.
 
-    open(Drv, Path, Flags, Mode) -> {ok, integer()} | {error, posix() | unsupported}
     open(Drv, Pids, Path, Flags, Mode) -> {ok, integer()} | {error, posix() | unsupported}
 
         Types   Flags = integer() | [constant()]
@@ -660,15 +615,12 @@ atom is used as the argument and is not found on the platform.
 
         Lists of values are OR'ed:
 
-            alcove:open(Drv, "/tmp/test", [o_wronly,o_creat], 8#644)
+            alcove:open(Drv, [], "/tmp/test", [o_wronly,o_creat], 8#644)
 
-    pid(Drv) -> [Pid]
     pid(Drv, Pids) -> [Pid]
 
         Returns the list of child PIDs for this process.
 
-    prctl(Drv, Option, Arg2, Arg3, Arg4, Arg5) ->
-        {ok, integer(), Val2, Val3, Val4, Val5} | {error, posix() | unsupported}
     prctl(Drv, Pids, Option, Arg2, Arg3, Arg4, Arg5) ->
         {ok, integer(), Val2, Val3, Val4, Val5} | {error, posix() | unsupported}
 
@@ -714,7 +666,7 @@ atom is used as the argument and is not found on the platform.
                 % See test/alcove_seccomp_tests.erl for all the syscalls
                 % required for the port process to run
 
-                Arch = alcove:define(Drv, alcove:audit_arch()),
+                Arch = alcove:define(Drv, [], alcove:audit_arch()),
                 Filter = [
                     ?VALIDATE_ARCHITECTURE(Arch),
                     ?EXAMINE_SYSCALL,
@@ -722,7 +674,7 @@ atom is used as the argument and is not found on the platform.
                     sys_write
                 ],
 
-                {ok,_,_,_,_,_} = alcove:prctl(Drv, pr_set_no_new_privs, 1, 0, 0, 0),
+                {ok,_,_,_,_,_} = alcove:prctl(Drv, [], pr_set_no_new_privs, 1, 0, 0, 0),
                 Pad = (erlang:system_info({wordsize,external}) - 2) * 8,
 
                 Prog = [
@@ -730,37 +682,31 @@ atom is used as the argument and is not found on the platform.
                     <<0:Pad>>,
                     {ptr, list_to_binary(Filter)}
                 ],
-                alcove:prctl(Drv, pr_set_seccomp, seccomp_mode_filter, Prog, 0, 0).
+                alcove:prctl(Drv, [], pr_set_seccomp, seccomp_mode_filter, Prog, 0, 0).
 
 
-    prctl_define(Drv, atom()) -> integer() | unknown
     prctl_define(Drv, Pids, atom()) -> integer() | unknown
 
         Convert prctl option names to integers.
 
-    read(Drv, Fd, Count) -> {ok, binary()} | {error, posix()}
     read(Drv, Pids, Fd, Count) -> {ok, binary()} | {error, posix()}
 
         Types   Count = non_neg_integer()
 
         read(2) : read bytes from a file descriptor
 
-    readdir(Drv, Path) -> {ok, [binary()]} | {error, posix()}
     readdir(Drv, Pids, Path) -> {ok, [binary()]} | {error, posix()}
 
         readdir(3) : retrieve list of objects in a directory
 
-    rlimit_define(Drv, atom()) -> integer() | unknown
     rlimit_define(Drv, Pids, atom()) -> integer() | unknown
 
         Convert an RLIMIT_* flag to an integer().
 
-    rmdir(Drv, Path) -> ok | {error, posix()}
     rmdir(Drv, Pids, Path) -> ok | {error, posix()}
 
         rmdir(2) : delete a directory
 
-    select(Drv, Readfds, Writefds, Exceptfds, Timeout) -> {ok, Readfds, Writefds, Exceptfds} | {error, posix()}
     select(Drv, Pids, Readfds, Writefds, Exceptfds, Timeout) -> {ok, Readfds, Writefds, Exceptfds} | {error, posix()}
 
         Types   Readfds = Writefds = Exceptfds = [] | [integer()]
@@ -780,7 +726,6 @@ atom is used as the argument and is not found on the platform.
                 sec : number of seconds to wait
                 usec : number of microseconds to wait
 
-    setenv(Drv, Name, Value, Overwrite) -> ok | {error, posix()}
     setenv(Drv, Pids, Name, Value, Overwrite) -> ok | {error, posix()}
 
         Types   Name = Value = iodata()
@@ -788,26 +733,22 @@ atom is used as the argument and is not found on the platform.
 
         setenv(3) : set an environment variable
 
-    setgid(Drv, Gid) -> ok | {error, posix()}
     setgid(Drv, Pids, Gid) -> ok | {error, posix()}
 
         Types   Gid = non_neg_integer()
 
         setgid(2) : set the GID of the process
 
-    setpgid(Drv, Pid, Pgid) -> ok | {error, posix()}
     setpgid(Drv, Pids, Pid, Pgid) -> ok | {error, posix()}
 
         Types   Pgid = integer()
 
         setpgid(2) : set process group
 
-    setsid(Drv) -> {ok, Pid} | {error, posix()}
     setsid(Drv, Pids) -> {ok, Pid} | {error, posix()}
 
         setsid(2) : create a new session
 
-    sethostname(Drv, Hostname) -> ok | {error, posix()}
     sethostname(Drv, Pids, Hostname) -> ok | {error, posix()}
 
         Types   Hostname = iodata()
@@ -816,13 +757,12 @@ atom is used as the argument and is not found on the platform.
 
         This function is probably only useful if running in a uts namespace:
 
-            {ok, Child} = alcove:clone(Drv, [clone_newuts]),
+            {ok, Child} = alcove:clone(Drv, [], [clone_newuts]),
             ok = alcove:sethostname(Drv, [Child], "test"),
-            Hostname1 = alcove:gethostname(Drv),
+            Hostname1 = alcove:gethostname(Drv, []),
             Hostname2 = alcove:gethostname(Drv, [Child]),
             Hostname1 =/= Hostname2.
 
-    setns(Drv, Path) -> ok | {error, posix()}
     setns(Drv, Pids, Path) -> ok | {error, posix()}
 
         Linux only.
@@ -844,19 +784,17 @@ atom is used as the argument and is not found on the platform.
 
         For example, to attach to another process' network namespace:
 
-            {ok, Child1} = alcove:clone(Drv, [clone_newnet]),
-            {ok, Child2} = alcove:fork(Drv),
+            {ok, Child1} = alcove:clone(Drv, [], [clone_newnet]),
+            {ok, Child2} = alcove:fork(Drv, []),
 
             % Move Child2 into the Child1 network namespace
             ok = alcove:setns(Drv, [Child2],
                     ["/proc/", integer_to_list(Child1), "/ns/net"]).
 
-    setopt(Drv, Opt, Val) -> boolean()
     setopt(Drv, Pids, Opt, Val) -> boolean()
 
         Set port options. See getopt/2,3 for the list of options.
 
-    setpriority(Drv, Which, Who, Prio) -> ok | {error, posix() | unsupported}
     setpriority(Drv, Pids, Which, Who, Prio) -> ok | {error, posix() | unsupported}
 
         Types   Which = constant()
@@ -865,7 +803,6 @@ atom is used as the argument and is not found on the platform.
         setpriority(2) : set scheduling priority of process, process
         group or user
 
-    setproctitle(Drv, Name) -> ok
     setproctitle(Drv, Pids, Name) -> ok
 
         Types   Name = iodata()
@@ -876,10 +813,9 @@ atom is used as the argument and is not found on the platform.
 
         On Linux, use prctl/6,7:
 
-            {ok,Fork} = alcove:fork(Drv),
+            {ok,Fork} = alcove:fork(Drv, []),
             alcove:prctl(Drv, [Fork], pr_set_name, <<"pseudonym">>, 0,0,0).
 
-    setresgid(Drv, RGID, EGID, SGID) -> ok | {error, posix()}
     setresgid(Drv, Pids, RGID, EGID, SGID) -> ok | {error, posix()}
 
         Types   RGID = EGID = SGID = non_neg_integer()
@@ -888,7 +824,6 @@ atom is used as the argument and is not found on the platform.
 
         Supported on Linux and BSD's.
 
-    setresuid(Drv, RUID, EUID, SUID) -> ok | {error, posix()}
     setresuid(Drv, Pids, RUID, EUID, SUID) -> ok | {error, posix()}
 
         Types   RUID = EUID = SUID = non_neg_integer()
@@ -897,7 +832,6 @@ atom is used as the argument and is not found on the platform.
 
         Supported on Linux and BSD's.
 
-    setrlimit(Drv, Resource, Limit) -> ok | {error, posix() | unsupported}
     setrlimit(Drv, Pids, Resource, Limit) -> ok | {error, posix() | unsupported}
 
         Types   Resource = constant()
@@ -905,14 +839,12 @@ atom is used as the argument and is not found on the platform.
 
         setrlimit(2) : set a resource limit
 
-    setuid(Drv, UID) -> ok | {error, posix()}
     setuid(Drv, Pids, UID) -> ok | {error, posix()}
 
         Types   UID = non_neg_integer()
 
         setuid(2) : change UID
 
-    sigaction(Drv, Signum, Handler) -> ok | {error, posix() | unsupported}
     sigaction(Drv, Pids, Signum, Handler) -> ok | {error, posix() | unsupported}
 
         Types   Signum = constant()
@@ -929,29 +861,24 @@ atom is used as the argument and is not found on the platform.
 
         Multiple caught signals may be reported as one event.
 
-    signal_constant(Drv, integer()) -> atom() | unknown
     signal_constant(Drv, Pids, integer()) -> atom() | unknown
 
         Convert integers to signal names.
 
-    signal_define(Drv, atom()) -> integer() | unknown
     signal_define(Drv, Pids, atom()) -> integer() | unknown
 
         Convert signal names to integers.
 
-    umount(Drv, Path) -> ok | {error, posix()}
     umount(Drv, Pids, Path) -> ok | {error, posix()}
 
         umount(2) : unmount a filesystem
 
         On BSD systems, calls unmount(2).
 
-    unsetenv(Drv, Name) -> ok | {error, posix()}
     unsetenv(Drv, Pids, Name) -> ok | {error, posix()}
 
         unsetenv(3) : remove an environment variable
 
-    unshare(Drv, Flags) -> ok | {error, posix() | unsupported}
     unshare(Drv, Pids, Flags) -> ok | {error, posix() | unsupported}
 
         Types   Flags = constant()
@@ -962,16 +889,14 @@ atom is used as the argument and is not found on the platform.
 
         unshare(2) lets you make a new namespace without calling clone(2):
 
-            ok = alcove:unshare(Drv, [clone_newnet]).
+            ok = alcove:unshare(Drv, [], [clone_newnet]).
 
             % The port is now running in a namespace without network access.
 
-    version(Drv) -> binary()
     version(Drv, Pids) -> binary()
 
         Retrieves the alcove version.
 
-    write(Drv, FD, Buf) -> {ok, Count} | {error, posix()}
     write(Drv, Pids, FD, Buf) -> {ok, Count} | {error, posix()}
 
         Types   Buf = iodata()
@@ -983,8 +908,6 @@ atom is used as the argument and is not found on the platform.
 The alcove module functions can be rewritten to use call/2,3,4,5 which
 allows setting timeouts.
 
-    call(Drv, Call) -> term()
-    call(Drv, Call, Argv) -> term()
     call(Drv, Pids, Call, Argv) -> term()
     call(Drv, Pids, Call, Argv, Timeout) -> term()
 

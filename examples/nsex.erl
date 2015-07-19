@@ -21,7 +21,7 @@
 
 start() ->
     {ok, Drv} = alcove_drv:start_link([{exec, "sudo"}]),
-    case alcove_cgroup:supported(Drv) of
+    case alcove_cgroup:supported(Drv, []) of
         true ->
             ok = alcove_cgroup:create(Drv, [], [<<"alcove">>]),
             {ok,1} = alcove_cgroup:set(Drv, [], <<"cpuset">>, [<<"alcove">>],
@@ -43,7 +43,7 @@ sandbox(Drv) ->
 sandbox(Drv, Argv) ->
     {Path, Arg0, Args} = argv(Argv),
 
-    {ok, Child} = alcove:clone(Drv, [
+    {ok, Child} = alcove:clone(Drv, [], [
             clone_newipc,
             clone_newnet,
             clone_newns,

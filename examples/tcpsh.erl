@@ -43,9 +43,9 @@ accept(LSock, Options) ->
 create(Socket, _Options) ->
     {ok, Drv} = alcove_drv:start_link([{exec,"sudo"}]),
 
-    ok = alcove:chdir(Drv, "/"),
+    ok = alcove:chdir(Drv, [], "/"),
 
-    {ok, PID} = alcove:clone(Drv, [
+    {ok, PID} = alcove:clone(Drv, [], [
             clone_newipc,
             clone_newnet,
             clone_newns,

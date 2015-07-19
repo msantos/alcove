@@ -55,21 +55,21 @@ start() ->
 
     #state{
         pid = Drv,
-        seccomp = alcove:define(Drv, seccomp_mode_filter) =/= unknown
+        seccomp = alcove:define(Drv, [], seccomp_mode_filter) =/= unknown
     }.
 
 stop(#state{pid = Drv}) ->
     alcove_drv:stop(Drv).
 
 kill(#state{pid = Drv}) ->
-    {ok, Pid} = alcove:fork(Drv),
+    {ok, Pid} = alcove:fork(Drv, []),
     enforce(Drv, [Pid], ?BPF_STMT(?BPF_RET+?BPF_K, ?SECCOMP_RET_KILL)),
     % Allowed: cached by process
     Reply0 = alcove:getpid(Drv, [Pid]),
     % Not allowed: SIGSYS
     Reply1 = (catch alcove:getcwd(Drv, [Pid])),
 
-    Reply2 = alcove:kill(Drv, Pid, 0),
+    Reply2 = alcove:kill(Drv, [], Pid, 0),
 
     [
         ?_assertEqual(Pid, Reply0),
@@ -78,11 +78,11 @@ kill(#state{pid = Drv}) ->
     ].
 
 allow(#state{pid = Drv}) ->
-    {ok, Pid} = alcove:fork(Drv),
+    {ok, Pid} = alcove:fork(Drv, []),
     enforce(Drv, [Pid], ?BPF_STMT(?BPF_RET+?BPF_K, ?SECCOMP_RET_ALLOW)),
     Reply0 = alcove:getpid(Drv, [Pid]),
     Reply1 = alcove:getcwd(Drv, [Pid]),
-    Reply2 = alcove:kill(Drv, Pid, 0),
+    Reply2 = alcove:kill(Drv, [], Pid, 0),
     alcove:exit(Drv, [Pid], 0),
 
     [
@@ -92,7 +92,7 @@ allow(#state{pid = Drv}) ->
     ].
 
 trap(#state{pid = Drv}) ->
-    {ok, Pid} = alcove:fork(Drv),
+    {ok, Pid} = alcove:fork(Drv, []),
     ok = alcove:sigaction(Drv, [Pid], sigsys, sig_catch),
 
     enforce(Drv, [Pid], ?BPF_STMT(?BPF_RET+?BPF_K, ?SECCOMP_RET_TRAP)),
@@ -111,7 +111,7 @@ trap(#state{pid = Drv}) ->
             ok
     end,
 
-    Reply3 = alcove:kill(Drv, Pid, 0),
+    Reply3 = alcove:kill(Drv, [], Pid, 0),
     alcove:exit(Drv, [Pid], 0),
 
     [
@@ -122,13 +122,13 @@ trap(#state{pid = Drv}) ->
     ].
 
 allow_syscall(Drv, Syscall) ->
-    case alcove:define(Drv, Syscall) of
+    case alcove:define(Drv, [], Syscall) of
         unknown -> [];
         NR -> ?ALLOW_SYSCALL(NR)
     end.
 
 filter(Drv) ->
-    Arch = alcove:define(Drv, alcove:audit_arch()),
+    Arch = alcove:define(Drv, [], alcove:audit_arch()),
     [
         ?VALIDATE_ARCHITECTURE(Arch),
         ?EXAMINE_SYSCALL,

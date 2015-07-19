@@ -83,12 +83,12 @@ start() ->
 
     {ok, Drv} = alcove_drv:start_link([{exec, Exec}, {maxchild, 8}]),
 
-    ok = alcove:sigaction(Drv, sigchld, sig_catch),
-    ok = alcove:sigaction(Drv, sigpipe, sig_ign),
+    ok = alcove:sigaction(Drv, [], sigchld, sig_catch),
+    ok = alcove:sigaction(Drv, [], sigpipe, sig_ign),
 
     case {Use_fork, os:type()} of
         {false, {unix,linux} = OS} ->
-            {ok, Child} = alcove:clone(Drv, [
+            {ok, Child} = alcove:clone(Drv, [], [
                     clone_newipc,
                     clone_newnet,
                     clone_newns,
@@ -102,7 +102,7 @@ start() ->
                 os = OS
             };
         {_, {unix,_} = OS} ->
-            {ok, Child} = alcove:fork(Drv),
+            {ok, Child} = alcove:fork(Drv, []),
             #state{
                 pid = Drv,
                 child = Child,
@@ -130,7 +130,7 @@ msg(_) ->
     ).
 
 version(#state{pid = Drv}) ->
-    Version = alcove:version(Drv),
+    Version = alcove:version(Drv, []),
     ?_assertEqual(true, is_binary(Version)).
 
 iodata(#state{pid = Drv}) ->
@@ -141,18 +141,18 @@ iodata(#state{pid = Drv}) ->
               21,
               <<22>>],
 
-    Reply0 = alcove:iolist_to_bin(Drv, Iolist),
+    Reply0 = alcove:iolist_to_bin(Drv, [], Iolist),
 
     % Valid iolists: binary, string, lists, bytes must be within a list
-    Reply1 = (catch alcove:iolist_to_bin(Drv, 10)),
-    Reply2 = (catch alcove:iolist_to_bin(Drv, [123456])),
-    Reply3 = alcove:iolist_to_bin(Drv, <<1,2,3,4,5,6>>),
-    Reply4 = alcove:iolist_to_bin(Drv, "ok"),
+    Reply1 = (catch alcove:iolist_to_bin(Drv, [], 10)),
+    Reply2 = (catch alcove:iolist_to_bin(Drv, [], [123456])),
+    Reply3 = alcove:iolist_to_bin(Drv, [], <<1,2,3,4,5,6>>),
+    Reply4 = alcove:iolist_to_bin(Drv, [], "ok"),
 
     % Arbitrary implementation limit of 16 nested
     % lists. iolist_to_binary/1 does not have this limitation.
-    Reply5 = alcove:iolist_to_bin(Drv, [[[[[[[[[[[[[[[["ok"]]]]]]]]]]]]]]]]),
-    Reply6 = (catch alcove:iolist_to_bin(Drv, [[[[[[[[[[[[[[[[["fail"]]]]]]]]]]]]]]]]])),
+    Reply5 = alcove:iolist_to_bin(Drv, [], [[[[[[[[[[[[[[[["ok"]]]]]]]]]]]]]]]]),
+    Reply6 = (catch alcove:iolist_to_bin(Drv, [], [[[[[[[[[[[[[[[[["fail"]]]]]]]]]]]]]]]]])),
 
     [
         ?_assertEqual(Reply0, iolist_to_binary(Iolist)),
@@ -165,7 +165,7 @@ iodata(#state{pid = Drv}) ->
     ].
 
 pid(#state{pid = Drv}) ->
-    Pids = alcove:pid(Drv),
+    Pids = alcove:pid(Drv, []),
     ?_assertEqual(1, length(Pids)).
 
 getpid(#state{clone = true, pid = Drv, child = Child}) ->
@@ -177,7 +177,7 @@ getpid(#state{pid = Drv, child = Child}) ->
     ?_assertEqual(true, PID > 0).
 
 setopt(#state{pid = Drv}) ->
-    {ok, Fork} = alcove:fork(Drv),
+    {ok, Fork} = alcove:fork(Drv, []),
 
     true = alcove:setopt(Drv, [Fork], maxchild, 128),
 
@@ -208,7 +208,7 @@ setopt(#state{pid = Drv}) ->
     ].
 
 event(#state{pid = Drv}) ->
-    {ok, Fork} = alcove:fork(Drv),
+    {ok, Fork} = alcove:fork(Drv, []),
     Reply0 = alcove:exit(Drv, [Fork], 0),
     Reply1 = alcove:event(Drv, [Fork], 5000),
     Reply2 = alcove:event(Drv, [], 5000),
@@ -262,7 +262,7 @@ clone_define(_) ->
     [].
 
 setns(#state{clone = true, pid = Drv, child = Child}) ->
-    {ok, Child1} = alcove:fork(Drv),
+    {ok, Child1} = alcove:fork(Drv, []),
     ok = alcove:setns(Drv, [Child1], [
             "/proc/",
             integer_to_list(Child),
@@ -275,25 +275,25 @@ setns(_) ->
     [].
 
 unshare(#state{clone = true, pid = Drv}) ->
-    Host = alcove:gethostname(Drv),
-    {ok, Child1} = alcove:fork(Drv),
+    Host = alcove:gethostname(Drv, []),
+    {ok, Child1} = alcove:fork(Drv, []),
     ok = alcove:unshare(Drv, [Child1], [clone_newuts]),
     Reply = alcove:sethostname(Drv, [Child1], "unshare"),
     Hostname = alcove:gethostname(Drv, [Child1]),
-    Host = alcove:gethostname(Drv),
+    Host = alcove:gethostname(Drv, []),
     [?_assertEqual(ok, Reply),
         ?_assertEqual({ok, <<"unshare">>}, Hostname)];
 unshare(_) ->
     [].
 
 mount_define(#state{os = {unix,sunos}, pid = Drv}) ->
-    Flags = alcove:define(Drv, [
+    Flags = alcove:define(Drv, [], [
             rdonly,
             nosuid
         ]),
     ?_assertEqual(true, is_integer(Flags));
 mount_define(#state{pid = Drv}) ->
-    Flags = alcove:define(Drv, [
+    Flags = alcove:define(Drv, [], [
             rdonly,
             nosuid,
             noexec,
@@ -414,7 +414,7 @@ fork(#state{pid = Drv, child = Child}) ->
     ].
 
 badpid(#state{pid = Drv}) ->
-    {ok, Child} = alcove:fork(Drv),
+    {ok, Child} = alcove:fork(Drv, []),
 
     % EPIPE or PID not found
     ok = alcove:execvp(Drv, [Child], "/bin/sh",
@@ -439,17 +439,17 @@ badpid(#state{pid = Drv}) ->
     ].
 
 signal(#state{pid = Drv}) ->
-    {ok, Child1} = alcove:fork(Drv),
+    {ok, Child1} = alcove:fork(Drv, []),
 
     SA0 = alcove:sigaction(Drv, [Child1], sigterm, sig_ign),
-    Kill0 = alcove:kill(Drv, Child1, sigterm),
+    Kill0 = alcove:kill(Drv, [], Child1, sigterm),
     Pid0 = alcove:getpid(Drv, [Child1]),
 
     SA1 = alcove:sigaction(Drv, [Child1], sigterm, sig_dfl),
-    Kill1 = alcove:kill(Drv, Child1, sigterm),
+    Kill1 = alcove:kill(Drv, [], Child1, sigterm),
     waitpid(Drv, [], Child1),
-    alcove:kill(Drv, Child1, 0),
-    Search = alcove:kill(Drv, Child1, 0),
+    alcove:kill(Drv, [], Child1, 0),
+    Search = alcove:kill(Drv, [], Child1, 0),
 
     [
         ?_assertEqual(ok, SA0),
@@ -470,12 +470,12 @@ portstress(#state{pid = Drv, child = Child}) ->
     ?_assertEqual(Ok, Reply).
 
 forkstress(#state{pid = Drv}) ->
-    {ok, Fork} = alcove:fork(Drv),
+    {ok, Fork} = alcove:fork(Drv, []),
     Reply = forkstress_1(Drv, Fork, 100),
     ?_assertEqual(ok, Reply).
 
 forkchain(#state{pid = Drv}) ->
-    {ok, Child0} = alcove:fork(Drv),
+    {ok, Child0} = alcove:fork(Drv, []),
     {ok, Child1} = alcove:fork(Drv, [Child0]),
     {ok, Child2} = alcove:fork(Drv, [Child0, Child1]),
     {ok, Child3} = alcove:fork(Drv, [Child0, Child1, Child2]),
@@ -488,7 +488,7 @@ forkchain(#state{pid = Drv}) ->
     ?_assertEqual(Pid, Child4).
 
 eof(#state{pid = Drv}) ->
-    {ok, Child} = alcove:fork(Drv),
+    {ok, Child} = alcove:fork(Drv, []),
     {ok, Child0} = alcove:fork(Drv, [Child]),
 
     ok = alcove:eof(Drv, [Child,Child0], stderr),
@@ -513,7 +513,7 @@ eof(#state{pid = Drv}) ->
     ].
 
 alloc(#state{os = {unix,_}, pid = Drv}) ->
-    {ok, Buf, Cstruct} = alcove:alloc(Drv,
+    {ok, Buf, Cstruct} = alcove:alloc(Drv, [],
         [<<1,2,3,4,5,6,7,8,9,10>>,
          {ptr, 11},
          <<11,12,13,14,15>>,
@@ -532,7 +532,7 @@ alloc(#state{os = {unix,_}, pid = Drv}) ->
     ].
 
 prctl(#state{os = {unix,linux}, pid = Drv}) ->
-    {ok, Fork} = alcove:fork(Drv),
+    {ok, Fork} = alcove:fork(Drv, []),
 
     % capability is set:
     %   returns 0 | 1 in function result, arg2 = int
@@ -565,7 +565,7 @@ prctl(_) ->
     [].
 
 priority(#state{os = {unix,_}, pid = Drv}) ->
-    {ok, Fork0} = alcove:fork(Drv),
+    {ok, Fork0} = alcove:fork(Drv, []),
     {ok, Fork1} = alcove:fork(Drv, [Fork0]),
     {ok, Fork2} = alcove:fork(Drv, [Fork0]),
 
@@ -614,7 +614,7 @@ execvp(_) ->
     [].
 
 execvp_with_signal(#state{pid = Drv}) ->
-    {ok, Fork} = alcove:fork(Drv),
+    {ok, Fork} = alcove:fork(Drv, []),
     Reply0 = (catch alcove:execvp(Drv, [Fork], "/bin/sh",
             ["/bin/sh", "-c", "kill -9 $$"])),
     Reply1 = alcove:event(Drv, [Fork], 5000),
@@ -657,8 +657,8 @@ stderr(_) ->
     [].
 
 execve(#state{pid = Drv}) ->
-    {ok, Child0} = alcove:fork(Drv),
-    {ok, Child1} = alcove:fork(Drv),
+    {ok, Child0} = alcove:fork(Drv, []),
+    {ok, Child1} = alcove:fork(Drv, []),
 
     Reply0 = (catch alcove:execve(Drv, [Child0], "/usr/bin/env",
             ["/usr/bin/env"], ["A=1", "B=2", "C=3", false])),
@@ -694,13 +694,13 @@ stream(#state{pid = Drv}) ->
     ?_assertEqual(ok, Reply).
 
 open(#state{pid = Drv}) ->
-    O_RDONLY = alcove:define(Drv, o_rdonly),
+    O_RDONLY = alcove:define(Drv, [], o_rdonly),
 
     File = "/nonexistent",
 
-    Reply0 = alcove:open(Drv, File, O_RDONLY, 0),
-    Reply1 = alcove:open(Drv, File, [O_RDONLY,O_RDONLY,O_RDONLY,O_RDONLY], 0),
-    Reply2 = alcove:open(Drv, File, [o_rdonly, o_rdonly, o_rdonly], 0),
+    Reply0 = alcove:open(Drv, [], File, O_RDONLY, 0),
+    Reply1 = alcove:open(Drv, [], File, [O_RDONLY,O_RDONLY,O_RDONLY,O_RDONLY], 0),
+    Reply2 = alcove:open(Drv, [], File, [o_rdonly, o_rdonly, o_rdonly], 0),
 
     [
         ?_assertEqual({error,enoent}, Reply0),
@@ -716,7 +716,7 @@ execvp_mid_chain(#state{os = {unix,OS}, pid = Drv}) ->
     alcove:stdin(Drv, Pids, "test\n"),
     Reply0 = alcove:stdout(Drv, Pids, 5000),
     waitpid_exit(Drv, [], lists:last(Rest)),
-    Reply1 = [ alcove:kill(Drv, Pid, 0) || Pid <- Rest ],
+    Reply1 = [ alcove:kill(Drv, [], Pid, 0) || Pid <- Rest ],
 
     ChildState = case OS of
         openbsd -> {error,esrch};
@@ -772,7 +772,7 @@ flush(stdout, Drv, Pids) ->
 
 get_unused_pid(Drv) ->
     PID = crypto:rand_uniform(16#0affffff, 16#0fffffff),
-    case alcove:kill(Drv, PID, 0) of
+    case alcove:kill(Drv, [], PID, 0) of
         {error,esrch} -> PID;
         _ -> get_unused_pid(Drv)
     end.

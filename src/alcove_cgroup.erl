@@ -14,17 +14,13 @@
 -module(alcove_cgroup).
 -include_lib("alcove/include/alcove.hrl").
 
--export([supported/1, supported/2]).
--export([create/1, create/2, create/3, destroy/1, destroy/2, destroy/3]).
+-export([supported/2]).
+-export([create/2, create/3, destroy/2, destroy/3]).
 -export([cgroup/1, cgroup/2, fold/5, fold/6, fold_files/6, fold_files/7]).
 -export([get/5, set/6]).
 -export([is_file/3, is_dir/3]).
 -export([mounts/1, mounts/2]).
 -export([join/2,relpath/1,expand/1]).
-
--spec supported(alcove_drv:ref()) -> boolean().
-supported(Drv) ->
-    supported(Drv, []).
 
 -spec supported(alcove_drv:ref(),alcove:fork_path()) -> boolean().
 supported(Drv, Pids) ->
@@ -50,10 +46,6 @@ supported(Drv, Pids) ->
 %%  * the process may be running in a chroot or a different mount namespace
 %%
 
--spec create(alcove_drv:ref()) -> 'ok'.
-create(Drv) ->
-    create(Drv, []).
-
 -spec create(alcove_drv:ref(),alcove:fork_path()) -> 'ok'.
 create(Drv, Pids) ->
     create(Drv, Pids, [<<"alcove">>]).
@@ -73,10 +65,6 @@ create_1(Drv, Pids, Namespace) ->
             end
     end,
     fold(Drv, <<>>, [], Fun, []).
-
--spec destroy(alcove_drv:ref()) -> [ok | {error, file:posix()}].
-destroy(Drv) ->
-    destroy(Drv, []).
 
 -spec destroy(alcove_drv:ref(),alcove:fork_path()) -> [ok | {error, file:posix()}].
 destroy(Drv, Pids) ->
@@ -228,7 +216,7 @@ is_dir(Drv, Pids, Path) ->
 is_file(Drv, Pids, File) ->
     case alcove:open(Drv, Pids, File, [o_rdonly], 0) of
         {ok, FH} ->
-            alcove:close(Drv, FH),
+            alcove:close(Drv, Pids, FH),
             true;
         _ ->
             false
