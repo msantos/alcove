@@ -127,31 +127,31 @@ alcove_sys_getopt(alcove_state_t *ap, const char *arg, size_t len,
     if (alcove_decode_atom(arg, len, &index, opt) < 0)
         return -1;
 
-    if (!strcmp(opt, "verbose")) {
+    if (strcmp(opt, "verbose") == 0) {
         val = ap->verbose;
     }
-    else if (!strcmp(opt, "childlimit")) {
+    else if (strcmp(opt, "childlimit") == 0) {
         val = ap->fdsetsize;
     }
-    else if (!strcmp(opt, "exit_status")) {
+    else if (strcmp(opt, "exit_status") == 0) {
         val = ap->opt & alcove_opt_exit_status ? 1 : 0;
     }
-    else if (!strcmp(opt, "maxchild")) {
+    else if (strcmp(opt, "maxchild") == 0) {
         val = ap->maxchild;
     }
-    else if (!strcmp(opt, "maxforkdepth")) {
+    else if (strcmp(opt, "maxforkdepth") == 0) {
         val = ap->maxforkdepth;
     }
-    else if (!strcmp(opt, "termsig")) {
+    else if (strcmp(opt, "termsig") == 0) {
         val = ap->opt & alcove_opt_termsig ? 1 : 0;
     }
-    else if (!strcmp(opt, "stdin_closed")) {
+    else if (strcmp(opt, "stdin_closed") == 0) {
         val = ap->opt & alcove_opt_stdin_closed ? 1 : 0;
     }
-    else if (!strcmp(opt, "stdout_closed")) {
+    else if (strcmp(opt, "stdout_closed") == 0) {
         val = ap->opt & alcove_opt_stdout_closed ? 1 : 0;
     }
-    else if (!strcmp(opt, "stderr_closed")) {
+    else if (strcmp(opt, "stderr_closed") == 0) {
         val = ap->opt & alcove_opt_stderr_closed ? 1 : 0;
     }
 
@@ -177,28 +177,28 @@ alcove_sys_setopt(alcove_state_t *ap, const char *arg, size_t len,
     if (alcove_decode_uint(arg, len, &index, &val) < 0)
         return -1;
 
-    if (!strcmp(opt, "verbose")) {
+    if (strcmp(opt, "verbose") == 0) {
         ap->verbose = val;
     }
-    else if (!strcmp(opt, "exit_status")) {
+    else if (strcmp(opt, "exit_status") == 0) {
         ALCOVE_SETOPT(ap, alcove_opt_exit_status, val);
     }
-    else if (!strcmp(opt, "maxchild")) {
+    else if (strcmp(opt, "maxchild") == 0) {
         ap->maxchild = val;
     }
-    else if (!strcmp(opt, "maxforkdepth")) {
+    else if (strcmp(opt, "maxforkdepth") == 0) {
         ap->maxforkdepth = val;
     }
-    else if (!strcmp(opt, "termsig")) {
+    else if (strcmp(opt, "termsig") == 0) {
         ALCOVE_SETOPT(ap, alcove_opt_termsig, val);
     }
-    else if (!strcmp(opt, "stdin_closed")) {
+    else if (strcmp(opt, "stdin_closed") == 0) {
         ALCOVE_SETOPT(ap, alcove_opt_stdin_closed, val);
     }
-    else if (!strcmp(opt, "stdout_closed")) {
+    else if (strcmp(opt, "stdout_closed") == 0) {
         ALCOVE_SETOPT(ap, alcove_opt_stdout_closed, val);
     }
-    else if (!strcmp(opt, "stderr_closed")) {
+    else if (strcmp(opt, "stderr_closed") == 0) {
         ALCOVE_SETOPT(ap, alcove_opt_stderr_closed, val);
     }
     else

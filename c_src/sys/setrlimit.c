@@ -54,7 +54,7 @@ alcove_sys_setrlimit(alcove_state_t *ap, const char *arg, size_t len,
 
     /* 'alcove_rlimit' */
     if (alcove_decode_atom(arg, len, &index, atom) < 0 ||
-            strcmp(atom, "alcove_rlimit"))
+            strcmp(atom, "alcove_rlimit") != 0)
         return -1;
 
     /* rlim_cur: soft limit */

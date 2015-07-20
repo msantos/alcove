@@ -79,7 +79,7 @@ alcove_sys_select(alcove_state_t *ap, const char *arg, size_t len,
             if (alcove_decode_atom(arg, len, &index, buf) < 0)
                 return -1;
 
-            if (strcmp(buf, "alcove_timeval"))
+            if (strcmp(buf, "alcove_timeval") != 0)
                 return -1;
 
             /* sec */
@@ -187,7 +187,7 @@ alcove_fd_isset(char *buf, size_t len, int *index, fd_set *set)
 {
     int fd = 0;
 
-    if (!set)
+    if (set == NULL)
         return 0;
 
     for (fd = FD_SETSIZE - 1; fd > 3; fd--) {

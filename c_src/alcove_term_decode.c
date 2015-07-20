@@ -267,7 +267,7 @@ alcove_x_decode_iolist_to_string(const char *buf, size_t len, int *index)
         return NULL;
 
     res = strdup(tmp);
-    if (!res)
+    if (res == NULL)
         err(errno, "strdup");
 
     return res;
@@ -399,7 +399,7 @@ alcove_malloc(ssize_t size)
 
     buf = malloc(size);
 
-    if (!buf)
+    if (buf == NULL)
         err(ENOMEM, "malloc");
 
     return buf;
@@ -424,7 +424,7 @@ alcove_decode_list_to_argv(const char *arg, size_t len, int *index,
     /* NULL terminate */
     *argv = calloc(arity + 1, sizeof(char *));
 
-    if (!*argv)
+    if (*argv == NULL)
         err(errno, "calloc");
 
     for (i = 0; i < arity; i++) {
@@ -517,7 +517,7 @@ alcove_decode_list_to_buf(const char *arg, size_t len, int *index,
                 if (ei_decode_atom(arg, &tmp_index, tmp) < 0)
                     return -1;
 
-                if (strcmp(tmp, "ptr"))
+                if (strcmp(tmp, "ptr") != 0)
                     return -1;
 
                 if (ei_get_type(arg, &tmp_index, &type, &tmp_arity) < 0)
@@ -585,7 +585,7 @@ alcove_decode_list_to_buf(const char *arg, size_t len, int *index,
                         (void)ei_decode_ulong(arg, index, &val);
 
                         p = calloc(val, 1);
-                        if (!p)
+                        if (p == NULL)
                             err(errno, "calloc");
 
                         (void)memcpy(res, &p, sizeof(void *));

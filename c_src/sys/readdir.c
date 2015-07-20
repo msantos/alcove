@@ -41,7 +41,7 @@ alcove_sys_readdir(alcove_state_t *ap, const char *arg, size_t len,
 
     dirp = opendir(name);
 
-    if (!dirp)
+    if (dirp == NULL)
         return alcove_mk_errno(reply, rlen, errno);
 
     ALCOVE_ERR(alcove_encode_version(reply, rlen, &rindex));
@@ -50,7 +50,7 @@ alcove_sys_readdir(alcove_state_t *ap, const char *arg, size_t len,
 
     errno = 0;
     while ( (dent = readdir(dirp))) {
-        if (!strcmp(dent->d_name, ".") || !strcmp(dent->d_name, ".."))
+        if (strcmp(dent->d_name, ".") == 0 || strcmp(dent->d_name, "..") == 0)
             continue;
 
         ALCOVE_ERR(alcove_encode_list_header(reply, rlen, &rindex, 1));

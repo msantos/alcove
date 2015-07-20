@@ -26,7 +26,7 @@ alcove_sys_getcwd(alcove_state_t *ap, const char *arg, size_t len,
     int rindex = 0;
     char buf[PATH_MAX] = {0};
 
-    if (!getcwd(buf, sizeof(buf)))
+    if (getcwd(buf, sizeof(buf)) == NULL)
         return alcove_mk_errno(reply, rlen, errno);
 
     ALCOVE_OK(reply, &rindex,

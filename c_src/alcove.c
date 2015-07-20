@@ -93,7 +93,7 @@ main(int argc, char *argv[])
     int ch = 0;
 
     ap = calloc(1, sizeof(alcove_state_t));
-    if (!ap)
+    if (ap == NULL)
         err(EXIT_FAILURE, "calloc");
 
     ALCOVE_SETOPT(ap, alcove_opt_termsig, 1);
@@ -126,7 +126,7 @@ main(int argc, char *argv[])
     ap->fdsetsize = ap->maxchild;
 
     ap->child = calloc(ap->fdsetsize, sizeof(alcove_child_t));
-    if (!ap->child)
+    if (ap->child == NULL)
         err(EXIT_FAILURE, "calloc");
 
     if (alcove_fd_init() < 0)
@@ -257,14 +257,14 @@ alcove_event_loop(alcove_state_t *ap)
         ap->fdsetsize = ap->maxchild;
         ap->child = realloc(ap->child, sizeof(alcove_child_t) * ap->fdsetsize);
 
-        if (!ap->child)
+        if (ap->child == NULL)
             err(errno, "realloc");
     }
 
     (void)memset(ap->child, 0, sizeof(alcove_child_t) * ap->fdsetsize);
 
     fds = calloc(sizeof(struct pollfd), ap->maxfd);
-    if (!fds)
+    if (fds == NULL)
         err(errno, "calloc");
 
     for ( ; ; ) {
@@ -274,7 +274,7 @@ alcove_event_loop(alcove_state_t *ap)
         if (ap->maxfd < maxfd) {
             ap->maxfd = maxfd;
             fds = realloc(fds, sizeof(struct pollfd) * maxfd);
-            if (!fds)
+            if (fds == NULL)
                 err(errno, "realloc");
             (void)memset(fds, 0, sizeof(struct pollfd) * maxfd);
         }
@@ -841,7 +841,7 @@ alcove_handle_signal(alcove_state_t *ap) {
         (void)pid_foreach(ap, pid, &status, NULL,
                 pid_equal, exited_pid);
 
-        if (!(ap->opt & alcove_opt_sigchld))
+        if ((ap->opt & alcove_opt_sigchld) == 0)
             return 0;
     }
 

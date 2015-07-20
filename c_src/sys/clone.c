@@ -60,7 +60,7 @@ alcove_sys_clone(alcove_state_t *ap, const char *arg, size_t len,
         return alcove_mk_errno(reply, rlen, errno);
 
     child_stack = calloc(stack_size.rlim_cur, 1);
-    if (!child_stack)
+    if (child_stack == NULL)
         return alcove_mk_errno(reply, rlen, errno);
 
     if (alcove_stdio(&fd) < 0)
