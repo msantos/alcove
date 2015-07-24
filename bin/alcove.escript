@@ -499,8 +499,8 @@ specs() ->
 -spec sethostname(alcove_drv:ref(),fork_path(),iodata()) -> 'ok' | {'error', file:posix()}.
 -spec sethostname(alcove_drv:ref(),fork_path(),iodata(),timeout()) -> 'ok' | {'error', file:posix()}.
 
--spec setns(alcove_drv:ref(),fork_path(),iodata()) -> 'ok' | {'error', file:posix()}.
--spec setns(alcove_drv:ref(),fork_path(),iodata(),timeout()) -> 'ok' | {'error', file:posix()}.
+-spec setns(alcove_drv:ref(),fork_path(),iodata(),constant()) -> 'ok' | {'error', file:posix()}.
+-spec setns(alcove_drv:ref(),fork_path(),iodata(),constant(),timeout()) -> 'ok' | {'error', file:posix()}.
 
 -spec setopt(alcove_drv:ref(),fork_path(),atom(),non_neg_integer()) -> boolean().
 -spec setopt(alcove_drv:ref(),fork_path(),atom(),non_neg_integer(),timeout()) -> boolean().

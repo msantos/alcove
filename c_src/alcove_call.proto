@@ -46,7 +46,7 @@ select/4
 setenv/3
 setgid/1
 sethostname/1
-setns/1
+setns/2
 setopt/2
 setpgid/2
 setpriority/3

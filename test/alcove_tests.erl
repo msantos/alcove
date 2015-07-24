@@ -267,7 +267,7 @@ setns(#state{clone = true, pid = Drv, child = Child}) ->
             "/proc/",
             integer_to_list(Child),
             "/ns/uts"
-        ]),
+        ], 0),
     Hostname0 = alcove:gethostname(Drv, [Child]),
     Hostname1 = alcove:gethostname(Drv, [Child1]),
     ?_assertEqual(Hostname0, Hostname1);

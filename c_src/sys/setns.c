@@ -23,6 +23,7 @@
 #include "alcove.h"
 #include "alcove_call.h"
 #include "alcove_fork.h"
+#include "alcove_clone_constants.h"
 
 #ifdef __linux__
 #ifndef HAVE_SETNS
@@ -59,6 +60,7 @@ alcove_sys_setns(alcove_state_t *ap, const char *arg, size_t len,
     char path[PATH_MAX] = {0};
     size_t plen = sizeof(path)-1;
     int fd = -1;
+    int nstype = 0;
     int rv = 0;
     int errnum = 0;
 
@@ -67,11 +69,22 @@ alcove_sys_setns(alcove_state_t *ap, const char *arg, size_t len,
             plen == 0)
         return -1;
 
+    /* nstype */
+    switch (alcove_decode_define(arg, len, &index, &nstype,
+                alcove_clone_constants)) {
+        case 0:
+            break;
+        case 1:
+            return alcove_mk_error(reply, rlen, "unsupported");
+        default:
+            return -1;
+    }
+
     fd = open(path, O_RDONLY);
     if (fd < 0)
         return alcove_mk_errno(reply, rlen, errno);
 
-    rv = setns(fd, 0);
+    rv = setns(fd, nstype);
 
     errnum = errno;
 
