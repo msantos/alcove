@@ -50,11 +50,7 @@ alcove_sys_readdir(alcove_state_t *ap, const char *arg, size_t len,
 
     errno = 0;
     while ( (dent = readdir(dirp))) {
-        if (strcmp(dent->d_name, ".") == 0 || strcmp(dent->d_name, "..") == 0)
-            continue;
-
         ALCOVE_ERR(alcove_encode_list_header(reply, rlen, &rindex, 1));
-
         ALCOVE_ERR(alcove_encode_binary(reply, rlen, &rindex,
                     dent->d_name, strlen(dent->d_name)));
     }
