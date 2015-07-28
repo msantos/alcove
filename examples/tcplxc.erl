@@ -164,14 +164,16 @@ clone_init(Drv, Child, Options) ->
     ok = mount(Drv, [Child], "tmpfs", "/tmp/tcplxc/etc", "tmpfs", [
             ms_nodev,
             ms_noatime,
-            ms_nosuid
+            ms_nosuid,
+            ms_private
         ], [<<"mode=755,size=16M">>]),
 
     ok = mount(Drv, [Child], "tmpfs",
         "/tmp/tcplxc/home", "tmpfs", [
             ms_nodev,
             ms_noatime,
-            ms_nosuid
+            ms_nosuid,
+            ms_private
         ], [<<"uid=">>, integer_to_binary(Id),
          <<",gid=">>, integer_to_binary(Id),
          <<",mode=700,size=16M">>]),
@@ -181,7 +183,8 @@ clone_init(Drv, Child, Options) ->
         "/proc", "proc", [
             ms_noexec,
             ms_nosuid,
-            ms_nodev
+            ms_nodev,
+            ms_private
         ], <<>>),
 
     [ alcove:umount(Drv, [Child], Dir) || Dir <- mounts(),
@@ -201,14 +204,15 @@ clone_init(Drv, Child, Options) ->
 
     % devpts on /dev/pts type devpts (rw,noexec,nosuid,gid=5,mode=0620)
     ok = mount(Drv, [Child], "devpts",
-        "/dev/pts", "devpts", [ms_noexec, ms_nosuid],
+        "/dev/pts", "devpts", [ms_noexec, ms_nosuid, ms_private],
         [<<"mode=620,gid=5">>]),
 
     ok = mount(Drv, [Child], "proc",
         "/proc", "proc", [
             ms_noexec,
             ms_nosuid,
-            ms_nodev
+            ms_nodev,
+            ms_private
         ], <<>>),
 
     SysFiles = proplists:get_value(system_files, Options, []),
@@ -283,7 +287,8 @@ bindmount(Drv, Pids, Src, DstPath) ->
                     ms_remount,
                     ms_bind,
                     ms_rdonly,
-                    ms_nosuid
+                    ms_nosuid,
+                    ms_private
                 ], <<>>)
     end.
 
