@@ -145,7 +145,7 @@ clone_init(Drv, Child, Options) ->
     case alcove_cgroup:supported(Drv, []) of
         true ->
             cgroup_init(Drv, [<<"alcove">>, Hostname], Options),
-            {ok,_} = alcove_cgroup:set(Drv, [], <<>>, [<<"alcove">>, Hostname],
+            ok = alcove_cgroup:set(Drv, [], <<>>, [<<"alcove">>, Hostname],
                 <<"tasks">>, integer_to_list(Child));
         false ->
             ok

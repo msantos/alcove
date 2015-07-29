@@ -83,13 +83,16 @@ destroy(Drv, Pids, Namespace) ->
     fold(Drv, <<>>, [], Fun, []).
 
 -spec set(alcove_drv:ref(),alcove:fork_path(),binary(),
-    [binary()],string() | binary(),string() | binary()) -> {ok,non_neg_integer()}.
+    [binary()],string() | binary(),string() | binary()) -> ok | {error, file:posix()}.
 set(Drv, Pids, MntOpt, Namespace, Key, Value) ->
     Fun = fun(Cgroup, _Acc) ->
             File = join(Cgroup, [Key]),
             write(Drv, Pids, File, Value)
     end,
-    fold(Drv, MntOpt, Namespace, Fun, []).
+    case fold(Drv, MntOpt, Namespace, Fun, []) of
+        [] -> {error,enoent};
+        N -> N
+    end.
 
 -spec get(alcove_drv:ref(),alcove:fork_path(),
     binary(),[binary()],string() | binary()) -> {ok,binary()}.
@@ -105,9 +108,16 @@ get(Drv, Pids, MntOpt, Namespace, Key) ->
 write(Drv, Pids, File, Bytes) ->
     Reply = case alcove:open(Drv, Pids, File, [o_wronly], 0) of
         {ok, FH} ->
+            Size = iolist_size(Bytes),
             N = alcove:write(Drv, Pids, FH, Bytes),
             alcove:close(Drv, Pids, FH),
-            N;
+            % XXX will crash in the case of a partial write
+            case N of
+                {ok, Size} ->
+                    ok;
+                {error, _} = Error ->
+                    Error
+            end;
         Error ->
             Error
     end,
