@@ -61,7 +61,8 @@ start_link(Owner, Options) ->
 
 -spec stop(ref()) -> ok.
 stop(Drv) ->
-    gen_server:call(Drv, stop).
+    catch gen_server:call(Drv, stop),
+    ok.
 
 -spec call(ref(),alcove:fork_path(),atom(),list(),timeout()) -> term().
 call(Drv, Pids, Command, Argv, Timeout)
