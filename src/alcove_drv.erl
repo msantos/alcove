@@ -193,7 +193,7 @@ call_reply(Drv, Pids, false, Timeout) ->
     receive
         {alcove_ctl, Drv, Pids, fdctl_closed} ->
             ok;
-        {alcove_call, Drv, _Pids, badpid} ->
+        {alcove_ctl, Drv, _Pids, badpid} ->
             exit(badpid);
         {alcove_call, Drv, Pids, Event} ->
             Event
@@ -209,7 +209,7 @@ call_reply(Drv, Pids, true, Timeout) ->
             exit(Event);
         {alcove_event, Drv, Pids, {exit_status,_} = Event} ->
             exit(Event);
-        {alcove_call, Drv, _Pids, badpid} ->
+        {alcove_ctl, Drv, _Pids, badpid} ->
             exit(badpid);
         {alcove_call, Drv, Pids, Event} ->
             Event
@@ -220,7 +220,7 @@ call_reply(Drv, Pids, true, Timeout) ->
 
 reply(Drv, Pids, Type, Timeout) ->
     receive
-        {alcove_call, Drv, _Pids, badpid} ->
+        {alcove_ctl, Drv, _Pids, badpid} ->
             exit(badpid);
         {Type, Drv, Pids, Event} ->
             Event
