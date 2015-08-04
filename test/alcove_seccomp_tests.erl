@@ -73,7 +73,7 @@ kill(#state{pid = Drv}) ->
 
     [
         ?_assertEqual(Pid, Reply0),
-        ?_assertEqual({'EXIT',{termsig,sigsys}}, Reply1),
+        ?_assertMatch({'EXIT',{{termsig,sigsys},_}}, Reply1),
         ?_assertEqual({error, esrch}, Reply2)
     ].
 

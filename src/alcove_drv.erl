@@ -194,34 +194,34 @@ call_reply(Drv, Pids, false, Timeout) ->
         {alcove_ctl, Drv, Pids, fdctl_closed} ->
             ok;
         {alcove_ctl, Drv, _Pids, badpid} ->
-            exit(badpid);
+            erlang:error(badpid);
         {alcove_call, Drv, Pids, Event} ->
             Event
     after
         Timeout ->
-            exit(timeout)
+            erlang:error(timeout)
     end;
 call_reply(Drv, Pids, true, Timeout) ->
     receive
         {alcove_ctl, Drv, Pids, fdctl_closed} ->
             call_reply(Drv, Pids, true, Timeout);
         {alcove_event, Drv, Pids, {termsig,_} = Event} ->
-            exit(Event);
+            erlang:error(Event);
         {alcove_event, Drv, Pids, {exit_status,_} = Event} ->
-            exit(Event);
+            erlang:error(Event);
         {alcove_ctl, Drv, _Pids, badpid} ->
-            exit(badpid);
+            erlang:error(badpid);
         {alcove_call, Drv, Pids, Event} ->
             Event
     after
         Timeout ->
-            exit(timeout)
+            erlang:error(timeout)
     end.
 
 reply(Drv, Pids, Type, Timeout) ->
     receive
         {alcove_ctl, Drv, _Pids, badpid} ->
-            exit(badpid);
+            erlang:error(badpid);
         {Type, Drv, Pids, Event} ->
             Event
     after

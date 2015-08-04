@@ -433,9 +433,9 @@ badpid(#state{pid = Drv}) ->
             "/bin/sh", ["/bin/sh", "-c", "echo > /dev/null"])),
 
     [
-        ?_assertEqual({'EXIT',badpid}, Reply0),
-        ?_assertEqual({'EXIT',badpid}, Reply1),
-        ?_assertEqual({'EXIT',badpid}, Reply2)
+        ?_assertMatch({'EXIT',{badpid,_}}, Reply0),
+        ?_assertMatch({'EXIT',{badpid,_}}, Reply1),
+        ?_assertMatch({'EXIT',{badpid,_}}, Reply2)
     ].
 
 signal(#state{pid = Drv}) ->
