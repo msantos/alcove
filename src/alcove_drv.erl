@@ -125,7 +125,7 @@ init([Owner, Options]) ->
             (_) -> false
         end, Options),
 
-    Port = open_port({spawn_executable, Cmd}, [
+    Port = erlang:open_port({spawn_executable, Cmd}, [
             {args, Argv},
             stream,
             binary
@@ -133,19 +133,19 @@ init([Owner, Options]) ->
 
     {ok, #state{port = Port, ps = dict:store([], Owner, dict:new())}}.
 
-handle_call({send, ForkPath, Packet}, {Pid,_Tag}, #state{port = Port, ps = PS} = State) ->
+handle_call({send, ForkPath, Buf}, {Pid,_Tag}, #state{port = Port, ps = PS} = State) ->
     case is_monitored(Pid) of
         true -> ok;
         false -> monitor(process, Pid)
     end,
-    Reply = erlang:port_command(Port, Packet),
+    Reply = erlang:port_command(Port, Buf),
     {reply, Reply, State#state{ps = dict:store(ForkPath, Pid, PS)}};
 
 handle_call(stop, _From, State) ->
     {stop, normal, ok, State}.
 
-handle_cast({send, _ForkPath, Packet}, #state{port = Port} = State) ->
-    erlang:port_command(Port, Packet),
+handle_cast({send, _ForkPath, Buf}, #state{port = Port} = State) ->
+    erlang:port_command(Port, Buf),
     {noreply, State};
 handle_cast(_Msg, State) ->
     {noreply, State}.
