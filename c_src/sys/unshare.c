@@ -40,8 +40,6 @@ alcove_sys_unshare(alcove_state_t *ap, const char *arg, size_t len,
             return -1;
     }
 
-    (void)fprintf(stderr, "flags=%d\n", flags);
-
     return (unshare(flags) < 0)
         ? alcove_mk_errno(reply, rlen, errno)
         : alcove_mk_atom(reply, rlen, "ok");
