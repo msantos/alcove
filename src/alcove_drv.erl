@@ -30,7 +30,7 @@
 -export_type([ref/0]).
 
 -record(state, {
-        ps,
+        owner,
         port :: port(),
         buf = <<>> :: binary()
     }).
@@ -131,15 +131,11 @@ init([Owner, Options]) ->
             binary
         ] ++ PortOpt),
 
-    {ok, #state{port = Port, ps = dict:store([], Owner, dict:new())}}.
+    {ok, #state{port = Port, owner = Owner}}.
 
-handle_call({send, ForkPath, Buf}, {Pid,_Tag}, #state{port = Port, ps = PS} = State) ->
-    case is_monitored(Pid) of
-        true -> ok;
-        false -> monitor(process, Pid)
-    end,
+handle_call({send, ForkPath, Buf}, {Owner,_Tag}, #state{port = Port, owner = Owner} = State) ->
     Reply = erlang:port_command(Port, Buf),
-    {reply, Reply, State#state{ps = dict:store(ForkPath, Pid, PS)}};
+    {reply, Reply, State};
 
 handle_call(stop, _From, State) ->
     {stop, normal, ok, State}.
@@ -165,18 +161,11 @@ code_change(_OldVsn, State, _Extra) ->
 %
 % Several writes from the child process may be coalesced into 1 read by
 % the parent.
-handle_info({Port, {data, Data}}, #state{port = Port, buf = Buf, ps = PS} = State) ->
+handle_info({Port, {data, Data}}, #state{port = Port, buf = Buf, owner = Owner} = State) ->
     {Msgs, Rest} = alcove_codec:stream(<<Buf/binary, Data/binary>>),
     Terms = [ alcove_codec:decode(Msg) || Msg <- Msgs ],
-    Pid = dict:fetch([], PS),
-    [ get_value(Pids, PS, Pid) ! {Tag, self(), Pids, Term}
-        || {Tag, Pids, Term} <- Terms ],
+    [ Owner ! {Tag, self(), Pids, Term} || {Tag, Pids, Term} <- Terms ],
     {noreply, State#state{buf = Rest}};
-
-handle_info({'DOWN', _MonitorRef, _Type, Pid, _Info}, #state{ps = PS} = State) ->
-    {noreply, State#state{
-            ps = dict:filter(fun(_K,V) -> V =/= Pid end, PS)
-        }};
 
 handle_info({'EXIT', Port, Reason}, #state{port = Port} = State) ->
     {stop, {shutdown, Reason}, State};
@@ -227,16 +216,6 @@ reply(Drv, Pids, Type, Timeout) ->
     after
         Timeout ->
             false
-    end.
-
-is_monitored(Pid) ->
-    {monitored_by, Monitors} = process_info(Pid, monitored_by),
-    lists:member(self(), Monitors).
-
-get_value(Key, Dict, Default) ->
-    case dict:find(Key, Dict) of
-        error -> Default;
-        {ok,Val} -> Val
     end.
 
 %%--------------------------------------------------------------------
