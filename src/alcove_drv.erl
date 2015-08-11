@@ -64,7 +64,7 @@ stop(Drv) ->
     catch gen_server:call(Drv, stop),
     ok.
 
--spec call(ref(),alcove:fork_path(),atom(),list(),timeout()) -> term().
+-spec call(ref(),alcove:forkchain(),atom(),list(),timeout()) -> term().
 call(Drv, Pids, Command, Argv, Timeout)
     when is_list(Pids), is_atom(Command), is_list(Argv),
          (is_integer(Timeout) orelse Timeout =:= infinity) ->
@@ -76,7 +76,7 @@ call(Drv, Pids, Command, Argv, Timeout)
             Error
     end.
 
--spec sync_send(ref(),alcove:fork_path(),iodata()) -> true | badarg.
+-spec sync_send(ref(),alcove:forkchain(),iodata()) -> true | badarg.
 sync_send(Drv, Pids, Data) ->
     case iolist_size(Data) =< 16#ffff of
         true ->
@@ -85,7 +85,7 @@ sync_send(Drv, Pids, Data) ->
             badarg
     end.
 
--spec send(ref(),alcove:fork_path(),iodata()) -> true | badarg.
+-spec send(ref(),alcove:forkchain(),iodata()) -> true | badarg.
 send(Drv, Pids, Data) ->
     case iolist_size(Data) =< 16#ffff of
         true ->
@@ -95,20 +95,20 @@ send(Drv, Pids, Data) ->
             badarg
     end.
 
--spec stdin(ref(),alcove:fork_path(),iodata()) -> 'true'.
+-spec stdin(ref(),alcove:forkchain(),iodata()) -> 'true'.
 stdin(Drv, Pids, Data) ->
     Stdin = alcove_codec:stdin(Pids, Data),
     send(Drv, Pids, Stdin).
 
--spec stdout(ref(),alcove:fork_path(),timeout()) -> 'false' | binary().
+-spec stdout(ref(),alcove:forkchain(),timeout()) -> 'false' | binary().
 stdout(Drv, Pids, Timeout) ->
     reply(Drv, Pids, alcove_stdout, Timeout).
 
--spec stderr(ref(),alcove:fork_path(),timeout()) -> 'false' | binary().
+-spec stderr(ref(),alcove:forkchain(),timeout()) -> 'false' | binary().
 stderr(Drv, Pids, Timeout) ->
     reply(Drv, Pids, alcove_stderr, Timeout).
 
--spec event(ref(),alcove:fork_path(),timeout()) -> term().
+-spec event(ref(),alcove:forkchain(),timeout()) -> term().
 event(Drv, Pids, Timeout) ->
     reply(Drv, Pids, alcove_event, Timeout).
 

@@ -319,7 +319,7 @@ specs() ->
 -type ssize_t() :: int64_t().
 
 -type pid_t() :: int32_t().
--type fork_path() :: [pid_t()].
+-type forkchain() :: [pid_t()].
 
 -type fd() :: int32_t().
 -type fd_set() :: [fd()].
@@ -340,227 +340,227 @@ specs() ->
         fd_set/0,
 
         pid_t/0,
-        fork_path/0,
+        forkchain/0,
         constant/0
     ]).
 
 -spec audit_arch() -> atom().
 
--spec call(alcove_drv:ref(),fork_path(),atom(),list()) -> term().
--spec call(alcove_drv:ref(),fork_path(),atom(),list(),timeout()) -> term().
+-spec call(alcove_drv:ref(),forkchain(),atom(),list()) -> term().
+-spec call(alcove_drv:ref(),forkchain(),atom(),list(),timeout()) -> term().
 
--spec chdir(alcove_drv:ref(),fork_path(),iodata()) -> 'ok' | {'error', file:posix()}.
--spec chdir(alcove_drv:ref(),fork_path(),iodata(),timeout()) -> 'ok' | {'error', file:posix()}.
+-spec chdir(alcove_drv:ref(),forkchain(),iodata()) -> 'ok' | {'error', file:posix()}.
+-spec chdir(alcove_drv:ref(),forkchain(),iodata(),timeout()) -> 'ok' | {'error', file:posix()}.
 
--spec chmod(alcove_drv:ref(),fork_path(),iodata(),mode_t()) -> 'ok' | {'error', file:posix()}.
--spec chmod(alcove_drv:ref(),fork_path(),iodata(),mode_t(),timeout()) -> 'ok' | {'error', file:posix()}.
+-spec chmod(alcove_drv:ref(),forkchain(),iodata(),mode_t()) -> 'ok' | {'error', file:posix()}.
+-spec chmod(alcove_drv:ref(),forkchain(),iodata(),mode_t(),timeout()) -> 'ok' | {'error', file:posix()}.
 
--spec chown(alcove_drv:ref(),fork_path(),iodata(),uid_t(),gid_t()) -> 'ok' | {'error', file:posix()}.
--spec chown(alcove_drv:ref(),fork_path(),iodata(),uid_t(),gid_t(),timeout()) -> 'ok' | {'error', file:posix()}.
+-spec chown(alcove_drv:ref(),forkchain(),iodata(),uid_t(),gid_t()) -> 'ok' | {'error', file:posix()}.
+-spec chown(alcove_drv:ref(),forkchain(),iodata(),uid_t(),gid_t(),timeout()) -> 'ok' | {'error', file:posix()}.
 
--spec chroot(alcove_drv:ref(),fork_path(),iodata()) -> 'ok' | {'error', file:posix()}.
--spec chroot(alcove_drv:ref(),fork_path(),iodata(),timeout()) -> 'ok' | {'error', file:posix()}.
+-spec chroot(alcove_drv:ref(),forkchain(),iodata()) -> 'ok' | {'error', file:posix()}.
+-spec chroot(alcove_drv:ref(),forkchain(),iodata(),timeout()) -> 'ok' | {'error', file:posix()}.
 
--spec clearenv(alcove_drv:ref(),fork_path()) -> 'ok' | {'error', file:posix()}.
--spec clearenv(alcove_drv:ref(),fork_path(),timeout()) -> 'ok' | {'error', file:posix()}.
+-spec clearenv(alcove_drv:ref(),forkchain()) -> 'ok' | {'error', file:posix()}.
+-spec clearenv(alcove_drv:ref(),forkchain(),timeout()) -> 'ok' | {'error', file:posix()}.
 
--spec clone(alcove_drv:ref(),fork_path(),int32_t() | [constant()]) -> {'ok', pid_t()} | {'error', file:posix() | 'unsupported'}.
--spec clone(alcove_drv:ref(),fork_path(),int32_t() | [constant()],timeout()) -> {'ok', pid_t()} | {'error', file:posix() | 'unsupported'}.
+-spec clone(alcove_drv:ref(),forkchain(),int32_t() | [constant()]) -> {'ok', pid_t()} | {'error', file:posix() | 'unsupported'}.
+-spec clone(alcove_drv:ref(),forkchain(),int32_t() | [constant()],timeout()) -> {'ok', pid_t()} | {'error', file:posix() | 'unsupported'}.
 
--spec clone_define(alcove_drv:ref(),fork_path(),atom()) -> 'unknown' | int32_t().
--spec clone_define(alcove_drv:ref(),fork_path(),atom(),timeout()) -> 'unknown' | int32_t().
+-spec clone_define(alcove_drv:ref(),forkchain(),atom()) -> 'unknown' | int32_t().
+-spec clone_define(alcove_drv:ref(),forkchain(),atom(),timeout()) -> 'unknown' | int32_t().
 
--spec close(alcove_drv:ref(),fork_path(),fd()) -> 'ok' | {'error', file:posix()}.
--spec close(alcove_drv:ref(),fork_path(),fd(),timeout()) -> 'ok' | {'error', file:posix()}.
+-spec close(alcove_drv:ref(),forkchain(),fd()) -> 'ok' | {'error', file:posix()}.
+-spec close(alcove_drv:ref(),forkchain(),fd(),timeout()) -> 'ok' | {'error', file:posix()}.
 
--spec define(alcove_drv:ref(),fork_path(),atom() | [atom()]) -> 'unknown' | integer().
+-spec define(alcove_drv:ref(),forkchain(),atom() | [atom()]) -> 'unknown' | integer().
 
--spec environ(alcove_drv:ref(),fork_path()) -> [binary()].
--spec environ(alcove_drv:ref(),fork_path(),timeout()) -> [binary()].
+-spec environ(alcove_drv:ref(),forkchain()) -> [binary()].
+-spec environ(alcove_drv:ref(),forkchain(),timeout()) -> [binary()].
 
--spec eof(alcove_drv:ref(),fork_path(),'stdin' | 'stdout' | 'stderr') -> 'ok' | {'error',file:posix()}.
+-spec eof(alcove_drv:ref(),forkchain(),'stdin' | 'stdout' | 'stderr') -> 'ok' | {'error',file:posix()}.
 
--spec errno_id(alcove_drv:ref(),fork_path(),int32_t()) -> file:posix().
--spec errno_id(alcove_drv:ref(),fork_path(),int32_t(),timeout()) -> file:posix().
+-spec errno_id(alcove_drv:ref(),forkchain(),int32_t()) -> file:posix().
+-spec errno_id(alcove_drv:ref(),forkchain(),int32_t(),timeout()) -> file:posix().
 
--spec event(alcove_drv:ref(),fork_path()) -> term().
--spec event(alcove_drv:ref(),fork_path(),timeout()) -> term().
+-spec event(alcove_drv:ref(),forkchain()) -> term().
+-spec event(alcove_drv:ref(),forkchain(),timeout()) -> term().
 
--spec execve(alcove_drv:ref(),fork_path(),iodata(),[iodata()],[iodata()]) -> 'ok'.
--spec execve(alcove_drv:ref(),fork_path(),iodata(),[iodata()],[iodata()],timeout()) -> 'ok'.
+-spec execve(alcove_drv:ref(),forkchain(),iodata(),[iodata()],[iodata()]) -> 'ok'.
+-spec execve(alcove_drv:ref(),forkchain(),iodata(),[iodata()],[iodata()],timeout()) -> 'ok'.
 
--spec execvp(alcove_drv:ref(),fork_path(),iodata(),[iodata()]) -> 'ok'.
--spec execvp(alcove_drv:ref(),fork_path(),iodata(),[iodata()],timeout()) -> 'ok'.
+-spec execvp(alcove_drv:ref(),forkchain(),iodata(),[iodata()]) -> 'ok'.
+-spec execvp(alcove_drv:ref(),forkchain(),iodata(),[iodata()],timeout()) -> 'ok'.
 
--spec exit(alcove_drv:ref(),fork_path(),int32_t()) -> 'ok'.
--spec exit(alcove_drv:ref(),fork_path(),int32_t(),timeout()) -> 'ok'.
+-spec exit(alcove_drv:ref(),forkchain(),int32_t()) -> 'ok'.
+-spec exit(alcove_drv:ref(),forkchain(),int32_t(),timeout()) -> 'ok'.
 
--spec file_define(alcove_drv:ref(),fork_path(),atom()) -> non_neg_integer() | 'unknown'.
--spec file_define(alcove_drv:ref(),fork_path(),atom(),timeout()) -> non_neg_integer() | 'unknown'.
+-spec file_define(alcove_drv:ref(),forkchain(),atom()) -> non_neg_integer() | 'unknown'.
+-spec file_define(alcove_drv:ref(),forkchain(),atom(),timeout()) -> non_neg_integer() | 'unknown'.
 
--spec fork(alcove_drv:ref(),fork_path()) -> {'ok', pid_t()} | {'error', file:posix()}.
--spec fork(alcove_drv:ref(),fork_path(),timeout()) -> {'ok', pid_t()} | {'error', file:posix()}.
+-spec fork(alcove_drv:ref(),forkchain()) -> {'ok', pid_t()} | {'error', file:posix()}.
+-spec fork(alcove_drv:ref(),forkchain(),timeout()) -> {'ok', pid_t()} | {'error', file:posix()}.
 
--spec getcwd(alcove_drv:ref(),fork_path()) -> {'ok', binary()} | {'error', file:posix()}.
--spec getcwd(alcove_drv:ref(),fork_path(),timeout()) -> {'ok', binary()} | {'error', file:posix()}.
+-spec getcwd(alcove_drv:ref(),forkchain()) -> {'ok', binary()} | {'error', file:posix()}.
+-spec getcwd(alcove_drv:ref(),forkchain(),timeout()) -> {'ok', binary()} | {'error', file:posix()}.
 
--spec getenv(alcove_drv:ref(),fork_path(),iodata()) -> binary() | 'false'.
--spec getenv(alcove_drv:ref(),fork_path(),iodata(),timeout()) -> binary() | 'false'.
+-spec getenv(alcove_drv:ref(),forkchain(),iodata()) -> binary() | 'false'.
+-spec getenv(alcove_drv:ref(),forkchain(),iodata(),timeout()) -> binary() | 'false'.
 
--spec getgid(alcove_drv:ref(),fork_path()) -> gid_t().
--spec getgid(alcove_drv:ref(),fork_path(),timeout()) -> gid_t().
+-spec getgid(alcove_drv:ref(),forkchain()) -> gid_t().
+-spec getgid(alcove_drv:ref(),forkchain(),timeout()) -> gid_t().
 
--spec gethostname(alcove_drv:ref(),fork_path()) -> {'ok', binary()} | {'error', file:posix()}.
--spec gethostname(alcove_drv:ref(),fork_path(),timeout()) -> {'ok', binary()} | {'error', file:posix()}.
+-spec gethostname(alcove_drv:ref(),forkchain()) -> {'ok', binary()} | {'error', file:posix()}.
+-spec gethostname(alcove_drv:ref(),forkchain(),timeout()) -> {'ok', binary()} | {'error', file:posix()}.
 
--spec getopt(alcove_drv:ref(),fork_path(),atom()) -> 'false' | non_neg_integer().
--spec getopt(alcove_drv:ref(),fork_path(),atom(),timeout()) -> 'false' | non_neg_integer().
+-spec getopt(alcove_drv:ref(),forkchain(),atom()) -> 'false' | non_neg_integer().
+-spec getopt(alcove_drv:ref(),forkchain(),atom(),timeout()) -> 'false' | non_neg_integer().
 
--spec getpgrp(alcove_drv:ref(),fork_path()) -> pid_t().
--spec getpgrp(alcove_drv:ref(),fork_path(),timeout()) -> pid_t().
+-spec getpgrp(alcove_drv:ref(),forkchain()) -> pid_t().
+-spec getpgrp(alcove_drv:ref(),forkchain(),timeout()) -> pid_t().
 
--spec getpid(alcove_drv:ref(),fork_path()) -> pid_t().
--spec getpid(alcove_drv:ref(),fork_path(),timeout()) -> pid_t().
+-spec getpid(alcove_drv:ref(),forkchain()) -> pid_t().
+-spec getpid(alcove_drv:ref(),forkchain(),timeout()) -> pid_t().
 
--spec getpriority(alcove_drv:ref(),fork_path(),constant(),int32_t()) -> {'ok',int32_t()} | {'error', file:posix() | 'unsupported'}.
--spec getpriority(alcove_drv:ref(),fork_path(),constant(),int32_t(),timeout()) -> {'ok',int32_t()} | {'error', file:posix() | 'unsupported'}.
+-spec getpriority(alcove_drv:ref(),forkchain(),constant(),int32_t()) -> {'ok',int32_t()} | {'error', file:posix() | 'unsupported'}.
+-spec getpriority(alcove_drv:ref(),forkchain(),constant(),int32_t(),timeout()) -> {'ok',int32_t()} | {'error', file:posix() | 'unsupported'}.
 
--spec getresgid(alcove_drv:ref(),fork_path()) -> {'ok', gid_t(), gid_t(), gid_t()} | {'error', file:posix()}.
--spec getresgid(alcove_drv:ref(),fork_path(),timeout()) -> {'ok', gid_t(), gid_t(), gid_t()} | {'error', file:posix()}.
+-spec getresgid(alcove_drv:ref(),forkchain()) -> {'ok', gid_t(), gid_t(), gid_t()} | {'error', file:posix()}.
+-spec getresgid(alcove_drv:ref(),forkchain(),timeout()) -> {'ok', gid_t(), gid_t(), gid_t()} | {'error', file:posix()}.
 
--spec getresuid(alcove_drv:ref(),fork_path()) -> {'ok', uid_t(), uid_t(), uid_t()} | {'error', file:posix()}.
--spec getresuid(alcove_drv:ref(),fork_path(),timeout()) -> {'ok', uid_t(), uid_t(), uid_t()} | {'error', file:posix()}.
+-spec getresuid(alcove_drv:ref(),forkchain()) -> {'ok', uid_t(), uid_t(), uid_t()} | {'error', file:posix()}.
+-spec getresuid(alcove_drv:ref(),forkchain(),timeout()) -> {'ok', uid_t(), uid_t(), uid_t()} | {'error', file:posix()}.
 
--spec getrlimit(alcove_drv:ref(),fork_path(),constant()) -> {'ok', #alcove_rlimit{}} | {'error', file:posix() | 'unsupported'}.
--spec getrlimit(alcove_drv:ref(),fork_path(),constant(),timeout()) -> {'ok', #alcove_rlimit{}} | {'error', file:posix() | 'unsupported'}.
+-spec getrlimit(alcove_drv:ref(),forkchain(),constant()) -> {'ok', #alcove_rlimit{}} | {'error', file:posix() | 'unsupported'}.
+-spec getrlimit(alcove_drv:ref(),forkchain(),constant(),timeout()) -> {'ok', #alcove_rlimit{}} | {'error', file:posix() | 'unsupported'}.
 
--spec getsid(alcove_drv:ref(),fork_path(),pid_t()) -> {'ok', pid_t()} | {'error', file:posix()}.
--spec getsid(alcove_drv:ref(),fork_path(),pid_t(),timeout()) -> {'ok', pid_t()} | {'error', file:posix()}.
+-spec getsid(alcove_drv:ref(),forkchain(),pid_t()) -> {'ok', pid_t()} | {'error', file:posix()}.
+-spec getsid(alcove_drv:ref(),forkchain(),pid_t(),timeout()) -> {'ok', pid_t()} | {'error', file:posix()}.
 
--spec getuid(alcove_drv:ref(),fork_path()) -> uid_t().
--spec getuid(alcove_drv:ref(),fork_path(),timeout()) -> uid_t().
+-spec getuid(alcove_drv:ref(),forkchain()) -> uid_t().
+-spec getuid(alcove_drv:ref(),forkchain(),timeout()) -> uid_t().
 
--spec kill(alcove_drv:ref(),fork_path(),pid_t(),constant()) -> 'ok' | {'error', file:posix() | 'unsupported'}.
--spec kill(alcove_drv:ref(),fork_path(),pid_t(),constant(),timeout()) -> 'ok' | {'error', file:posix() | 'unsupported'}.
+-spec kill(alcove_drv:ref(),forkchain(),pid_t(),constant()) -> 'ok' | {'error', file:posix() | 'unsupported'}.
+-spec kill(alcove_drv:ref(),forkchain(),pid_t(),constant(),timeout()) -> 'ok' | {'error', file:posix() | 'unsupported'}.
 
--spec lseek(alcove_drv:ref(),fork_path(),fd(),off_t(),int32_t()) -> 'ok' | {'error', file:posix()}.
--spec lseek(alcove_drv:ref(),fork_path(),fd(),off_t(),int32_t(),timeout()) -> 'ok' | {'error', file:posix()}.
+-spec lseek(alcove_drv:ref(),forkchain(),fd(),off_t(),int32_t()) -> 'ok' | {'error', file:posix()}.
+-spec lseek(alcove_drv:ref(),forkchain(),fd(),off_t(),int32_t(),timeout()) -> 'ok' | {'error', file:posix()}.
 
--spec mkdir(alcove_drv:ref(),fork_path(),iodata(),mode_t()) -> 'ok' | {'error', file:posix()}.
--spec mkdir(alcove_drv:ref(),fork_path(),iodata(),mode_t(),timeout()) -> 'ok' | {'error', file:posix()}.
+-spec mkdir(alcove_drv:ref(),forkchain(),iodata(),mode_t()) -> 'ok' | {'error', file:posix()}.
+-spec mkdir(alcove_drv:ref(),forkchain(),iodata(),mode_t(),timeout()) -> 'ok' | {'error', file:posix()}.
 
--spec mount(alcove_drv:ref(),fork_path(),iodata(),iodata(),iodata(),uint64_t() | [constant()],iodata(),iodata()) -> 'ok' | {'error', file:posix() | 'unsupported'}.
--spec mount(alcove_drv:ref(),fork_path(),iodata(),iodata(),iodata(),uint64_t() | [constant()],iodata(),iodata(),timeout()) -> 'ok' | {'error', file:posix() | 'unsupported'}.
+-spec mount(alcove_drv:ref(),forkchain(),iodata(),iodata(),iodata(),uint64_t() | [constant()],iodata(),iodata()) -> 'ok' | {'error', file:posix() | 'unsupported'}.
+-spec mount(alcove_drv:ref(),forkchain(),iodata(),iodata(),iodata(),uint64_t() | [constant()],iodata(),iodata(),timeout()) -> 'ok' | {'error', file:posix() | 'unsupported'}.
 
--spec mount_define(alcove_drv:ref(),fork_path(),atom()) -> 'unknown' | uint64_t().
--spec mount_define(alcove_drv:ref(),fork_path(),atom(),timeout()) -> 'unknown' | uint64_t().
+-spec mount_define(alcove_drv:ref(),forkchain(),atom()) -> 'unknown' | uint64_t().
+-spec mount_define(alcove_drv:ref(),forkchain(),atom(),timeout()) -> 'unknown' | uint64_t().
 
--spec open(alcove_drv:ref(),fork_path(),iodata(),int32_t() | [constant()],mode_t()) -> {'ok',fd()} | {'error', file:posix() | 'unsupported'}.
--spec open(alcove_drv:ref(),fork_path(),iodata(),int32_t() | [constant()],mode_t(),timeout()) -> {'ok',fd()} | {'error', file:posix() | 'unsupported'}.
+-spec open(alcove_drv:ref(),forkchain(),iodata(),int32_t() | [constant()],mode_t()) -> {'ok',fd()} | {'error', file:posix() | 'unsupported'}.
+-spec open(alcove_drv:ref(),forkchain(),iodata(),int32_t() | [constant()],mode_t(),timeout()) -> {'ok',fd()} | {'error', file:posix() | 'unsupported'}.
 
--spec pid(alcove_drv:ref(),fork_path()) -> [#alcove_pid{}].
--spec pid(alcove_drv:ref(),fork_path(),timeout()) -> [#alcove_pid{}].
+-spec pid(alcove_drv:ref(),forkchain()) -> [#alcove_pid{}].
+-spec pid(alcove_drv:ref(),forkchain(),timeout()) -> [#alcove_pid{}].
 
--spec pivot_root(alcove_drv:ref(),fork_path(),iodata(),iodata()) -> 'ok' | {'error', file:posix()}.
--spec pivot_root(alcove_drv:ref(),fork_path(),iodata(),iodata(),timeout()) -> 'ok' | {'error', file:posix()}.
+-spec pivot_root(alcove_drv:ref(),forkchain(),iodata(),iodata()) -> 'ok' | {'error', file:posix()}.
+-spec pivot_root(alcove_drv:ref(),forkchain(),iodata(),iodata(),timeout()) -> 'ok' | {'error', file:posix()}.
 
 -type prctl_arg() :: [binary() | {ptr, binary() | non_neg_integer()} ] | binary() | integer() | atom().
 -type prctl_val() :: binary() | integer().
 
--spec prctl(alcove_drv:ref(),fork_path(),constant(),prctl_arg(),prctl_arg(),prctl_arg(),prctl_arg()) -> {'ok',integer(),prctl_val(),prctl_val(),prctl_val(),prctl_val()} | {'error', file:posix() | 'unsupported'}.
--spec prctl(alcove_drv:ref(),fork_path(),constant(),prctl_arg(),prctl_arg(),prctl_arg(),prctl_arg(),timeout()) -> {'ok',integer(),prctl_val(),prctl_val(),prctl_val(),prctl_val()} | {'error', file:posix() | 'unsupported'}.
+-spec prctl(alcove_drv:ref(),forkchain(),constant(),prctl_arg(),prctl_arg(),prctl_arg(),prctl_arg()) -> {'ok',integer(),prctl_val(),prctl_val(),prctl_val(),prctl_val()} | {'error', file:posix() | 'unsupported'}.
+-spec prctl(alcove_drv:ref(),forkchain(),constant(),prctl_arg(),prctl_arg(),prctl_arg(),prctl_arg(),timeout()) -> {'ok',integer(),prctl_val(),prctl_val(),prctl_val(),prctl_val()} | {'error', file:posix() | 'unsupported'}.
 
--spec prctl_define(alcove_drv:ref(),fork_path(),atom()) -> 'unknown' | non_neg_integer().
--spec prctl_define(alcove_drv:ref(),fork_path(),atom(),timeout()) -> 'unknown' | non_neg_integer().
+-spec prctl_define(alcove_drv:ref(),forkchain(),atom()) -> 'unknown' | non_neg_integer().
+-spec prctl_define(alcove_drv:ref(),forkchain(),atom(),timeout()) -> 'unknown' | non_neg_integer().
 
--spec read(alcove_drv:ref(),fork_path(),fd(),size_t()) -> {'ok', binary()} | {'error', file:posix()}.
--spec read(alcove_drv:ref(),fork_path(),fd(),size_t(),timeout()) -> {'ok', binary()} | {'error', file:posix()}.
+-spec read(alcove_drv:ref(),forkchain(),fd(),size_t()) -> {'ok', binary()} | {'error', file:posix()}.
+-spec read(alcove_drv:ref(),forkchain(),fd(),size_t(),timeout()) -> {'ok', binary()} | {'error', file:posix()}.
 
--spec readdir(alcove_drv:ref(),fork_path(),iodata()) -> {'ok', [binary()]} | {'error', file:posix()}.
--spec readdir(alcove_drv:ref(),fork_path(),iodata(),timeout()) -> {'ok', [binary()]} | {'error', file:posix()}.
+-spec readdir(alcove_drv:ref(),forkchain(),iodata()) -> {'ok', [binary()]} | {'error', file:posix()}.
+-spec readdir(alcove_drv:ref(),forkchain(),iodata(),timeout()) -> {'ok', [binary()]} | {'error', file:posix()}.
 
--spec rmdir(alcove_drv:ref(),fork_path(),iodata()) -> 'ok' | {'error', file:posix()}.
--spec rmdir(alcove_drv:ref(),fork_path(),iodata(),timeout()) -> 'ok' | {'error', file:posix()}.
+-spec rmdir(alcove_drv:ref(),forkchain(),iodata()) -> 'ok' | {'error', file:posix()}.
+-spec rmdir(alcove_drv:ref(),forkchain(),iodata(),timeout()) -> 'ok' | {'error', file:posix()}.
 
--spec rlimit_define(alcove_drv:ref(),fork_path(),atom()) -> 'unknown' | non_neg_integer().
--spec rlimit_define(alcove_drv:ref(),fork_path(),atom(),timeout()) -> 'unknown' | non_neg_integer().
+-spec rlimit_define(alcove_drv:ref(),forkchain(),atom()) -> 'unknown' | non_neg_integer().
+-spec rlimit_define(alcove_drv:ref(),forkchain(),atom(),timeout()) -> 'unknown' | non_neg_integer().
 
--spec select(alcove_drv:ref(),fork_path(),[fd_set()],[fd_set()],[fd_set()],
+-spec select(alcove_drv:ref(),forkchain(),[fd_set()],[fd_set()],[fd_set()],
     <<>> | #alcove_timeval{}) -> {ok, [fd_set()], [fd_set()], [fd_set()]} | {'error', file:posix()}.
--spec select(alcove_drv:ref(),fork_path(),[fd_set()],[fd_set()],[fd_set()],
+-spec select(alcove_drv:ref(),forkchain(),[fd_set()],[fd_set()],[fd_set()],
     <<>> | #alcove_timeval{},timeout()) -> {ok, [fd_set()], [fd_set()], [fd_set()]} | {'error', file:posix()}.
 
--spec setenv(alcove_drv:ref(),fork_path(),iodata(),iodata(),int32_t()) -> 'ok' | {'error', file:posix()}.
--spec setenv(alcove_drv:ref(),fork_path(),iodata(),iodata(),int32_t(),timeout()) -> 'ok' | {'error', file:posix()}.
+-spec setenv(alcove_drv:ref(),forkchain(),iodata(),iodata(),int32_t()) -> 'ok' | {'error', file:posix()}.
+-spec setenv(alcove_drv:ref(),forkchain(),iodata(),iodata(),int32_t(),timeout()) -> 'ok' | {'error', file:posix()}.
 
--spec setgid(alcove_drv:ref(),fork_path(),gid_t()) -> 'ok' | {'error', file:posix()}.
--spec setgid(alcove_drv:ref(),fork_path(),gid_t(),timeout()) -> 'ok' | {'error', file:posix()}.
+-spec setgid(alcove_drv:ref(),forkchain(),gid_t()) -> 'ok' | {'error', file:posix()}.
+-spec setgid(alcove_drv:ref(),forkchain(),gid_t(),timeout()) -> 'ok' | {'error', file:posix()}.
 
--spec sethostname(alcove_drv:ref(),fork_path(),iodata()) -> 'ok' | {'error', file:posix()}.
--spec sethostname(alcove_drv:ref(),fork_path(),iodata(),timeout()) -> 'ok' | {'error', file:posix()}.
+-spec sethostname(alcove_drv:ref(),forkchain(),iodata()) -> 'ok' | {'error', file:posix()}.
+-spec sethostname(alcove_drv:ref(),forkchain(),iodata(),timeout()) -> 'ok' | {'error', file:posix()}.
 
--spec setns(alcove_drv:ref(),fork_path(),iodata(),constant()) -> 'ok' | {'error', file:posix()}.
--spec setns(alcove_drv:ref(),fork_path(),iodata(),constant(),timeout()) -> 'ok' | {'error', file:posix()}.
+-spec setns(alcove_drv:ref(),forkchain(),iodata(),constant()) -> 'ok' | {'error', file:posix()}.
+-spec setns(alcove_drv:ref(),forkchain(),iodata(),constant(),timeout()) -> 'ok' | {'error', file:posix()}.
 
--spec setopt(alcove_drv:ref(),fork_path(),atom(),non_neg_integer()) -> boolean().
--spec setopt(alcove_drv:ref(),fork_path(),atom(),non_neg_integer(),timeout()) -> boolean().
+-spec setopt(alcove_drv:ref(),forkchain(),atom(),non_neg_integer()) -> boolean().
+-spec setopt(alcove_drv:ref(),forkchain(),atom(),non_neg_integer(),timeout()) -> boolean().
 
--spec setpgid(alcove_drv:ref(),fork_path(),pid_t(),pid_t()) -> 'ok' | {'error', file:posix()}.
--spec setpgid(alcove_drv:ref(),fork_path(),pid_t(),pid_t(),timeout()) -> 'ok' | {'error', file:posix()}.
+-spec setpgid(alcove_drv:ref(),forkchain(),pid_t(),pid_t()) -> 'ok' | {'error', file:posix()}.
+-spec setpgid(alcove_drv:ref(),forkchain(),pid_t(),pid_t(),timeout()) -> 'ok' | {'error', file:posix()}.
 
--spec setpriority(alcove_drv:ref(),fork_path(),constant(),int32_t(),int32_t()) -> 'ok' | {'error', file:posix() | 'unsupported'}.
--spec setpriority(alcove_drv:ref(),fork_path(),constant(),int32_t(),int32_t(),timeout()) -> 'ok' | {'error', file:posix() | 'unsupported'}.
+-spec setpriority(alcove_drv:ref(),forkchain(),constant(),int32_t(),int32_t()) -> 'ok' | {'error', file:posix() | 'unsupported'}.
+-spec setpriority(alcove_drv:ref(),forkchain(),constant(),int32_t(),int32_t(),timeout()) -> 'ok' | {'error', file:posix() | 'unsupported'}.
 
--spec setproctitle(alcove_drv:ref(),fork_path(),iodata()) -> 'ok'.
--spec setproctitle(alcove_drv:ref(),fork_path(),iodata(),timeout()) -> 'ok'.
+-spec setproctitle(alcove_drv:ref(),forkchain(),iodata()) -> 'ok'.
+-spec setproctitle(alcove_drv:ref(),forkchain(),iodata(),timeout()) -> 'ok'.
 
--spec setresgid(alcove_drv:ref(),fork_path(),gid_t(),gid_t(),gid_t()) -> 'ok' | {'error', file:posix()}.
--spec setresgid(alcove_drv:ref(),fork_path(),gid_t(),gid_t(),gid_t(),timeout()) -> 'ok' | {'error', file:posix()}.
+-spec setresgid(alcove_drv:ref(),forkchain(),gid_t(),gid_t(),gid_t()) -> 'ok' | {'error', file:posix()}.
+-spec setresgid(alcove_drv:ref(),forkchain(),gid_t(),gid_t(),gid_t(),timeout()) -> 'ok' | {'error', file:posix()}.
 
--spec setresuid(alcove_drv:ref(),fork_path(),uid_t(),uid_t(),uid_t()) -> 'ok' | {'error', file:posix()}.
--spec setresuid(alcove_drv:ref(),fork_path(),uid_t(),uid_t(),uid_t(),timeout()) -> 'ok' | {'error', file:posix()}.
+-spec setresuid(alcove_drv:ref(),forkchain(),uid_t(),uid_t(),uid_t()) -> 'ok' | {'error', file:posix()}.
+-spec setresuid(alcove_drv:ref(),forkchain(),uid_t(),uid_t(),uid_t(),timeout()) -> 'ok' | {'error', file:posix()}.
 
--spec setrlimit(alcove_drv:ref(),fork_path(),constant(),#alcove_rlimit{}) -> 'ok' | {'error', file:posix() | 'unsupported'}.
--spec setrlimit(alcove_drv:ref(),fork_path(),constant(),#alcove_rlimit{},timeout()) -> 'ok' | {'error', file:posix() | 'unsupported'}.
+-spec setrlimit(alcove_drv:ref(),forkchain(),constant(),#alcove_rlimit{}) -> 'ok' | {'error', file:posix() | 'unsupported'}.
+-spec setrlimit(alcove_drv:ref(),forkchain(),constant(),#alcove_rlimit{},timeout()) -> 'ok' | {'error', file:posix() | 'unsupported'}.
 
--spec setsid(alcove_drv:ref(),fork_path()) -> {ok,pid_t()} | {error, file:posix()}.
--spec setsid(alcove_drv:ref(),fork_path(),timeout()) -> {ok,pid_t()} | {error, file:posix()}.
+-spec setsid(alcove_drv:ref(),forkchain()) -> {ok,pid_t()} | {error, file:posix()}.
+-spec setsid(alcove_drv:ref(),forkchain(),timeout()) -> {ok,pid_t()} | {error, file:posix()}.
 
--spec setuid(alcove_drv:ref(),fork_path(),uid_t()) -> 'ok' | {'error', file:posix()}.
--spec setuid(alcove_drv:ref(),fork_path(),uid_t(),timeout()) -> 'ok' | {'error', file:posix()}.
+-spec setuid(alcove_drv:ref(),forkchain(),uid_t()) -> 'ok' | {'error', file:posix()}.
+-spec setuid(alcove_drv:ref(),forkchain(),uid_t(),timeout()) -> 'ok' | {'error', file:posix()}.
 
--spec sigaction(alcove_drv:ref(),fork_path(),constant(),atom()) -> 'ok' | {'error', file:posix() | 'unsupported'}.
--spec sigaction(alcove_drv:ref(),fork_path(),constant(),atom(),timeout()) -> 'ok' | {'error', file:posix() | 'unsupported'}.
+-spec sigaction(alcove_drv:ref(),forkchain(),constant(),atom()) -> 'ok' | {'error', file:posix() | 'unsupported'}.
+-spec sigaction(alcove_drv:ref(),forkchain(),constant(),atom(),timeout()) -> 'ok' | {'error', file:posix() | 'unsupported'}.
 
--spec signal_constant(alcove_drv:ref(),fork_path(),non_neg_integer()) -> 'unknown' | atom().
--spec signal_constant(alcove_drv:ref(),fork_path(),non_neg_integer(),timeout()) -> 'unknown' | atom().
+-spec signal_constant(alcove_drv:ref(),forkchain(),non_neg_integer()) -> 'unknown' | atom().
+-spec signal_constant(alcove_drv:ref(),forkchain(),non_neg_integer(),timeout()) -> 'unknown' | atom().
 
--spec signal_define(alcove_drv:ref(),fork_path(),atom()) -> 'unknown' | non_neg_integer().
--spec signal_define(alcove_drv:ref(),fork_path(),atom(),timeout()) -> 'unknown' | non_neg_integer().
+-spec signal_define(alcove_drv:ref(),forkchain(),atom()) -> 'unknown' | non_neg_integer().
+-spec signal_define(alcove_drv:ref(),forkchain(),atom(),timeout()) -> 'unknown' | non_neg_integer().
 
--spec syscall_define(alcove_drv:ref(),fork_path(),atom()) -> 'unknown' | non_neg_integer().
--spec syscall_define(alcove_drv:ref(),fork_path(),atom(),timeout()) -> 'unknown' | non_neg_integer().
+-spec syscall_define(alcove_drv:ref(),forkchain(),atom()) -> 'unknown' | non_neg_integer().
+-spec syscall_define(alcove_drv:ref(),forkchain(),atom(),timeout()) -> 'unknown' | non_neg_integer().
 
--spec stderr(alcove_drv:ref(),fork_path()) -> 'false' | binary().
--spec stderr(alcove_drv:ref(),fork_path(),timeout()) -> 'false' | binary().
+-spec stderr(alcove_drv:ref(),forkchain()) -> 'false' | binary().
+-spec stderr(alcove_drv:ref(),forkchain(),timeout()) -> 'false' | binary().
 
--spec stdin(alcove_drv:ref(),fork_path(),iodata()) -> 'true'.
+-spec stdin(alcove_drv:ref(),forkchain(),iodata()) -> 'true'.
 
--spec stdout(alcove_drv:ref(),fork_path()) -> 'false' | binary().
--spec stdout(alcove_drv:ref(),fork_path(),timeout()) -> 'false' | binary().
+-spec stdout(alcove_drv:ref(),forkchain()) -> 'false' | binary().
+-spec stdout(alcove_drv:ref(),forkchain(),timeout()) -> 'false' | binary().
 
--spec umount(alcove_drv:ref(),fork_path(),iodata()) -> 'ok' | {error, file:posix()}.
--spec umount(alcove_drv:ref(),fork_path(),iodata(),timeout()) -> 'ok' | {error, file:posix()}.
+-spec umount(alcove_drv:ref(),forkchain(),iodata()) -> 'ok' | {error, file:posix()}.
+-spec umount(alcove_drv:ref(),forkchain(),iodata(),timeout()) -> 'ok' | {error, file:posix()}.
 
--spec unsetenv(alcove_drv:ref(),fork_path(),iodata()) -> 'ok' | {error, file:posix()}.
--spec unsetenv(alcove_drv:ref(),fork_path(),iodata(),timeout()) -> 'ok' | {error, file:posix()}.
+-spec unsetenv(alcove_drv:ref(),forkchain(),iodata()) -> 'ok' | {error, file:posix()}.
+-spec unsetenv(alcove_drv:ref(),forkchain(),iodata(),timeout()) -> 'ok' | {error, file:posix()}.
 
--spec unshare(alcove_drv:ref(),fork_path(),int32_t() | [constant()]) -> 'ok' | {'error', file:posix() | 'unsupported'}.
--spec unshare(alcove_drv:ref(),fork_path(),int32_t() | [constant()],timeout()) -> 'ok' | {'error', file:posix() | 'unsupported'}.
+-spec unshare(alcove_drv:ref(),forkchain(),int32_t() | [constant()]) -> 'ok' | {'error', file:posix() | 'unsupported'}.
+-spec unshare(alcove_drv:ref(),forkchain(),int32_t() | [constant()],timeout()) -> 'ok' | {'error', file:posix() | 'unsupported'}.
 
--spec write(alcove_drv:ref(),fork_path(),fd(),iodata()) -> {'ok', ssize_t()} | {'error', file:posix()}.
--spec write(alcove_drv:ref(),fork_path(),fd(),iodata(),timeout()) -> {'ok', ssize_t()} | {'error', file:posix()}.
+-spec write(alcove_drv:ref(),forkchain(),fd(),iodata()) -> {'ok', ssize_t()} | {'error', file:posix()}.
+-spec write(alcove_drv:ref(),forkchain(),fd(),iodata(),timeout()) -> {'ok', ssize_t()} | {'error', file:posix()}.
 
--spec version(alcove_drv:ref(),fork_path()) -> binary().
--spec version(alcove_drv:ref(),fork_path(),timeout()) -> binary().
+-spec version(alcove_drv:ref(),forkchain()) -> binary().
+-spec version(alcove_drv:ref(),forkchain(),timeout()) -> binary().
 ".
