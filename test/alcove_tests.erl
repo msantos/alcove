@@ -726,7 +726,9 @@ ioctl(#state{clone = true, os = {unix,linux}, pid = Drv}) ->
         0:(14*8)
         >>),
     alcove:exit(Drv, [Child], 0),
-    ?_assertMatch({ok,<<"tap", _/binary>>}, Reply).
+    ?_assertMatch({ok,<<"tap", _/binary>>}, Reply);
+ioctl(_) ->
+    [].
 
 execvp_mid_chain(#state{os = {unix,OS}, pid = Drv}) ->
     Chain = chain(Drv, 8),
