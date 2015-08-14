@@ -133,14 +133,14 @@ init([Owner, Options]) ->
 
     {ok, #state{port = Port, owner = Owner}}.
 
-handle_call({send, ForkPath, Buf}, {Owner,_Tag}, #state{port = Port, owner = Owner} = State) ->
+handle_call({send, _ForkChain, Buf}, {Owner,_Tag}, #state{port = Port, owner = Owner} = State) ->
     Reply = erlang:port_command(Port, Buf),
     {reply, Reply, State};
 
 handle_call(stop, _From, State) ->
     {stop, normal, ok, State}.
 
-handle_cast({send, _ForkPath, Buf}, #state{port = Port} = State) ->
+handle_cast({send, _ForkChain, Buf}, #state{port = Port} = State) ->
     erlang:port_command(Port, Buf),
     {noreply, State};
 handle_cast(_Msg, State) ->

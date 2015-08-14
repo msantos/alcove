@@ -73,6 +73,7 @@ run(State) ->
         execve(State),
         stream(State),
         open(State),
+        ioctl(State),
         execvp_mid_chain(State)
     ].
 
@@ -707,6 +708,25 @@ open(#state{pid = Drv}) ->
         ?_assertEqual({error,enoent}, Reply1),
         ?_assertEqual({error,enoent}, Reply2)
     ].
+
+ioctl(#state{clone = true, os = {unix,linux}, pid = Drv}) ->
+    % Create a tap interface within a net namespace
+    {ok, Child} = alcove:clone(Drv, [], [
+            clone_newns,
+            clone_newpid,
+            clone_newipc,
+            clone_newuts,
+            clone_newnet
+        ]),
+    {ok, FD} = alcove:open(Drv, [Child], "/dev/net/tun", [o_rdwr], 0),
+    TUNSETIFF = alcove_ioctl:iow($T, 202, 4),
+    Reply = alcove:ioctl(Drv, [Child], FD, TUNSETIFF, <<
+        0:(16*8),         % generate a tuntap device name
+        (16#0002 bor 16#1000):2/native-unsigned-integer-unit:8, % IFF_TAP, IFF_NO_PI
+        0:(14*8)
+        >>),
+    alcove:exit(Drv, [Child], 0),
+    ?_assertMatch({ok,<<"tap", _/binary>>}, Reply).
 
 execvp_mid_chain(#state{os = {unix,OS}, pid = Drv}) ->
     Chain = chain(Drv, 8),

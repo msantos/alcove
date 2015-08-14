@@ -561,6 +561,34 @@ atom is used as the argument and is not found on the platform.
 
         getuid(2) : returns the process user ID
 
+    ioctl(Drv, ForkChain, FD, Request, Argp) -> {ok, binary()} | {error, posix()}
+
+        Types   FD = int32_t()
+                Request = int32_t()
+                Argp = binary() | Cstruct
+                Cstruct = [binary() | {ptr, non_neg_integer() | binary()}]
+
+        ioctl(2) : control device
+
+        Controls a device using a file descriptor previously obtained
+        using open/5.
+
+        Argp can be either a binary or a list represention of a C
+        struct. See prctl/7 below for a description of the list elements.
+
+        An example of creating a tap device in a net namespace on Linux:
+
+            {ok, Child} = alcove:clone(Drv, [], [clone_newnet]),
+            {ok, FD} = alcove:open(Drv, [Child], "/dev/net/tun", [o_rdwr], 0),
+            TUNSETIFF = alcove_ioctl:iow($T, 202, 4),
+            {ok, <<"tap", N, _/binary>>} = alcove:ioctl(Drv, [Child], FD,
+                TUNSETIFF, <<
+                0:(16*8), % generate a tuntap device name
+                (16#0002 bor 16#1000):2/native-unsigned-integer-unit:8, % IFF_TAP, IFF_NO_PI
+                0:(14*8)
+                >>),
+            {ok, <<"tap", N>>}.
+
     kill(Drv, ForkChain, OSPid, Signal) -> ok | {error, posix() | unsupported}
 
         Types   Signal = constant()
