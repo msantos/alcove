@@ -264,11 +264,14 @@ clone_define(_) ->
 
 setns(#state{clone = true, pid = Drv, child = Child}) ->
     {ok, Child1} = alcove:fork(Drv, []),
-    ok = alcove:setns(Drv, [Child1], [
+    {ok,FD} = alcove:open(Drv, [Child1], [
             "/proc/",
             integer_to_list(Child),
             "/ns/uts"
-        ], 0),
+        ], [o_rdonly], 0),
+    ok = alcove:setns(Drv, [Child1], FD, 0),
+    ok = alcove:close(Drv, [Child1], FD),
+
     Hostname0 = alcove:gethostname(Drv, [Child]),
     Hostname1 = alcove:gethostname(Drv, [Child1]),
     ?_assertEqual(Hostname0, Hostname1);

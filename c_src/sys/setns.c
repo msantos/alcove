@@ -57,16 +57,12 @@ alcove_sys_setns(alcove_state_t *ap, const char *arg, size_t len,
 #ifdef __linux__
     int index = 0;
 
-    char path[PATH_MAX] = {0};
-    size_t plen = sizeof(path)-1;
     int fd = -1;
     int nstype = 0;
     int rv = 0;
-    int errnum = 0;
 
-    /* path */
-    if (alcove_decode_iolist(arg, len, &index, path, &plen) < 0 ||
-            plen == 0)
+    /* file descriptor */
+    if (alcove_decode_int(arg, len, &index, &fd) < 0)
         return -1;
 
     /* nstype */
@@ -80,20 +76,11 @@ alcove_sys_setns(alcove_state_t *ap, const char *arg, size_t len,
             return -1;
     }
 
-    fd = open(path, O_RDONLY);
-    if (fd < 0)
-        return alcove_mk_errno(reply, rlen, errno);
-
     rv = setns(fd, nstype);
 
-    errnum = errno;
-
-    (void)close(fd);
-
-    if (rv < 0)
-        return alcove_mk_errno(reply, rlen, errnum);
-
-    return alcove_mk_atom(reply, rlen, "ok");
+    return (rv < 0)
+        ? alcove_mk_errno(reply, rlen, errno)
+        : alcove_mk_atom(reply, rlen, "ok");
 #else
     return alcove_mk_atom(reply, rlen, "undef");
 #endif

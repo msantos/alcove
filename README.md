@@ -791,9 +791,10 @@ atom is used as the argument and is not found on the platform.
             Hostname2 = alcove:gethostname(Drv, [Child]),
             Hostname1 =/= Hostname2.
 
-    setns(Drv, ForkChain, Path, NSType) -> ok | {error, posix() | unsupported}
+    setns(Drv, ForkChain, FD, NSType) -> ok | {error, posix() | unsupported}
 
-        Types   NSType = constant()
+        Types   FD = int32_t()
+                NSType = constant()
 
         Linux only.
 
@@ -818,8 +819,10 @@ atom is used as the argument and is not found on the platform.
             {ok, Child2} = alcove:fork(Drv, []),
 
             % Move Child2 into the Child1 network namespace
-            ok = alcove:setns(Drv, [Child2],
-                    ["/proc/", integer_to_list(Child1), "/ns/net"], 0).
+            {ok,FD} = alcove:open(Drv, [Child2],
+                    ["/proc/", integer_to_list(Child1), "/ns/net"], [o_rdonly], 0),
+            ok = alcove:setns(Drv, [Child2], FD, 0),
+            ok = alcove:close(Drv, [Child2], FD).
 
     setopt(Drv, ForkChain, Opt, Val) -> boolean()
 
