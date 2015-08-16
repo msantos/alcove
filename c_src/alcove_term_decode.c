@@ -21,6 +21,31 @@ static int alcove_decode_iolist_internal(const char *buf, size_t len,
         int *index, char *res, size_t rlen, int *rindex, int depth);
 
     int
+alcove_decode_binary(const char *buf, size_t len, int *index, void *p, size_t *plen)
+{
+    int type = 0;
+    int arity = 0;
+
+    union {
+        long _long;
+        size_t _size_t;
+    } n = {0};
+
+    if (alcove_get_type(buf, len, index, &type, &arity) < 0)
+        return -1;
+
+    if (arity < 0 || arity >= MAXMSGLEN || arity > len)
+        return -1;
+
+    if (ei_decode_binary(buf, index, p, &n._long) < 0 || n._long < 0)
+        return -1;
+
+    *plen = n._size_t;
+
+    return 0;
+}
+
+    int
 alcove_decode_int(const char *buf, size_t len, int *index, int *n)
 {
     union {

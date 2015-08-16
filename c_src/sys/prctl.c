@@ -117,8 +117,8 @@ alcove_sys_prctl(alcove_state_t *ap, const char *arg, size_t len,
                 prarg[i].type = ALCOVE_PRARG_BINARY;
                 if (arity > sizeof(prarg[i].data))
                     return -1;
-                if (ei_decode_binary(arg, &index, prarg[i].data,
-                            (long int *)&(prarg[i].len)) < 0)
+                if (alcove_decode_binary(arg, len, &index,
+                            prarg[i].data, &(prarg[i].len)) < 0)
                     return -1;
 
                 break;

@@ -85,8 +85,7 @@ alcove_sys_ioctl(alcove_state_t *ap, const char *arg, size_t len,
             argp.type = ALCOVE_IOARG_BINARY;
             if (arity > sizeof(argp.data))
                 return -1;
-            if (ei_decode_binary(arg, &index, argp.data,
-               (long int *)&(argp.len)) < 0)
+            if (alcove_decode_binary(arg, len, &index, argp.data, &argp.len) < 0)
                 return -1;
 
             break;

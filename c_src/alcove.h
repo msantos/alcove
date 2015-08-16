@@ -199,6 +199,7 @@ ssize_t alcove_signal_name(char *, size_t, int *, int);
 int alcove_setfd(int, int);
 
 int alcove_get_type(const char *, size_t, const int *, int *, int *);
+int alcove_decode_binary(const char *, size_t, int *, void *, size_t *);
 int alcove_decode_int(const char *, size_t, int *, int *);
 int alcove_decode_uint(const char *, size_t, int *, u_int32_t *);
 int alcove_decode_long(const char *, size_t, int *, long *);
