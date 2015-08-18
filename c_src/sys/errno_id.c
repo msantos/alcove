@@ -14,42 +14,18 @@
  */
 #include "alcove.h"
 #include "alcove_call.h"
-#include "alcove_calls.h"
 
+/* Convert an errno integer to an atom */
     ssize_t
-alcove_call(alcove_state_t *ap, u_int32_t call,
-        const char *arg, size_t len,
+alcove_sys_errno_id(alcove_state_t *ap, const char *arg, size_t len,
         char *reply, size_t rlen)
 {
     int index = 0;
-    int arity = 0;
-    int version = 0;
+    int errnum = 0;
 
-    const alcove_call_t *fun = NULL;
-    ssize_t written = 0;
+    /* errno */
+    if (alcove_decode_int(arg, len, &index, &errnum) < 0)
+        return -1;
 
-    if (call >= sizeof(calls)/sizeof(calls[0]))
-        goto BADARG;
-
-    fun = &calls[call];
-
-    if ( (len <= 2) || ((ei_decode_version(arg, &index, &version) < 0)
-            && version != ERL_VERSION_MAGIC))
-        goto BADARG;
-
-    if (alcove_decode_tuple_header(arg, len, &index, &arity) < 0)
-        goto BADARG;
-
-    if (arity != fun->narg)
-        goto BADARG;
-
-    written = (*fun->fp)(ap, arg+index, len-index, reply, rlen);
-
-    if (written < 0)
-        goto BADARG;
-
-    return written;
-
-BADARG:
-    return alcove_mk_atom(reply, rlen, "badarg");
+    return alcove_mk_atom(reply, rlen, erl_errno_id(errnum));
 }
