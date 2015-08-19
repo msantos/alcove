@@ -138,7 +138,10 @@ handle_call({send, _ForkChain, Buf}, {Owner,_Tag}, #state{port = Port, owner = O
     {reply, Reply, State};
 
 handle_call(stop, _From, State) ->
-    {stop, normal, ok, State}.
+    {stop, normal, ok, State};
+
+handle_call(_, _, State) ->
+    {reply, {error,not_owner}, State}.
 
 handle_cast({send, _ForkChain, Buf}, #state{port = Port} = State) ->
     erlang:port_command(Port, Buf),
