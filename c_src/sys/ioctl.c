@@ -29,8 +29,6 @@ enum {
     ALCOVE_IOARG_BINARY
 };
 
-#define IOARG(x) (((x).type) ? (x).data : (char *)(x).arg)
-
 /*
  * ioctl(2)
  *
@@ -94,7 +92,13 @@ alcove_sys_ioctl(alcove_state_t *ap, const char *arg, size_t len,
             return -1;
     }
 
-    rv = ioctl(d, request, IOARG(argp));
+    switch (argp.type) {
+        case ALCOVE_IOARG_INT:
+            rv = ioctl(d, request, argp.arg);
+            break;
+        default:
+            rv = ioctl(d, request, argp.data);
+    }
 
     if (rv < 0)
         return alcove_mk_errno(reply, rlen, errno);
