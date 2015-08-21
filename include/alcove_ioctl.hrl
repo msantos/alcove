@@ -1,4 +1,4 @@
-% Copyright (c) 2014, Michael Santos <michael.santos@gmail.com>
+% Copyright (c) 2015, Michael Santos <michael.santos@gmail.com>
 %
 % Permission to use, copy, modify, and/or distribute this software for any
 % purpose with or without fee is hereby granted, provided that the above
@@ -11,11 +11,6 @@
 % WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
 % ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 % OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
-
--define(IO(Type,NR), alcove_ioctl:io(Type,NR)).
--define(IOR(Type,NR,Size), alcove_ioctl:ior(Type,NR,Size)).
--define(IOW(Type,NR,Size), alcove_ioctl:iow(Type,NR,Size)).
--define(IOWR(Type,NR,Size), alcove_ioctl:iowr(Type,NR,Size)).
 -define(IO(Type,NR), alcove_ioctl:io(Type,NR)).
 -define(IOR(Type,NR,Size), alcove_ioctl:ior(Type,NR,Size)).
 -define(IOW(Type,NR,Size), alcove_ioctl:iow(Type,NR,Size)).
