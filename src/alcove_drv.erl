@@ -140,6 +140,9 @@ handle_call({send, _ForkChain, Buf}, {Owner,_Tag}, #state{port = Port, owner = O
 handle_call(stop, _From, State) ->
     {stop, normal, ok, State};
 
+handle_call(_, {Owner,_Tag}, #state{owner = Owner} = State) ->
+    {reply, {error,unsupported}, State};
+
 handle_call(_, _, State) ->
     {reply, {error,not_owner}, State}.
 
