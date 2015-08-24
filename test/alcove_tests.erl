@@ -73,6 +73,7 @@ run(State) ->
         execve(State),
         stream(State),
         open(State),
+        select(State),
         ioctl(State),
         execvp_mid_chain(State)
     ].
@@ -710,6 +711,16 @@ open(#state{pid = Drv}) ->
         ?_assertEqual({error,enoent}, Reply0),
         ?_assertEqual({error,enoent}, Reply1),
         ?_assertEqual({error,enoent}, Reply2)
+    ].
+
+select(#state{pid = Drv}) ->
+    {ok, FD} = alcove:open(Drv, [], "/dev/null", [o_rdwr], 0),
+    Reply1 = alcove:select(Drv, [], [FD], [FD], [FD], <<>>),
+    Reply2 = alcove:select(Drv, [], [FD], [FD], [FD], #alcove_timeval{sec = 1, usec = 1}),
+
+    [
+        ?_assertEqual({ok, [FD], [FD], []}, Reply1),
+        ?_assertEqual({ok, [FD], [FD], []}, Reply2)
     ].
 
 ioctl(#state{clone = true, os = {unix,linux}, pid = Drv}) ->

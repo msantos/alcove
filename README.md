@@ -742,7 +742,7 @@ atom is used as the argument and is not found on the platform.
 
         select(2) : poll a list of file descriptor for events
 
-        select/5,6 will block until an event occurs on a file descriptor,
+        select/6 will block until an event occurs on a file descriptor,
         a timeout is reached or interrupted by a signal.
 
         The Timeout value may be:

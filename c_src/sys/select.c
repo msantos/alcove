@@ -70,7 +70,7 @@ alcove_sys_select(alcove_state_t *ap, const char *arg, size_t len,
 
         case ERL_SMALL_TUPLE_EXT:
         case ERL_LARGE_TUPLE_EXT:
-            if (arity != 3)
+            if (alcove_decode_tuple_header(arg, len, &index, &arity) < 0 || arity != 3)
                 return -1;
 
             timeout = &tv;
