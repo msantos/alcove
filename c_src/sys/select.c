@@ -190,7 +190,7 @@ alcove_fd_isset(char *buf, size_t len, int *index, fd_set *set)
     if (set == NULL)
         return 0;
 
-    for (fd = FD_SETSIZE - 1; fd > 3; fd--) {
+    for (fd = 0; fd < FD_SETSIZE; fd++) {
         if (FD_ISSET(fd, set)) {
             if (alcove_encode_list_header(buf, len, index, 1) < 0)
                 return -1;
