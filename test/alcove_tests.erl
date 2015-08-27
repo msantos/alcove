@@ -713,14 +713,24 @@ open(#state{pid = Drv}) ->
         ?_assertEqual({error,enoent}, Reply2)
     ].
 
-select(#state{pid = Drv}) ->
+select(#state{os = OS, pid = Drv}) ->
     {ok, FD} = alcove:open(Drv, [], "/dev/null", [o_rdwr], 0),
     Reply1 = alcove:select(Drv, [], [FD], [FD], [FD], <<>>),
     Reply2 = alcove:select(Drv, [], [FD], [FD], [FD], #alcove_timeval{sec = 1, usec = 1}),
 
+    Expected = case OS of
+        {unix,sunos} ->
+            % select(3c): File descriptors associated with regular files
+            % always select true for ready to read, ready to write, and
+            % error conditions.
+            {ok, [FD], [FD], [FD]};
+        _ ->
+            {ok, [FD], [FD], []}
+    end,
+
     [
-        ?_assertEqual({ok, [FD], [FD], []}, Reply1),
-        ?_assertEqual({ok, [FD], [FD], []}, Reply2)
+        ?_assertEqual(Expected, Reply1),
+        ?_assertEqual(Expected, Reply2)
     ].
 
 ioctl(#state{clone = true, os = {unix,linux}, pid = Drv}) ->
