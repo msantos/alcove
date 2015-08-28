@@ -20,7 +20,7 @@
 -export([start_link/0, start_link/1, start_link/2]).
 -export([call/5]).
 -export([stdin/3, stdout/3, stderr/3, event/3]).
--export([getopts/1]).
+-export([raw/1, getopts/1]).
 
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2,
@@ -31,6 +31,7 @@
 
 -record(state, {
         owner,
+        raw = false,
         port :: port(),
         buf = <<>> :: binary()
     }).
@@ -112,6 +113,10 @@ stderr(Drv, Pids, Timeout) ->
 event(Drv, Pids, Timeout) ->
     reply(Drv, Pids, alcove_event, Timeout).
 
+-spec raw(ref()) -> 'ok'.
+raw(Drv) ->
+    gen_server:call(Drv, raw).
+
 %%--------------------------------------------------------------------
 %%% Callbacks
 %%--------------------------------------------------------------------
@@ -136,6 +141,9 @@ init([Owner, Options]) ->
 handle_call({send, _ForkChain, Buf}, {Owner,_Tag}, #state{port = Port, owner = Owner} = State) ->
     Reply = erlang:port_command(Port, Buf),
     {reply, Reply, State};
+
+handle_call(raw, {Owner,_Tag}, #state{owner = Owner} = State) ->
+    {reply, ok, State#state{raw = true}};
 
 handle_call(stop, _From, State) ->
     {stop, normal, ok, State};
@@ -167,6 +175,9 @@ code_change(_OldVsn, State, _Extra) ->
 %
 % Several writes from the child process may be coalesced into 1 read by
 % the parent.
+handle_info({Port, {data, Data}}, #state{raw = true, port = Port, buf = Buf, owner = Owner} = State) ->
+    Owner ! {alcove_stdout, self(), [], <<Buf/binary, Data/binary>>},
+    {noreply, State};
 handle_info({Port, {data, Data}}, #state{port = Port, buf = Buf, owner = Owner} = State) ->
     {Msgs, Rest} = alcove_codec:stream(<<Buf/binary, Data/binary>>),
     Terms = [ alcove_codec:decode(Msg) || Msg <- Msgs ],
