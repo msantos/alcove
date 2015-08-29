@@ -81,7 +81,7 @@ alcove_sys_prctl(alcove_state_t *ap, const char *arg, size_t len,
         switch (type) {
             case ERL_SMALL_INTEGER_EXT:
             case ERL_INTEGER_EXT:
-                if (ei_decode_ulong(arg, &index, &prarg[i].arg) < 0)
+                if (alcove_decode_ulong(arg, len, &index, &prarg[i].arg) < 0)
                     return -1;
 
                 break;
@@ -124,7 +124,7 @@ alcove_sys_prctl(alcove_state_t *ap, const char *arg, size_t len,
                 break;
 
             case ERL_NIL_EXT:
-                if (ei_decode_list_header(arg, &index, &arity) < 0 ||
+                if (alcove_decode_list_header(arg, len, &index, &arity) < 0 ||
                         arity != 0)
                     return -1;
 

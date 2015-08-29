@@ -149,7 +149,7 @@ alcove_list_to_fd_set(const char *arg, size_t len, int *index,
             break;
 
         case ERL_LIST_EXT:
-            if (ei_decode_list_header(arg, index, &arity) < 0)
+            if (alcove_decode_list_header(arg, len, index, &arity) < 0)
                 return -1;
 
             for (i = 0; i < arity; i++) {
@@ -170,7 +170,7 @@ alcove_list_to_fd_set(const char *arg, size_t len, int *index,
             break;
 
         case ERL_NIL_EXT:
-            if (ei_decode_list_header(arg, index, &arity) < 0 || arity != 0)
+            if (alcove_decode_list_header(arg, len, index, &arity) < 0 || arity != 0)
                 return -1;
 
             break;
