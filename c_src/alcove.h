@@ -207,6 +207,7 @@ int alcove_decode_ulong(const char *, size_t, int *, unsigned long *);
 int alcove_decode_longlong(const char *, size_t, int *, long long *);
 int alcove_decode_ulonglong(const char *, size_t, int *, unsigned long long *);
 int alcove_decode_atom(const char *, size_t, int *, char *);
+int alcove_decode_string(const char *, size_t, int *, char *, size_t);
 int alcove_decode_list_header(const char *, size_t, int *, int *);
 int alcove_decode_tuple_header(const char *, size_t, int *, int *);
 int alcove_decode_iolist(const char *, size_t, int *, char *, size_t *);

@@ -133,7 +133,7 @@ alcove_list_to_fd_set(const char *arg, size_t len, int *index,
         case ERL_STRING_EXT: {
             char tmp[FD_SETSIZE] = {0};
 
-            if (ei_decode_string(arg, index, tmp) < 0)
+            if (alcove_decode_string(arg, len, index, tmp, sizeof(tmp)) < 0)
                 return -1;
 
             for (i = 0; i < arity; i++) {
