@@ -878,10 +878,10 @@ atom is used as the argument and is not found on the platform.
 
         setuid(2) : change UID
 
-    sigaction(Drv, ForkChain, Signum, Handler) -> ok | {error, posix() | unsupported}
+    sigaction(Drv, ForkChain, Signum, Handler) -> {ok, OldHandler} | {error, posix() | unsupported}
 
         Types   Signum = constant()
-                Handler = sig_dfl | sig_ign | sig_catch
+                Handler = OldHandler = sig_dfl | sig_ign | sig_catch
 
         sigaction(2) : set process behaviour for signals
 
@@ -892,7 +892,7 @@ atom is used as the argument and is not found on the platform.
             sig_catch : catches the signal and sends the controlling Erlang
                         process an event, {signal, atom()}
 
-        Multiple caught signals may be reported as one event.
+        Multiple caught signals of the same type may be reported as one event.
 
     signal_constant(Drv, ForkChain, integer()) -> atom() | unknown
 

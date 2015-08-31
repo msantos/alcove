@@ -25,13 +25,16 @@ alcove_sys_sigaction(alcove_state_t *ap, const char *arg, size_t len,
         char *reply, size_t rlen)
 {
     int index = 0;
+    int rindex = 0;
 
     int signum = 0;
     char handler[MAXATOMLEN] = {0};
+    char *ohandler = NULL;
     struct sigaction act;
-    int rv = 0;
+    struct sigaction oact;
 
     (void)memset(&act, 0, sizeof(act));
+    (void)memset(&oact, 0, sizeof(oact));
 
     /* signum */
     switch (alcove_decode_define(arg, len, &index, &signum,
@@ -64,14 +67,32 @@ alcove_sys_sigaction(alcove_state_t *ap, const char *arg, size_t len,
     if (signum == SIGCHLD) {
         ALCOVE_SETOPT(ap, alcove_opt_sigchld,
                 ((act.sa_handler == sighandler) ? 1 : 0));
-        return alcove_mk_atom(reply, rlen, "ok");
+        ALCOVE_ERR(alcove_encode_version(reply, rlen, &rindex));
+        ALCOVE_ERR(alcove_encode_tuple_header(reply, rlen, &rindex, 2));
+        ALCOVE_ERR(alcove_encode_atom(reply, rlen, &rindex, "ok"));
+        ALCOVE_ERR(alcove_encode_atom(reply, rlen, &rindex, "sig_catch"));
+        return rindex;
     }
 
     (void)sigfillset(&act.sa_mask);
 
-    rv = sigaction(signum, &act, NULL);
+    if (sigaction(signum, &act, &oact) < 0)
+        alcove_mk_errno(reply, rlen, errno);
 
-    return (rv < 0)
-        ? alcove_mk_errno(reply, rlen, errno)
-        : alcove_mk_atom(reply, rlen, "ok");
+    ALCOVE_ERR(alcove_encode_version(reply, rlen, &rindex));
+    ALCOVE_ERR(alcove_encode_tuple_header(reply, rlen, &rindex, 2));
+    ALCOVE_ERR(alcove_encode_atom(reply, rlen, &rindex, "ok"));
+
+    if (oact.sa_handler == SIG_DFL)
+        ohandler = "sig_dfl";
+    else if (oact.sa_handler == SIG_IGN)
+        ohandler = "sig_ign";
+    else if (oact.sa_handler == sighandler)
+        ohandler = "sig_catch";
+    else
+        /* XXX returns badarg */
+        return -1;
+
+    ALCOVE_ERR(alcove_encode_atom(reply, rlen, &rindex, ohandler));
+    return rindex;
 }

@@ -85,8 +85,8 @@ start() ->
 
     {ok, Drv} = alcove_drv:start_link([{exec, Exec}, {maxchild, 8}]),
 
-    ok = alcove:sigaction(Drv, [], sigchld, sig_catch),
-    ok = alcove:sigaction(Drv, [], sigpipe, sig_ign),
+    {ok,_} = alcove:sigaction(Drv, [], sigchld, sig_catch),
+    {ok,_} = alcove:sigaction(Drv, [], sigpipe, sig_ign),
 
     case {Use_fork, os:type()} of
         {false, {unix,linux} = OS} ->
@@ -457,11 +457,11 @@ signal(#state{pid = Drv}) ->
     Search = alcove:kill(Drv, [], Child1, 0),
 
     [
-        ?_assertEqual(ok, SA0),
+        ?_assertEqual({ok,sig_dfl}, SA0),
         ?_assertEqual(ok, Kill0),
         ?_assertEqual(true, is_integer(Pid0)),
 
-        ?_assertEqual(ok, SA1),
+        ?_assertEqual({ok,sig_ign}, SA1),
         ?_assertEqual(ok, Kill1),
         ?_assertEqual({error,esrch}, Search)
     ].
@@ -686,7 +686,7 @@ execve(#state{pid = Drv}) ->
 
 stream(#state{pid = Drv}) ->
     Chain = chain(Drv, 16),
-    ok = alcove:sigaction(Drv, Chain, sigpipe, sig_dfl),
+    {ok,_} = alcove:sigaction(Drv, Chain, sigpipe, sig_dfl),
     DefaultCount = 1 * 1024 * 1024,
     Count = getenv("ALCOVE_TEST_STREAM_COUNT", integer_to_list(DefaultCount)),
     Sleep = getenv("ALCOVE_TEST_STREAM_MAGIC_SLEEP", "0"),

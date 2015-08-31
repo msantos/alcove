@@ -529,8 +529,8 @@ specs() ->
 -spec setuid(alcove_drv:ref(),forkchain(),uid_t()) -> 'ok' | {'error', file:posix()}.
 -spec setuid(alcove_drv:ref(),forkchain(),uid_t(),timeout()) -> 'ok' | {'error', file:posix()}.
 
--spec sigaction(alcove_drv:ref(),forkchain(),constant(),atom()) -> 'ok' | {'error', file:posix() | 'unsupported'}.
--spec sigaction(alcove_drv:ref(),forkchain(),constant(),atom(),timeout()) -> 'ok' | {'error', file:posix() | 'unsupported'}.
+-spec sigaction(alcove_drv:ref(),forkchain(),constant(),atom()) -> {'ok',atom()} | {'error', file:posix() | 'unsupported'}.
+-spec sigaction(alcove_drv:ref(),forkchain(),constant(),atom(),timeout()) -> {'ok',atom()} | {'error', file:posix() | 'unsupported'}.
 
 -spec signal_constant(alcove_drv:ref(),forkchain(),non_neg_integer()) -> 'unknown' | atom().
 -spec signal_constant(alcove_drv:ref(),forkchain(),non_neg_integer(),timeout()) -> 'unknown' | atom().
