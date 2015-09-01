@@ -28,7 +28,7 @@ alcove_decode_binary(const char *buf, size_t len, int *index, void *p, size_t *p
     if (alcove_get_type(buf, len, index, &type, &arity) < 0)
         return -1;
 
-    if (arity < 0 || arity >= MAXMSGLEN || arity > len)
+    if (arity > len)
         return -1;
 
     if (ei_decode_binary(buf, index, p, &n._long) < 0 || n._long < 0)

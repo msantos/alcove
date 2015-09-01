@@ -100,5 +100,8 @@ alcove_get_type(const char *buf, size_t len, const int *index,
             return -1;
     }
 
+    if (*arity < 0)
+        return -1;
+
     return 0;
 }
