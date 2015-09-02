@@ -17,6 +17,7 @@
 
 -record(alcove_pid, {
         pid = 0 :: non_neg_integer(),
+        fdctl = -1 :: integer(),
         stdin = -1 :: integer(),
         stdout = -1 :: integer(),
         stderr = -1 :: integer()
