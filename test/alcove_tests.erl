@@ -167,8 +167,16 @@ iodata(#state{pid = Drv}) ->
     ].
 
 pid(#state{pid = Drv}) ->
-    Pids = alcove:pid(Drv, []),
-    ?_assertEqual(1, length(Pids)).
+    {ok, Child} = alcove:fork(Drv, []),
+    {ok, Grandchild} = alcove:fork(Drv, [Child]),
+    Pids1 = alcove:pid(Drv, [Child]),
+    ok = alcove:execvp(Drv, [Child,Grandchild], "/bin/cat", ["/bin/cat"]),
+    Pids2 = alcove:pid(Drv, [Child]),
+    ok = alcove:eof(Drv, [Child]),
+    [
+        ?_assertMatch([#alcove_pid{}], Pids1),
+        ?_assertMatch([#alcove_pid{fdctl = -2}], Pids2)
+    ].
 
 getpid(#state{clone = true, pid = Drv, child = Child}) ->
     % Running in a PID namespace
