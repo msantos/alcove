@@ -37,22 +37,20 @@ alcove_sys_pid(alcove_state_t *ap, const char *arg, size_t len,
      *     tuple header = 5 bytes
      *     atom = 1 byte
      *     alcove_pid = 10 bytes
-     *     4 * int (7) = 28 bytes
+     *     5 * int (7) = 35 bytes
      * tail = 1 byte
      *
-     * length = 1 + (count * 49) + 1
+     * length = 1 + (count * 56) + 1
      */
-    if (2 + count * 49 > rlen)
+    if (2 + count * 56 > rlen)
         return -1;
 
-    if (ei_encode_version(reply, &rindex) < 0)
-        return -1;
+    ALCOVE_ERR(alcove_encode_version(reply, rlen, &rindex));
 
     if (pid_foreach(ap, 0, reply, &rindex, pid_not_equal, cons_pid) < 0)
         return -1;
 
-    if (ei_encode_empty_list(reply, &rindex) < 0)
-        return -1;
+    ALCOVE_ERR(alcove_encode_empty_list(reply, rlen, &rindex));
 
     return rindex;
 }
