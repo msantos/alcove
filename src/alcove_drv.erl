@@ -70,27 +70,27 @@ call(Drv, Pids, Command, Argv, Timeout)
     when is_list(Pids), is_atom(Command), is_list(Argv),
          (is_integer(Timeout) orelse Timeout =:= infinity) ->
     Data = alcove_codec:call(Command, Pids, Argv),
-    case sync_send(Drv, Pids, Data) of
+    case sync_send(Drv, Data) of
         true ->
             call_reply(Drv, Pids, alcove_proto:will_return(Command), Timeout);
         Error ->
             Error
     end.
 
--spec sync_send(ref(),alcove:forkchain(),iodata()) -> true | badarg.
-sync_send(Drv, Pids, Data) ->
+-spec sync_send(ref(),iodata()) -> true | badarg.
+sync_send(Drv, Data) ->
     case iolist_size(Data) =< 16#ffff of
         true ->
-            gen_server:call(Drv, {send, Pids, Data}, infinity);
+            gen_server:call(Drv, {send, Data}, infinity);
         false ->
             badarg
     end.
 
--spec send(ref(),alcove:forkchain(),iodata()) -> true | badarg.
-send(Drv, Pids, Data) ->
+-spec send(ref(),iodata()) -> true | badarg.
+send(Drv, Data) ->
     case iolist_size(Data) =< 16#ffff of
         true ->
-            gen_server:cast(Drv, {send, Pids, Data}),
+            gen_server:cast(Drv, {send, Data}),
             true;
         false ->
             badarg
@@ -99,7 +99,7 @@ send(Drv, Pids, Data) ->
 -spec stdin(ref(),alcove:forkchain(),iodata()) -> 'true'.
 stdin(Drv, Pids, Data) ->
     Stdin = alcove_codec:stdin(Pids, Data),
-    send(Drv, Pids, Stdin).
+    send(Drv, Stdin).
 
 -spec stdout(ref(),alcove:forkchain(),timeout()) -> 'false' | binary().
 stdout(Drv, Pids, Timeout) ->
@@ -138,7 +138,7 @@ init([Owner, Options]) ->
 
     {ok, #state{port = Port, owner = Owner}}.
 
-handle_call({send, _ForkChain, Buf}, {Owner,_Tag}, #state{port = Port, owner = Owner} = State) ->
+handle_call({send, Buf}, {Owner,_Tag}, #state{port = Port, owner = Owner} = State) ->
     Reply = erlang:port_command(Port, Buf),
     {reply, Reply, State};
 
@@ -154,7 +154,7 @@ handle_call(_, {Owner,_Tag}, #state{owner = Owner} = State) ->
 handle_call(_, _, State) ->
     {reply, {error,not_owner}, State}.
 
-handle_cast({send, _ForkChain, Buf}, #state{port = Port} = State) ->
+handle_cast({send, Buf}, #state{port = Port} = State) ->
     erlang:port_command(Port, Buf),
     {noreply, State};
 handle_cast(_Msg, State) ->
