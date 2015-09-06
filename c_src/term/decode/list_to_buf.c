@@ -38,7 +38,7 @@ alcove_decode_list_to_buf(const char *arg, size_t len, int *index,
     if (alcove_decode_list_header(arg, len, index, &arity) < 0)
         return -1;
 
-    if (arity < 0 || arity >= MAXMSGLEN)
+    if (arity >= MAXMSGLEN)
         return -1;
 
     tmp_index = *index;
