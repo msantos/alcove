@@ -22,7 +22,7 @@ alcove_decode_uint(const char *buf, size_t len, int *index, u_int32_t *n)
         unsigned long l;
     } val;
 
-    if (alcove_decode_ulong(buf, len, index, &val.l) < 0)
+    if (alcove_decode_ulong(buf, len, index, &val.l) < 0 || val.l > UINT32_MAX)
         return -1;
 
     *n = val.i;

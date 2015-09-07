@@ -22,7 +22,7 @@ alcove_decode_int(const char *buf, size_t len, int *index, int *n)
         long l;
     } val;
 
-    if (alcove_decode_long(buf, len, index, &val.l) < 0)
+    if (alcove_decode_long(buf, len, index, &val.l) < 0 || val.l > INT32_MAX)
         return -1;
 
     *n = val.i;
