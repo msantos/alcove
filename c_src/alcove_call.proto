@@ -12,6 +12,8 @@ errno_id/1
 execve/3
 execvp/2
 exit/1
+fcntl/3
+fcntl_define/1
 file_define/1
 fork/0
 getcwd/0
