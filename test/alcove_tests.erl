@@ -1,4 +1,4 @@
-%%% Copyright (c) 2014, Michael Santos <michael.santos@gmail.com>
+%%% Copyright (c) 2014-2015, Michael Santos <michael.santos@gmail.com>
 %%%
 %%% Permission to use, copy, modify, and/or distribute this software for any
 %%% purpose with or without fee is hereby granted, provided that the above
@@ -66,6 +66,7 @@ run(State) ->
         alloc(State),
         prctl(State),
         priority(State),
+        fcntl(State),
         execvp(State),
         execvp_with_signal(State),
         stdout(State),
@@ -576,6 +577,27 @@ prctl(#state{os = {unix,linux}, pid = Drv}) ->
     ];
 prctl(_) ->
     [].
+
+fcntl(#state{pid = Drv}) ->
+    {ok, Child} = alcove:fork(Drv, []),
+    Fdctl = 5,
+
+    {ok, Flags0} = alcove:fcntl(Drv, [Child], Fdctl, f_getfd, 0),
+    FD_CLOEXEC = alcove:fcntl_define(Drv, [Child], fd_cloexec),
+    Flags1 = Flags0 band (bnot FD_CLOEXEC),
+
+    {ok, _} = alcove:fcntl(Drv, [Child], Fdctl, f_setfd, Flags1),
+    {ok, Flags2} = alcove:fcntl(Drv, [Child], Fdctl, f_getfd, 0),
+
+    {ok, _} = alcove:fcntl(Drv, [Child], Fdctl, f_setfd, Flags0),
+    {ok, Flags3} = alcove:fcntl(Drv, [Child], Fdctl, f_getfd, 0),
+
+    alcove:exit(Drv, [Child], 0),
+
+    [
+        ?_assertEqual(Flags0, Flags3),
+        ?_assertEqual(Flags1, Flags2)
+    ].
 
 priority(#state{os = {unix,_}, pid = Drv}) ->
     {ok, Fork0} = alcove:fork(Drv, []),
