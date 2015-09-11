@@ -22,5 +22,11 @@ static const alcove_define_t alcove_fcntl_constants[] = {
 #ifdef FD_CLOEXEC
     ALCOVE_DEFINE(FD_CLOEXEC),
 #endif
+#ifdef F_SETPIPE_SZ
+    ALCOVE_DEFINE(F_SETPIPE_SZ),
+#endif
+#ifdef F_GETPIPE_SZ
+    ALCOVE_DEFINE(F_GETPIPE_SZ),
+#endif
     {NULL, 0}
 };
