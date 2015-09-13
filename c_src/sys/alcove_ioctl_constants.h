@@ -14,6 +14,11 @@
  */
 #include <sys/ioctl.h>
 
+#if defined(__linux__) || defined(__sunos__)
+#else
+#include <net/if.h>
+#endif
+
 static const alcove_define_t alcove_ioctl_constants[] = {
 #ifdef SIOCADDRT
     ALCOVE_DEFINE(SIOCADDRT),
