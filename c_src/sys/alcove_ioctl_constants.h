@@ -14,9 +14,12 @@
  */
 #include <sys/ioctl.h>
 
-#if defined(__linux__) || defined(__sunos__)
-#else
 #include <net/if.h>
+#if defined(__linux__)
+#include <linux/if_tun.h>
+#elif defined(__sunos__)
+#else
+#include <net/if_tun.h>
 #endif
 
 static const alcove_define_t alcove_ioctl_constants[] = {
@@ -422,5 +425,58 @@ static const alcove_define_t alcove_ioctl_constants[] = {
 #ifdef TIOCSER_TEMT
     ALCOVE_DEFINE(TIOCSER_TEMT),
 #endif
+
+#ifdef TUNSETNOCSUM
+    ALCOVE_DEFINE(TUNSETNOCSUM),
+#endif
+#ifdef TUNSETDEBUG
+    ALCOVE_DEFINE(TUNSETDEBUG),
+#endif
+#ifdef TUNSETIFF
+    ALCOVE_DEFINE(TUNSETIFF),
+#endif
+#ifdef TUNSETPERSIST
+    ALCOVE_DEFINE(TUNSETPERSIST),
+#endif
+#ifdef TUNSETOWNER
+    ALCOVE_DEFINE(TUNSETOWNER),
+#endif
+#ifdef TUNSETLINK
+    ALCOVE_DEFINE(TUNSETLINK),
+#endif
+#ifdef TUNSETGROUP
+    ALCOVE_DEFINE(TUNSETGROUP),
+#endif
+#ifdef TUNGETFEATURES
+    ALCOVE_DEFINE(TUNGETFEATURES),
+#endif
+#ifdef TUNSETOFFLOAD
+    ALCOVE_DEFINE(TUNSETOFFLOAD),
+#endif
+#ifdef TUNSETTXFILTER
+    ALCOVE_DEFINE(TUNSETTXFILTER),
+#endif
+#ifdef TUNGETIFF
+    ALCOVE_DEFINE(TUNGETIFF),
+#endif
+#ifdef TUNGETSNDBUF
+    ALCOVE_DEFINE(TUNGETSNDBUF),
+#endif
+#ifdef TUNSETSNDBUF
+    ALCOVE_DEFINE(TUNSETSNDBUF),
+#endif
+#ifdef TUNATTACHFILTER
+    ALCOVE_DEFINE(TUNATTACHFILTER),
+#endif
+#ifdef TUNDETACHFILTER
+    ALCOVE_DEFINE(TUNDETACHFILTER),
+#endif
+#ifdef TUNGETVNETHDRSZ
+    ALCOVE_DEFINE(TUNGETVNETHDRSZ),
+#endif
+#ifdef TUNSETVNETHDRSZ
+    ALCOVE_DEFINE(TUNSETVNETHDRSZ),
+#endif
+
     {NULL, 0}
 };
