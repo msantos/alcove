@@ -122,9 +122,10 @@ trap(#state{pid = Drv}) ->
     ].
 
 allow_syscall(Drv, Syscall) ->
-    case alcove:define(Drv, [], Syscall) of
-        unknown -> [];
+    try alcove:define(Drv, [], Syscall) of
         NR -> ?ALLOW_SYSCALL(NR)
+    catch
+        error:{unknown, Syscall} -> []
     end.
 
 filter(Drv) ->

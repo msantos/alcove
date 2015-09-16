@@ -177,39 +177,42 @@ static({audit_arch,0}) ->
 
 static({define,3}) ->
 "
-define(Drv, Pids, Const) when is_atom(Const) ->
-    define(Drv, Pids, [Const]);
-define(Drv, Pids, Consts0) when is_list(Consts0) ->
-    Consts = [ begin
-                case atom_to_list(Const) of
-                    \"sys_\" ++ Rest -> \"__nr_\" ++ Rest;
-                    X -> X
-                end
-        end || Const <- Consts0 ],
+define(Drv, ForkChain, Constant) when is_atom(Constant) ->
+    define(Drv, ForkChain, [Constant]);
+define(Drv, ForkChain, Constants) when is_list(Constants) ->
+    lists:foldl(fun
+            (Constant,Result) when is_atom(Constant) ->
+                Val = define_constant(Drv, ForkChain, Constant),
+                Result bxor Val;
+            (Val,Result) when is_integer(Val) ->
+                Result bxor Val
+        end,
+        0,
+        Constants).
 
-    try lists:foldl(fun(Const, Acc) ->
-                Fun = const(Const),
-                Acc bxor alcove:Fun(Drv, Pids, list_to_atom(Const))
-        end, 0, Consts)
-    catch
-        error:badarith -> unknown;
-        error:function_clause -> unknown
+define_constant(Drv, ForkChain, Constant) ->
+    Fun = [
+        fun clone_define/3,
+        fun fcntl_define/3,
+        fun file_define/3,
+        fun ioctl_define/3,
+        fun mount_define/3,
+        fun prctl_define/3,
+        fun rlimit_define/3,
+        fun signal_define/3,
+        fun syscall_define/3
+    ],
+    define_foreach(Drv, ForkChain, Constant, Fun).
+
+define_foreach(_Drv, _ForkChain, Constant, []) ->
+    erlang:error({unknown, Constant});
+define_foreach(Drv, ForkChain, Constant, [Fun|Rest]) ->
+    case Fun(Drv, ForkChain, Constant) of
+        unknown ->
+            define_foreach(Drv, ForkChain, Constant, Rest);
+        Val when is_integer(Val) ->
+            Val
     end.
-
-const(\"clone_\" ++ _) -> clone_define;
-const(\"ms_\" ++ _) -> mount_define;
-const(\"mnt_\" ++ _) -> mount_define;
-const(\"o_\" ++ _) -> file_define;
-const(\"pr_\" ++ _) -> prctl_define;
-const(\"seccomp_\" ++ _) -> prctl_define;
-const(\"rlimit_\" ++ _) -> rlimit_define;
-const(\"audit_arch_\" ++ _) -> syscall_define;
-const(\"__nr_\" ++ _) -> syscall_define;
-const(\"sig\" ++ _) -> signal_define;
-const(\"rdonly\") -> mount_define;
-const(\"nosuid\") -> mount_define;
-const(\"noexec\") -> mount_define;
-const(\"noatime\") -> mount_define.
 ";
 
 static({stdin,3}) ->
