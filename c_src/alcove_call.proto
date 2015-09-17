@@ -35,6 +35,7 @@ iolist_to_bin/1
 kill/2
 lseek/3
 mkdir/2
+mkfifo/2
 mount/6
 mount_define/1
 open/3
