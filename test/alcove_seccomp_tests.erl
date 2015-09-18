@@ -53,9 +53,15 @@ start() ->
             termsig
         ]),
 
+    Seccomp = try alcove:clone_define(Drv, [], seccomp_mode_filter) of
+                  _ -> true
+              catch
+                  error:undef -> false
+              end,
+
     #state{
         pid = Drv,
-        seccomp = alcove:define(Drv, [], seccomp_mode_filter) =/= unknown
+        seccomp = Seccomp
     }.
 
 stop(#state{pid = Drv}) ->

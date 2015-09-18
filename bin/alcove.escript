@@ -207,11 +207,15 @@ define_constant(Drv, ForkChain, Constant) ->
 define_foreach(_Drv, _ForkChain, Constant, []) ->
     erlang:error({unknown, Constant});
 define_foreach(Drv, ForkChain, Constant, [Fun|Rest]) ->
-    case Fun(Drv, ForkChain, Constant) of
+    try Fun(Drv, ForkChain, Constant) of
         unknown ->
             define_foreach(Drv, ForkChain, Constant, Rest);
         Val when is_integer(Val) ->
             Val
+    catch
+        % Function call not supported on this platform
+        error:undef ->
+            define_foreach(Drv, ForkChain, Constant, Rest)
     end.
 ";
 

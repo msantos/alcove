@@ -45,6 +45,6 @@ alcove_sys_syscall_define(alcove_state_t *ap, const char *arg, size_t len,
                 name, alcove_syscall_constants));
     return rindex;
 #else
-    return alcove_mk_atom(reply, rlen, "false");
+    return alcove_mk_atom(reply, rlen, "undef");
 #endif
 }

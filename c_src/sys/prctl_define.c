@@ -47,6 +47,6 @@ alcove_sys_prctl_define(alcove_state_t *ap, const char *arg, size_t len,
                 name, alcove_prctl_constants));
     return rindex;
 #else
-    return alcove_mk_atom(reply, rlen, "false");
+    return alcove_mk_atom(reply, rlen, "undef");
 #endif
 }
