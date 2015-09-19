@@ -99,7 +99,6 @@ send(Drv, Data) ->
 -spec stdin(ref(),alcove:forkchain(),iodata()) -> 'true'.
 stdin(Drv, Pids, Data) ->
     Stdin = alcove_codec:stdin(Pids, Data),
-    error_logger:info_report([{stdin, iolist_size(Stdin)}]),
     case iolist_size(Stdin) =< 16#ffff of
         true ->
             send(Drv, Stdin);
