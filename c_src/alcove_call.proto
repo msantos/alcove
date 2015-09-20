@@ -66,6 +66,7 @@ signal_constant/1
 signal_define/1
 syscall_define/1
 umount/1
+unlink/1
 unsetenv/1
 unshare/1
 version/0
