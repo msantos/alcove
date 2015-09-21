@@ -17,6 +17,8 @@
 #include <poll.h>
 #include <sys/wait.h>
 
+#include <sys/stat.h>
+
 enum {
     ALCOVE_MSG_STDIN = 0,
     ALCOVE_MSG_STDOUT,
@@ -42,7 +44,7 @@ enum {
 
 static int alcove_signal_init();
 static int alcove_rlimit_init();
-static int alcove_fd_init();
+static int alcove_fd_init(char *fifo);
 int alcove_fdmove(int fd, int dst);
 
 static int alcove_stdin(alcove_state_t *ap);
@@ -91,6 +93,7 @@ main(int argc, char *argv[])
 {
     alcove_state_t *ap = NULL;
     int ch = 0;
+    char *fifo = NULL;
 
     ap = calloc(1, sizeof(alcove_state_t));
     if (ap == NULL)
@@ -109,8 +112,14 @@ main(int argc, char *argv[])
     if (alcove_rlimit_init() < 0)
         err(EXIT_FAILURE, "alcove_rlimit_init");
 
-    while ( (ch = getopt(argc, argv, "m:hv")) != -1) {
+    while ( (ch = getopt(argc, argv, "c:m:hv")) != -1) {
         switch (ch) {
+            case 'c':
+                if (fifo) free(fifo);
+                fifo = strdup(optarg);
+                if (fifo == NULL)
+                    err(EXIT_FAILURE, "strdup");
+                break;
             case 'm':
                 ap->maxchild = (u_int16_t)atoi(optarg);
                 break;
@@ -129,8 +138,13 @@ main(int argc, char *argv[])
     if (ap->child == NULL)
         err(EXIT_FAILURE, "calloc");
 
-    if (alcove_fd_init() < 0)
+    if (!fifo)
+        usage(ap);
+
+    if (alcove_fd_init(fifo) < 0)
         err(EXIT_FAILURE, "alcove_fd_init");
+
+    free(fifo);
 
     alcove_event_loop(ap);
     exit(0);
@@ -189,11 +203,13 @@ alcove_rlimit_init()
 }
 
     static int
-alcove_fd_init()
+alcove_fd_init(char *fifo)
 {
     int sigpipe[2] = {0};
     int fdctl = 0;
 
+     /* The fd may have been opened by another program. For example,
+      * valgrind will use the first available fd for the log file. */
     if (alcove_fdmove(ALCOVE_SIGREAD_FILENO, 8) < 0)
         return -1;
 
@@ -225,13 +241,30 @@ alcove_fd_init()
             || (alcove_setfd(ALCOVE_SIGWRITE_FILENO, FD_CLOEXEC|O_NONBLOCK) < 0))
         return -1;
 
-    /* Unlike the child processes, the port does not use a control fd.
-     * An fd is acquired and leaked here to reserve it.
+    /* The control fd used to signal that the port has called exec(). The
+     * control fd is a fifo. beam opens the fd in read-only mode.  When all
+     * the writers of a fifo call close(), the reader receives EOF.
      *
-     * The fd may have been opened by another program. For example,
-     * valgrind will use the first available fd for the log file.
+     * If the fifo is opened O_WRONLY, the port will deadlock: the open
+     * call in the port will block for a reader and the erlang side will
+     * be blocked waiting for the port.
+     *
+     * Some OS'es (e.g., Linux, see fifo(7)) allow a fifo to be opened
+     * in non-blocking mode but the behaviour is unspecified. In practice:
+     *
+     * - opening the fifo read-only returns immediately
+     *
+     * - opening the fifo write-only fifo returns ENXIO
+     *
+     * - opening the fifo read-write with or without O_NONBLOCK will
+     *   return immediately but the control fd cannot be used for sending
+     *   data because each of the readers will race to receive any writes
+     *
      */
-    fdctl = open("/dev/null", O_RDWR|O_CLOEXEC);
+    if (mkfifo(fifo, S_IWUSR|S_IRUSR|S_IRGRP|S_IROTH) < 0)
+        return -1;
+
+    fdctl = open(fifo, O_RDWR|O_CLOEXEC|O_NONBLOCK);
     if (fdctl < 0)
         return -1;
 
@@ -901,7 +934,7 @@ usage(alcove_state_t *ap)
     (void)fprintf(stderr, "%s %s\n",
             __progname, ALCOVE_VERSION);
     (void)fprintf(stderr,
-            "usage: %s <options>\n"
+            "usage: %s -c <path> [<options>]\n"
             "   -m <num>        max children\n"
             "   -v              verbose mode\n",
             __progname

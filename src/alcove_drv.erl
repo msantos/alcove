@@ -31,8 +31,10 @@
 
 -record(state, {
         owner,
+        ospid,
         raw = false,
         port :: port(),
+        fdctl :: port(),
         buf = <<>> :: binary()
     }).
 
@@ -128,7 +130,15 @@ raw(Drv) ->
 init([Owner, Options]) ->
     process_flag(trap_exit, true),
 
-    [Cmd|Argv] = getopts(Options),
+    % Control fifo for the port
+    Ctldir = proplists:get_value(ctldir, Options, basedir(?MODULE)),
+    Fifo = lists:concat([
+            Ctldir,
+            "/fdctl.",
+            crypto:rand_uniform(0, 16#ffffffff)
+        ]),
+
+    [Cmd|Argv] = getopts([{fdctl, Fifo}|Options]),
     PortOpt = lists:filter(fun
             (stderr_to_stdout) -> true;
             ({env,_}) -> true;
@@ -141,7 +151,19 @@ init([Owner, Options]) ->
             binary
         ] ++ PortOpt),
 
-    {ok, #state{port = Port, owner = Owner}}.
+    % Block until the port has fully initialized
+    case call_getpid(Port) of
+        {ok, OSPid} ->
+            Fdctl = erlang:open_port(Fifo, [in]),
+
+            % Decrease the link count of the fifo. The fifo is deleted in
+            % the port because the port may be running as a different user.
+            ok = call_unlink(Port, Fifo),
+            {ok, #state{port = Port, fdctl = Fdctl, owner = Owner,
+                    ospid = OSPid}};
+        {error, Error} ->
+            {stop, Error}
+    end.
 
 handle_call({send, Buf}, {Owner,_Tag}, #state{port = Port, owner = Owner} = State) ->
     Reply = erlang:port_command(Port, Buf),
@@ -165,8 +187,9 @@ handle_cast({send, Buf}, #state{port = Port} = State) ->
 handle_cast(_Msg, State) ->
     {noreply, State}.
 
-terminate(_Reason, #state{port = Port}) ->
+terminate(_Reason, #state{port = Port, fdctl = Fdctl}) ->
     catch erlang:port_close(Port),
+    catch erlang:port_close(Fdctl),
     ok.
 
 code_change(_OldVsn, State, _Extra) ->
@@ -191,6 +214,12 @@ handle_info({Port, {data, Data}}, #state{port = Port, buf = Buf, owner = Owner} 
 
 handle_info({'EXIT', Port, Reason}, #state{port = Port} = State) ->
     {stop, {shutdown, Reason}, State};
+
+% The write end of the fdctl fifo has been closed: either the port has
+% exit'ed or called exec().
+handle_info({'EXIT', Fdctl, _Reason}, #state{fdctl = Fdctl, owner = Owner} = State) ->
+    Owner ! {alcove_ctl, self(), [], fdctl_closed},
+    {noreply, State#state{raw = true}};
 
 % WTF
 handle_info(Info, State) ->
@@ -261,8 +290,9 @@ getopts(Options) when is_list(Options) ->
     [Cmd|Argv] = [ N || N <- string:tokens(Exec, " ") ++ [Progname|Switches], N /= ""],
     [find_executable(Cmd)|Argv].
 
+optarg({fdctl, Arg})            -> switch("c", Arg);
 optarg({verbose, Arg})          -> switch(string:copies("v", Arg));
-optarg({maxchild, Arg})         -> switch("m", Arg);
+optarg({maxchild, Arg})         -> switch("m", integer_to_list(Arg));
 optarg(_)                       -> "".
 
 switch(Switch) ->
@@ -271,7 +301,7 @@ switch(Switch) ->
 switch(Switch, Arg) when is_binary(Arg) ->
     switch(Switch, binary_to_list(Arg));
 switch(Switch, Arg) ->
-    [lists:concat(["-", Switch, " ", Arg])].
+    [lists:concat(["-", Switch]), Arg].
 
 find_executable(Exe) ->
     case os:find_executable(Exe) of
@@ -295,3 +325,38 @@ basedir(Module) ->
 
 progname() ->
     filename:join([basedir(alcove), "alcove"]).
+
+% Blocking functions for handling the Control fd fifo. These functions
+% are called from init/1.
+call_getpid(Port) ->
+    Encode = alcove_codec:call(getpid, [], []),
+    erlang:port_command(Port, Encode),
+    receive
+        {Port, {data,Data}} ->
+            {alcove_call, [], OSPid} = alcove_codec:decode(Data),
+            {ok, OSPid};
+        {'EXIT', Port, normal} ->
+            {error, port_init_failed};
+        {'EXIT', Port, Reason} ->
+            {error, Reason}
+    end.
+
+call_unlink(Port, File) ->
+    Encode = alcove_codec:call(unlink, [], [File]),
+    erlang:port_command(Port, Encode),
+    Reply = receive
+        {Port, {data,Data}} ->
+            alcove_codec:decode(Data);
+        {'EXIT', Port, normal} ->
+            {error, port_init_failed};
+        {'EXIT', Port, Reason} ->
+            {error, Reason}
+    end,
+    case Reply of
+        {alcove_call, [], ok} ->
+            ok;
+        {alcove_call, [], Error} ->
+            Error;
+        {error, _} = Error ->
+            Error
+    end.

@@ -32,7 +32,6 @@
 #include <stdint.h>
 
 #include <fcntl.h>
-#include <sys/types.h>
 
 #include <ei.h>
 
