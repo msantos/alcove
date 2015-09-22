@@ -27,7 +27,6 @@ alcove_sys_mkfifo(alcove_state_t *ap, const char *arg, size_t len,
         char *reply, size_t rlen)
 {
     int index = 0;
-    int rindex = 0;
     char pathname[PATH_MAX] = {0};
     size_t plen = sizeof(pathname)-1;
     mode_t mode = {0};
