@@ -34,7 +34,6 @@ alcove_sys_open(alcove_state_t *ap, const char *arg, size_t len,
     int flags = 0;
     mode_t mode = {0};
     int fd = 0;
-    int errnum = 0;
 
     /* pathname */
     if (alcove_decode_iolist(arg, len, &index, pathname, &plen) < 0 ||
@@ -59,7 +58,7 @@ alcove_sys_open(alcove_state_t *ap, const char *arg, size_t len,
     fd = open(pathname, flags, mode);
 
     if (fd < 0)
-        goto ERROR;
+        return alcove_mk_errno(reply, rlen, errno);
 
     ALCOVE_OK(
         reply,
@@ -68,9 +67,4 @@ alcove_sys_open(alcove_state_t *ap, const char *arg, size_t len,
     );
 
     return rindex;
-
-ERROR:
-    errnum = errno;
-    (void)close(fd);
-    return alcove_mk_errno(reply, rlen, errnum);
 }
