@@ -106,7 +106,7 @@
 #define ALCOVE_TUPLE5(_msg, _index, _tag, _term1, _term2, _term3, _term4) do { \
     *(_index) = 0; \
     ALCOVE_ERR(ei_encode_version(_msg, _index)); \
-    ALCOVE_ERR(ei_encode_tuple_header(_msg, _index, 3)); \
+    ALCOVE_ERR(ei_encode_tuple_header(_msg, _index, 5)); \
     ALCOVE_ERR(ei_encode_atom(_msg, _index, _tag)); \
     ALCOVE_ERR(_term1); \
     ALCOVE_ERR(_term2); \
