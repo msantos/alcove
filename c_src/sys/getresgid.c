@@ -36,12 +36,12 @@ alcove_sys_getresgid(alcove_state_t *ap, const char *arg, size_t len,
     if (rv < 0)
         return  alcove_mk_errno(reply, rlen, errno);
 
-    ALCOVE_ERR(alcove_encode_version(reply, rlen, &rindex));
-    ALCOVE_ERR(alcove_encode_tuple_header(reply, rlen, &rindex, 4));
-    ALCOVE_ERR(alcove_encode_atom(reply, rlen, &rindex, "ok"));
-    ALCOVE_ERR(alcove_encode_ulonglong(reply, rlen, &rindex, gid));
-    ALCOVE_ERR(alcove_encode_ulonglong(reply, rlen, &rindex, egid));
-    ALCOVE_ERR(alcove_encode_ulonglong(reply, rlen, &rindex, sgid));
+    ALCOVE_TUPLE4(reply, &rindex,
+            "ok",
+            alcove_encode_ulonglong(reply, rlen, &rindex, gid),
+            alcove_encode_ulonglong(reply, rlen, &rindex, egid),
+            alcove_encode_ulonglong(reply, rlen, &rindex, sgid)
+            );
 
     return rindex;
 #endif
