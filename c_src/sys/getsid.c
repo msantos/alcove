@@ -37,7 +37,7 @@ alcove_sys_getsid(alcove_state_t *ap, const char *arg, size_t len,
     if (rv < 0)
         return alcove_mk_errno(reply, rlen, errno);
 
-    ALCOVE_OK(reply, &rindex,
+    ALCOVE_OK(reply, rlen, &rindex,
         alcove_encode_long(reply, rlen, &rindex, rv));
 
     return rindex;

@@ -36,7 +36,7 @@ alcove_sys_getresgid(alcove_state_t *ap, const char *arg, size_t len,
     if (rv < 0)
         return  alcove_mk_errno(reply, rlen, errno);
 
-    ALCOVE_TUPLE4(reply, &rindex,
+    ALCOVE_TUPLE4(reply, rlen, &rindex,
             "ok",
             alcove_encode_ulonglong(reply, rlen, &rindex, gid),
             alcove_encode_ulonglong(reply, rlen, &rindex, egid),

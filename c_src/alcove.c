@@ -691,9 +691,9 @@ exited_pid(alcove_state_t *ap, alcove_child_t *c, void *arg1, void *arg2)
         c->exited |= WEXITSTATUS(*status);
 
         if (ap->opt & alcove_opt_exit_status) {
-            ALCOVE_TUPLE2(t, &index,
+            ALCOVE_TUPLE2(t, sizeof(t), &index,
                     "exit_status",
-                    ei_encode_long(t, &index, WEXITSTATUS(*status))
+                    alcove_encode_long(t, sizeof(t), &index, WEXITSTATUS(*status))
                     );
 
             if (alcove_call_fake_reply(c->pid, ALCOVE_MSG_EVENT, t, index))
@@ -705,7 +705,7 @@ exited_pid(alcove_state_t *ap, alcove_child_t *c, void *arg1, void *arg2)
         c->termsig = WTERMSIG(*status);
 
         if (ap->opt & alcove_opt_termsig) {
-            ALCOVE_TUPLE2(t, &index,
+            ALCOVE_TUPLE2(t, sizeof(t), &index,
                 "termsig",
                 alcove_signal_name(t, sizeof(t), &index, c->termsig)
             );
@@ -878,7 +878,7 @@ alcove_handle_signal(alcove_state_t *ap) {
             return 0;
     }
 
-    ALCOVE_TUPLE2(reply, &index,
+    ALCOVE_TUPLE2(reply, sizeof(reply), &index,
         "signal",
         alcove_signal_name(reply, sizeof(reply), &index, signum)
     );

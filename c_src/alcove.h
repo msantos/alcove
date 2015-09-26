@@ -76,46 +76,35 @@
 #define ALCOVE_ERR(_x) \
     if ((_x) < 0) errx(errno, "internal error")
 
-#define ALCOVE_TUPLE2(_msg, _index, _tag, _term) do { \
+#define ALCOVE_TUPLE2(_msg, _len, _index, _tag, _term) do { \
     *(_index) = 0; \
-    ALCOVE_ERR(ei_encode_version(_msg, _index)); \
-    ALCOVE_ERR(ei_encode_tuple_header(_msg, _index, 2)); \
-    ALCOVE_ERR(ei_encode_atom(_msg, _index, _tag)); \
+    ALCOVE_ERR(alcove_encode_version(_msg, _len, _index)); \
+    ALCOVE_ERR(alcove_encode_tuple_header(_msg, _len, _index, 2)); \
+    ALCOVE_ERR(alcove_encode_atom(_msg, _len, _index, _tag)); \
     ALCOVE_ERR(_term); \
     } while (0)
 
-#define ALCOVE_TUPLE3(_msg, _index, _tag, _term1, _term2) do { \
+#define ALCOVE_TUPLE3(_msg, _len, _index, _tag, _term1, _term2) do { \
     *(_index) = 0; \
-    ALCOVE_ERR(ei_encode_version(_msg, _index)); \
-    ALCOVE_ERR(ei_encode_tuple_header(_msg, _index, 3)); \
-    ALCOVE_ERR(ei_encode_atom(_msg, _index, _tag)); \
+    ALCOVE_ERR(alcove_encode_version(_msg, _len, _index)); \
+    ALCOVE_ERR(alcove_encode_tuple_header(_msg, _len, _index, 3)); \
+    ALCOVE_ERR(alcove_encode_atom(_msg, _len, _index, _tag)); \
     ALCOVE_ERR(_term1); \
     ALCOVE_ERR(_term2); \
     } while (0)
 
-#define ALCOVE_TUPLE4(_msg, _index, _tag, _term1, _term2, _term3) do { \
+#define ALCOVE_TUPLE4(_msg, _len, _index, _tag, _term1, _term2, _term3) do { \
     *(_index) = 0; \
-    ALCOVE_ERR(ei_encode_version(_msg, _index)); \
-    ALCOVE_ERR(ei_encode_tuple_header(_msg, _index, 4)); \
-    ALCOVE_ERR(ei_encode_atom(_msg, _index, _tag)); \
-    ALCOVE_ERR(_term1); \
-    ALCOVE_ERR(_term2); \
-    ALCOVE_ERR(_term3); \
-    } while (0)
-
-#define ALCOVE_TUPLE5(_msg, _index, _tag, _term1, _term2, _term3, _term4) do { \
-    *(_index) = 0; \
-    ALCOVE_ERR(ei_encode_version(_msg, _index)); \
-    ALCOVE_ERR(ei_encode_tuple_header(_msg, _index, 5)); \
-    ALCOVE_ERR(ei_encode_atom(_msg, _index, _tag)); \
+    ALCOVE_ERR(alcove_encode_version(_msg, _len, _index)); \
+    ALCOVE_ERR(alcove_encode_tuple_header(_msg, _len, _index, 4)); \
+    ALCOVE_ERR(alcove_encode_atom(_msg, _len, _index, _tag)); \
     ALCOVE_ERR(_term1); \
     ALCOVE_ERR(_term2); \
     ALCOVE_ERR(_term3); \
-    ALCOVE_ERR(_term4); \
     } while (0)
 
-#define ALCOVE_OK(_msg, _index, _buf) \
-    ALCOVE_TUPLE2(_msg, _index, "ok", _buf)
+#define ALCOVE_OK(_msg, _len, _index, _buf) \
+    ALCOVE_TUPLE2(_msg, _len, _index, "ok", _buf)
 
 #define get_int32(s) ((((unsigned char*) (s))[0] << 24) | \
                       (((unsigned char*) (s))[1] << 16) | \

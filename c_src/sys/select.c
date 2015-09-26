@@ -101,7 +101,7 @@ alcove_sys_select(alcove_state_t *ap, const char *arg, size_t len,
     if (rv < 0)
         return alcove_mk_errno(reply, rindex, errno);
 
-    ALCOVE_TUPLE4(reply, &rindex,
+    ALCOVE_TUPLE4(reply, rlen, &rindex,
         "ok",
         alcove_fd_isset(reply, rlen, &rindex, &readfds),
         alcove_fd_isset(reply, rlen, &rindex, &writefds),

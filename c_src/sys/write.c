@@ -45,7 +45,7 @@ alcove_sys_write(alcove_state_t *ap, const char *arg, size_t len,
         rindex = alcove_mk_errno(reply, rlen, errno);
     }
     else {
-        ALCOVE_OK(reply, &rindex,
+        ALCOVE_OK(reply, rlen, &rindex,
             alcove_encode_longlong(reply, rlen, &rindex, rv));
     }
 

@@ -29,7 +29,7 @@ alcove_sys_getcwd(alcove_state_t *ap, const char *arg, size_t len,
     if (getcwd(buf, sizeof(buf)) == NULL)
         return alcove_mk_errno(reply, rlen, errno);
 
-    ALCOVE_OK(reply, &rindex,
+    ALCOVE_OK(reply, rlen, &rindex,
             alcove_encode_binary(reply, rlen, &rindex, buf, strlen(buf)));
 
     return rindex;

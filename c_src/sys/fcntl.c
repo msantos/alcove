@@ -89,6 +89,7 @@ alcove_sys_fcntl(alcove_state_t *ap, const char *arg, size_t len,
 
     ALCOVE_OK(
         reply,
+        rlen,
         &rindex,
         alcove_encode_long(reply, rlen, &rindex, rv)
     );
