@@ -393,11 +393,11 @@ specs() ->
 -spec event(alcove_drv:ref(),forkchain()) -> term().
 -spec event(alcove_drv:ref(),forkchain(),timeout()) -> term().
 
--spec execve(alcove_drv:ref(),forkchain(),iodata(),[iodata()],[iodata()]) -> 'ok'.
--spec execve(alcove_drv:ref(),forkchain(),iodata(),[iodata()],[iodata()],timeout()) -> 'ok'.
+-spec execve(alcove_drv:ref(),forkchain(),iodata(),[iodata()],[iodata()]) -> 'ok' | {'error',file:posix()}.
+-spec execve(alcove_drv:ref(),forkchain(),iodata(),[iodata()],[iodata()],timeout()) -> 'ok' | {'error',file:posix()}.
 
--spec execvp(alcove_drv:ref(),forkchain(),iodata(),[iodata()]) -> 'ok'.
--spec execvp(alcove_drv:ref(),forkchain(),iodata(),[iodata()],timeout()) -> 'ok'.
+-spec execvp(alcove_drv:ref(),forkchain(),iodata(),[iodata()]) -> 'ok' | {'error',file:posix()}.
+-spec execvp(alcove_drv:ref(),forkchain(),iodata(),[iodata()],timeout()) -> 'ok' | {'error',file:posix()}.
 
 -spec exit(alcove_drv:ref(),forkchain(),int32_t()) -> 'ok'.
 -spec exit(alcove_drv:ref(),forkchain(),int32_t(),timeout()) -> 'ok'.
@@ -492,10 +492,10 @@ specs() ->
 -spec rlimit_define(alcove_drv:ref(),forkchain(),atom()) -> 'unknown' | non_neg_integer().
 -spec rlimit_define(alcove_drv:ref(),forkchain(),atom(),timeout()) -> 'unknown' | non_neg_integer().
 
--spec select(alcove_drv:ref(),forkchain(),[fd_set()],[fd_set()],[fd_set()],
-    <<>> | #alcove_timeval{}) -> {ok, [fd_set()], [fd_set()], [fd_set()]} | {'error', file:posix()}.
--spec select(alcove_drv:ref(),forkchain(),[fd_set()],[fd_set()],[fd_set()],
-    <<>> | #alcove_timeval{},timeout()) -> {ok, [fd_set()], [fd_set()], [fd_set()]} | {'error', file:posix()}.
+-spec select(alcove_drv:ref(),forkchain(),fd_set(),fd_set(),fd_set(),
+    <<>> | #alcove_timeval{}) -> {ok, fd_set(), fd_set(), fd_set()} | {'error', file:posix()}.
+-spec select(alcove_drv:ref(),forkchain(),fd_set(),fd_set(),fd_set(),
+    <<>> | #alcove_timeval{},timeout()) -> {ok, fd_set(), fd_set(), fd_set()} | {'error', file:posix()}.
 
 -spec setenv(alcove_drv:ref(),forkchain(),iodata(),iodata(),int32_t()) -> 'ok' | {'error', file:posix()}.
 -spec setenv(alcove_drv:ref(),forkchain(),iodata(),iodata(),int32_t(),timeout()) -> 'ok' | {'error', file:posix()}.
