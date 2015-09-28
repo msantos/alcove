@@ -859,32 +859,43 @@ alcove_handle_signal(alcove_state_t *ap) {
     else if (n == 0 || n != sizeof(signum))
         return -1;
 
-    if (signum == SIGCHLD) {
-        pid_t pid = 0;
+    switch (signum) {
+        case SIGCHLD:
+            for ( ; ; ) {
+                pid_t pid = 0;
 
-        errno = 0;
-        pid = waitpid(-1, &status, WNOHANG);
+                pid = waitpid(-1, &status, WNOHANG);
 
-        if (errno == ECHILD || pid == 0)
-            return -1;
+                if (errno == ECHILD || pid == 0)
+                    return 0;
 
-        if (pid < 0)
-            return -1;
+                if (pid < 0)
+                    return -1;
 
-        (void)pid_foreach(ap, pid, &status, NULL,
-                pid_equal, exited_pid);
+                (void)pid_foreach(ap, pid, &status, NULL,
+                        pid_equal, exited_pid);
 
-        if ((ap->opt & alcove_opt_sigchld) == 0)
-            return 0;
+                if ((ap->opt & alcove_opt_sigchld) == 0)
+                    continue;
+
+                ALCOVE_TUPLE2(reply, sizeof(reply), &index,
+                    "signal",
+                    alcove_signal_name(reply, sizeof(reply), &index, signum)
+                );
+
+                if (alcove_call_reply(ALCOVE_MSG_EVENT, reply, index) < 0)
+                    return -1;
+            }
+            break;
+        default:
+            ALCOVE_TUPLE2(reply, sizeof(reply), &index,
+                "signal",
+                alcove_signal_name(reply, sizeof(reply), &index, signum)
+            );
+
+            if (alcove_call_reply(ALCOVE_MSG_EVENT, reply, index) < 0)
+                return -1;
     }
-
-    ALCOVE_TUPLE2(reply, sizeof(reply), &index,
-        "signal",
-        alcove_signal_name(reply, sizeof(reply), &index, signum)
-    );
-
-    if (alcove_call_reply(ALCOVE_MSG_EVENT, reply, index) < 0)
-        return -1;
 
     return 0;
 }
