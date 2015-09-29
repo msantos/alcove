@@ -36,12 +36,12 @@ alcove_sys_getresuid(alcove_state_t *ap, const char *arg, size_t len,
     if (rv < 0)
         return  alcove_mk_errno(reply, rlen, errno);
 
-    ALCOVE_ERR(alcove_encode_version(reply, rlen, &rindex));
-    ALCOVE_ERR(alcove_encode_tuple_header(reply, rlen, &rindex, 4));
-    ALCOVE_ERR(alcove_encode_atom(reply, rlen, &rindex, "ok"));
-    ALCOVE_ERR(alcove_encode_ulonglong(reply, rlen, &rindex, uid));
-    ALCOVE_ERR(alcove_encode_ulonglong(reply, rlen, &rindex, euid));
-    ALCOVE_ERR(alcove_encode_ulonglong(reply, rlen, &rindex, suid));
+    ALCOVE_TUPLE4(reply, rlen, &rindex,
+            "ok",
+            alcove_encode_ulonglong(reply, rlen, &rindex, uid),
+            alcove_encode_ulonglong(reply, rlen, &rindex, euid),
+            alcove_encode_ulonglong(reply, rlen, &rindex, suid)
+    );
 
     return rindex;
 #endif
