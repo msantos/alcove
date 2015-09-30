@@ -65,12 +65,13 @@ alcove_sys_sigaction(alcove_state_t *ap, const char *arg, size_t len,
     }
 
     if (signum == SIGCHLD) {
+        ALCOVE_OK(reply, rlen, &rindex,
+                alcove_encode_atom(reply, rlen, &rindex,
+                    (ap->opt & alcove_opt_sigchld) ? "sig_catch" : "sig_ign"));
+
         ALCOVE_SETOPT(ap, alcove_opt_sigchld,
                 ((act.sa_handler == sighandler) ? 1 : 0));
-        ALCOVE_ERR(alcove_encode_version(reply, rlen, &rindex));
-        ALCOVE_ERR(alcove_encode_tuple_header(reply, rlen, &rindex, 2));
-        ALCOVE_ERR(alcove_encode_atom(reply, rlen, &rindex, "ok"));
-        ALCOVE_ERR(alcove_encode_atom(reply, rlen, &rindex, "sig_catch"));
+
         return rindex;
     }
 
