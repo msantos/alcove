@@ -456,6 +456,9 @@ specs() ->
 -spec mkdir(alcove_drv:ref(),forkchain(),iodata(),mode_t()) -> 'ok' | {'error', file:posix()}.
 -spec mkdir(alcove_drv:ref(),forkchain(),iodata(),mode_t(),timeout()) -> 'ok' | {'error', file:posix()}.
 
+-spec mkfifo(alcove_drv:ref(),forkchain(),iodata(),mode_t()) -> 'ok' | {'error', file:posix()}.
+-spec mkfifo(alcove_drv:ref(),forkchain(),iodata(),mode_t(),timeout()) -> 'ok' | {'error', file:posix()}.
+
 -spec mount(alcove_drv:ref(),forkchain(),iodata(),iodata(),iodata(),uint64_t() | [constant()],iodata(),iodata()) -> 'ok' | {'error', file:posix() | 'unsupported'}.
 -spec mount(alcove_drv:ref(),forkchain(),iodata(),iodata(),iodata(),uint64_t() | [constant()],iodata(),iodata(),timeout()) -> 'ok' | {'error', file:posix() | 'unsupported'}.
 
