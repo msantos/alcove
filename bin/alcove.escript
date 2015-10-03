@@ -559,6 +559,9 @@ specs() ->
 -spec stdout(alcove_drv:ref(),forkchain()) -> 'false' | binary().
 -spec stdout(alcove_drv:ref(),forkchain(),timeout()) -> 'false' | binary().
 
+-spec unlink(alcove_drv:ref(),forkchain(),iodata()) -> 'ok' | {error, file:posix()}.
+-spec unlink(alcove_drv:ref(),forkchain(),iodata(),timeout()) -> 'ok' | {error, file:posix()}.
+
 -spec umount(alcove_drv:ref(),forkchain(),iodata()) -> 'ok' | {error, file:posix()}.
 -spec umount(alcove_drv:ref(),forkchain(),iodata(),timeout()) -> 'ok' | {error, file:posix()}.
 
