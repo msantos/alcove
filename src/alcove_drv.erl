@@ -127,6 +127,16 @@ raw(Drv) ->
 %%--------------------------------------------------------------------
 %%% Callbacks
 %%--------------------------------------------------------------------
+
+% init/2 uses an undocumented feature of open_port/2 to set up a fifo
+% between the alcove port process and beam. The close of the fifo indicates
+% the port has called exec().
+%
+% As a result, dialyzer will warn about the first argument passed to
+% open_port/2.
+-dialyzer({nowarn_function, init/1}).
+-dialyzer({no_unused, call_unlink/2}).
+
 init([Owner, Options]) ->
     process_flag(trap_exit, true),
 
