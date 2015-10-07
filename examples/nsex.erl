@@ -35,7 +35,7 @@ start() ->
             Drv;
         false ->
             alcove_drv:stop(Drv),
-            {error,unsupported}
+            {error,enotsup}
     end.
 
 sandbox(Drv) ->

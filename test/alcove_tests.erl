@@ -609,7 +609,7 @@ priority(#state{os = {unix,_}, pid = Drv}) ->
     Prio1 = alcove:getpriority(Drv, [Fork0,Fork1], prio_process, 0),
 
     case alcove:getrlimit(Drv, [Fork0,Fork1], rlimit_nice) of
-        {error,unsupported} ->
+        {error,enotsup} ->
             ok;
         {ok, #alcove_rlimit{cur = Cur}} when Cur =:= 0 ->
             ok;

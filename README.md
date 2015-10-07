@@ -350,7 +350,7 @@ alcove
 ======
 
 Functions marked as operating system specific will return
-{error,unsupported} on other platforms.
+{error,enotsup} on other platforms.
 
 ### Data Types
 
@@ -368,7 +368,7 @@ These functions can be called while the process is running in the event
 loop. Using these functions after the process has called exec(3) will
 probably confuse the process.
 
-Functions accepting a constant() will return {error, unsupported} if an
+Functions accepting a constant() will return {error, enotsup} if an
 atom is used as the argument and is not found on the platform.
 
     chdir(Drv, ForkChain, Path) -> ok | {error, posix()}
@@ -393,7 +393,7 @@ atom is used as the argument and is not found on the platform.
 
         clearenv(3) : zero process environment
 
-    clone(Drv, ForkChain, Flags) -> {ok, integer()} | {error, posix() | unsupported}
+    clone(Drv, ForkChain, Flags) -> {ok, integer()} | {error, posix()}
 
         Types   Flags = integer() | [constant()]
 
@@ -517,7 +517,7 @@ atom is used as the argument and is not found on the platform.
 
         getpid(2) : retrieve the system PID of the process.
 
-    getpriority(Drv, ForkChain, Which, Who) -> {ok, Prio} | {error, posix() | unsupported}
+    getpriority(Drv, ForkChain, Which, Who) -> {ok, Prio} | {error, posix()}
 
         Types   Which = constant()
                 Who = Prio = integer()
@@ -541,7 +541,7 @@ atom is used as the argument and is not found on the platform.
 
         Supported on Linux and BSD's.
 
-    getrlimit(Drv, ForkChain, constant()) -> {ok, #alcove_rlimit{}} | {error, posix() | unsupported}
+    getrlimit(Drv, ForkChain, constant()) -> {ok, #alcove_rlimit{}} | {error, posix()}
 
         getrlimit(2) : retrive the resource limits for a process. Returns
         a record:
@@ -589,7 +589,7 @@ atom is used as the argument and is not found on the platform.
                 >>),
             {ok, <<"tap", N>>}.
 
-    kill(Drv, ForkChain, OSPid, Signal) -> ok | {error, posix() | unsupported}
+    kill(Drv, ForkChain, OSPid, Signal) -> ok | {error, posix()}
 
         Types   Signal = constant()
 
@@ -606,7 +606,7 @@ atom is used as the argument and is not found on the platform.
         mkdir(2) : create a directory
 
     mount(Drv, ForkChain, Source, Target, FSType, Flags, Data, Options) -> ok
-        | {error, posix() | unsupported}
+        | {error, posix()}
 
         Types   Source = Target = FSType = Data = Options = iodata()
                 Flags = integer() | [constant()]
@@ -634,7 +634,7 @@ atom is used as the argument and is not found on the platform.
         'rdonly' is mapped to MS_RDONLY on Linux and MNT_RDONLY on
         FreeBSD.
 
-    open(Drv, ForkChain, Path, Flags, Mode) -> {ok, integer()} | {error, posix() | unsupported}
+    open(Drv, ForkChain, Path, Flags, Mode) -> {ok, integer()} | {error, posix()}
 
         Types   Flags = integer() | [constant()]
                 Mode = integer()
@@ -650,7 +650,7 @@ atom is used as the argument and is not found on the platform.
         Returns the list of child PIDs for this process.
 
     prctl(Drv, ForkChain, Option, Arg2, Arg3, Arg4, Arg5) ->
-        {ok, integer(), Val2, Val3, Val4, Val5} | {error, posix() | unsupported}
+        {ok, integer(), Val2, Val3, Val4, Val5} | {error, posix()}
 
         Types   Option = constant()
                 Arg2 = Arg3 = Arg4 = Arg5 = constant() | binary() | Cstruct
@@ -791,7 +791,7 @@ atom is used as the argument and is not found on the platform.
             Hostname2 = alcove:gethostname(Drv, [Child]),
             Hostname1 =/= Hostname2.
 
-    setns(Drv, ForkChain, FD, NSType) -> ok | {error, posix() | unsupported}
+    setns(Drv, ForkChain, FD, NSType) -> ok | {error, posix()}
 
         Types   FD = int32_t()
                 NSType = constant()
@@ -828,7 +828,7 @@ atom is used as the argument and is not found on the platform.
 
         Set port options. See getopt/2,3 for the list of options.
 
-    setpriority(Drv, ForkChain, Which, Who, Prio) -> ok | {error, posix() | unsupported}
+    setpriority(Drv, ForkChain, Which, Who, Prio) -> ok | {error, posix()}
 
         Types   Which = constant()
                 Who = Prio = integer()
@@ -865,7 +865,7 @@ atom is used as the argument and is not found on the platform.
 
         Supported on Linux and BSD's.
 
-    setrlimit(Drv, ForkChain, Resource, Limit) -> ok | {error, posix() | unsupported}
+    setrlimit(Drv, ForkChain, Resource, Limit) -> ok | {error, posix()}
 
         Types   Resource = constant()
                 Val = #alcove_rlimit{}
@@ -878,7 +878,7 @@ atom is used as the argument and is not found on the platform.
 
         setuid(2) : change UID
 
-    sigaction(Drv, ForkChain, Signum, Handler) -> {ok, OldHandler} | {error, posix() | unsupported}
+    sigaction(Drv, ForkChain, Signum, Handler) -> {ok, OldHandler} | {error, posix()}
 
         Types   Signum = constant()
                 Handler = OldHandler = sig_dfl | sig_ign | sig_catch
@@ -912,7 +912,7 @@ atom is used as the argument and is not found on the platform.
 
         unsetenv(3) : remove an environment variable
 
-    unshare(Drv, ForkChain, Flags) -> ok | {error, posix() | unsupported}
+    unshare(Drv, ForkChain, Flags) -> ok | {error, posix()}
 
         Types   Flags = constant()
 

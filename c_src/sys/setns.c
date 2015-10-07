@@ -71,7 +71,7 @@ alcove_sys_setns(alcove_state_t *ap, const char *arg, size_t len,
         case 0:
             break;
         case 1:
-            return alcove_mk_error(reply, rlen, "unsupported");
+            return alcove_mk_error(reply, rlen, "enotsup");
         default:
             return -1;
     }
