@@ -333,6 +333,8 @@ specs() ->
 
 -type constant() :: atom() | integer().
 
+-type cstruct() :: [binary() | {ptr, binary() | non_neg_integer()} ] | binary() | integer() | atom().
+
 -export_type([
         uint8_t/0, uint16_t/0, uint32_t/0, uint64_t/0,
         int8_t/0, int16_t/0, int32_t/0, int64_t/0,
@@ -447,6 +449,9 @@ specs() ->
 -spec getuid(alcove_drv:ref(),forkchain()) -> uid_t().
 -spec getuid(alcove_drv:ref(),forkchain(),timeout()) -> uid_t().
 
+-spec ioctl(alcove_drv:ref(), forkchain(), fd(), constant(), cstruct()) -> {'ok',iodata()} | {'error', file:posix()}.
+-spec ioctl(alcove_drv:ref(), forkchain(), fd(), constant(), cstruct(), timeout()) -> {'ok',iodata()} | {'error', file:posix()}.
+
 -spec kill(alcove_drv:ref(),forkchain(),pid_t(),constant()) -> 'ok' | {'error', file:posix()}.
 -spec kill(alcove_drv:ref(),forkchain(),pid_t(),constant(),timeout()) -> 'ok' | {'error', file:posix()}.
 
@@ -474,11 +479,9 @@ specs() ->
 -spec pivot_root(alcove_drv:ref(),forkchain(),iodata(),iodata()) -> 'ok' | {'error', file:posix()}.
 -spec pivot_root(alcove_drv:ref(),forkchain(),iodata(),iodata(),timeout()) -> 'ok' | {'error', file:posix()}.
 
--type prctl_arg() :: [binary() | {ptr, binary() | non_neg_integer()} ] | binary() | integer() | atom().
 -type prctl_val() :: binary() | integer().
-
--spec prctl(alcove_drv:ref(),forkchain(),constant(),prctl_arg(),prctl_arg(),prctl_arg(),prctl_arg()) -> {'ok',integer(),prctl_val(),prctl_val(),prctl_val(),prctl_val()} | {'error', file:posix()}.
--spec prctl(alcove_drv:ref(),forkchain(),constant(),prctl_arg(),prctl_arg(),prctl_arg(),prctl_arg(),timeout()) -> {'ok',integer(),prctl_val(),prctl_val(),prctl_val(),prctl_val()} | {'error', file:posix()}.
+-spec prctl(alcove_drv:ref(),forkchain(),constant(),cstruct(),cstruct(),cstruct(),cstruct()) -> {'ok',integer(),prctl_val(),prctl_val(),prctl_val(),prctl_val()} | {'error', file:posix()}.
+-spec prctl(alcove_drv:ref(),forkchain(),constant(),cstruct(),cstruct(),cstruct(),cstruct(),timeout()) -> {'ok',integer(),prctl_val(),prctl_val(),prctl_val(),prctl_val()} | {'error', file:posix()}.
 
 -spec prctl_define(alcove_drv:ref(),forkchain(),atom()) -> 'unknown' | non_neg_integer().
 -spec prctl_define(alcove_drv:ref(),forkchain(),atom(),timeout()) -> 'unknown' | non_neg_integer().
