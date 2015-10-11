@@ -94,6 +94,7 @@ main(int argc, char *argv[])
     alcove_state_t *ap = NULL;
     int ch = 0;
     char *fifo = NULL;
+    char *shlvl = NULL;
 
     ap = calloc(1, sizeof(alcove_state_t));
     if (ap == NULL)
@@ -138,11 +139,16 @@ main(int argc, char *argv[])
     if (ap->child == NULL)
         err(EXIT_FAILURE, "calloc");
 
-    if (!fifo)
-        usage(ap);
+    shlvl = getenv("ALCOVE_SHLVL");
 
-    if (alcove_fd_init(fifo) < 0)
-        err(EXIT_FAILURE, "alcove_fd_init");
+    if (!shlvl) {
+        if (alcove_fd_init(fifo) < 0)
+            err(EXIT_FAILURE, "alcove_fd_init");
+    }
+    else {
+        /* process has exec'ed itself */
+        ap->depth = (u_int16_t)atoi(shlvl);
+    }
 
     free(fifo);
 
@@ -207,6 +213,9 @@ alcove_fd_init(char *fifo)
 {
     int sigpipe[2] = {0};
     int fdctl = 0;
+
+    if (!fifo)
+        return -1;
 
      /* The fd may have been opened by another program. For example,
       * valgrind will use the first available fd for the log file. */
@@ -282,6 +291,13 @@ alcove_fd_init(char *fifo)
 alcove_event_loop(alcove_state_t *ap)
 {
     struct pollfd *fds = NULL;
+    char shlvl[6] = {0};
+
+    if (snprintf(shlvl, sizeof(shlvl), "%u", ap->depth) < 0)
+        err(EXIT_FAILURE, "snprintf");
+
+    if (setenv("ALCOVE_SHLVL", shlvl, 1) < 0)
+        err(EXIT_FAILURE, "setenv");
 
     if (ap->fdsetsize != ap->maxchild) {
         /* the array may be shrinking */
