@@ -147,7 +147,13 @@ main(int argc, char *argv[])
     }
     else {
         /* process has exec'ed itself */
+        int tlen = 0;
+        char t[MAXMSGLEN] = {0};
+        tlen = alcove_mk_atom(t, sizeof(t), "ok");
+
         ap->depth = (u_int16_t)atoi(shlvl);
+        if (alcove_call_reply(ALCOVE_MSG_CALL, t, tlen) < 0)
+            err(EXIT_FAILURE, "alcove_call_reply");
     }
 
     free(fifo);
