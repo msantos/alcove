@@ -94,7 +94,7 @@ main(int argc, char *argv[])
     alcove_state_t *ap = NULL;
     int ch = 0;
     char *fifo = NULL;
-    char *shlvl = NULL;
+    int boot = 1;
 
     ap = calloc(1, sizeof(alcove_state_t));
     if (ap == NULL)
@@ -113,13 +113,17 @@ main(int argc, char *argv[])
     if (alcove_rlimit_init() < 0)
         err(EXIT_FAILURE, "alcove_rlimit_init");
 
-    while ( (ch = getopt(argc, argv, "c:m:hv")) != -1) {
+    while ( (ch = getopt(argc, argv, "c:d:m:hv")) != -1) {
         switch (ch) {
             case 'c':
                 if (fifo) free(fifo);
                 fifo = strdup(optarg);
                 if (fifo == NULL)
                     err(EXIT_FAILURE, "strdup");
+                break;
+            case 'd':
+                boot = 0;
+                ap->depth = (u_int16_t)atoi(optarg);
                 break;
             case 'm':
                 ap->maxchild = (u_int16_t)atoi(optarg);
@@ -139,9 +143,7 @@ main(int argc, char *argv[])
     if (ap->child == NULL)
         err(EXIT_FAILURE, "calloc");
 
-    shlvl = getenv("ALCOVE_SHLVL");
-
-    if (!shlvl) {
+    if (boot) {
         if (alcove_fd_init(fifo) < 0)
             err(EXIT_FAILURE, "alcove_fd_init");
     }
@@ -151,7 +153,6 @@ main(int argc, char *argv[])
         char t[MAXMSGLEN] = {0};
         tlen = alcove_mk_atom(t, sizeof(t), "ok");
 
-        ap->depth = (u_int16_t)atoi(shlvl);
         if (alcove_call_reply(ALCOVE_MSG_CALL, t, tlen) < 0)
             err(EXIT_FAILURE, "alcove_call_reply");
     }
@@ -297,13 +298,6 @@ alcove_fd_init(char *fifo)
 alcove_event_loop(alcove_state_t *ap)
 {
     struct pollfd *fds = NULL;
-    char shlvl[6] = {0};
-
-    if (snprintf(shlvl, sizeof(shlvl), "%u", ap->depth) < 0)
-        err(EXIT_FAILURE, "snprintf");
-
-    if (setenv("ALCOVE_SHLVL", shlvl, 1) < 0)
-        err(EXIT_FAILURE, "setenv");
 
     if (ap->fdsetsize != ap->maxchild) {
         /* the array may be shrinking */

@@ -303,6 +303,7 @@ getopts(Options) when is_list(Options) ->
 optarg({fdctl, Arg})            -> switch("c", Arg);
 optarg({verbose, Arg})          -> switch(string:copies("v", Arg));
 optarg({maxchild, Arg})         -> switch("m", integer_to_list(Arg));
+optarg({depth, Arg})            -> switch("d", integer_to_list(Arg));
 optarg(_)                       -> "".
 
 switch(Switch) ->
