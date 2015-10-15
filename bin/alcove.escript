@@ -404,6 +404,9 @@ specs() ->
 -spec exit(alcove_drv:ref(),forkchain(),int32_t()) -> 'ok'.
 -spec exit(alcove_drv:ref(),forkchain(),int32_t(),timeout()) -> 'ok'.
 
+-spec fcntl(alcove_drv:ref(), forkchain(), fd(), constant(), int64_t()) -> {'ok',int64_t()} | {'error', file:posix()}.
+-spec fcntl(alcove_drv:ref(), forkchain(), fd(), constant(), int64_t(), timeout()) -> {'ok',int64_t()} | {'error', file:posix()}.
+
 -spec file_define(alcove_drv:ref(),forkchain(),atom()) -> non_neg_integer() | 'unknown'.
 -spec file_define(alcove_drv:ref(),forkchain(),atom(),timeout()) -> non_neg_integer() | 'unknown'.
 

@@ -442,6 +442,15 @@ atom is used as the argument and is not found on the platform.
 
         exit(3) : cause the child process to exit
 
+    fcntl(Drv, ForkChain, FD, Cmd, Arg) -> {ok,int64_t()} | {error, posix()}.
+
+        Types   FD = int32_t()
+                Cmd = int32_t()
+                Arg = binary() | Cstruct
+                Cstruct = [binary() | {ptr, non_neg_integer() | binary()}]
+
+        fcntl(2) : perform operations on a file descriptor
+
     file_define(Drv, ForkChain, atom()) -> integer() | unknown
 
         Constants for open(2).
