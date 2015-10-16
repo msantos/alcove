@@ -19,6 +19,7 @@ fork/0
 getcwd/0
 getenv/1
 getgid/0
+getgroups/0
 gethostname/0
 getopt/1
 getpgrp/0

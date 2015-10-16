@@ -422,6 +422,9 @@ specs() ->
 -spec getgid(alcove_drv:ref(),forkchain()) -> gid_t().
 -spec getgid(alcove_drv:ref(),forkchain(),timeout()) -> gid_t().
 
+-spec getgroups(alcove_drv:ref(),forkchain()) -> {ok, [gid_t()]} | {error, file:posix()}.
+-spec getgroups(alcove_drv:ref(),forkchain(),timeout()) -> {ok, [gid_t()]} | {error, file:posix()}.
+
 -spec gethostname(alcove_drv:ref(),forkchain()) -> {'ok', binary()} | {'error', file:posix()}.
 -spec gethostname(alcove_drv:ref(),forkchain(),timeout()) -> {'ok', binary()} | {'error', file:posix()}.
 

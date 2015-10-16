@@ -471,6 +471,10 @@ atom is used as the argument and is not found on the platform.
 
         getgid(2) : retrieve the processes' group ID
 
+    getgroups(Drv, ForkChain) -> {ok, [gid_t()]} | {error, posix()}
+
+        getgroups(2) : retrieve the list of supplementary groups
+
     gethostname(Drv, ForkChain) -> {ok, binary()} | {error, posix()}
 
         gethostname(2) : retrieve the system hostname
