@@ -32,7 +32,6 @@ alcove_sys_setgroups(alcove_state_t *ap, const char *arg, size_t len,
 {
     int index = 0;
     gid_t *list = NULL;
-    long ngroups_max = 0;
     int n;
 
     int type = 0;
