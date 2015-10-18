@@ -780,6 +780,12 @@ atom is used as the argument and is not found on the platform.
 
         setgid(2) : set the GID of the process
 
+    setgroups(Drv, ForkChain, [Gid]) -> ok | {error, posix()}
+
+        Types   Gid = non_neg_integer()
+
+        setgroups(2) : set the supplementary groups of the process
+
     setpgid(Drv, ForkChain, OSPid, Pgid) -> ok | {error, posix()}
 
         Types   Pgid = integer()

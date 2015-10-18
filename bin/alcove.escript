@@ -515,6 +515,9 @@ specs() ->
 -spec setgid(alcove_drv:ref(),forkchain(),gid_t()) -> 'ok' | {'error', file:posix()}.
 -spec setgid(alcove_drv:ref(),forkchain(),gid_t(),timeout()) -> 'ok' | {'error', file:posix()}.
 
+-spec setgroups(alcove_drv:ref(),forkchain(),[gid_t()]) -> 'ok' | {'error', file:posix()}.
+-spec setgroups(alcove_drv:ref(),forkchain(),[gid_t()],timeout()) -> 'ok' | {'error', file:posix()}.
+
 -spec sethostname(alcove_drv:ref(),forkchain(),iodata()) -> 'ok' | {'error', file:posix()}.
 -spec sethostname(alcove_drv:ref(),forkchain(),iodata(),timeout()) -> 'ok' | {'error', file:posix()}.
 

@@ -50,7 +50,7 @@ alcove_sys_getgroups(alcove_state_t *ap, const char *arg, size_t len,
     ALCOVE_ERR(alcove_encode_atom(reply, rlen, &rindex, "ok"));
 
     n--;
-    for ( ; n > -1; n--) {
+    for ( ; n >= 0; n--) {
         ALCOVE_ERR(alcove_encode_list_header(reply, rlen, &rindex, 1));
         ALCOVE_ERR(alcove_encode_long(reply, rlen, &rindex, list[n]));
     }
