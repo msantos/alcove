@@ -409,12 +409,19 @@ setuid(#state{pid = Drv, child = Child}) ->
 setgroups(#state{pid = Drv}) ->
     {ok, Child} = alcove:fork(Drv, []),
     Groups = [10000, 10001, 10002],
+
     Reply1 = alcove:setgroups(Drv, [Child], Groups),
     {ok, Reply2} = alcove:getgroups(Drv, [Child]),
+
+    Reply3 = alcove:setgroups(Drv, [Child], []),
+    {ok, Reply4} = alcove:getgroups(Drv, [Child]),
+
     alcove:exit(Drv, [Child], 0),
     [
         ?_assertEqual(ok, Reply1),
-        ?_assertEqual(Groups, lists:sort(Reply2))
+        ?_assertEqual(Groups, lists:sort(Reply2)),
+        ?_assertEqual(ok, Reply3),
+        ?_assertEqual([], Reply4)
     ].
 
 fork(#state{pid = Drv, child = Child}) ->
