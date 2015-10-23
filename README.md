@@ -913,10 +913,6 @@ atom is used as the argument and is not found on the platform.
 
         Multiple caught signals of the same type may be reported as one event.
 
-    signal_constant(Drv, ForkChain, integer()) -> atom() | unknown
-
-        Convert integers to signal names.
-
     signal_define(Drv, ForkChain, atom()) -> integer() | unknown
 
         Convert signal names to integers.

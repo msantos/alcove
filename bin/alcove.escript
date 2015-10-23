@@ -554,9 +554,6 @@ specs() ->
 -spec sigaction(alcove_drv:ref(),forkchain(),constant(),atom()) -> {'ok',atom()} | {'error', file:posix()}.
 -spec sigaction(alcove_drv:ref(),forkchain(),constant(),atom(),timeout()) -> {'ok',atom()} | {'error', file:posix()}.
 
--spec signal_constant(alcove_drv:ref(),forkchain(),non_neg_integer()) -> 'unknown' | atom().
--spec signal_constant(alcove_drv:ref(),forkchain(),non_neg_integer(),timeout()) -> 'unknown' | atom().
-
 -spec signal_define(alcove_drv:ref(),forkchain(),atom()) -> 'unknown' | non_neg_integer().
 -spec signal_define(alcove_drv:ref(),forkchain(),atom(),timeout()) -> 'unknown' | non_neg_integer().
 

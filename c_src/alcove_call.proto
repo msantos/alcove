@@ -64,7 +64,6 @@ setrlimit/2
 setsid/0
 setuid/1
 sigaction/2
-signal_constant/1
 signal_define/1
 syscall_define/1
 umount/1
