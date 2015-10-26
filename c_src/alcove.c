@@ -364,7 +364,7 @@ alcove_event_loop(alcove_state_t *ap)
                     return;
                 case -1:
                 default:
-                    err(errno, "alcove_stdin");
+                    exit(errno);
             }
         }
 
