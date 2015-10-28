@@ -77,6 +77,7 @@ run(State) ->
         open(State),
         select(State),
         ioctl(State),
+        flink(State),
         execvp_mid_chain(State)
     ].
 
@@ -802,6 +803,18 @@ ioctl(#state{clone = true, os = {unix,linux}, pid = Drv}) ->
     ?_assertMatch({ok,<<"tap", _/binary>>}, Reply);
 ioctl(_) ->
     [].
+
+flink(#state{pid = Drv}) ->
+    Oldpath = "priv/alcove",
+    Newpath = "priv/alcove-test",
+
+    Reply0 = alcove:symlink(Drv, [], Oldpath, Newpath),
+    Reply1 = alcove:unlink(Drv, [], Newpath),
+
+    [
+        ?_assertEqual(ok, Reply0),
+        ?_assertEqual(ok, Reply1)
+    ].
 
 execvp_mid_chain(#state{os = {unix,OS}, pid = Drv}) ->
     Chain = chain(Drv, 8),

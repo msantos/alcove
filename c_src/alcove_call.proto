@@ -65,6 +65,7 @@ setsid/0
 setuid/1
 sigaction/2
 signal_define/1
+symlink/2
 syscall_define/1
 umount/1
 unlink/1
