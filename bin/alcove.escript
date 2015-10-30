@@ -461,6 +461,9 @@ specs() ->
 -spec kill(alcove_drv:ref(),forkchain(),pid_t(),constant()) -> 'ok' | {'error', file:posix()}.
 -spec kill(alcove_drv:ref(),forkchain(),pid_t(),constant(),timeout()) -> 'ok' | {'error', file:posix()}.
 
+-spec link(alcove_drv:ref(),forkchain(),iodata(),iodata()) -> 'ok' | {error, file:posix()}.
+-spec link(alcove_drv:ref(),forkchain(),iodata(),iodata(),timeout()) -> 'ok' | {error, file:posix()}.
+
 -spec lseek(alcove_drv:ref(),forkchain(),fd(),off_t(),int32_t()) -> 'ok' | {'error', file:posix()}.
 -spec lseek(alcove_drv:ref(),forkchain(),fd(),off_t(),int32_t(),timeout()) -> 'ok' | {'error', file:posix()}.
 
@@ -567,6 +570,9 @@ specs() ->
 
 -spec stdout(alcove_drv:ref(),forkchain()) -> 'false' | binary().
 -spec stdout(alcove_drv:ref(),forkchain(),timeout()) -> 'false' | binary().
+
+-spec symlink(alcove_drv:ref(),forkchain(),iodata(),iodata()) -> 'ok' | {error, file:posix()}.
+-spec symlink(alcove_drv:ref(),forkchain(),iodata(),iodata(),timeout()) -> 'ok' | {error, file:posix()}.
 
 -spec unlink(alcove_drv:ref(),forkchain(),iodata()) -> 'ok' | {error, file:posix()}.
 -spec unlink(alcove_drv:ref(),forkchain(),iodata(),timeout()) -> 'ok' | {error, file:posix()}.

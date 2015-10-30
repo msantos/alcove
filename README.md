@@ -608,6 +608,12 @@ atom is used as the argument and is not found on the platform.
 
         kill(2) : terminate a process
 
+    link(Drv, ForkChain, Oldpath, Newpath) -> ok | {error, posix()}
+
+        Types   Oldpath = Newpath = iodata()
+
+        link(2) : create a hard link
+
     lseek(Drv, ForkChain, FD, Offset, Whence) -> ok | {error, posix()}
 
         Types   Offset = Whence = integer()

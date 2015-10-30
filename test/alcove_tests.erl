@@ -806,14 +806,20 @@ ioctl(_) ->
 
 flink(#state{pid = Drv}) ->
     Oldpath = "priv/alcove",
-    Newpath = "priv/alcove-test",
+    Newpath0 = "priv/alcove-symlink",
+    Newpath1 = "priv/alcove-link",
 
-    Reply0 = alcove:symlink(Drv, [], Oldpath, Newpath),
-    Reply1 = alcove:unlink(Drv, [], Newpath),
+    Reply0 = alcove:symlink(Drv, [], Oldpath, Newpath0),
+    Reply1 = alcove:unlink(Drv, [], Newpath0),
+
+    Reply2 = alcove:symlink(Drv, [], Oldpath, Newpath1),
+    Reply3 = alcove:unlink(Drv, [], Newpath1),
 
     [
         ?_assertEqual(ok, Reply0),
-        ?_assertEqual(ok, Reply1)
+        ?_assertEqual(ok, Reply1),
+        ?_assertEqual(ok, Reply2),
+        ?_assertEqual(ok, Reply3)
     ].
 
 execvp_mid_chain(#state{os = {unix,OS}, pid = Drv}) ->
