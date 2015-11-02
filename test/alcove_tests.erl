@@ -546,7 +546,7 @@ eof(#state{pid = Drv}) ->
         ?_assertEqual(ok, Reply2)
     ].
 
-alloc(#state{os = {unix,_}, pid = Drv}) ->
+alloc(#state{pid = Drv}) ->
     {ok, Buf, Cstruct} = alcove:alloc(Drv, [],
         [<<1,2,3,4,5,6,7,8,9,10>>,
          {ptr, 11},
@@ -556,13 +556,49 @@ alloc(#state{os = {unix,_}, pid = Drv}) ->
     ),
     Size = erlang:system_info({wordsize,external}),
     Buflen = 10 + Size + 5 + Size + 3,
+
+    CstructEmpty = (catch alcove:alloc(Drv, [], [])),
+    {ok, BufNop1, CstructNop1} = alcove:alloc(Drv, [], [<<>>]),
+    {ok, BufNop2, CstructNop2} = alcove:alloc(Drv, [], [<<>>, <<>>]),
+    {ok, BufNop3, CstructNop3} = alcove:alloc(Drv, [], [<<>>, <<>>, <<>>]),
+    {ok, Buf0bytes, Cstruct0bytes} = alcove:alloc(Drv, [], [{ptr, 0}]),
+    {ok, BufNull, CstructNull} = alcove:alloc(Drv, [], [{ptr, <<>>}]),
+
+    {ok, BufWithNulls, CstructWithNulls} = alcove:alloc(Drv, [], [
+            <<>>, {ptr, 0}, <<"foo123">>, {ptr, <<>>}, <<"bar456789">>
+        ]),
+
+    BuflenWithNulls = 0 + Size + 6 + Size + 9,
+
     [
         ?_assertEqual(Buflen, byte_size(Buf)),
         ?_assertEqual(lists:nth(1, Cstruct), <<1,2,3,4,5,6,7,8,9,10>>),
         ?_assertEqual(lists:nth(2, Cstruct), {ptr, <<0:88>>}),
         ?_assertEqual(lists:nth(3, Cstruct), <<11,12,13,14,15>>),
         ?_assertEqual(lists:nth(4, Cstruct), {ptr, <<16,17,18,19,20,21,22>>}),
-        ?_assertEqual(lists:nth(5, Cstruct), <<23,24,25>>)
+        ?_assertEqual(lists:nth(5, Cstruct), <<23,24,25>>),
+
+        ?_assertMatch({'EXIT',{badarg,_}}, CstructEmpty),
+
+        ?_assertEqual(BufNop1, <<>>),
+        ?_assertEqual(CstructNop1, [<<>>]),
+        ?_assertEqual(BufNop2, <<>>),
+        ?_assertEqual(CstructNop2, [<<>>, <<>>]),
+        ?_assertEqual(BufNop3, <<>>),
+        ?_assertEqual(CstructNop3, [<<>>, <<>>, <<>>]),
+
+        ?_assertEqual(Buf0bytes, <<0:(Size*8)>>),
+        ?_assertEqual(Cstruct0bytes, [<<0,0,0,0>>]),
+
+        ?_assertEqual(BufNull, <<0:(Size*8)>>),
+        ?_assertEqual(CstructNull, [<<0,0,0,0>>]),
+
+        ?_assertEqual(BuflenWithNulls, byte_size(BufWithNulls)),
+        ?_assertEqual(lists:nth(1, CstructWithNulls), <<>>),
+        ?_assertEqual(lists:nth(2, CstructWithNulls), <<0:(Size*8)>>),
+        ?_assertEqual(lists:nth(3, CstructWithNulls), <<"foo123">>),
+        ?_assertEqual(lists:nth(4, CstructWithNulls), <<0:(Size*8)>>),
+        ?_assertEqual(lists:nth(5, CstructWithNulls), <<"bar456789">>)
     ].
 
 prctl(#state{os = {unix,linux}, pid = Drv}) ->

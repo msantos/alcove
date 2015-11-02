@@ -333,7 +333,7 @@ specs() ->
 
 -type constant() :: atom() | integer().
 
--type cstruct() :: [binary() | {ptr, binary() | non_neg_integer()} ] | binary() | integer() | atom().
+-type cstruct() :: nonempty_list(binary() | {ptr, binary() | non_neg_integer()}) | binary() | integer() | atom().
 
 -export_type([
         uint8_t/0, uint16_t/0, uint32_t/0, uint64_t/0,

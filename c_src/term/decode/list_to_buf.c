@@ -38,7 +38,7 @@ alcove_decode_list_to_buf(const char *arg, size_t len, int *index,
     if (alcove_decode_list_header(arg, len, index, &arity) < 0)
         return -1;
 
-    if (arity >= MAXMSGLEN)
+    if (arity == 0 || arity >= MAXMSGLEN)
         return -1;
 
     tmp_index = *index;
@@ -61,7 +61,6 @@ alcove_decode_list_to_buf(const char *arg, size_t len, int *index,
                 break;
 
             case ERL_SMALL_TUPLE_EXT:
-            case ERL_LARGE_TUPLE_EXT:
                 if (tmp_arity != 2)
                     return -1;
 
@@ -126,7 +125,6 @@ alcove_decode_list_to_buf(const char *arg, size_t len, int *index,
                 break;
 
             case ERL_SMALL_TUPLE_EXT:
-            case ERL_LARGE_TUPLE_EXT:
                 (void)ei_decode_tuple_header(arg, index, &tmp_arity);
                 (void)ei_decode_atom(arg, index, tmp);
                 (void)ei_get_type(arg, index, &type, &tmp_arity);
@@ -138,26 +136,37 @@ alcove_decode_list_to_buf(const char *arg, size_t len, int *index,
 
                         (void)ei_decode_ulong(arg, index, &val);
 
+                        if (val > 0) {
                         p = calloc(val, 1);
                         if (p == NULL)
                             err(errno, "calloc");
-
+                        (*ptr)[i].len = val;
+                        }
+                        else {
+                        /* NULL pointer: return a binary */
+                        (*ptr)[i].len = sizeof(void *);
+                        }
                         (void)memcpy(res, &p, sizeof(void *));
                         res += sizeof(void *);
                         (*ptr)[i].p = p;
-                        (*ptr)[i].len = val;
                         }
                         break;
 
                     case ERL_BINARY_EXT: {
                         char *p = NULL;
                         (void)ei_decode_binary(arg, index, tmp, &size);
+                        if (size > 0) {
                         p = alcove_malloc(size);
                         (void)memcpy(p, tmp, size);
+                        (*ptr)[i].len = size;
+                        }
+                        else {
+                        /* NULL pointer: return a binary */
+                        (*ptr)[i].len = sizeof(void *);
+                        }
                         (void)memcpy(res, &p, sizeof(void *));
                         res += sizeof(void *);
                         (*ptr)[i].p = p;
-                        (*ptr)[i].len = size;
                         }
                         break;
                 }
