@@ -588,10 +588,10 @@ alloc(#state{pid = Drv}) ->
         ?_assertEqual(CstructNop3, [<<>>, <<>>, <<>>]),
 
         ?_assertEqual(Buf0bytes, <<0:(Size*8)>>),
-        ?_assertEqual(Cstruct0bytes, [<<0,0,0,0>>]),
+        ?_assertEqual(Cstruct0bytes, [<<0:(Size*8)>>]),
 
         ?_assertEqual(BufNull, <<0:(Size*8)>>),
-        ?_assertEqual(CstructNull, [<<0,0,0,0>>]),
+        ?_assertEqual(CstructNull, [<<0:(Size*8)>>]),
 
         ?_assertEqual(BuflenWithNulls, byte_size(BufWithNulls)),
         ?_assertEqual(lists:nth(1, CstructWithNulls), <<>>),
