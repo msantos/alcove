@@ -107,7 +107,7 @@ alcove_sys_prctl(alcove_state_t *ap, const char *arg, size_t len,
             case ERL_LIST_EXT:
                 prarg[i].type = ALCOVE_PRARG_CSTRUCT;
                 prarg[i].len = sizeof(prarg[i].data);
-                if (alcove_decode_list_to_buf(arg, len, &index, prarg[i].data,
+                if (alcove_decode_cstruct(arg, len, &index, prarg[i].data,
                         &(prarg[i].len), &(elem[i]), &(nelem[i])) < 0)
                     return -1;
 
@@ -152,7 +152,7 @@ alcove_sys_prctl(alcove_state_t *ap, const char *arg, size_t len,
                 ALCOVE_ERR(alcove_encode_ulonglong(reply, rlen, &rindex, prarg[i].arg));
                 break;
             case ALCOVE_PRARG_CSTRUCT:
-                ALCOVE_ERR(alcove_encode_buf_to_list(reply, rlen, &rindex,
+                ALCOVE_ERR(alcove_encode_cstruct(reply, rlen, &rindex,
                             prarg[i].data, prarg[i].len,
                             elem[i], nelem[i]));
                 break;

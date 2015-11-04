@@ -81,7 +81,7 @@ alcove_sys_ioctl(alcove_state_t *ap, const char *arg, size_t len,
         case ERL_LIST_EXT:
             argp.type = ALCOVE_IOARG_CSTRUCT;
             argp.len = sizeof(argp.data);
-            if (alcove_decode_list_to_buf(arg, len, &index, argp.data,
+            if (alcove_decode_cstruct(arg, len, &index, argp.data,
                 &(argp.len), &elem, &nelem) < 0)
                 return -1;
 
@@ -117,7 +117,7 @@ alcove_sys_ioctl(alcove_state_t *ap, const char *arg, size_t len,
 
     switch (argp.type) {
         case ALCOVE_IOARG_CSTRUCT:
-            ALCOVE_ERR(alcove_encode_buf_to_list(reply, rlen, &rindex,
+            ALCOVE_ERR(alcove_encode_cstruct(reply, rlen, &rindex,
                         argp.data, argp.len, elem, nelem));
             break;
         case ALCOVE_IOARG_INT: /* return an empty binary */

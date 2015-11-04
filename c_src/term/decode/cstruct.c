@@ -17,7 +17,7 @@
 static void *alcove_malloc(ssize_t);
 
     int
-alcove_decode_list_to_buf(const char *arg, size_t len, int *index,
+alcove_decode_cstruct(const char *arg, size_t len, int *index,
         char *res, size_t *rlen, alcove_alloc_t **ptr, ssize_t *nptr)
 {
     int type = 0;

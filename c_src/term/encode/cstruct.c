@@ -15,7 +15,7 @@
 #include "alcove.h"
 
     int
-alcove_encode_buf_to_list(char *reply, size_t rlen, int *rindex,
+alcove_encode_cstruct(char *reply, size_t rlen, int *rindex,
         const char *buf, size_t len,
         alcove_alloc_t *ptr, ssize_t nptr)
 {
