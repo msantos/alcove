@@ -673,8 +673,8 @@ atom is used as the argument and is not found on the platform.
 
         Types   Option = constant()
                 Arg2 = Arg3 = Arg4 = Arg5 = constant() | binary() | Cstruct
+                Val2 = Val3 = Val4 = Val5 = binary() | integer() | Cstruct
                 Cstruct = [binary() | {ptr, non_neg_integer() | binary()}]
-                Val2 = Val3 = Val4 = Val5 = binary() | integer()
 
         Linux only.
 
