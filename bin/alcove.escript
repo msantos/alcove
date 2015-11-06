@@ -147,6 +147,7 @@ b2i(N) when is_binary(N) ->
 
 static_exports() ->
     [{audit_arch,0},
+     {wordalign,1}, {wordalign,2},
 
      {define,3},
      {stdin,3},
@@ -173,6 +174,15 @@ static({audit_arch,0}) ->
     ),
     Wordsize = erlang:system_info({wordsize,external}),
     proplists:get_value({Arch,OS,Wordsize}, Arches, enotsup).
+";
+
+static({wordalign,1}) ->
+"wordalign(Offset) ->
+    wordalign(Offset, erlang:system_info({wordsize, external})).
+";
+static({wordalign,2}) ->
+"wordalign(Offset, Align) ->
+    (Align - (Offset rem Align)) rem Align.
 ";
 
 static({define,3}) ->
@@ -457,6 +467,9 @@ specs() ->
 
 -spec ioctl(alcove_drv:ref(), forkchain(), fd(), constant(), cstruct()) -> {'ok',iodata()} | {'error', file:posix()}.
 -spec ioctl(alcove_drv:ref(), forkchain(), fd(), constant(), cstruct(), timeout()) -> {'ok',iodata()} | {'error', file:posix()}.
+
+-spec jail(alcove_drv:ref(),forkchain(),cstruct()) -> 'ok' | {'error', file:posix()}.
+-spec jail(alcove_drv:ref(),forkchain(),cstruct(),timeout()) -> 'ok' | {'error', file:posix()}.
 
 -spec kill(alcove_drv:ref(),forkchain(),pid_t(),constant()) -> 'ok' | {'error', file:posix()}.
 -spec kill(alcove_drv:ref(),forkchain(),pid_t(),constant(),timeout()) -> 'ok' | {'error', file:posix()}.
