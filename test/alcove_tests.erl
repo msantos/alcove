@@ -52,6 +52,7 @@ run(State) ->
         mount(State),
         tmpfs(State),
         chroot(State),
+        jail(State),
         chdir(State),
         setrlimit(State),
         setgid(State),
@@ -369,10 +370,22 @@ tmpfs(_) ->
 chroot(#state{os = {unix,OS}, pid = Drv, child = Child}) when OS =:= linux; OS =:= openbsd ->
     Reply = alcove:chroot(Drv, [Child], "/bin"),
     ?_assertEqual(ok, Reply);
-chroot(#state{os = {unix,OS}, pid = Drv, child = Child}) when OS =:= freebsd; OS =:= netbsd ->
+chroot(#state{os = {unix,netbsd}, pid = Drv, child = Child}) ->
     Reply = alcove:chroot(Drv, [Child], "/rescue"),
     ?_assertEqual(ok, Reply);
+chroot(#state{os = {unix,OS}, pid = Drv}) when OS =:= freebsd ->
+    {ok, Child} = alcove:fork(Drv, []),
+    Reply = alcove:chroot(Drv, [Child], "/rescue"),
+    alcove:exit(Drv, [Child], 0),
+    ?_assertEqual(ok, Reply);
 chroot(_) ->
+    [].
+
+jail(#state{os = {unix,freebsd}, pid = Drv, child = Child}) ->
+    Jail = struct_jail2(<<"/rescue">>, <<"test">>, <<"jail0">>, [], []),
+    Reply = alcove:jail(Drv, [Child], Jail),
+    ?_assertEqual(ok, Reply);
+jail(_) ->
     [].
 
 chdir(#state{pid = Drv, child = Child}) ->
@@ -955,3 +968,16 @@ stream_count(Drv, Chain, N) ->
         1000 ->
             {error, N}
     end.
+
+% FreeBSD: struct jail v2
+struct_jail2(Path, Hostname, Jailname, IPv4, IPv6) ->
+    [<<2:4/native-unsigned-integer-unit:8>>,
+     <<0:(alcove:wordalign(4) * 8)>>,
+     {ptr, <<Path/binary, 0>>},
+     {ptr, <<Hostname/binary, 0>>},
+     {ptr, <<Jailname/binary, 0>>},
+     <<(length(IPv4)):4/native-unsigned-integer-unit:8,
+       (length(IPv6)):4/native-unsigned-integer-unit:8>>,
+     {ptr, << <<IP1,IP2,IP3,IP4>> || {IP1,IP2,IP3,IP4} <- IPv4 >>},
+     {ptr, << <<IP1:16,IP2:16,IP3:16,IP4:16,IP5:16,IP6:16,IP7:16,IP8:16>>
+              || {IP1,IP2,IP3,IP4,IP5,IP6,IP7,IP8} <- IPv6 >>}].

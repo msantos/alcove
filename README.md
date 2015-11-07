@@ -602,6 +602,33 @@ atom is used as the argument and is not found on the platform.
                 >>),
             {ok, <<"tap", N>>}.
 
+    jail(Drv, ForkChain, Cstruct) -> ok | {error, posix()}
+
+        Types   Cstruct = [binary() | {ptr, non_neg_integer() | binary()}]
+
+        jail(2) : restrict the current process in a system jail
+
+        An example of a function to generate a version 2 jail struct
+        (FreeBSD 10.2):
+
+            struct_jail2(Path, Hostname, Jailname, IPv4, IPv6) ->
+                [<<2:4/native-unsigned-integer-unit:8>>,
+                 <<0:(alcove:wordalign(4) * 8)>>,
+                 {ptr, <<Path/binary, 0>>},
+                 {ptr, <<Hostname/binary, 0>>},
+                 {ptr, <<Jailname/binary, 0>>},
+                 <<(length(IPv4)):4/native-unsigned-integer-unit:8,
+                   (length(IPv6)):4/native-unsigned-integer-unit:8>>,
+                 {ptr, << <<IP1,IP2,IP3,IP4>> || {IP1,IP2,IP3,IP4} <- IPv4 >>},
+                 {ptr, << <<IP1:16,IP2:16,IP3:16,IP4:16,IP5:16,IP6:16,IP7:16,IP8:16>>
+                          || {IP1,IP2,IP3,IP4,IP5,IP6,IP7,IP8} <- IPv6 >>}].
+
+        To apply the jail:
+
+            {ok, Child} = alcove:fork(Drv, []),
+            Jailv2 = struct_jail2(<<"/rescue">>, <<"test">>, <<"jail0">>, [], []),
+            ok = alcove:jail(Drv, [Child], Jailv2).
+
     kill(Drv, ForkChain, OSPid, Signal) -> ok | {error, posix()}
 
         Types   Signal = constant()

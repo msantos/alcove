@@ -17,6 +17,8 @@
 
 #if defined(__FreeBSD__)
 #include <sys/jail.h>
+
+void alcove_free_cstruct(alcove_alloc_t *ptr, ssize_t nptr);
 #endif
 
 /*
@@ -38,11 +40,13 @@ alcove_sys_jail(alcove_state_t *ap, const char *arg, size_t len,
 
     int rv = 0;
 
-    if (alcove_decode_list_to_buf(arg, len, &index, (char *)&j, &jlen,
+    if (alcove_decode_cstruct(arg, len, &index, (char *)&j, &jlen,
                 &elem, &nelem) < 0)
         return -1;
 
     rv = jail(&j);
+
+    alcove_free_cstruct(elem, nelem);
 
     return (rv < 0)
         ? alcove_mk_errno(reply, rlen, errno)
@@ -51,3 +55,18 @@ alcove_sys_jail(alcove_state_t *ap, const char *arg, size_t len,
     return alcove_mk_atom(reply, rlen, "undef");
 #endif
 }
+
+#if defined(__FreeBSD__)
+    void
+alcove_free_cstruct(alcove_alloc_t *ptr, ssize_t nptr)
+{
+    int i = 0;
+
+    for (i = 0; i < nptr; i++) {
+        if (ptr[i].p)
+            free(ptr[i].p);
+    }
+
+    free(ptr);
+}
+#endif
