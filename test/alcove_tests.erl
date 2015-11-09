@@ -420,7 +420,7 @@ setuid(#state{pid = Drv, child = Child}) ->
         ?_assertEqual(65534, UID)
     ].
 
-setgroups(#state{pid = Drv}) ->
+setgroups(#state{os = OS, pid = Drv}) ->
     {ok, Child} = alcove:fork(Drv, []),
     Groups = [10000, 10001, 10002],
 
@@ -430,12 +430,17 @@ setgroups(#state{pid = Drv}) ->
     Reply3 = alcove:setgroups(Drv, [Child], []),
     {ok, Reply4} = alcove:getgroups(Drv, [Child]),
 
+    Expect4 = case OS of
+        {unix, freebsd} -> [lists:last(Groups)];
+        _ -> []
+    end,
+
     alcove:exit(Drv, [Child], 0),
     [
         ?_assertEqual(ok, Reply1),
         ?_assertEqual(Groups, lists:sort(Reply2)),
         ?_assertEqual(ok, Reply3),
-        ?_assertEqual([], Reply4)
+        ?_assertEqual(Expect4, Reply4)
     ].
 
 fork(#state{pid = Drv, child = Child}) ->
