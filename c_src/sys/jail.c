@@ -31,6 +31,7 @@ alcove_sys_jail(alcove_state_t *ap, const char *arg, size_t len,
 {
 #if defined(__FreeBSD__)
     int index = 0;
+    int rindex = 0;
 
     struct jail j = {0};
     size_t jlen = sizeof(j);
@@ -38,19 +39,27 @@ alcove_sys_jail(alcove_state_t *ap, const char *arg, size_t len,
     alcove_alloc_t *elem = NULL;
     ssize_t nelem = 0;
 
-    int rv = 0;
+    int jid = 0;
 
     if (alcove_decode_cstruct(arg, len, &index, (char *)&j, &jlen,
                 &elem, &nelem) < 0)
         return -1;
 
-    rv = jail(&j);
+    jid = jail(&j);
 
     alcove_free_cstruct(elem, nelem);
 
-    return (rv < 0)
-        ? alcove_mk_errno(reply, rlen, errno)
-        : alcove_mk_atom(reply, rlen, "ok");
+    if (jid < 0)
+        return alcove_mk_errno(reply, rlen, errno);
+
+    ALCOVE_OK(
+            reply,
+            rlen,
+            &rindex,
+            alcove_encode_long(reply, rlen, &rindex, jid)
+            );
+
+    return rindex;
 #else
     return alcove_mk_atom(reply, rlen, "undef");
 #endif
