@@ -383,8 +383,11 @@ chroot(_) ->
 
 jail(#state{os = {unix,freebsd}, pid = Drv, child = Child}) ->
     Jail = struct_jail2(<<"/rescue">>, <<"test">>, <<"jail0">>, [], []),
-    Reply = alcove:jail(Drv, [Child], Jail),
-    ?_assertMatch({ok,_}, Reply);
+    {ok, JID} = alcove:jail(Drv, [Child], Jail),
+    {ok, Child1} = alcove:fork(Drv, []),
+    Reply = alcove:jail_attach(Drv, [Child1], JID),
+    alcove:exit(Drv, [Child1], 0),
+    ?_assertMatch(ok, Reply);
 jail(_) ->
     [].
 

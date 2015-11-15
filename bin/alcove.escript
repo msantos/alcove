@@ -468,8 +468,11 @@ specs() ->
 -spec ioctl(alcove_drv:ref(), forkchain(), fd(), constant(), cstruct()) -> {'ok',iodata()} | {'error', file:posix()}.
 -spec ioctl(alcove_drv:ref(), forkchain(), fd(), constant(), cstruct(), timeout()) -> {'ok',iodata()} | {'error', file:posix()}.
 
--spec jail(alcove_drv:ref(),forkchain(),cstruct()) -> {'ok', uint32_t()} | {'error', file:posix()}.
--spec jail(alcove_drv:ref(),forkchain(),cstruct(),timeout()) -> {'ok', uint32_t()} | {'error', file:posix()}.
+-spec jail(alcove_drv:ref(),forkchain(),cstruct()) -> {'ok', int32_t()} | {'error', file:posix()}.
+-spec jail(alcove_drv:ref(),forkchain(),cstruct(),timeout()) -> {'ok', int32_t()} | {'error', file:posix()}.
+
+-spec jail_attach(alcove_drv:ref(),forkchain(),int32_t()) -> 'ok' | {'error', file:posix()}.
+-spec jail_attach(alcove_drv:ref(),forkchain(),int32_t(),timeout()) -> 'ok' | {'error', file:posix()}.
 
 -spec kill(alcove_drv:ref(),forkchain(),pid_t(),constant()) -> 'ok' | {'error', file:posix()}.
 -spec kill(alcove_drv:ref(),forkchain(),pid_t(),constant(),timeout()) -> 'ok' | {'error', file:posix()}.

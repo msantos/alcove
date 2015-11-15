@@ -602,7 +602,7 @@ atom is used as the argument and is not found on the platform.
                 >>),
             {ok, <<"tap", N>>}.
 
-    jail(Drv, ForkChain, Cstruct) -> {ok, uint32_t()} | {error, posix()}
+    jail(Drv, ForkChain, Cstruct) -> {ok, int32_t()} | {error, posix()}
 
         Types   Cstruct = [binary() | {ptr, non_neg_integer() | binary()}]
 
@@ -629,6 +629,10 @@ atom is used as the argument and is not found on the platform.
             Jailv2 = struct_jail2(<<"/rescue">>, <<"test">>, <<"jail0">>, [], []),
             {ok, JID} = alcove:jail(Drv, [Child], Jailv2),
             ok = alcove:chdir(Drv, [Child], "/").
+
+    jail_attach(Drv, ForkChain, int32_t()) -> ok | {error, posix()}
+
+        jail_attach(2) : join a jailed process
 
     kill(Drv, ForkChain, OSPid, Signal) -> ok | {error, posix()}
 
