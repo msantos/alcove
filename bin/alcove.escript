@@ -474,6 +474,9 @@ specs() ->
 -spec jail_attach(alcove_drv:ref(),forkchain(),int32_t()) -> 'ok' | {'error', file:posix()}.
 -spec jail_attach(alcove_drv:ref(),forkchain(),int32_t(),timeout()) -> 'ok' | {'error', file:posix()}.
 
+-spec jail_remove(alcove_drv:ref(),forkchain(),int32_t()) -> 'ok' | {'error', file:posix()}.
+-spec jail_remove(alcove_drv:ref(),forkchain(),int32_t(),timeout()) -> 'ok' | {'error', file:posix()}.
+
 -spec kill(alcove_drv:ref(),forkchain(),pid_t(),constant()) -> 'ok' | {'error', file:posix()}.
 -spec kill(alcove_drv:ref(),forkchain(),pid_t(),constant(),timeout()) -> 'ok' | {'error', file:posix()}.
 

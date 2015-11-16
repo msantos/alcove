@@ -606,6 +606,8 @@ atom is used as the argument and is not found on the platform.
 
         Types   Cstruct = [binary() | {ptr, non_neg_integer() | binary()}]
 
+        FreeBSD only.
+
         jail(2) : restrict the current process in a system jail
 
         An example of a function to generate a version 2 jail struct
@@ -632,7 +634,15 @@ atom is used as the argument and is not found on the platform.
 
     jail_attach(Drv, ForkChain, int32_t()) -> ok | {error, posix()}
 
+        FreeBSD only.
+
         jail_attach(2) : join a jailed process
+
+    jail_remove(Drv, ForkChain, int32_t()) -> ok | {error, posix()}
+
+        FreeBSD only.
+
+        jail_remove(2) : destroy a jailed process
 
     kill(Drv, ForkChain, OSPid, Signal) -> ok | {error, posix()}
 

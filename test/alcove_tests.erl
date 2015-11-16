@@ -382,12 +382,24 @@ chroot(_) ->
     [].
 
 jail(#state{os = {unix,freebsd}, pid = Drv, child = Child}) ->
-    Jail = struct_jail2(<<"/rescue">>, <<"test">>, <<"jail0">>, [], []),
-    {ok, JID} = alcove:jail(Drv, [Child], Jail),
+    Jail0 = struct_jail2(<<"/rescue">>, <<"test0">>, <<"jail0">>, [], []),
+    {ok, JID0} = alcove:jail(Drv, [Child], Jail0),
+
+    {ok, Child0} = alcove:fork(Drv, []),
+    Reply0 = alcove:jail_attach(Drv, [Child0], JID0),
+    alcove:exit(Drv, [Child0], 0),
+
     {ok, Child1} = alcove:fork(Drv, []),
-    Reply = alcove:jail_attach(Drv, [Child1], JID),
-    alcove:exit(Drv, [Child1], 0),
-    ?_assertMatch(ok, Reply);
+    Jail1 = struct_jail2(<<"/rescue">>, <<"test1">>, <<"jail1">>, [], []),
+    {ok, JID1} = alcove:jail(Drv, [Child1], Jail1),
+    Reply1 = alcove:jail_remove(Drv, [], JID1),
+    Reply2 = alcove:jail_attach(Drv, [], JID1),
+
+    [
+        ?_assertMatch(ok, Reply0),
+        ?_assertMatch(ok, Reply1),
+        ?_assertMatch({error,einval}, Reply2)
+    ];
 jail(_) ->
     [].
 

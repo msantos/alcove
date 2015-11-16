@@ -35,6 +35,7 @@ ioctl_define/1
 iolist_to_bin/1
 jail/1
 jail_attach/1
+jail_remove/1
 kill/2
 link/2
 lseek/3
