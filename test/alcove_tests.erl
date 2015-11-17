@@ -382,7 +382,7 @@ chroot(_) ->
     [].
 
 jail(#state{os = {unix,freebsd}, pid = Drv, child = Child}) ->
-    Jail0 = struct_jail2(<<"/rescue">>, <<"test0">>, <<"jail0">>, [], []),
+    Jail0 = alcove_cstruct:jail({2, <<"/rescue">>, <<"test0">>, <<"jail0">>, [], []}),
     {ok, JID0} = alcove:jail(Drv, [Child], Jail0),
 
     {ok, Child0} = alcove:fork(Drv, []),
@@ -390,7 +390,7 @@ jail(#state{os = {unix,freebsd}, pid = Drv, child = Child}) ->
     alcove:exit(Drv, [Child0], 0),
 
     {ok, Child1} = alcove:fork(Drv, []),
-    Jail1 = struct_jail2(<<"/rescue">>, <<"test1">>, <<"jail1">>, [], []),
+    Jail1 = alcove_cstruct:jail({2, <<"/rescue">>, <<"test1">>, <<"jail1">>, [], []}),
     {ok, JID1} = alcove:jail(Drv, [Child1], Jail1),
     Reply1 = alcove:jail_remove(Drv, [], JID1),
     Reply2 = alcove:jail_attach(Drv, [], JID1),
@@ -988,16 +988,3 @@ stream_count(Drv, Chain, N) ->
         1000 ->
             {error, N}
     end.
-
-% FreeBSD: struct jail v2
-struct_jail2(Path, Hostname, Jailname, IPv4, IPv6) ->
-    [<<2:4/native-unsigned-integer-unit:8>>,
-     <<0:(alcove:wordalign(4) * 8)>>,
-     {ptr, <<Path/binary, 0>>},
-     {ptr, <<Hostname/binary, 0>>},
-     {ptr, <<Jailname/binary, 0>>},
-     <<(length(IPv4)):4/native-unsigned-integer-unit:8,
-       (length(IPv6)):4/native-unsigned-integer-unit:8>>,
-     {ptr, << <<IP1,IP2,IP3,IP4>> || {IP1,IP2,IP3,IP4} <- IPv4 >>},
-     {ptr, << <<IP1:16,IP2:16,IP3:16,IP4:16,IP5:16,IP6:16,IP7:16,IP8:16>>
-              || {IP1,IP2,IP3,IP4,IP5,IP6,IP7,IP8} <- IPv6 >>}].
