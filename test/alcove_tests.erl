@@ -382,7 +382,7 @@ chroot(_) ->
     [].
 
 jail(#state{os = {unix,freebsd}, pid = Drv, child = Child}) ->
-    Jail0 = alcove_cstruct:jail({2, <<"/rescue">>, <<"test0">>, <<"jail0">>, [], []}),
+    Jail0 = alcove_cstruct:jail(#alcove_jail{path = "/rescue", hostname = "test0", jailname = "jail0"}),
     {ok, JID0} = alcove:jail(Drv, [Child], Jail0),
 
     {ok, Child0} = alcove:fork(Drv, []),
@@ -390,7 +390,7 @@ jail(#state{os = {unix,freebsd}, pid = Drv, child = Child}) ->
     alcove:exit(Drv, [Child0], 0),
 
     {ok, Child1} = alcove:fork(Drv, []),
-    Jail1 = alcove_cstruct:jail({2, <<"/rescue">>, <<"test1">>, <<"jail1">>, [], []}),
+    Jail1 = alcove_cstruct:jail(#alcove_jail{path = "/rescue", hostname = "test1", jailname = "jail1"}),
     {ok, JID1} = alcove:jail(Drv, [Child1], Jail1),
     Reply1 = alcove:jail_remove(Drv, [], JID1),
     Reply2 = alcove:jail_attach(Drv, [], JID1),
