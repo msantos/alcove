@@ -36,7 +36,7 @@ alcove_sys_execvp(alcove_state_t *ap, const char *arg, size_t len,
         return -1;
 
     /* argv */
-    if (alcove_decode_list_to_argv(arg, len, &index, &argv) < 0)
+    if (alcove_decode_argv(arg, len, &index, &argv) < 0)
         return -1;
 
     execvp(progname, argv);

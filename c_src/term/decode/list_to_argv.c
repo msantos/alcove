@@ -16,10 +16,9 @@
 
 static char *alcove_x_decode_iolist_to_string(const char *buf, size_t len,
         int *index);
-void alcove_free_argv(char **argv);
 
     int
-alcove_decode_list_to_argv(const char *arg, size_t len, int *index,
+alcove_decode_argv(const char *arg, size_t len, int *index,
         char ***argv)
 {
     int arity = 0;
