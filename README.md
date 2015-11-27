@@ -446,8 +446,7 @@ atom is used as the argument and is not found on the platform.
 
         Types   FD = int32_t()
                 Cmd = int32_t()
-                Arg = binary() | Cstruct
-                Cstruct = [binary() | {ptr, non_neg_integer() | binary()}]
+                Arg = int64_t()
 
         fcntl(2) : perform operations on a file descriptor
 
