@@ -21,7 +21,7 @@ alcove_get_type(const char *buf, size_t len, const int *index,
     const char *s = buf + *index;
     int n = *index + 1;
 
-    if (*index < 0 || *index >= MAXMSGLEN || *index >= len)
+    if (n < 0 || n > len)
         return -1;
 
     *type = get_int8(s);
@@ -37,6 +37,10 @@ alcove_get_type(const char *buf, size_t len, const int *index,
                 return -1;
 
             *arity = get_int8(s);
+
+            if (n + *arity > len)
+                return -1;
+
             break;
 
         case ERL_ATOM_UTF8_EXT:
@@ -48,6 +52,10 @@ alcove_get_type(const char *buf, size_t len, const int *index,
                 return -1;
 
             *arity = get_int16(s);
+
+            if (n + *arity > len)
+                return -1;
+
             break;
 
         case ERL_LARGE_TUPLE_EXT:
@@ -58,6 +66,10 @@ alcove_get_type(const char *buf, size_t len, const int *index,
                 return -1;
 
             *arity = get_int32(s);
+
+            if (n + *arity > len)
+                return -1;
+
             break;
 
         case ERL_SMALL_BIG_EXT:
@@ -66,6 +78,10 @@ alcove_get_type(const char *buf, size_t len, const int *index,
                 return -1;
 
             *arity = get_int8(s);
+
+            if (n + *arity > len)
+                return -1;
+
             break;
 
         case ERL_LARGE_BIG_EXT:
@@ -74,6 +90,10 @@ alcove_get_type(const char *buf, size_t len, const int *index,
                 return -1;
 
             *arity = get_int32(s);
+
+            if (n + *arity > len)
+                return -1;
+
             break;
 
         case ERL_SMALL_INTEGER_EXT:

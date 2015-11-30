@@ -54,7 +54,7 @@ alcove_decode_cstruct(const char *arg, size_t len, int *index,
                 if (tmp_arity > sizeof(tmp))
                     return -1;
 
-                if (ei_decode_binary(arg, &tmp_index, tmp, &size) < 0)
+                if (alcove_decode_binary(arg, len, &tmp_index, tmp, (size_t *)&size) < 0)
                     return -1;
 
                 n += size;
@@ -64,22 +64,22 @@ alcove_decode_cstruct(const char *arg, size_t len, int *index,
                 if (tmp_arity != 2)
                     return -1;
 
-                if (ei_decode_tuple_header(arg, &tmp_index, &tmp_arity) < 0)
+                if (alcove_decode_tuple_header(arg, len, &tmp_index, &tmp_arity) < 0)
                     return -1;
 
-                if (ei_decode_atom(arg, &tmp_index, tmp) < 0)
+                if (alcove_decode_atom(arg, len, &tmp_index, tmp) < 0)
                     return -1;
 
                 if (strcmp(tmp, "ptr") != 0)
                     return -1;
 
-                if (ei_get_type(arg, &tmp_index, &type, &tmp_arity) < 0)
+                if (alcove_get_type(arg, len, &tmp_index, &type, &tmp_arity) < 0)
                     return -1;
 
                 switch (type) {
                     case ERL_SMALL_INTEGER_EXT:
                     case ERL_INTEGER_EXT:
-                        if (ei_decode_ulong(arg, &tmp_index, &val) < 0 ||
+                        if (alcove_decode_ulong(arg, len, &tmp_index, &val) < 0 ||
                                 val > MAXMSGLEN)
                             return -1;
 
@@ -87,7 +87,7 @@ alcove_decode_cstruct(const char *arg, size_t len, int *index,
                         break;
 
                     case ERL_BINARY_EXT:
-                        if (ei_decode_binary(arg, &tmp_index, tmp, &size) < 0
+                        if (alcove_decode_binary(arg, len, &tmp_index, tmp, (size_t *)&size) < 0
                                 || size > MAXMSGLEN)
                             return -1;
 
@@ -192,4 +192,3 @@ alcove_malloc(ssize_t size)
 
     return buf;
 }
-
