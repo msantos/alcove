@@ -19,7 +19,7 @@ alcove_encode_ulonglong(char *buf, size_t len, int *index, unsigned long long x)
 {
     int n = *index;
 
-    if (*index < 0 || *index > MAXMSGLEN)
+    if (*index < 0 || *index >= len)
         return -1;
 
     if (ei_encode_ulonglong(NULL, &n, x) < 0)

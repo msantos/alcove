@@ -19,7 +19,7 @@ alcove_encode_binary(char *buf, size_t len, int *index, const void *p, long plen
 {
     int n = *index;
 
-    if (*index < 0 || *index > MAXMSGLEN)
+    if (*index < 0 || *index >= len)
         return -1;
 
     if (ei_encode_binary(NULL, &n, p, plen) < 0)

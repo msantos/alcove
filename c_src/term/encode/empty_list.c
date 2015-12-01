@@ -19,7 +19,7 @@ alcove_encode_empty_list(char *buf, size_t len, int *index)
 {
     int n = *index;
 
-    if (*index < 0 || *index > MAXMSGLEN)
+    if (*index < 0 || *index >= len)
         return -1;
 
     if (ei_encode_empty_list(NULL, &n) < 0)

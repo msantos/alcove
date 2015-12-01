@@ -19,7 +19,7 @@ alcove_encode_list_header(char *buf, size_t len, int *index, int arity)
 {
     int n = *index;
 
-    if (*index < 0 || *index > MAXMSGLEN)
+    if (*index < 0 || *index >= len)
         return -1;
 
     if (ei_encode_list_header(NULL, &n, arity) < 0)
