@@ -175,7 +175,7 @@ typedef struct {
 
 void sighandler(int sig);
 
-void alcove_event_init(alcove_state_t *ap, int boot);
+void alcove_event_init(alcove_state_t *ap);
 void alcove_event_loop(alcove_state_t *ap);
 
 int pid_foreach(alcove_state_t *ap, pid_t pid, void *arg1, void *arg2,

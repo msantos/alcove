@@ -100,7 +100,7 @@ main(int argc, char *argv[])
 
     free(fifo);
 
-    alcove_event_init(ap, boot);
+    alcove_event_init(ap);
     exit(0);
 }
 

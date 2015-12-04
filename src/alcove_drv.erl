@@ -31,7 +31,6 @@
 
 -record(state, {
         owner,
-        ospid,
         raw = false,
         port :: port(),
         fdctl :: port(),
@@ -162,17 +161,19 @@ init([Owner, Options]) ->
         ] ++ PortOpt),
 
     % Block until the port has fully initialized
-    case call_getpid(Port) of
-        {ok, OSPid} ->
+    receive
+        % {alcove_call, [], ok}
+        {Port, {data,<<0,8,0,4,131,100,0,2,111,107>>}} ->
             Fdctl = erlang:open_port(Fifo, [in]),
 
             % Decrease the link count of the fifo. The fifo is deleted in
             % the port because the port may be running as a different user.
             ok = call_unlink(Port, Fifo),
-            {ok, #state{port = Port, fdctl = Fdctl, owner = Owner,
-                    ospid = OSPid}};
-        {error, Error} ->
-            {stop, Error}
+            {ok, #state{port = Port, fdctl = Fdctl, owner = Owner}};
+        {'EXIT', Port, normal} ->
+            {stop, {error, port_init_failed}};
+        {'EXIT', Port, Reason} ->
+            {stop, {error, Reason}}
     end.
 
 handle_call({send, Buf}, {Owner,_Tag}, #state{port = Port, owner = Owner} = State) ->
@@ -339,19 +340,6 @@ progname() ->
 
 % Blocking functions for handling the Control fd fifo. These functions
 % are called from init/1.
-call_getpid(Port) ->
-    Encode = alcove_codec:call(getpid, [], []),
-    erlang:port_command(Port, Encode),
-    receive
-        {Port, {data,Data}} ->
-            {alcove_call, [], OSPid} = alcove_codec:decode(Data),
-            {ok, OSPid};
-        {'EXIT', Port, normal} ->
-            {error, port_init_failed};
-        {'EXIT', Port, Reason} ->
-            {error, Reason}
-    end.
-
 call_unlink(Port, File) ->
     Encode = alcove_codec:call(unlink, [], [File]),
     erlang:port_command(Port, Encode),

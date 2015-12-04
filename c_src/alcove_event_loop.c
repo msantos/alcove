@@ -73,18 +73,16 @@ static int read_from_pid(alcove_state_t *ap, alcove_child_t *c,
 static int alcove_handle_signal(alcove_state_t *ap);
 
     void
-alcove_event_init(alcove_state_t *ap, int boot)
+alcove_event_init(alcove_state_t *ap)
 {
     int tlen = 0;
     char t[MAXMSGLEN] = {0};
 
-    if (!boot) {
-        /* process has exec'ed itself */
-        tlen = alcove_mk_atom(t, sizeof(t), "ok");
+    /* process has exec'ed itself */
+    tlen = alcove_mk_atom(t, sizeof(t), "ok");
 
-        if (alcove_call_reply(ALCOVE_MSG_CALL, t, tlen) < 0)
-            err(EXIT_FAILURE, "alcove_call_reply");
-    }
+    if (alcove_call_reply(ALCOVE_MSG_CALL, t, tlen) < 0)
+        err(EXIT_FAILURE, "alcove_call_reply");
 
     alcove_event_loop(ap);
 }
