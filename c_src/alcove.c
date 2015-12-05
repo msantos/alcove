@@ -31,13 +31,6 @@ static void usage(alcove_state_t *);
 
 extern char *__progname;
 
-    void
-sighandler(int sig)
-{
-    if (write(ALCOVE_SIGWRITE_FILENO, &sig, sizeof(sig)) != sizeof(sig))
-        (void)close(ALCOVE_SIGWRITE_FILENO);
-}
-
     int
 main(int argc, char *argv[])
 {
