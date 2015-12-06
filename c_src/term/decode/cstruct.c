@@ -32,13 +32,23 @@ alcove_decode_cstruct(const char *arg, size_t len, int *index,
 
     int i = 0;
     size_t n = 0;
+    size_t total = 0;
 
     *nptr = 0;
 
     if (alcove_decode_list_header(arg, len, index, &arity) < 0)
         return -1;
 
-    if (arity == 0 || arity >= MAXMSGLEN)
+    /* C: 5.2.4.1 Translation limits
+     *
+     * The implementation shall be able to translate and execute at
+     * least one program that contains at least one instance of every one
+     * of the following limits:
+     *
+     * - 1023 members in a single structure or union
+     *
+     */
+    if (arity == 0 || arity > 1023)
         return -1;
 
     tmp_index = *index;
@@ -58,6 +68,7 @@ alcove_decode_cstruct(const char *arg, size_t len, int *index,
                     return -1;
 
                 n += size;
+                total += size;
                 break;
 
             case ERL_SMALL_TUPLE_EXT:
@@ -79,19 +90,19 @@ alcove_decode_cstruct(const char *arg, size_t len, int *index,
                 switch (type) {
                     case ERL_SMALL_INTEGER_EXT:
                     case ERL_INTEGER_EXT:
-                        if (alcove_decode_ulong(arg, len, &tmp_index, &val) < 0 ||
-                                val > MAXMSGLEN)
+                        if (alcove_decode_ulong(arg, len, &tmp_index, &val) < 0)
                             return -1;
 
                         n += sizeof(void *);
+                        total += val;
                         break;
 
                     case ERL_BINARY_EXT:
-                        if (alcove_decode_binary(arg, len, &tmp_index, tmp, (size_t *)&size) < 0
-                                || size > MAXMSGLEN)
+                        if (alcove_decode_binary(arg, len, &tmp_index, tmp, (size_t *)&size) < 0)
                             return -1;
 
                         n += sizeof(void *);
+                        total += size;
                         break;
 
                     default:
@@ -104,7 +115,12 @@ alcove_decode_cstruct(const char *arg, size_t len, int *index,
         }
     }
 
-    if (n > *rlen)
+    /* n = number of bytes written to the buffer
+     * total = number of bytes to be allocated
+     *
+     * total may be smaller than n, e.g., pointer to 1 byte
+     */
+    if (n > *rlen || total > *rlen)
         return -1;
 
     *rlen = n;
