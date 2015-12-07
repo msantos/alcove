@@ -53,7 +53,7 @@ start() ->
             termsig
         ]),
 
-    Seccomp = try alcove:clone_define(Drv, [], seccomp_mode_filter) of
+    Seccomp = try alcove:clone_constant(Drv, [], seccomp_mode_filter) of
                   _ -> true
               catch
                   error:undef -> false

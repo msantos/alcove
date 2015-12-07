@@ -58,7 +58,7 @@ alcove_sys_mount(alcove_state_t *ap, const char *arg, size_t len,
         return -1;
 
     /* mountflags */
-    switch (alcove_decode_define_list(arg, len, &index, (int *)&mountflags,
+    switch (alcove_decode_constant_list(arg, len, &index, (int *)&mountflags,
                 alcove_mount_constants)) {
         case 0:
             break;

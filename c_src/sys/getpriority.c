@@ -30,7 +30,7 @@ alcove_sys_getpriority(alcove_state_t *ap, const char *arg, size_t len,
     int who = 0;
     int prio = 0;
 
-    switch (alcove_decode_define(arg, len, &index, &which,
+    switch (alcove_decode_constant(arg, len, &index, &which,
                 alcove_prio_constants)) {
         case 0:
             break;
@@ -40,7 +40,7 @@ alcove_sys_getpriority(alcove_state_t *ap, const char *arg, size_t len,
             return -1;
     }
 
-    switch (alcove_decode_define(arg, len, &index, &who,
+    switch (alcove_decode_constant(arg, len, &index, &who,
                 alcove_prio_constants)) {
         case 0:
             break;

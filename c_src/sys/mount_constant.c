@@ -14,39 +14,28 @@
  */
 #include "alcove.h"
 #include "alcove_call.h"
-
-#ifdef __linux__
-#include <sys/prctl.h>
-#ifdef HAVE_SECCOMP
-#include <linux/seccomp.h>
-#endif
-#endif
-
-#include "alcove_prctl_constants.h"
+#include <sys/mount.h>
+#include "alcove_mount_constants.h"
 
 /*
- * prctl flags
+ * mount constants
  *
  */
     ssize_t
-alcove_sys_prctl_define(alcove_state_t *ap, const char *arg, size_t len,
+alcove_sys_mount_constant(alcove_state_t *ap, const char *arg, size_t len,
         char *reply, size_t rlen)
 {
-#ifdef __linux__
     int index = 0;
     int rindex = 0;
 
     char name[MAXATOMLEN] = {0};
 
-    /* name */
+    /* flag */
     if (alcove_decode_atom(arg, len, &index, name) < 0)
         return -1;
 
     ALCOVE_ERR(alcove_encode_version(reply, rlen, &rindex));
-    ALCOVE_ERR(alcove_encode_define(reply, rlen, &rindex,
-                name, alcove_prctl_constants));
+    ALCOVE_ERR(alcove_encode_constant(reply, rlen, &rindex,
+                name, alcove_mount_constants));
     return rindex;
-#else
-    return alcove_mk_atom(reply, rlen, "undef");
-#endif
 }

@@ -1,4 +1,4 @@
-/* Copyright (c) 2014, Michael Santos <michael.santos@gmail.com>
+/* Copyright (c) 2015, Michael Santos <michael.santos@gmail.com>
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -13,29 +13,19 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 #include "alcove.h"
-#include "alcove_call.h"
-#include "alcove_signal_constants.h"
 
-/*
- * signals
- *
- */
-    ssize_t
-alcove_sys_signal_define(alcove_state_t *ap, const char *arg, size_t len,
-        char *reply, size_t rlen)
+    int
+alcove_lookup_constant(char *name, unsigned long long *val,
+        const alcove_constant_t *constants)
 {
-    int index = 0;
-    int rindex = 0;
+    const alcove_constant_t *dp = NULL;
 
-    char name[MAXATOMLEN] = {0};
+    for (dp = constants; dp->name != NULL; dp++) {
+        if (!strcasecmp(name, dp->name)) {
+            *val = dp->val;
+            return 0;
+        }
+    }
 
-    /* constant */
-    if (alcove_decode_atom(arg, len, &index, name) < 0)
-        return -1;
-
-    ALCOVE_ERR(alcove_encode_version(reply, rlen, &rindex));
-    ALCOVE_ERR(alcove_encode_define(reply, rlen, &rindex,
-                name, alcove_signal_constants));
-
-    return rindex;
+    return -1;
 }

@@ -12,21 +12,21 @@
  * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
-static const alcove_define_t alcove_fcntl_constants[] = {
+static const alcove_constant_t alcove_fcntl_constants[] = {
 #ifdef F_GETFD
-    ALCOVE_DEFINE(F_GETFD),
+    ALCOVE_CONSTANT(F_GETFD),
 #endif
 #ifdef F_SETFD
-    ALCOVE_DEFINE(F_SETFD),
+    ALCOVE_CONSTANT(F_SETFD),
 #endif
 #ifdef FD_CLOEXEC
-    ALCOVE_DEFINE(FD_CLOEXEC),
+    ALCOVE_CONSTANT(FD_CLOEXEC),
 #endif
 #ifdef F_SETPIPE_SZ
-    ALCOVE_DEFINE(F_SETPIPE_SZ),
+    ALCOVE_CONSTANT(F_SETPIPE_SZ),
 #endif
 #ifdef F_GETPIPE_SZ
-    ALCOVE_DEFINE(F_GETPIPE_SZ),
+    ALCOVE_CONSTANT(F_GETPIPE_SZ),
 #endif
     {NULL, 0}
 };

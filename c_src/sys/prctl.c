@@ -63,7 +63,7 @@ alcove_sys_prctl(alcove_state_t *ap, const char *arg, size_t len,
     int rv = 0;
 
     /* option */
-    switch (alcove_decode_define(arg, len, &index, &option,
+    switch (alcove_decode_constant(arg, len, &index, &option,
                 alcove_prctl_constants)) {
         case 0:
             break;
@@ -96,7 +96,7 @@ alcove_sys_prctl(alcove_state_t *ap, const char *arg, size_t len,
                 if (alcove_decode_atom(arg, len, &index, define) < 0)
                     return -1;
 
-                if (alcove_lookup_define(define, &constant.ull,
+                if (alcove_lookup_constant(define, &constant.ull,
                             alcove_prctl_constants) < 0)
                     return alcove_mk_error(reply, rlen, "enotsup");
 

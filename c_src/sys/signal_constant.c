@@ -14,37 +14,28 @@
  */
 #include "alcove.h"
 #include "alcove_call.h"
-
-#ifdef __linux__
-#include <linux/unistd.h>
-#include <elf.h>
-#include <linux/audit.h>
-#include "alcove_syscall_constants.h"
-#endif
+#include "alcove_signal_constants.h"
 
 /*
- * syscalls
+ * signals
  *
  */
     ssize_t
-alcove_sys_syscall_define(alcove_state_t *ap, const char *arg, size_t len,
+alcove_sys_signal_constant(alcove_state_t *ap, const char *arg, size_t len,
         char *reply, size_t rlen)
 {
-#ifdef __linux__
     int index = 0;
     int rindex = 0;
 
     char name[MAXATOMLEN] = {0};
 
-    /* name */
+    /* constant */
     if (alcove_decode_atom(arg, len, &index, name) < 0)
         return -1;
 
     ALCOVE_ERR(alcove_encode_version(reply, rlen, &rindex));
-    ALCOVE_ERR(alcove_encode_define(reply, rlen, &rindex,
-                name, alcove_syscall_constants));
+    ALCOVE_ERR(alcove_encode_constant(reply, rlen, &rindex,
+                name, alcove_signal_constants));
+
     return rindex;
-#else
-    return alcove_mk_atom(reply, rlen, "undef");
-#endif
 }

@@ -12,15 +12,15 @@
  * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
-static const alcove_define_t alcove_prio_constants[] = {
+static const alcove_constant_t alcove_prio_constants[] = {
 #ifdef PRIO_PROCESS
-    ALCOVE_DEFINE(PRIO_PROCESS),
+    ALCOVE_CONSTANT(PRIO_PROCESS),
 #endif
 #ifdef PRIO_PPGRP
-    ALCOVE_DEFINE(PRIO_PGRP),
+    ALCOVE_CONSTANT(PRIO_PGRP),
 #endif
 #ifdef PRIO_USER
-    ALCOVE_DEFINE(PRIO_USER),
+    ALCOVE_CONSTANT(PRIO_USER),
 #endif
 
     {NULL, 0}

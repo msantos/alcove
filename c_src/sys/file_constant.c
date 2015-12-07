@@ -14,28 +14,27 @@
  */
 #include "alcove.h"
 #include "alcove_call.h"
-#include <sys/mount.h>
-#include "alcove_mount_constants.h"
+#include "alcove_file_constants.h"
 
 /*
- * mount constants
+ * file flags
  *
  */
     ssize_t
-alcove_sys_mount_define(alcove_state_t *ap, const char *arg, size_t len,
+alcove_sys_file_constant(alcove_state_t *ap, const char *arg, size_t len,
         char *reply, size_t rlen)
 {
     int index = 0;
     int rindex = 0;
 
-    char name[MAXATOMLEN] = {0};
+    char flag[MAXATOMLEN] = {0};
 
     /* flag */
-    if (alcove_decode_atom(arg, len, &index, name) < 0)
+    if (alcove_decode_atom(arg, len, &index, flag) < 0)
         return -1;
 
     ALCOVE_ERR(alcove_encode_version(reply, rlen, &rindex));
-    ALCOVE_ERR(alcove_encode_define(reply, rlen, &rindex,
-                name, alcove_mount_constants));
+    ALCOVE_ERR(alcove_encode_constant(reply, rlen, &rindex,
+                flag, alcove_file_constants));
     return rindex;
 }

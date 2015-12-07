@@ -13,33 +13,15 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 #include "alcove.h"
-#include <ctype.h>
-
-static int alcove_encode_atom_to_lower(char *buf, size_t len, int *index,
-        const char *p);
 
     int
-alcove_encode_constant(char *buf, size_t len, int *index, u_int64_t val,
-        const alcove_define_t *constants)
+alcove_encode_constant(char *buf, size_t len, int *index, char *name,
+        const alcove_constant_t *constants)
 {
-    const alcove_define_t *dp = NULL;
+    unsigned long long val = 0;
 
-    for (dp = constants; dp->name != NULL; dp++) {
-        if (val == dp->val)
-            return alcove_encode_atom_to_lower(buf, len, index, dp->name);
-    }
+    if (alcove_lookup_constant(name, &val, constants) < 0)
+        return alcove_encode_atom(buf, len, index, "unknown");
 
-    return alcove_encode_atom(buf, len, index, "unknown");
-}
-
-    static int
-alcove_encode_atom_to_lower(char *buf, size_t len, int *index, const char *p)
-{
-    char atom[MAXATOMLEN] = {0};
-    char *q = atom;
-
-    for ( ; *p; p++, q++)
-        *q = tolower((int)(unsigned char)*p);
-
-    return alcove_encode_atom(buf, len, index, atom);
+    return alcove_encode_ulonglong(buf, len, index, val);
 }

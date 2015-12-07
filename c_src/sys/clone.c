@@ -46,7 +46,7 @@ alcove_sys_clone(alcove_state_t *ap, const char *arg, size_t len,
         return alcove_mk_errno(reply, rlen, EAGAIN);
 
     /* flags */
-    switch (alcove_decode_define_list(arg, len, &index, &flags,
+    switch (alcove_decode_constant_list(arg, len, &index, &flags,
                 alcove_clone_constants)) {
         case 0:
             break;

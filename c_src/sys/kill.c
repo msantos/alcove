@@ -35,7 +35,7 @@ alcove_sys_kill(alcove_state_t *ap, const char *arg, size_t len,
         return -1;
 
     /* signal */
-    switch (alcove_decode_define(arg, len, &index, &signum,
+    switch (alcove_decode_constant(arg, len, &index, &signum,
                 alcove_signal_constants)) {
         case 0:
             break;

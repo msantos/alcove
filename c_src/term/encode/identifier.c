@@ -13,29 +13,33 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 #include "alcove.h"
-#include "alcove_call.h"
-#include "alcove_ioctl_constants.h"
+#include <ctype.h>
 
-/*
- * ioctl constants
- *
- */
-    ssize_t
-alcove_sys_ioctl_define(alcove_state_t *ap, const char *arg, size_t len,
-        char *reply, size_t rlen)
+static int alcove_encode_atom_to_lower(char *buf, size_t len, int *index,
+        const char *p);
+
+    int
+alcove_encode_constant_id(char *buf, size_t len, int *index, u_int64_t val,
+        const alcove_constant_t *constants)
 {
-    int index = 0;
-    int rindex = 0;
+    const alcove_constant_t *dp = NULL;
 
-    char name[MAXATOMLEN] = {0};
+    for (dp = constants; dp->name != NULL; dp++) {
+        if (val == dp->val)
+            return alcove_encode_atom_to_lower(buf, len, index, dp->name);
+    }
 
-    /* constant */
-    if (alcove_decode_atom(arg, len, &index, name) < 0)
-        return -1;
+    return alcove_encode_atom(buf, len, index, "unknown");
+}
 
-    ALCOVE_ERR(alcove_encode_version(reply, rlen, &rindex));
-    ALCOVE_ERR(alcove_encode_define(reply, rlen, &rindex,
-                name, alcove_ioctl_constants));
+    static int
+alcove_encode_atom_to_lower(char *buf, size_t len, int *index, const char *p)
+{
+    char atom[MAXATOMLEN] = {0};
+    char *q = atom;
 
-    return rindex;
+    for ( ; *p; p++, q++)
+        *q = tolower((int)(unsigned char)*p);
+
+    return alcove_encode_atom(buf, len, index, atom);
 }

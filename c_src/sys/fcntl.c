@@ -55,7 +55,7 @@ alcove_sys_fcntl(alcove_state_t *ap, const char *arg, size_t len,
         return -1;
 
     /* cmd */
-    switch (alcove_decode_define(arg, len, &index, &cmd,
+    switch (alcove_decode_constant(arg, len, &index, &cmd,
                 alcove_fcntl_constants)) {
         case 0:
             break;

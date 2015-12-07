@@ -401,7 +401,7 @@ atom is used as the argument and is not found on the platform.
 
         clone(2) : create a new process
 
-    clone_define(Drv, ForkChain, atom()) -> integer() | unknown
+    clone_constant(Drv, ForkChain, atom()) -> integer() | unknown
 
         Linux only.
 
@@ -450,7 +450,7 @@ atom is used as the argument and is not found on the platform.
 
         fcntl(2) : perform operations on a file descriptor
 
-    file_define(Drv, ForkChain, atom()) -> integer() | unknown
+    file_constant(Drv, ForkChain, atom()) -> integer() | unknown
 
         Constants for open(2).
 
@@ -682,14 +682,14 @@ atom is used as the argument and is not found on the platform.
         as a string of comma separated values terminated by a NULL.
         Other platforms ignore the Options parameter.
 
-    mount_define(Drv, ForkChain, Flag) -> integer() | unknown
+    mount_constant(Drv, ForkChain, Flag) -> integer() | unknown
 
         Types   Flag = rdonly | nosuid | noexec | noatime | ...
 
         Convert flag names to integers. The lower case atoms are used
         for portability:
 
-            alcove:mount_define(Drv, [], rdonly)
+            alcove:mount_constant(Drv, [], rdonly)
 
         'rdonly' is mapped to MS_RDONLY on Linux and MNT_RDONLY on
         FreeBSD.
@@ -773,7 +773,7 @@ atom is used as the argument and is not found on the platform.
                 alcove:prctl(Drv, [], pr_set_seccomp, seccomp_mode_filter, Prog, 0, 0).
 
 
-    prctl_define(Drv, ForkChain, atom()) -> integer() | unknown
+    prctl_constant(Drv, ForkChain, atom()) -> integer() | unknown
 
         Convert prctl option names to integers.
 
@@ -787,7 +787,7 @@ atom is used as the argument and is not found on the platform.
 
         readdir(3) : retrieve list of objects in a directory
 
-    rlimit_define(Drv, ForkChain, atom()) -> integer() | unknown
+    rlimit_constant(Drv, ForkChain, atom()) -> integer() | unknown
 
         Convert an RLIMIT_* flag to an integer().
 
@@ -960,7 +960,7 @@ atom is used as the argument and is not found on the platform.
 
         Multiple caught signals of the same type may be reported as one event.
 
-    signal_define(Drv, ForkChain, atom()) -> integer() | unknown
+    signal_constant(Drv, ForkChain, atom()) -> integer() | unknown
 
         Convert signal names to integers.
 

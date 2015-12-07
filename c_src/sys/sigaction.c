@@ -37,7 +37,7 @@ alcove_sys_sigaction(alcove_state_t *ap, const char *arg, size_t len,
     (void)memset(&oact, 0, sizeof(oact));
 
     /* signum */
-    switch (alcove_decode_define(arg, len, &index, &signum,
+    switch (alcove_decode_constant(arg, len, &index, &signum,
                 alcove_signal_constants)) {
         case 0:
             break;

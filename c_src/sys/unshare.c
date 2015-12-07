@@ -30,7 +30,7 @@ alcove_sys_unshare(alcove_state_t *ap, const char *arg, size_t len,
     int flags = 0;
 
     /* flags */
-    switch (alcove_decode_define_list(arg, len, &index, &flags,
+    switch (alcove_decode_constant_list(arg, len, &index, &flags,
                 alcove_clone_constants)) {
         case 0:
             break;

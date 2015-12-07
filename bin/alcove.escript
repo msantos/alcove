@@ -202,15 +202,15 @@ define(Drv, ForkChain, Constants) when is_list(Constants) ->
 
 define_constant(Drv, ForkChain, Constant) ->
     Fun = [
-        fun clone_define/3,
-        fun fcntl_define/3,
-        fun file_define/3,
-        fun ioctl_define/3,
-        fun mount_define/3,
-        fun prctl_define/3,
-        fun rlimit_define/3,
-        fun signal_define/3,
-        fun syscall_define/3
+        fun clone_constant/3,
+        fun fcntl_constant/3,
+        fun file_constant/3,
+        fun ioctl_constant/3,
+        fun mount_constant/3,
+        fun prctl_constant/3,
+        fun rlimit_constant/3,
+        fun signal_constant/3,
+        fun syscall_constant/3
     ],
     define_foreach(Drv, ForkChain, Constant, Fun).
 
@@ -386,8 +386,8 @@ specs() ->
 -spec clone(alcove_drv:ref(),forkchain(),int32_t() | [constant()]) -> {'ok', pid_t()} | {'error', file:posix()}.
 -spec clone(alcove_drv:ref(),forkchain(),int32_t() | [constant()],timeout()) -> {'ok', pid_t()} | {'error', file:posix()}.
 
--spec clone_define(alcove_drv:ref(),forkchain(),atom()) -> 'unknown' | int32_t().
--spec clone_define(alcove_drv:ref(),forkchain(),atom(),timeout()) -> 'unknown' | int32_t().
+-spec clone_constant(alcove_drv:ref(),forkchain(),atom()) -> 'unknown' | int32_t().
+-spec clone_constant(alcove_drv:ref(),forkchain(),atom(),timeout()) -> 'unknown' | int32_t().
 
 -spec close(alcove_drv:ref(),forkchain(),fd()) -> 'ok' | {'error', file:posix()}.
 -spec close(alcove_drv:ref(),forkchain(),fd(),timeout()) -> 'ok' | {'error', file:posix()}.
@@ -417,8 +417,8 @@ specs() ->
 -spec fcntl(alcove_drv:ref(), forkchain(), fd(), constant(), int64_t()) -> {'ok',int64_t()} | {'error', file:posix()}.
 -spec fcntl(alcove_drv:ref(), forkchain(), fd(), constant(), int64_t(), timeout()) -> {'ok',int64_t()} | {'error', file:posix()}.
 
--spec file_define(alcove_drv:ref(),forkchain(),atom()) -> non_neg_integer() | 'unknown'.
--spec file_define(alcove_drv:ref(),forkchain(),atom(),timeout()) -> non_neg_integer() | 'unknown'.
+-spec file_constant(alcove_drv:ref(),forkchain(),atom()) -> non_neg_integer() | 'unknown'.
+-spec file_constant(alcove_drv:ref(),forkchain(),atom(),timeout()) -> non_neg_integer() | 'unknown'.
 
 -spec fork(alcove_drv:ref(),forkchain()) -> {'ok', pid_t()} | {'error', file:posix()}.
 -spec fork(alcove_drv:ref(),forkchain(),timeout()) -> {'ok', pid_t()} | {'error', file:posix()}.
@@ -495,8 +495,8 @@ specs() ->
 -spec mount(alcove_drv:ref(),forkchain(),iodata(),iodata(),iodata(),uint64_t() | [constant()],iodata(),iodata()) -> 'ok' | {'error', file:posix()}.
 -spec mount(alcove_drv:ref(),forkchain(),iodata(),iodata(),iodata(),uint64_t() | [constant()],iodata(),iodata(),timeout()) -> 'ok' | {'error', file:posix()}.
 
--spec mount_define(alcove_drv:ref(),forkchain(),atom()) -> 'unknown' | uint64_t().
--spec mount_define(alcove_drv:ref(),forkchain(),atom(),timeout()) -> 'unknown' | uint64_t().
+-spec mount_constant(alcove_drv:ref(),forkchain(),atom()) -> 'unknown' | uint64_t().
+-spec mount_constant(alcove_drv:ref(),forkchain(),atom(),timeout()) -> 'unknown' | uint64_t().
 
 -spec open(alcove_drv:ref(),forkchain(),iodata(),int32_t() | [constant()],mode_t()) -> {'ok',fd()} | {'error', file:posix()}.
 -spec open(alcove_drv:ref(),forkchain(),iodata(),int32_t() | [constant()],mode_t(),timeout()) -> {'ok',fd()} | {'error', file:posix()}.
@@ -514,8 +514,8 @@ specs() ->
 -spec prctl(alcove_drv:ref(),forkchain(),constant(),prctl_arg(),prctl_arg(),prctl_arg(),prctl_arg(),timeout())
     -> {'ok',integer(),prctl_val(),prctl_val(),prctl_val(),prctl_val()} | {'error', file:posix()}.
 
--spec prctl_define(alcove_drv:ref(),forkchain(),atom()) -> 'unknown' | non_neg_integer().
--spec prctl_define(alcove_drv:ref(),forkchain(),atom(),timeout()) -> 'unknown' | non_neg_integer().
+-spec prctl_constant(alcove_drv:ref(),forkchain(),atom()) -> 'unknown' | non_neg_integer().
+-spec prctl_constant(alcove_drv:ref(),forkchain(),atom(),timeout()) -> 'unknown' | non_neg_integer().
 
 -spec read(alcove_drv:ref(),forkchain(),fd(),size_t()) -> {'ok', binary()} | {'error', file:posix()}.
 -spec read(alcove_drv:ref(),forkchain(),fd(),size_t(),timeout()) -> {'ok', binary()} | {'error', file:posix()}.
@@ -526,8 +526,8 @@ specs() ->
 -spec rmdir(alcove_drv:ref(),forkchain(),iodata()) -> 'ok' | {'error', file:posix()}.
 -spec rmdir(alcove_drv:ref(),forkchain(),iodata(),timeout()) -> 'ok' | {'error', file:posix()}.
 
--spec rlimit_define(alcove_drv:ref(),forkchain(),atom()) -> 'unknown' | non_neg_integer().
--spec rlimit_define(alcove_drv:ref(),forkchain(),atom(),timeout()) -> 'unknown' | non_neg_integer().
+-spec rlimit_constant(alcove_drv:ref(),forkchain(),atom()) -> 'unknown' | non_neg_integer().
+-spec rlimit_constant(alcove_drv:ref(),forkchain(),atom(),timeout()) -> 'unknown' | non_neg_integer().
 
 -spec select(alcove_drv:ref(),forkchain(),fd_set(),fd_set(),fd_set(),
     <<>> | #alcove_timeval{}) -> {ok, fd_set(), fd_set(), fd_set()} | {'error', file:posix()}.
@@ -579,11 +579,11 @@ specs() ->
 -spec sigaction(alcove_drv:ref(),forkchain(),constant(),atom()) -> {'ok',atom()} | {'error', file:posix()}.
 -spec sigaction(alcove_drv:ref(),forkchain(),constant(),atom(),timeout()) -> {'ok',atom()} | {'error', file:posix()}.
 
--spec signal_define(alcove_drv:ref(),forkchain(),atom()) -> 'unknown' | non_neg_integer().
--spec signal_define(alcove_drv:ref(),forkchain(),atom(),timeout()) -> 'unknown' | non_neg_integer().
+-spec signal_constant(alcove_drv:ref(),forkchain(),atom()) -> 'unknown' | non_neg_integer().
+-spec signal_constant(alcove_drv:ref(),forkchain(),atom(),timeout()) -> 'unknown' | non_neg_integer().
 
--spec syscall_define(alcove_drv:ref(),forkchain(),atom()) -> 'unknown' | non_neg_integer().
--spec syscall_define(alcove_drv:ref(),forkchain(),atom(),timeout()) -> 'unknown' | non_neg_integer().
+-spec syscall_constant(alcove_drv:ref(),forkchain(),atom()) -> 'unknown' | non_neg_integer().
+-spec syscall_constant(alcove_drv:ref(),forkchain(),atom(),timeout()) -> 'unknown' | non_neg_integer().
 
 -spec stderr(alcove_drv:ref(),forkchain()) -> 'false' | binary().
 -spec stderr(alcove_drv:ref(),forkchain(),timeout()) -> 'false' | binary().

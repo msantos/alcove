@@ -14,27 +14,28 @@
  */
 #include "alcove.h"
 #include "alcove_call.h"
-#include "alcove_file_constants.h"
+#include "alcove_fcntl_constants.h"
 
 /*
- * file flags
+ * fcntl contants
  *
  */
     ssize_t
-alcove_sys_file_define(alcove_state_t *ap, const char *arg, size_t len,
+alcove_sys_fcntl_constant(alcove_state_t *ap, const char *arg, size_t len,
         char *reply, size_t rlen)
 {
     int index = 0;
     int rindex = 0;
 
-    char flag[MAXATOMLEN] = {0};
+    char name[MAXATOMLEN] = {0};
 
-    /* flag */
-    if (alcove_decode_atom(arg, len, &index, flag) < 0)
+    /* constant */
+    if (alcove_decode_atom(arg, len, &index, name) < 0)
         return -1;
 
     ALCOVE_ERR(alcove_encode_version(reply, rlen, &rindex));
-    ALCOVE_ERR(alcove_encode_define(reply, rlen, &rindex,
-                flag, alcove_file_constants));
+    ALCOVE_ERR(alcove_encode_constant(reply, rlen, &rindex,
+                name, alcove_fcntl_constants));
+
     return rindex;
 }

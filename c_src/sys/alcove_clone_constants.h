@@ -17,24 +17,24 @@
 #include <sched.h>
 #endif
 
-static const alcove_define_t alcove_clone_constants[] = {
+static const alcove_constant_t alcove_clone_constants[] = {
 #ifdef CLONE_NEWNS
-    ALCOVE_DEFINE(CLONE_NEWNS),
+    ALCOVE_CONSTANT(CLONE_NEWNS),
 #endif
 #ifdef CLONE_NEWUTS
-    ALCOVE_DEFINE(CLONE_NEWUTS),
+    ALCOVE_CONSTANT(CLONE_NEWUTS),
 #endif
 #ifdef CLONE_NEWIPC
-    ALCOVE_DEFINE(CLONE_NEWIPC),
+    ALCOVE_CONSTANT(CLONE_NEWIPC),
 #endif
 #ifdef CLONE_NEWUSER
-    ALCOVE_DEFINE(CLONE_NEWUSER),
+    ALCOVE_CONSTANT(CLONE_NEWUSER),
 #endif
 #ifdef CLONE_NEWPID
-    ALCOVE_DEFINE(CLONE_NEWPID),
+    ALCOVE_CONSTANT(CLONE_NEWPID),
 #endif
 #ifdef CLONE_NEWNET
-    ALCOVE_DEFINE(CLONE_NEWNET),
+    ALCOVE_CONSTANT(CLONE_NEWNET),
 #endif
     {NULL, 0}
 };

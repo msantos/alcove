@@ -66,7 +66,7 @@ alcove_sys_setns(alcove_state_t *ap, const char *arg, size_t len,
         return -1;
 
     /* nstype */
-    switch (alcove_decode_define(arg, len, &index, &nstype,
+    switch (alcove_decode_constant(arg, len, &index, &nstype,
                 alcove_clone_constants)) {
         case 0:
             break;

@@ -68,7 +68,7 @@
 #define ALCOVE_MSGLEN(x,n) \
     ((n) - (((x) + 1) * MAXHDRLEN))
 
-#define ALCOVE_DEFINE(x) {#x, x}
+#define ALCOVE_CONSTANT(x) {#x, x}
 
 #define ALCOVE_SETOPT(x,k,v) \
     (x)->opt = (v) ? (x)->opt | (k) : (x)->opt & ~(k)
@@ -166,7 +166,7 @@ typedef struct {
 typedef struct {
     char *name;
     long long val;
-} alcove_define_t;
+} alcove_constant_t;
 
 typedef struct {
     void *p;
@@ -200,10 +200,10 @@ int alcove_decode_string(const char *, size_t, int *, char *, size_t);
 int alcove_decode_list_header(const char *, size_t, int *, int *);
 int alcove_decode_tuple_header(const char *, size_t, int *, int *);
 int alcove_decode_iolist(const char *, size_t, int *, char *, size_t *);
-int alcove_decode_define(const char *, size_t, int *, int *,
-        const alcove_define_t *);
-int alcove_decode_define_list(const char *, size_t, int *, int *,
-        const alcove_define_t *);
+int alcove_decode_constant(const char *, size_t, int *, int *,
+        const alcove_constant_t *);
+int alcove_decode_constant_list(const char *, size_t, int *, int *,
+        const alcove_constant_t *);
 int alcove_decode_cstruct(const char *, size_t, int *, char *, size_t *,
         alcove_alloc_t **, ssize_t *);
 int alcove_decode_argv(const char *, size_t, int *, char ***);
@@ -219,11 +219,11 @@ int alcove_encode_longlong(char *, size_t, int *, long long);
 int alcove_encode_ulonglong(char *, size_t, int *, unsigned long long);
 int alcove_encode_atom(char *, size_t, int *, const char *);
 int alcove_encode_binary(char *, size_t, int *, const void *, long);
-int alcove_encode_define(char *, size_t, int *, char *,
-        const alcove_define_t *);
-int alcove_lookup_define(char *, unsigned long long *, const alcove_define_t *);
-int alcove_encode_constant(char *, size_t, int *, u_int64_t,
-        const alcove_define_t *);
+int alcove_encode_constant(char *, size_t, int *, char *,
+        const alcove_constant_t *);
+int alcove_lookup_constant(char *, unsigned long long *, const alcove_constant_t *);
+int alcove_encode_constant_id(char *, size_t, int *, u_int64_t,
+        const alcove_constant_t *);
 int alcove_encode_cstruct(char *, size_t, int *, const char *, size_t,
         alcove_alloc_t *, ssize_t);
 

@@ -45,10 +45,10 @@ run(State) ->
         event(State),
         sethostname(State),
         env(State),
-        clone_define(State),
+        clone_constant(State),
         setns(State),
         unshare(State),
-        mount_define(State),
+        mount_constant(State),
         mount(State),
         tmpfs(State),
         chroot(State),
@@ -269,10 +269,10 @@ env(#state{pid = Drv, child = Child}) ->
         ?_assertEqual(0, length(Reply9))
     ].
 
-clone_define(#state{clone = true, pid = Drv, child = Child}) ->
-    Reply = alcove:clone_define(Drv, [Child], clone_newns),
+clone_constant(#state{clone = true, pid = Drv, child = Child}) ->
+    Reply = alcove:clone_constant(Drv, [Child], clone_newns),
     ?_assertEqual(true, is_integer(Reply));
-clone_define(_) ->
+clone_constant(_) ->
     [].
 
 setns(#state{clone = true, pid = Drv, child = Child}) ->
@@ -303,13 +303,13 @@ unshare(#state{clone = true, pid = Drv}) ->
 unshare(_) ->
     [].
 
-mount_define(#state{os = {unix,sunos}, pid = Drv}) ->
+mount_constant(#state{os = {unix,sunos}, pid = Drv}) ->
     Flags = alcove:define(Drv, [], [
             rdonly,
             nosuid
         ]),
     ?_assertEqual(true, is_integer(Flags));
-mount_define(#state{pid = Drv}) ->
+mount_constant(#state{pid = Drv}) ->
     Flags = alcove:define(Drv, [], [
             rdonly,
             nosuid,
@@ -672,7 +672,7 @@ fcntl(#state{pid = Drv}) ->
     Fdctl = 5,
 
     {ok, Flags0} = alcove:fcntl(Drv, [Child], Fdctl, f_getfd, 0),
-    FD_CLOEXEC = alcove:fcntl_define(Drv, [Child], fd_cloexec),
+    FD_CLOEXEC = alcove:fcntl_constant(Drv, [Child], fd_cloexec),
     Flags1 = Flags0 band (bnot FD_CLOEXEC),
 
     {ok, _} = alcove:fcntl(Drv, [Child], Fdctl, f_setfd, Flags1),

@@ -41,7 +41,7 @@ alcove_sys_open(alcove_state_t *ap, const char *arg, size_t len,
         return -1;
 
     /* flags */
-    switch (alcove_decode_define_list(arg, len, &index, &flags,
+    switch (alcove_decode_constant_list(arg, len, &index, &flags,
                 alcove_file_constants)) {
         case 0:
             break;

@@ -1,4 +1,4 @@
-/* Copyright (c) 2015, Michael Santos <michael.santos@gmail.com>
+/* Copyright (c) 2014, Michael Santos <michael.santos@gmail.com>
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -13,15 +13,32 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 #include "alcove.h"
+#include "alcove_call.h"
+#include "alcove_clone_constants.h"
 
-    int
-alcove_encode_define(char *buf, size_t len, int *index, char *name,
-        const alcove_define_t *constants)
+/*
+ * clone flags
+ *
+ */
+    ssize_t
+alcove_sys_clone_constant(alcove_state_t *ap, const char *arg, size_t len,
+        char *reply, size_t rlen)
 {
-    unsigned long long val = 0;
+#ifdef __linux__
+    int index = 0;
+    int rindex = 0;
 
-    if (alcove_lookup_define(name, &val, constants) < 0)
-        return alcove_encode_atom(buf, len, index, "unknown");
+    char flag[MAXATOMLEN] = {0};
 
-    return alcove_encode_ulonglong(buf, len, index, val);
+    /* flag */
+    if (alcove_decode_atom(arg, len, &index, flag) < 0)
+        return -1;
+
+    ALCOVE_ERR(alcove_encode_version(reply, rlen, &rindex));
+    ALCOVE_ERR(alcove_encode_constant(reply, rlen, &rindex,
+                flag, alcove_clone_constants));
+    return rindex;
+#else
+    return alcove_mk_atom(reply, rlen, "undef");
+#endif
 }

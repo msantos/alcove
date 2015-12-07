@@ -15,8 +15,8 @@
 #include "alcove.h"
 
     int
-alcove_decode_define_list(const char *buf, size_t len, int *index, int *val,
-        const alcove_define_t *constants)
+alcove_decode_constant_list(const char *buf, size_t len, int *index, int *val,
+        const alcove_constant_t *constants)
 {
     int type = 0;
     int arity = 0;
@@ -63,7 +63,7 @@ alcove_decode_define_list(const char *buf, size_t len, int *index, int *val,
                 return -1;
 
             for (i = 0; i < length; i++) {
-                rv = alcove_decode_define(buf, len, index, &constant,
+                rv = alcove_decode_constant(buf, len, index, &constant,
                         constants);
 
                 if (rv != 0)
