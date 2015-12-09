@@ -33,8 +33,14 @@ alcove_call(alcove_state_t *ap, u_int32_t call,
 
     fun = &calls[call];
 
-    if ( (len <= 2) || ((ei_decode_version(arg, &index, &version) < 0)
-            && version != ERL_VERSION_MAGIC))
+    /* minimum input in external term format
+     * Magic:1/bytes, SmallTupleHeader:1/bytes, Arity:1/bytes
+     * <<131,104,0>>
+     */
+    if (len < 4)
+        goto BADARG;
+
+    if (ei_decode_version(arg, &index, &version) < 0)
         goto BADARG;
 
     if (alcove_decode_tuple_header(arg, len, &index, &arity) < 0)
