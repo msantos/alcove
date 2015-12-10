@@ -16,12 +16,6 @@
 
 #include <sys/stat.h>
 
-#ifdef __linux__
-#pragma message "Support for namespaces using clone(2) enabled"
-#else
-#pragma message "Support for namespaces using clone(2) disabled"
-#endif
-
 static int alcove_signal_init();
 static int alcove_rlimit_init();
 static int alcove_fd_init(char *fifo);

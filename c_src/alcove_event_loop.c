@@ -36,12 +36,6 @@ enum {
 
 #define ALCOVE_IOVEC_COUNT(_array) (sizeof(_array)/sizeof(_array[0]))
 
-#ifdef __linux__
-#pragma message "Support for namespaces using clone(2) enabled"
-#else
-#pragma message "Support for namespaces using clone(2) disabled"
-#endif
-
 static int alcove_stdin(alcove_state_t *ap);
 static ssize_t alcove_msg_call(alcove_state_t *ap, unsigned char *buf,
         u_int16_t buflen);

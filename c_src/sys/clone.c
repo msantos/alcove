@@ -17,6 +17,10 @@
 #include "alcove_fork.h"
 #include "alcove_clone_constants.h"
 
+#ifdef __linux__
+#pragma message "Support for namespaces using clone(2) enabled"
+#endif
+
 /*
  * clone(2)
  *
