@@ -244,7 +244,7 @@ alcove_msg_call(alcove_state_t *ap, unsigned char *buf, u_int16_t buflen)
     buf += 2;
 
     rlen = alcove_call(ap, call, (const char *)buf, buflen,
-            reply, sizeof(reply));
+            reply, ALCOVE_MSGLEN(ap->depth, sizeof(reply)));
 
     /* Must crash on error. The port may have allocated memory or
      * performed some other destructive action.

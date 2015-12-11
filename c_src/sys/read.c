@@ -29,7 +29,6 @@ alcove_sys_read(alcove_state_t *ap, const char *arg, size_t len,
     int fd = -1;
     size_t count = 0;
     char buf[MAXMSGLEN] = {0};
-    size_t maxlen = 0;
     int rv = 0;
 
     /* fd */
@@ -42,9 +41,7 @@ alcove_sys_read(alcove_state_t *ap, const char *arg, size_t len,
         return -1;
 
     /* Silently truncate too large values of count */
-    maxlen = ALCOVE_MSGLEN(ap->depth, sizeof(buf));
-
-    rv = read(fd, buf, MIN(count,maxlen));
+    rv = read(fd, buf, MIN(count,rlen));
 
     if (rv < 0)
         return alcove_mk_errno(reply, rlen, errno);
