@@ -42,7 +42,7 @@ alcove_sys_setopt(alcove_state_t *ap, const char *arg, size_t len,
         ap->maxchild = val;
     }
     else if (strcmp(opt, "maxforkdepth") == 0) {
-        ap->maxforkdepth = val;
+        ap->maxforkdepth = MIN(val,UINT8_MAX);
     }
     else if (strcmp(opt, "termsig") == 0) {
         ALCOVE_SETOPT(ap, alcove_opt_termsig, val);

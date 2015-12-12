@@ -61,6 +61,8 @@ main(int argc, char *argv[])
             case 'd':
                 boot = 0;
                 ap->depth = (u_int16_t)atoi(optarg);
+                if (ap->depth > UINT8_MAX)
+                    err(EXIT_FAILURE, "maxforkdepth");
                 break;
             case 'm':
                 ap->maxchild = (u_int16_t)atoi(optarg);
