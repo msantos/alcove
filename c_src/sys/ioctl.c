@@ -14,7 +14,7 @@
  */
 #include "alcove.h"
 #include "alcove_call.h"
-#include "sys/ioctl.h"
+#include "alcove_ioctl_constants.h"
 
 typedef struct {
     u_char type;
@@ -58,12 +58,15 @@ alcove_sys_ioctl(alcove_state_t *ap, const char *arg, size_t len,
         return -1;
 
     /* request */
-#if defined(__linux__) || defined(__sunos__)
-    if (alcove_decode_int(arg, len, &index, &request) < 0)
-#else
-    if (alcove_decode_ulong(arg, len, &index, &request) < 0)
-#endif
-        return -1;
+    switch (alcove_decode_constant(arg, len, &index, &request,
+                alcove_ioctl_constants)) {
+        case 0:
+            break;
+        case 1:
+            return alcove_mk_error(reply, rlen, "enotsup");
+        default:
+            return -1;
+    }
 
     /* argp */
     if (alcove_get_type(arg, len, &index, &type, &arity) < 0)
