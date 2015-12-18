@@ -21,7 +21,7 @@ static int alcove_rlimit_init();
 static int alcove_fd_init(char *fifo);
 int alcove_fdmove(int fd, int dst);
 
-static void usage(alcove_state_t *);
+static void usage(void);
 
 extern char *__progname;
 
@@ -72,7 +72,7 @@ main(int argc, char *argv[])
                 break;
             case 'h':
             default:
-                usage(ap);
+                usage();
         }
     }
 
@@ -252,7 +252,7 @@ alcove_fdmove(int fd, int dst)
 }
 
     static void
-usage(alcove_state_t *ap)
+usage()
 {
     (void)fprintf(stderr, "%s %s\n",
             __progname, ALCOVE_VERSION);
