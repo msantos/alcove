@@ -261,6 +261,9 @@ alcove_proxy_hdr(unsigned char *hdr, size_t hdrlen, u_int16_t type,
 {
     u_int16_t len = 0;
 
+    if (hdrlen < 8)
+        err(EXIT_FAILURE, "alcove_proxy_hdr");
+
     put_int16(sizeof(type) + sizeof(pid) + buflen, hdr); len = 2;
     put_int16(type, hdr+len); len += 2;
     put_int32(pid, hdr+len); len += 4;
@@ -273,6 +276,9 @@ alcove_call_hdr(unsigned char *hdr, size_t hdrlen, u_int16_t type,
         size_t buflen)
 {
     u_int16_t len = 0;
+
+    if (hdrlen < 4)
+        err(EXIT_FAILURE, "alcove_call_hdr");
 
     put_int16(sizeof(type) + buflen, hdr); len = 2;
     put_int16(type, hdr+len); len += 2;
@@ -447,6 +453,8 @@ exited_pid(alcove_state_t *ap, alcove_child_t *c, void *arg1, void *arg2)
     int index = 0;
     char t[MAXMSGLEN] = {0};
 
+    UNUSED(arg2);
+
     if ( (c->fdin >= 0) && (ap->opt & alcove_opt_stdin_closed)) {
         index = alcove_mk_atom(t, sizeof(t), "stdin_closed");
         if (alcove_call_fake_reply(c->pid, ALCOVE_MSG_CTL, t, index) < 0)
@@ -493,6 +501,9 @@ set_pid(alcove_state_t *ap, alcove_child_t *c, void *arg1, void *arg2)
 {
     struct pollfd *fds = arg1;
 
+    UNUSED(ap);
+    UNUSED(arg2);
+
     if (c->fdctl > -1) {
         fds[c->fdctl].fd = c->fdctl;
         fds[c->fdctl].events = POLLIN;
@@ -525,6 +536,8 @@ write_to_pid(alcove_state_t *ap, alcove_child_t *c, void *arg1, void *arg2)
     ssize_t n = 0;
     ssize_t written = 0;
 
+    UNUSED(ap);
+
     if (c->fdin == -1)
         return -2;
 
@@ -546,6 +559,8 @@ read_from_pid(alcove_state_t *ap, alcove_child_t *c, void *arg1, void *arg2)
     struct pollfd *fds = arg1;
     int len = 0;
     char t[MAXMSGLEN] = {0};
+
+    UNUSED(arg2);
 
     if (c->fdctl > -1 &&
             (fds[c->fdctl].revents & (POLLIN|POLLERR|POLLHUP|POLLNVAL))) {

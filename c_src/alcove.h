@@ -57,9 +57,7 @@
 #define MIN(x,y) ((x) < (y) ? (x) : (y))
 #endif
 
-#ifndef ERL_VERSION_MAGIC
-#define ERL_VERSION_MAGIC 131
-#endif
+#define UNUSED(x) (void)x
 
 #define MAXFORKDEPTH    16
 #define MAXMSGLEN       UINT16_MAX
