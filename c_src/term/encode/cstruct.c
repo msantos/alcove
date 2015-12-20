@@ -27,6 +27,9 @@ alcove_encode_cstruct(char *reply, size_t rlen, int *rindex,
 
     for ( ; i < nptr; i++) {
         if (ptr[i].p) {
+            if (offset + sizeof(void *) > len)
+                return -1;
+
             /* Allocated buffer */
             if (alcove_encode_tuple_header(reply, rlen, rindex, 2) < 0)
                 return -1;
@@ -39,6 +42,9 @@ alcove_encode_cstruct(char *reply, size_t rlen, int *rindex,
             offset += sizeof(void *);
         }
         else {
+            if (offset + ptr[i].len > len)
+                return -1;
+
             /* Static binary */
             if (alcove_encode_binary(reply, rlen, rindex, buf+offset, ptr[i].len) < 0)
                 return -1;
