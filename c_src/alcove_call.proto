@@ -1,4 +1,6 @@
 alloc/1
+cap_enter/0
+cap_getmode/0
 chdir/1
 chmod/2
 chown/3

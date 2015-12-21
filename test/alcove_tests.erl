@@ -53,6 +53,7 @@ run(State) ->
         tmpfs(State),
         chroot(State),
         jail(State),
+        cap_enter(State),
         chdir(State),
         setrlimit(State),
         setgid(State),
@@ -401,6 +402,18 @@ jail(#state{os = {unix,freebsd}, pid = Drv, child = Child}) ->
         ?_assertMatch({error,einval}, Reply2)
     ];
 jail(_) ->
+    [].
+
+cap_enter(#state{os = {unix,freebsd}, pid = Drv}) ->
+    {ok, Child} = alcove:fork(Drv, []),
+    Reply0 = alcove:cap_enter(Drv, [Child]),
+    Reply1 = alcove:cap_getmode(Drv, [Child]),
+
+    [
+        ?_assertEqual(ok, Reply0),
+        ?_assertEqual({ok,1}, Reply1)
+    ];
+cap_enter(_) ->
     [].
 
 chdir(#state{pid = Drv, child = Child}) ->

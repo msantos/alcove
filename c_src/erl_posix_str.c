@@ -106,6 +106,9 @@ erl_errno_id(error)
 #ifdef EBUSY
     case EBUSY: return "ebusy";
 #endif
+#ifdef ECAPMODE
+    case ECAPMODE: return "ecapmode";
+#endif
 #ifdef ECHILD
     case ECHILD: return "echild";
 #endif
@@ -319,6 +322,9 @@ erl_errno_id(error)
 #ifdef ENOTBLK
     case ENOTBLK: return "enotblk";
 #endif
+#ifdef ENOTCAPABLE
+    case ENOTCAPABLE: return "enotcapable";
+#endif
 #ifdef ENOTCONN
     case ENOTCONN: return "enotconn";
 #endif
@@ -330,6 +336,9 @@ erl_errno_id(error)
 #endif
 #ifdef ENOTNAM
     case ENOTNAM: return "enotnam";
+#endif
+#ifdef ENOTRECOVERABLE
+    case ENOTRECOVERABLE: return "enotrecoverable";
 #endif
 #ifdef ENOTSOCK
     case ENOTSOCK: return "enotsock";
@@ -348,6 +357,9 @@ erl_errno_id(error)
 #endif
 #if defined(EOPNOTSUPP) && (!defined(ENOTSUP) || (EOPNOTSUPP != ENOTSUP))
     case EOPNOTSUPP: return "eopnotsupp";
+#endif
+#ifdef EOWNERDEAD
+    case EOWNERDEAD: return "eownerdead";
 #endif
 #ifdef EOVERFLOW
     case EOVERFLOW: return "eoverflow";
