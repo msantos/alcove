@@ -29,6 +29,8 @@ alcove_sys_file_constant(alcove_state_t *ap, const char *arg, size_t len,
 
     char flag[MAXATOMLEN] = {0};
 
+    UNUSED(ap);
+
     /* flag */
     if (alcove_decode_atom(arg, len, &index, flag) < 0)
         return -1;
