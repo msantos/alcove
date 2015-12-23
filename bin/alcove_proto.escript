@@ -129,6 +129,7 @@ static({will_return,1}) ->
 will_return(execve) -> false;
 will_return(execvp) -> false;
 will_return(exit) -> false;
+will_return(fexecve) -> false;
 will_return(_) -> true.
 ".
 

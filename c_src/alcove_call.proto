@@ -16,6 +16,7 @@ execvp/2
 exit/1
 fcntl/3
 fcntl_constant/1
+fexecve/3
 file_constant/1
 fork/0
 getcwd/0

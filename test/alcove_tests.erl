@@ -75,6 +75,7 @@ run(State) ->
         stdout(State),
         stderr(State),
         execve(State),
+        fexecve(State),
         stream(State),
         open(State),
         select(State),
@@ -815,6 +816,21 @@ execve(#state{pid = Drv}) ->
         ?_assertEqual(<<"FOO=bar\nBAR=1234567\n">>, Stdout0),
         ?_assertEqual(false, Stdout1)
     ].
+
+fexecve(#state{os = {unix,OS}, pid = Drv}) when OS =:= freebsd; OS =:= linux ->
+    {ok, Child0} = alcove:fork(Drv, []),
+
+    {ok, FD} = alcove:open(Drv, [Child0], "/usr/bin/env", [o_rdonly,o_cloexec], 0),
+    Reply0 = alcove:fexecve(Drv, [Child0], FD, [""], ["FOO=bar", "BAR=1234567"]),
+
+    Stdout0 = alcove:stdout(Drv, [Child0], 5000),
+
+    [
+        ?_assertEqual(ok, Reply0),
+        ?_assertEqual(<<"FOO=bar\nBAR=1234567\n">>, Stdout0)
+    ];
+fexecve(_) ->
+    [].
 
 stream(#state{pid = Drv}) ->
     Chain = chain(Drv, 16),
