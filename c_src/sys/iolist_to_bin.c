@@ -24,6 +24,8 @@ alcove_sys_iolist_to_bin(alcove_state_t *ap, const char *arg, size_t len,
     char buf[MAXMSGLEN] = {0};
     size_t blen = sizeof(buf);
 
+    UNUSED(ap);
+
     if (alcove_decode_iolist(arg, len, &index, buf, &blen) < 0)
         return -1;
 

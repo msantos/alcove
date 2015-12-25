@@ -29,6 +29,8 @@ alcove_sys_unshare(alcove_state_t *ap, const char *arg, size_t len,
     int index = 0;
     int flags = 0;
 
+    UNUSED(ap);
+
     /* flags */
     switch (alcove_decode_constant_list(arg, len, &index, &flags,
                 alcove_clone_constants)) {
@@ -44,6 +46,10 @@ alcove_sys_unshare(alcove_state_t *ap, const char *arg, size_t len,
         ? alcove_mk_errno(reply, rlen, errno)
         : alcove_mk_atom(reply, rlen, "ok");
 #else
+    UNUSED(ap);
+    UNUSED(arg);
+    UNUSED(len);
+
     return alcove_mk_atom(reply, rlen, "undef");
 #endif
 }

@@ -12,8 +12,8 @@ int main(int argc, char *argv[]) {
             file:delete("test/test_setns.c"),
             case Retval of
                 "0" ->
-                    Cflags = os:getenv("ALCOVE_CFLAGS", "") ++ " -DHAVE_SETNS",
-                    os:putenv("ALCOVE_CFLAGS", Cflags);
+                    Cflags = os:getenv("ALCOVE_DEFINE", "") ++ " -DHAVE_SETNS",
+                    os:putenv("ALCOVE_DEFINE", Cflags);
                 _ ->
                     true
             end;
@@ -38,8 +38,8 @@ int main(int argc, char *argv[]) {
             file:delete("test/test_seccomp.c"),
             case Retval of
                 "0" ->
-                    Cflags = os:getenv("ALCOVE_CFLAGS", "") ++ " -DHAVE_SECCOMP",
-                    os:putenv("ALCOVE_CFLAGS", Cflags);
+                    Cflags = os:getenv("ALCOVE_DEFINE", "") ++ " -DHAVE_SECCOMP",
+                    os:putenv("ALCOVE_DEFINE", Cflags);
                 _ ->
                     true
             end;

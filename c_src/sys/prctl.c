@@ -62,6 +62,8 @@ alcove_sys_prctl(alcove_state_t *ap, const char *arg, size_t len,
 
     int rv = 0;
 
+    UNUSED(ap);
+
     /* option */
     switch (alcove_decode_constant(arg, len, &index, &option,
                 alcove_prctl_constants)) {
@@ -167,6 +169,10 @@ alcove_sys_prctl(alcove_state_t *ap, const char *arg, size_t len,
 
     return rindex;
 #else
+    UNUSED(ap);
+    UNUSED(arg);
+    UNUSED(len);
+
     return alcove_mk_atom(reply, rlen, "undef");
 #endif
 }

@@ -41,6 +41,12 @@ alcove_sys_cap_enter(alcove_state_t *ap, const char *arg, size_t len,
         ? alcove_mk_errno(reply, rlen, errno)
         : alcove_mk_atom(reply, rlen, "ok");
 #else
+    UNUSED(ap);
+    UNUSED(arg);
+    UNUSED(len);
+    UNUSED(reply);
+    UNUSED(rlen);
+
     return alcove_mk_atom(reply, rlen, "undef");
 #endif
 }

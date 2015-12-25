@@ -51,6 +51,12 @@ alcove_sys_cap_getmode(alcove_state_t *ap, const char *arg, size_t len,
 
     return rindex;
 #else
+    UNUSED(ap);
+    UNUSED(arg);
+    UNUSED(len);
+    UNUSED(reply);
+    UNUSED(rlen);
+
     return alcove_mk_atom(reply, rlen, "undef");
 #endif
 }

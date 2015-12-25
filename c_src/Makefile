@@ -29,9 +29,10 @@ else ifeq ($(UNAME_SYS), SunOS)
 	CFLAGS += -std=c99 -D_POSIX_C_SOURCE=200112L -D__EXTENSIONS__=1
 endif
 
-CFLAGS += -g -Wall -Wextra -Wconversion $(ALCOVE_CFLAGS) -I $(C_SRC_DIR) -I $(ERTS_INCLUDE_DIR) -I $(ERL_INTERFACE_INCLUDE_DIR)
+ALCOVE_CFLAGS ?= -g -Wall -Wextra -Wconversion
+CFLAGS += $(ALCOVE_CFLAGS) $(ALCOVE_DEFINE) -I $(C_SRC_DIR) -I $(ERTS_INCLUDE_DIR) -I $(ERL_INTERFACE_INCLUDE_DIR)
 
-LDLIBS += -L $(ERL_INTERFACE_LIB_DIR) -lerl_interface -lei
+LDLIBS += -L $(ERL_INTERFACE_LIB_DIR) $(ALCOVE_LDFLAGS) -lerl_interface -lei
 
 # Verbosity.
 

@@ -31,6 +31,8 @@ alcove_sys_fexecve(alcove_state_t *ap, const char *arg, size_t len,
     char **envp = NULL;
     int errnum = 0;
 
+    UNUSED(ap);
+
     /* fd */
     if (alcove_decode_int(arg, len, &index, &fd) < 0)
         return -1;
@@ -52,6 +54,10 @@ alcove_sys_fexecve(alcove_state_t *ap, const char *arg, size_t len,
 
     return alcove_mk_errno(reply, rlen, errnum);
 #else
+    UNUSED(ap);
+    UNUSED(arg);
+    UNUSED(len);
+
     return alcove_mk_atom(reply, rlen, "undef");
 #endif
 }

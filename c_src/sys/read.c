@@ -31,6 +31,8 @@ alcove_sys_read(alcove_state_t *ap, const char *arg, size_t len,
     char buf[MAXMSGLEN] = {0};
     int rv = 0;
 
+    UNUSED(ap);
+
     /* fd */
     if (alcove_decode_int(arg, len, &index, &fd) < 0)
         return -1;

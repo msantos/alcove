@@ -50,6 +50,8 @@ alcove_sys_fcntl(alcove_state_t *ap, const char *arg, size_t len,
 
     int rv = 0;
 
+    UNUSED(ap);
+
     /* fd */
     if (alcove_decode_int(arg, len, &index, &fd) < 0)
         return -1;

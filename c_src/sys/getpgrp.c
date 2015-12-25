@@ -22,5 +22,9 @@
 alcove_sys_getpgrp(alcove_state_t *ap, const char *arg, size_t len,
         char *reply, size_t rlen)
 {
+    UNUSED(ap);
+    UNUSED(arg);
+    UNUSED(len);
+
     return alcove_mk_long(reply, rlen, getpgrp());
 }

@@ -33,6 +33,9 @@ alcove_sys_fork(alcove_state_t *ap, const char *arg, size_t len,
     sigset_t set;
     int errnum = 0;
 
+    UNUSED(arg);
+    UNUSED(len);
+
     if (ap->depth >= ap->maxforkdepth)
         return alcove_mk_errno(reply, rlen, EAGAIN);
 

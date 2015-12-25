@@ -105,6 +105,10 @@ ERROR:
     free(child_stack);
     return alcove_mk_errno(reply, rlen, errnum);
 #else
+    UNUSED(ap);
+    UNUSED(arg);
+    UNUSED(len);
+
     return alcove_mk_atom(reply, rlen, "undef");
 #endif
 }

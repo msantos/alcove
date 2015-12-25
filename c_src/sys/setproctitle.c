@@ -23,12 +23,18 @@ alcove_sys_setproctitle(alcove_state_t *ap, const char *arg, size_t len,
         char *reply, size_t rlen)
 {
 #if defined(__linux__) || defined(__sunos__)
+    UNUSED(ap);
+    UNUSED(arg);
+    UNUSED(len);
+
     return alcove_mk_atom(reply, rlen, "undef");
 #else
     int index = 0;
 
     char name[MAXMSGLEN] = {0};
     size_t nlen = sizeof(name);
+
+    UNUSED(ap);
 
     if (alcove_decode_iolist(arg, len, &index, name, &nlen) < 0)
         return -1;

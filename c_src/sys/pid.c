@@ -27,6 +27,9 @@ alcove_sys_pid(alcove_state_t *ap, const char *arg, size_t len,
     int rindex = 0;
     size_t count = 0;
 
+    UNUSED(arg);
+    UNUSED(len);
+
     /* Count the number of PIDs */
     if (pid_foreach(ap, 0, &count, NULL, pid_not_equal, count_pid) < 0)
         return -1;
@@ -59,6 +62,11 @@ alcove_sys_pid(alcove_state_t *ap, const char *arg, size_t len,
 count_pid(alcove_state_t *ap, alcove_child_t *c, void *arg1, void *arg2)
 {
     size_t *n = arg1;
+
+    UNUSED(ap);
+    UNUSED(c);
+    UNUSED(arg2);
+
     *n += 1;
     return 1;
 }
@@ -68,6 +76,8 @@ cons_pid(alcove_state_t *ap, alcove_child_t *c, void *arg1, void *arg2)
 {
     char *buf = arg1;
     int *index = arg2;
+
+    UNUSED(ap);
 
     if (ei_encode_list_header(buf, index, 1) < 0)
         return -1;

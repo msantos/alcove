@@ -19,6 +19,10 @@
 alcove_sys_version(alcove_state_t *ap, const char *arg, size_t len,
         char *reply, size_t rlen)
 {
+    UNUSED(ap);
+    UNUSED(arg);
+    UNUSED(len);
+
     return alcove_mk_binary(reply, rlen,
             ALCOVE_VERSION, sizeof(ALCOVE_VERSION)-1);
 }

@@ -29,6 +29,10 @@ alcove_sys_getgroups(alcove_state_t *ap, const char *arg, size_t len,
     gid_t *list = NULL;
     int errnum = 0;
 
+    UNUSED(ap);
+    UNUSED(arg);
+    UNUSED(len);
+
     size = getgroups(0, NULL);
     if (size < 0)
         return alcove_mk_errno(reply, rlen, errno);

@@ -37,6 +37,8 @@ alcove_sys_setgroups(alcove_state_t *ap, const char *arg, size_t len,
     int type = 0;
     int arity = 0;
 
+    UNUSED(ap);
+
     if (alcove_get_type(arg, len, &index, &type, &arity) < 0)
         return -1;
 

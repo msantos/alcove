@@ -26,6 +26,8 @@ alcove_sys_close(alcove_state_t *ap, const char *arg, size_t len,
     int index = 0;
     int fd = 0;
 
+    UNUSED(ap);
+
     /* fd */
     if (alcove_decode_int(arg, len, &index, &fd) < 0)
         return -1;

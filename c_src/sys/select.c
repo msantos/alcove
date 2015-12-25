@@ -44,6 +44,8 @@ alcove_sys_select(alcove_state_t *ap, const char *arg, size_t len,
 
     int rv = 0;
 
+    UNUSED(ap);
+
     /* readfds */
     if (alcove_list_to_fd_set(arg, len, &index, &readfds, &nfds) < 0)
         return alcove_mk_errno(reply, rlen, EBADF);

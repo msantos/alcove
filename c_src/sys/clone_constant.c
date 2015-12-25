@@ -30,6 +30,8 @@ alcove_sys_clone_constant(alcove_state_t *ap, const char *arg, size_t len,
 
     char flag[MAXATOMLEN] = {0};
 
+    UNUSED(ap);
+
     /* flag */
     if (alcove_decode_atom(arg, len, &index, flag) < 0)
         return -1;
@@ -39,6 +41,10 @@ alcove_sys_clone_constant(alcove_state_t *ap, const char *arg, size_t len,
                 flag, alcove_clone_constants));
     return rindex;
 #else
+    UNUSED(ap);
+    UNUSED(arg);
+    UNUSED(len);
+
     return alcove_mk_atom(reply, rlen, "undef");
 #endif
 }

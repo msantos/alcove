@@ -32,6 +32,10 @@ alcove_sys_gethostname(alcove_state_t *ap, const char *arg, size_t len,
     char name[HOST_NAME_MAX] = {0};
     int rv = 0;
 
+    UNUSED(ap);
+    UNUSED(arg);
+    UNUSED(len);
+
     rv = gethostname(name, HOST_NAME_MAX-1);
 
     if (rv < 0)

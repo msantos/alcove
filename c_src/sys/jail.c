@@ -41,6 +41,8 @@ alcove_sys_jail(alcove_state_t *ap, const char *arg, size_t len,
 
     int jid = 0;
 
+    UNUSED(ap);
+
     if (alcove_decode_cstruct(arg, len, &index, (char *)&j, &jlen,
                 &elem, &nelem) < 0)
         return -1;
@@ -61,6 +63,10 @@ alcove_sys_jail(alcove_state_t *ap, const char *arg, size_t len,
 
     return rindex;
 #else
+    UNUSED(ap);
+    UNUSED(arg);
+    UNUSED(len);
+
     return alcove_mk_atom(reply, rlen, "undef");
 #endif
 }

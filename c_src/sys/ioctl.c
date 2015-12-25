@@ -53,6 +53,8 @@ alcove_sys_ioctl(alcove_state_t *ap, const char *arg, size_t len,
 
     int rv = 0;
 
+    UNUSED(ap);
+
     /* file descriptor */
     if (alcove_decode_int(arg, len, &index, &d) < 0)
         return -1;

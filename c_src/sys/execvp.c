@@ -30,6 +30,8 @@ alcove_sys_execvp(alcove_state_t *ap, const char *arg, size_t len,
     char **argv = NULL;
     int errnum = 0;
 
+    UNUSED(ap);
+
     /* progname */
     if (alcove_decode_iolist(arg, len, &index, progname, &plen) ||
             plen == 0)

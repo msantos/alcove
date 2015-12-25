@@ -28,6 +28,8 @@ alcove_sys_getsid(alcove_state_t *ap, const char *arg, size_t len,
     pid_t pid = 0;
     pid_t rv = 0;
 
+    UNUSED(ap);
+
     /* pid */
     if (alcove_decode_int(arg, len, &index, &pid) < 0)
         return -1;

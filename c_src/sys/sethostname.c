@@ -34,6 +34,8 @@ alcove_sys_sethostname(alcove_state_t *ap, const char *arg, size_t len,
     int rv = 0;
     int errnum = 0;
 
+    UNUSED(ap);
+
     /* hostname */
     if (alcove_decode_iolist(arg, len, &index, name, &nlen) < 0 ||
             nlen == 0)

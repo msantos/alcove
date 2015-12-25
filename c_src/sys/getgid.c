@@ -23,5 +23,9 @@
 alcove_sys_getgid(alcove_state_t *ap, const char *arg, size_t len,
         char *reply, size_t rlen)
 {
+    UNUSED(ap);
+    UNUSED(arg);
+    UNUSED(len);
+
     return alcove_mk_ulong(reply, rlen, getgid());
 }

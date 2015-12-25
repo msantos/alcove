@@ -28,6 +28,10 @@ alcove_sys_environ(alcove_state_t *ap, const char *arg, size_t len,
     int rindex = 0;
     char **envp = environ;
 
+    UNUSED(ap);
+    UNUSED(arg);
+    UNUSED(len);
+
     ALCOVE_ERR(alcove_encode_version(reply, rlen, &rindex));
 
     for ( ; envp && *envp; envp++) {

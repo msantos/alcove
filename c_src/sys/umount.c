@@ -31,6 +31,8 @@ alcove_sys_umount(alcove_state_t *ap, const char *arg, size_t len,
 
     int rv = 0;
 
+    UNUSED(ap);
+
     /* source */
     if (alcove_decode_iolist(arg, len, &index, source, &slen) < 0 ||
             slen == 0)

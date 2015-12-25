@@ -25,6 +25,10 @@ alcove_sys_setsid(alcove_state_t *ap, const char *arg, size_t len,
     int rindex = 0;
     pid_t pid = setsid();
 
+    UNUSED(ap);
+    UNUSED(arg);
+    UNUSED(len);
+
     if (pid < 0)
         return alcove_mk_errno(reply, rlen, errno);
 

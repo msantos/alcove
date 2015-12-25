@@ -145,6 +145,10 @@ alcove_parent_fd(alcove_state_t *ap, alcove_stdio_t *fd, pid_t pid)
     int
 avail_pid(alcove_state_t *ap, alcove_child_t *c, void *arg1, void *arg2)
 {
+    UNUSED(ap);
+    UNUSED(arg1);
+    UNUSED(arg2);
+
     /* slot found */
     if (c->pid == 0)
         return 0;
@@ -158,6 +162,8 @@ stdio_pid(alcove_state_t *ap, alcove_child_t *c, void *arg1, void *arg2)
     alcove_stdio_t *fd = arg1;
     pid_t *pid = arg2;
 
+    UNUSED(ap);
+
     c->pid = *pid;
     c->fdctl = fd->ctl[PIPE_WRITE];
     c->fdin = fd->in[PIPE_WRITE];
@@ -170,6 +176,10 @@ stdio_pid(alcove_state_t *ap, alcove_child_t *c, void *arg1, void *arg2)
     int
 close_parent_fd(alcove_state_t *ap, alcove_child_t *c, void *arg1, void *arg2)
 {
+    UNUSED(ap);
+    UNUSED(arg1);
+    UNUSED(arg2);
+
     (void)alcove_close_fd(c->fdctl);
     (void)alcove_close_fd(c->fdin);
     (void)alcove_close_fd(c->fdout);

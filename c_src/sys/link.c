@@ -30,6 +30,8 @@ alcove_sys_link(alcove_state_t *ap, const char *arg, size_t len,
     size_t newpathlen = sizeof(newpath)-1;
     int rv = 0;
 
+    UNUSED(ap);
+
     /* oldpath */
     if (alcove_decode_iolist(arg, len, &index, oldpath, &oldpathlen) < 0 ||
             oldpathlen == 0)

@@ -61,6 +61,8 @@ alcove_sys_setns(alcove_state_t *ap, const char *arg, size_t len,
     int nstype = 0;
     int rv = 0;
 
+    UNUSED(ap);
+
     /* file descriptor */
     if (alcove_decode_int(arg, len, &index, &fd) < 0)
         return -1;
@@ -82,6 +84,10 @@ alcove_sys_setns(alcove_state_t *ap, const char *arg, size_t len,
         ? alcove_mk_errno(reply, rlen, errno)
         : alcove_mk_atom(reply, rlen, "ok");
 #else
+    UNUSED(ap);
+    UNUSED(arg);
+    UNUSED(len);
+
     return alcove_mk_atom(reply, rlen, "undef");
 #endif
 }

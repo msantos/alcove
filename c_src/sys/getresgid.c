@@ -23,6 +23,10 @@ alcove_sys_getresgid(alcove_state_t *ap, const char *arg, size_t len,
         char *reply, size_t rlen)
 {
 #if defined(__sunos__)
+    UNUSED(ap);
+    UNUSED(arg);
+    UNUSED(len);
+
     return alcove_mk_atom(reply, rlen, "undef");
 #else
     int rindex = 0;
@@ -30,6 +34,10 @@ alcove_sys_getresgid(alcove_state_t *ap, const char *arg, size_t len,
     gid_t egid = {0};
     gid_t sgid = {0};
     int rv = 0;
+
+    UNUSED(ap);
+    UNUSED(arg);
+    UNUSED(len);
 
     rv = getresgid(&gid, &egid, &sgid);
 

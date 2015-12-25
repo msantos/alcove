@@ -31,6 +31,8 @@ alcove_sys_write(alcove_state_t *ap, const char *arg, size_t len,
     size_t buflen = sizeof(buf);
     int rv = 0;
 
+    UNUSED(ap);
+
     /* fd */
     if (alcove_decode_int(arg, len, &index, &fd) < 0)
         return -1;

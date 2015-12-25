@@ -30,6 +30,8 @@ alcove_sys_mount_constant(alcove_state_t *ap, const char *arg, size_t len,
 
     char name[MAXATOMLEN] = {0};
 
+    UNUSED(ap);
+
     /* flag */
     if (alcove_decode_atom(arg, len, &index, name) < 0)
         return -1;

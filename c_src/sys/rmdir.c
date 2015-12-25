@@ -28,6 +28,8 @@ alcove_sys_rmdir(alcove_state_t *ap, const char *arg, size_t len,
     size_t pathlen = sizeof(pathname)-1;
     int rv = 0;
 
+    UNUSED(ap);
+
     /* pathname */
     if (alcove_decode_iolist(arg, len, &index, pathname, &pathlen) < 0 ||
             pathlen == 0)

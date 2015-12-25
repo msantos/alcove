@@ -27,6 +27,8 @@ alcove_sys_alloc(alcove_state_t *ap, const char *arg, size_t len,
     alcove_alloc_t *elem = NULL;
     ssize_t nelem = 0;
 
+    UNUSED(ap);
+
     if (alcove_decode_cstruct(arg, len, &index, buf, &size,
                 &elem, &nelem) < 0)
         return -1;

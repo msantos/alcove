@@ -36,6 +36,8 @@ alcove_sys_syscall_constant(alcove_state_t *ap, const char *arg, size_t len,
 
     char name[MAXATOMLEN] = {0};
 
+    UNUSED(ap);
+
     /* name */
     if (alcove_decode_atom(arg, len, &index, name) < 0)
         return -1;
@@ -45,6 +47,10 @@ alcove_sys_syscall_constant(alcove_state_t *ap, const char *arg, size_t len,
                 name, alcove_syscall_constants));
     return rindex;
 #else
+    UNUSED(ap);
+    UNUSED(arg);
+    UNUSED(len);
+
     return alcove_mk_atom(reply, rlen, "undef");
 #endif
 }

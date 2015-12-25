@@ -34,6 +34,8 @@ alcove_sys_readdir(alcove_state_t *ap, const char *arg, size_t len,
     DIR *dirp = NULL;
     struct dirent *dent = NULL;
 
+    UNUSED(ap);
+
     /* name */
     if (alcove_decode_iolist(arg, len, &index, name, &namelen) < 0 ||
             namelen == 0)

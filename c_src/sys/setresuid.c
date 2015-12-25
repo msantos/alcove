@@ -23,6 +23,10 @@ alcove_sys_setresuid(alcove_state_t *ap, const char *arg, size_t len,
         char *reply, size_t rlen)
 {
 #if defined(__sunos__)
+    UNUSED(ap);
+    UNUSED(arg);
+    UNUSED(len);
+
     return alcove_mk_atom(reply, rlen, "undef");
 #else
     int index = 0;
@@ -30,6 +34,8 @@ alcove_sys_setresuid(alcove_state_t *ap, const char *arg, size_t len,
     uid_t euid = {0};
     uid_t suid = {0};
     int rv = 0;
+
+    UNUSED(ap);
 
     /* uid */
     if (alcove_decode_uint(arg, len, &index, &uid) < 0)

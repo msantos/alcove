@@ -31,6 +31,8 @@ alcove_sys_execve(alcove_state_t *ap, const char *arg, size_t len,
     char **envp = NULL;
     int errnum = 0;
 
+    UNUSED(ap);
+
     /* filename */
     if (alcove_decode_iolist(arg, len, &index, filename, &flen) ||
             flen == 0)

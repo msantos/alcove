@@ -23,6 +23,8 @@ alcove_sys_errno_id(alcove_state_t *ap, const char *arg, size_t len,
     int index = 0;
     int errnum = 0;
 
+    UNUSED(ap);
+
     /* errno */
     if (alcove_decode_int(arg, len, &index, &errnum) < 0)
         return -1;

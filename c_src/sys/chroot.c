@@ -28,6 +28,8 @@ alcove_sys_chroot(alcove_state_t *ap, const char *arg, size_t len,
     size_t pathlen = sizeof(path)-1;
     int rv = 0;
 
+    UNUSED(ap);
+
     /* path */
     if (alcove_decode_iolist(arg, len, &index, path, &pathlen) < 0 ||
             pathlen == 0)

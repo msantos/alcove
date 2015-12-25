@@ -30,6 +30,8 @@ alcove_sys_kill(alcove_state_t *ap, const char *arg, size_t len,
     int signum = 0;
     int rv = 0;
 
+    UNUSED(ap);
+
     /* pid */
     if (alcove_decode_int(arg, len, &index, &pid) < 0)
         return -1;

@@ -33,6 +33,8 @@ alcove_sys_sigaction(alcove_state_t *ap, const char *arg, size_t len,
     struct sigaction act;
     struct sigaction oact;
 
+    UNUSED(ap);
+
     (void)memset(&act, 0, sizeof(act));
     (void)memset(&oact, 0, sizeof(oact));
 

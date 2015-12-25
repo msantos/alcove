@@ -28,6 +28,8 @@ alcove_sys_unsetenv(alcove_state_t *ap, const char *arg, size_t len,
     size_t namelen = sizeof(name)-1;
     int rv = 0;
 
+    UNUSED(ap);
+
     /* name */
     if (alcove_decode_iolist(arg, len, &index, name, &namelen) < 0 ||
             namelen == 0)

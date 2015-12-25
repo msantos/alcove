@@ -29,6 +29,8 @@ alcove_sys_lseek(alcove_state_t *ap, const char *arg, size_t len,
     off_t offset = 0;
     int whence = 0;
 
+    UNUSED(ap);
+
     /* fd */
     if (alcove_decode_int(arg, len, &index, &fd) < 0)
         return -1;

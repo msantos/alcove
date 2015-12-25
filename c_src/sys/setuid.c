@@ -27,6 +27,8 @@ alcove_sys_setuid(alcove_state_t *ap, const char *arg, size_t len,
     uid_t uid = {0};
     int rv = 0;
 
+    UNUSED(ap);
+
     /* uid */
     if (alcove_decode_uint(arg, len, &index, &uid) < 0)
         return -1;

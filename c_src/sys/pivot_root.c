@@ -35,6 +35,8 @@ alcove_sys_pivot_root(alcove_state_t *ap, const char *arg, size_t len,
     size_t plen = sizeof(put_old)-1;
     int rv = 0;
 
+    UNUSED(ap);
+
     /* new_root */
     if (alcove_decode_iolist(arg, len, &index, new_root, &nlen) < 0 ||
             nlen == 0)
@@ -51,6 +53,10 @@ alcove_sys_pivot_root(alcove_state_t *ap, const char *arg, size_t len,
         ? alcove_mk_errno(reply, rlen, errno)
         : alcove_mk_atom(reply, rlen, "ok");
 #else
+    UNUSED(ap);
+    UNUSED(arg);
+    UNUSED(len);
+
     return alcove_mk_atom(reply, rlen, "undef");
 #endif
 }

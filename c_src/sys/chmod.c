@@ -31,6 +31,8 @@ alcove_sys_chmod(alcove_state_t *ap, const char *arg, size_t len,
     mode_t mode = {0};
     int rv = 0;
 
+    UNUSED(ap);
+
     /* path */
     if (alcove_decode_iolist(arg, len, &index, path, &plen) < 0 ||
             plen == 0)

@@ -33,6 +33,8 @@ alcove_sys_jail_remove(alcove_state_t *ap, const char *arg, size_t len,
     int jid = 0;
     int rv = 0;
 
+    UNUSED(ap);
+
     /* jid */
     if (alcove_decode_int(arg, len, &index, &jid) < 0)
         return -1;
@@ -43,6 +45,10 @@ alcove_sys_jail_remove(alcove_state_t *ap, const char *arg, size_t len,
         ? alcove_mk_errno(reply, rlen, errno)
         : alcove_mk_atom(reply, rlen, "ok");
 #else
+    UNUSED(ap);
+    UNUSED(arg);
+    UNUSED(len);
+
     return alcove_mk_atom(reply, rlen, "undef");
 #endif
 }

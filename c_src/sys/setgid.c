@@ -27,6 +27,8 @@ alcove_sys_setgid(alcove_state_t *ap, const char *arg, size_t len,
     gid_t gid = {0};
     int rv = 0;
 
+    UNUSED(ap);
+
     /* gid */
     if (alcove_decode_uint(arg, len, &index, &gid) < 0)
         return -1;

@@ -37,6 +37,8 @@ alcove_sys_setrlimit(alcove_state_t *ap, const char *arg, size_t len,
     struct rlimit rlim = {0};
     int rv = 0;
 
+    UNUSED(ap);
+
     /* resource */
     switch (alcove_decode_constant(arg, len, &index, &resource,
                 alcove_rlimit_constants)) {

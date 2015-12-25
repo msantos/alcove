@@ -32,6 +32,8 @@ alcove_sys_mkfifo(alcove_state_t *ap, const char *arg, size_t len,
     mode_t mode = {0};
     int rv = 0;
 
+    UNUSED(ap);
+
     /* pathname */
     if (alcove_decode_iolist(arg, len, &index, pathname, &plen) < 0 ||
             plen == 0)
