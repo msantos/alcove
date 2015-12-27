@@ -58,11 +58,14 @@ alcove_sys_prctl(alcove_state_t *ap, const char *arg, size_t len,
     ssize_t nelem[4] = {0};
     int i = 0;
 
-    alcove_prctl_arg_t prarg[4] = {{0}};
+    alcove_prctl_arg_t prarg[4];
 
     int rv = 0;
 
     UNUSED(ap);
+
+    /* -Wmissing-field-initializers */
+    (void)memset(&prarg, 0, sizeof(prarg));
 
     /* option */
     switch (alcove_decode_constant(arg, len, &index, &option,

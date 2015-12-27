@@ -33,9 +33,9 @@ alcove_sys_clone(alcove_state_t *ap, const char *arg, size_t len,
     int index = 0;
     int rindex = 0;
 
-    alcove_arg_t child_arg = {0};
+    alcove_arg_t child_arg;
     alcove_stdio_t fd;
-    struct rlimit stack_size = {0};
+    struct rlimit stack_size;
     char *child_stack = NULL;
     int flags = 0;
     pid_t pid = 0;
@@ -44,7 +44,9 @@ alcove_sys_clone(alcove_state_t *ap, const char *arg, size_t len,
     sigset_t set;
 
     /* -Wmissing-field-initializers */
+    (void)memset(&child_arg, 0, sizeof(child_arg));
     (void)memset(&fd, 0, sizeof(fd));
+    (void)memset(&stack_size, 0, sizeof(stack_size));
 
     if (ap->depth >= ap->maxforkdepth)
         return alcove_mk_errno(reply, rlen, EAGAIN);

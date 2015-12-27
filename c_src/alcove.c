@@ -123,7 +123,10 @@ alcove_signal_init()
     static int
 alcove_rlimit_init()
 {
-    struct rlimit stack_size = {0};
+    struct rlimit stack_size;
+
+    /* -Wmissing-field-initializers */
+    (void)memset(&stack_size, 0, sizeof(stack_size));
 
     if (getrlimit(RLIMIT_STACK, &stack_size) < 0)
         return -1;

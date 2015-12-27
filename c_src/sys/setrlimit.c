@@ -34,10 +34,13 @@ alcove_sys_setrlimit(alcove_state_t *ap, const char *arg, size_t len,
     int resource = 0;
     char atom[MAXATOMLEN] = {0};
     unsigned long long cur = 0, max = 0;
-    struct rlimit rlim = {0};
+    struct rlimit rlim;
     int rv = 0;
 
     UNUSED(ap);
+
+    /* -Wmissing-field-initializers */
+    (void)memset(&rlim, 0, sizeof(rlim));
 
     /* resource */
     switch (alcove_decode_constant(arg, len, &index, &resource,

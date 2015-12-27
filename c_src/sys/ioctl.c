@@ -47,13 +47,16 @@ alcove_sys_ioctl(alcove_state_t *ap, const char *arg, size_t len,
 #else
     unsigned long request = 0;
 #endif
-    alcove_ioctl_arg_t argp = {0};
+    alcove_ioctl_arg_t argp;
     alcove_alloc_t *elem = NULL;
     ssize_t nelem = 0;
 
     int rv = 0;
 
     UNUSED(ap);
+
+    /* -Wmissing-field-initializers */
+    (void)memset(&argp, 0, sizeof(argp));
 
     /* file descriptor */
     if (alcove_decode_int(arg, len, &index, &d) < 0)

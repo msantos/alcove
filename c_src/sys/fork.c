@@ -26,7 +26,7 @@ alcove_sys_fork(alcove_state_t *ap, const char *arg, size_t len,
 {
     int rindex = 0;
 
-    alcove_arg_t child_arg = {0};
+    alcove_arg_t child_arg;
     alcove_stdio_t fd;
     pid_t pid = 0;
     sigset_t oldset;
@@ -37,6 +37,7 @@ alcove_sys_fork(alcove_state_t *ap, const char *arg, size_t len,
     UNUSED(len);
 
     /* -Wmissing-field-initializers */
+    (void)memset(&child_arg, 0, sizeof(child_arg));
     (void)memset(&fd, 0, sizeof(fd));
 
     if (ap->depth >= ap->maxforkdepth)

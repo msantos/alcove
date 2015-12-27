@@ -39,12 +39,15 @@ alcove_sys_select(alcove_state_t *ap, const char *arg, size_t len,
     fd_set exceptfds;
 
     char buf[MAXATOMLEN] = {0};
-    struct timeval tv = {0};
+    struct timeval tv;
     struct timeval *timeout = NULL;
 
     int rv = 0;
 
     UNUSED(ap);
+
+    /* -Wmissing-field-initializers */
+    (void)memset(&tv, 0, sizeof(tv));
 
     /* readfds */
     if (alcove_list_to_fd_set(arg, len, &index, &readfds, &nfds) < 0)
