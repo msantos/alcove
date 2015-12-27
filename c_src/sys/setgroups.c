@@ -96,8 +96,7 @@ alcove_list_to_groups(const char *arg, size_t len, int *index,
                     || n != arity)
                 return -1;
 
-            n--;
-            for ( ; n >= 0; n--) {
+            for (n = 0; n < arity; n++) {
                 gid_t gid = 0;
 
                 if (alcove_decode_uint(arg, len, index, &gid) < 0)
