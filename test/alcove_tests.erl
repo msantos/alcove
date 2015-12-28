@@ -460,7 +460,7 @@ setgroups(#state{os = OS, pid = Drv}) ->
     {ok, Reply4} = alcove:getgroups(Drv, [Child]),
 
     Expect4 = case OS of
-        {unix, freebsd} -> [lists:last(Groups)];
+        {unix, freebsd} -> [hd(Groups)];
         _ -> []
     end,
 
