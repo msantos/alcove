@@ -109,12 +109,15 @@ trap(#state{pid = Drv}) ->
     Reply1 = case alcove:getcwd(Drv, [Pid]) of
         {error,unknown} -> true;
         {ok,<<>>} -> true;
-        _ -> false
+        Cwd -> {false, Cwd}
     end,
 
-    receive
+    Reply2 = receive
         {alcove_event,Drv,[Pid],Event} ->
-            ok
+            Event
+    after
+        2000 ->
+            timeout
     end,
 
     Reply3 = alcove:kill(Drv, [], Pid, 0),
@@ -123,7 +126,7 @@ trap(#state{pid = Drv}) ->
     [
         ?_assertEqual(Pid, Reply0),
         ?_assertEqual(true, Reply1),
-        ?_assertEqual({signal, sigsys}, Event),
+        ?_assertEqual({signal, sigsys}, Reply2),
         ?_assertEqual(ok, Reply3)
     ].
 
