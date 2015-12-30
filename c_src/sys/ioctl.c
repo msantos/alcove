@@ -63,7 +63,7 @@ alcove_sys_ioctl(alcove_state_t *ap, const char *arg, size_t len,
         return -1;
 
     /* request */
-    switch (alcove_decode_constant(arg, len, &index, &request,
+    switch (alcove_decode_constant(arg, len, &index, (int *)&request,
                 alcove_ioctl_constants)) {
         case 0:
             break;
