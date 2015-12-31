@@ -19,6 +19,8 @@
 
 -export([
         all/0,
+        init_per_suite/1,
+        end_per_suite/1,
         init_per_testcase/2,
         end_per_testcase/2
     ]).
@@ -37,8 +39,23 @@ all() ->
                 trap
             ];
         _ ->
-            []
+            {skip, "seccomp tests are Linux only"}
     end.
+
+init_per_suite(Config) ->
+    {ok, Drv} = alcove_drv:start_link(),
+    Result = try alcove:clone_constant(Drv, [], seccomp_mode_filter) of
+        _ ->
+            Config
+    catch
+        error:undef ->
+            {skip, "seccomp not supported"}
+    end,
+    alcove_drv:stop(Drv),
+    Result.
+
+end_per_suite(_Config) ->
+    ok.
 
 init_per_testcase(_Test, Config) ->
     Exec = case os:getenv("ALCOVE_TEST_EXEC") of
@@ -52,13 +69,7 @@ init_per_testcase(_Test, Config) ->
             termsig
         ]),
 
-    Seccomp = try alcove:clone_constant(Drv, [], seccomp_mode_filter) of
-            _ -> true
-        catch
-            error:undef -> false
-        end,
-
-    [{drv, Drv}, {seccomp, Seccomp}|Config].
+    [{drv, Drv}|Config].
 
 end_per_testcase(_Test, Config) ->
     Drv = ?config(drv, Config),
@@ -72,78 +83,57 @@ end_per_testcase(_Test, Config) ->
 % is not allowed.
 kill(Config) ->
     Drv = ?config(drv, Config),
-    Seccomp = ?config(seccomp, Config),
 
-    case Seccomp of
-        true ->
-            {ok, Pid} = alcove:fork(Drv, []),
-            enforce(Drv, [Pid], ?BPF_STMT(?BPF_RET+?BPF_K, ?SECCOMP_RET_KILL)),
-            % Allowed: cached by process
-            Pid = alcove:getpid(Drv, [Pid]),
-            % Not allowed: SIGSYS
-            {'EXIT',{{termsig,sigsys},_}} = (catch alcove:getcwd(Drv, [Pid])),
+    {ok, Pid} = alcove:fork(Drv, []),
+    enforce(Drv, [Pid], ?BPF_STMT(?BPF_RET+?BPF_K, ?SECCOMP_RET_KILL)),
+    % Allowed: cached by process
+    Pid = alcove:getpid(Drv, [Pid]),
+    % Not allowed: SIGSYS
+    {'EXIT',{{termsig,sigsys},_}} = (catch alcove:getcwd(Drv, [Pid])),
 
-            {error, esrch} = alcove:kill(Drv, [], Pid, 0);
-
-        false ->
-            {skip, "not supported"}
-    end.
+    {error, esrch} = alcove:kill(Drv, [], Pid, 0).
 
 % Seccomp filter matches a whitelist of system calls. Unmatched system
 % calls are allowed.
 allow(Config) ->
     Drv = ?config(drv, Config),
-    Seccomp = ?config(seccomp, Config),
 
-    case Seccomp of
-        true ->
-            {ok, Pid} = alcove:fork(Drv, []),
-            enforce(Drv, [Pid], ?BPF_STMT(?BPF_RET+?BPF_K, ?SECCOMP_RET_ALLOW)),
-            Pid = alcove:getpid(Drv, [Pid]),
-            {ok, _} = alcove:getcwd(Drv, [Pid]),
-            ok = alcove:kill(Drv, [], Pid, 0),
-            alcove:exit(Drv, [Pid], 0);
-
-        false ->
-            {skip, "not supported"}
-    end.
+    {ok, Pid} = alcove:fork(Drv, []),
+    enforce(Drv, [Pid], ?BPF_STMT(?BPF_RET+?BPF_K, ?SECCOMP_RET_ALLOW)),
+    Pid = alcove:getpid(Drv, [Pid]),
+    {ok, _} = alcove:getcwd(Drv, [Pid]),
+    ok = alcove:kill(Drv, [], Pid, 0),
+    alcove:exit(Drv, [Pid], 0).
 
 % Seccomp filter traps any syscall that is not whitelisted. The system
 % call returns an error or a dummy value. The process is not terminated.
 trap(Config) ->
     Drv = ?config(drv, Config),
-    Seccomp = ?config(seccomp, Config),
 
-    case Seccomp of
-        true ->
-            {ok, Pid} = alcove:fork(Drv, []),
-            {ok,_} = alcove:sigaction(Drv, [Pid], sigsys, sig_catch),
+    {ok, Pid} = alcove:fork(Drv, []),
+    {ok,_} = alcove:sigaction(Drv, [Pid], sigsys, sig_catch),
 
-            enforce(Drv, [Pid], ?BPF_STMT(?BPF_RET+?BPF_K, ?SECCOMP_RET_TRAP)),
+    enforce(Drv, [Pid], ?BPF_STMT(?BPF_RET+?BPF_K, ?SECCOMP_RET_TRAP)),
 
-            % Allowed: cached by process
-            Pid = alcove:getpid(Drv, [Pid]),
-            % Not allowed: SIGSYS
-            true = case alcove:getcwd(Drv, [Pid]) of
-                {error,unknown} -> true;
-                {ok,<<>>} -> true;
-                Cwd -> {false, Cwd}
-            end,
+    % Allowed: cached by process
+    Pid = alcove:getpid(Drv, [Pid]),
+    % Not allowed: SIGSYS
+    true = case alcove:getcwd(Drv, [Pid]) of
+        {error,unknown} -> true;
+        {ok,<<>>} -> true;
+        Cwd -> {false, Cwd}
+    end,
 
-            {signal, sigsys} = receive
-                {alcove_event,Drv,[Pid],Event} ->
-                    Event
-            after
-                2000 ->
-                    timeout
-            end,
+    {signal, sigsys} = receive
+        {alcove_event,Drv,[Pid],Event} ->
+            Event
+    after
+        2000 ->
+            timeout
+    end,
 
-            ok = alcove:kill(Drv, [], Pid, 0),
-            alcove:exit(Drv, [Pid], 0);
-
-        false ->
-            {skip, "not supported"}
-    end.
+    ok = alcove:kill(Drv, [], Pid, 0),
+    alcove:exit(Drv, [Pid], 0).
 
 
 allow_syscall(Drv, Syscall) ->
