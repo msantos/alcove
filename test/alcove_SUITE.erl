@@ -145,6 +145,7 @@ init_per_testcase(_Test, Config) ->
             {ok, Child} = alcove:fork(Drv, []),
             [{drv, Drv},
                 {child, Child},
+                {clone, false},
                 {os, OS}|Config]
     end.
 
@@ -460,7 +461,6 @@ cap_enter(Config) ->
 
     case OS of
         freebsd ->
-            {ok, Child} = alcove:fork(Drv, []),
             ok = alcove:cap_enter(Drv, [Child]),
             {ok, 1} = alcove:cap_getmode(Drv, [Child]);
         _ ->
