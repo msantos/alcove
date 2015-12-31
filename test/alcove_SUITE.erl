@@ -184,13 +184,10 @@ iodata(Config) ->
     <<"ok">> = alcove:iolist_to_bin(Drv, [],
         [[[[[[[[[[[[[[[["ok"]]]]]]]]]]]]]]]]),
 
-    try alcove:iolist_to_bin(Drv, [],
-            [[[[[[[[[[[[[[[[["fail"]]]]]]]]]]]]]]]]]) of
-        Fail -> ct:fail(Fail)
-    catch
-        error:badarg ->
-            ok
-    end.
+    {'EXIT',{badarg,_}} = (catch alcove:iolist_to_bin(Drv, [],
+            [[[[[[[[[[[[[[[[["fail"]]]]]]]]]]]]]]]]])),
+
+    ok.
 
 pid(Config) ->
     Drv = ?config(drv, Config),
@@ -531,7 +528,7 @@ fork(Config) ->
 
     [{ok, Child0}|_] = [ N || N <- Pids, N =/= {error,eagain} ],
     ok = alcove:exit(Drv, [Child, Child0], 0),
-    waitpid(Drv, [Child], Child0),
+    {exit_status, 0} = alcove:event(Drv, [Child, Child0], 5000),
     {ok, _} = alcove:fork(Drv, [Child]),
     {error, eagain} = alcove:fork(Drv, [Child]).
 
@@ -542,7 +539,7 @@ badpid(Config) ->
     % EPIPE or PID not found
     ok = alcove:execvp(Drv, [Child], "/bin/sh",
         ["/bin/sh", "-c", "echo > /dev/null"]),
-    waitpid_exit(Drv, [], Child),
+    {exit_status, 0} = alcove:event(Drv, [Child], 5000),
     {'EXIT',{badpid,_}} = (catch alcove:execvp(Drv, [Child],
             "/bin/sh", ["/bin/sh", "-c", "echo > /dev/null"])),
 
@@ -552,12 +549,10 @@ badpid(Config) ->
             "/bin/sh", ["/bin/sh", "-c", "echo > /dev/null"])),
 
     % Invalid PIDs
-    try alcove:execvp(Drv, [0], "/bin/sh",
-            ["/bin/sh", "-c", "echo > /dev/null"]) of
-        Fail -> ct:fail(Fail)
-    catch
-        error:badpid -> ok
-    end.
+    {'EXIT',{badpid,_}} = (catch alcove:execvp(Drv, [0], "/bin/sh",
+            ["/bin/sh", "-c", "echo > /dev/null"])),
+
+    ok.
 
 signal(Config) ->
     Drv = ?config(drv, Config),
@@ -856,14 +851,10 @@ ioctl(Config) ->
 symlink(Config) ->
     Drv = ?config(drv, Config),
 
-    Oldpath = "/etc/passwd",
-    Newpath0 = "passwd-symlink",
-    Newpath1 = "passwd-link",
+    [Oldpath] = alcove_drv:getopts([]),
+    Newpath0 = Oldpath ++ "-symlink",
+    Newpath1 = Oldpath ++ "-link",
 
-    ct:pal(io_lib:format("~p:~p", [
-                alcove:getcwd(Drv, []),
-                alcove:readdir(Drv, [], "priv")
-            ])),
     ok = alcove:symlink(Drv, [], Oldpath, Newpath0),
     ok = alcove:link(Drv, [], Newpath0, Newpath1),
 
@@ -880,8 +871,8 @@ execvp_mid_chain(Config) ->
 
     alcove:stdin(Drv, Pids, "test\n"),
     <<"test\n">> = alcove:stdout(Drv, Pids, 5000),
-    waitpid_exit(Drv, [], lists:last(Rest)),
-    Reply1 = [ alcove:kill(Drv, [], Pid, 0) || Pid <- Rest ],
+    false = alcove:event(Drv, Chain, 2000),
+    Reply = [ alcove:kill(Drv, [], Pid, 0) || Pid <- Rest ],
 
     ChildState = case OS of
         openbsd -> {error,esrch};
@@ -890,7 +881,11 @@ execvp_mid_chain(Config) ->
 
     % The child spawned by the exec'ed process becomes a zombie
     % because the PID will not be reaped.
-    [ChildState, {error,esrch}, {error,esrch}, {error,esrch}, {error,esrch}] = Reply1.
+    [ChildState,
+        {error, esrch},
+        {error, esrch},
+        {error, esrch},
+        {error, esrch}] = Reply.
 
 execvp(Config) ->
     Drv = ?config(drv, Config),
@@ -932,23 +927,6 @@ getenv(Name, Default) ->
     case os:getenv(Name) of
         false -> Default;
         Env -> Env
-    end.
-
-waitpid(Drv, Pids, Child) ->
-    case alcove:event(Drv, Pids, 5000) of
-        {signal, sigchld} ->
-            waitpid_exit(Drv, Pids, Child);
-        false ->
-            false
-    end.
-
-waitpid_exit(Drv, Pids, Child) ->
-    case alcove:kill(Drv, Pids, Child, 0) of
-        ok ->
-            timer:sleep(10),
-            waitpid_exit(Drv, Pids, Child);
-        {error,esrch} ->
-            ok
     end.
 
 get_unused_pid(Drv) ->
