@@ -19,7 +19,7 @@ static int alcove_encode_atom_to_lower(char *buf, size_t len, int *index,
         const char *p);
 
     int
-alcove_encode_constant_id(char *buf, size_t len, int *index, u_int64_t val,
+alcove_encode_constant_id(char *buf, size_t len, int *index, long long val,
         const alcove_constant_t *constants)
 {
     const alcove_constant_t *dp = NULL;

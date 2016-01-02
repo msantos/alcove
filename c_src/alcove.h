@@ -219,8 +219,8 @@ int alcove_encode_atom(char *, size_t, int *, const char *);
 int alcove_encode_binary(char *, size_t, int *, const void *, long);
 int alcove_encode_constant(char *, size_t, int *, char *,
         const alcove_constant_t *);
-int alcove_lookup_constant(char *, unsigned long long *, const alcove_constant_t *);
-int alcove_encode_constant_id(char *, size_t, int *, u_int64_t,
+int alcove_lookup_constant(char *, long long *, const alcove_constant_t *);
+int alcove_encode_constant_id(char *, size_t, int *, long long,
         const alcove_constant_t *);
 int alcove_encode_cstruct(char *, size_t, int *, const char *, size_t,
         alcove_alloc_t *, ssize_t);

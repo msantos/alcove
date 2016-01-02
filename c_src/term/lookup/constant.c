@@ -15,7 +15,7 @@
 #include "alcove.h"
 
     int
-alcove_lookup_constant(char *name, unsigned long long *val,
+alcove_lookup_constant(char *name, long long *val,
         const alcove_constant_t *constants)
 {
     const alcove_constant_t *dp = NULL;

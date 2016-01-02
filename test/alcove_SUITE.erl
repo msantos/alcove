@@ -751,7 +751,7 @@ execve(Config) ->
         ["/usr/bin/env"], []),
 
     <<"FOO=bar\nBAR=1234567\n">> = alcove:stdout(Drv, [Child0], 5000),
-    false = alcove:stdout(Drv, [Child1], 5000).
+    false = alcove:stdout(Drv, [Child1], 2000).
 
 fexecve(Config) ->
     Drv = ?config(drv, Config),

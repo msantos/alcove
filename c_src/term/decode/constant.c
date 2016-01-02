@@ -25,7 +25,7 @@ alcove_decode_constant(const char *buf, size_t len, int *index, int *val,
 
     union {
         int i;
-        unsigned long long ull;
+        long long ll;
     } constant;
 
     if (alcove_get_type(buf, len, index, &type, &arity) < 0)
@@ -36,7 +36,7 @@ alcove_decode_constant(const char *buf, size_t len, int *index, int *val,
             if (alcove_decode_atom(buf, len, index, define) < 0)
                 return -1;
 
-            if (alcove_lookup_constant(define, &constant.ull, constants) < 0)
+            if (alcove_lookup_constant(define, &constant.ll, constants) < 0)
                 return 1;
 
             *val = constant.i;

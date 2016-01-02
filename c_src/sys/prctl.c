@@ -95,13 +95,13 @@ alcove_sys_prctl(alcove_state_t *ap, const char *arg, size_t len,
                 char define[MAXATOMLEN] = {0};
                 union {
                     unsigned long ul;
-                    unsigned long long ull;
+                    long long ll;
                 } constant;
 
                 if (alcove_decode_atom(arg, len, &index, define) < 0)
                     return -1;
 
-                if (alcove_lookup_constant(define, &constant.ull,
+                if (alcove_lookup_constant(define, &constant.ll,
                             alcove_prctl_constants) < 0)
                     return alcove_mk_error(reply, rlen, "enotsup");
 
