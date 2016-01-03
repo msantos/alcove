@@ -1,6 +1,7 @@
 alloc/1
 cap_enter/0
 cap_getmode/0
+cap_rights_limit/2
 chdir/1
 chmod/2
 chown/3
@@ -53,6 +54,7 @@ prctl/5
 prctl_constant/1
 read/2
 readdir/1
+rights_constant/1
 rlimit_constant/1
 rmdir/1
 select/4

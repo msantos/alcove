@@ -41,6 +41,7 @@
         chroot/1,
         jail/1,
         cap_enter/1,
+        cap_rights_limit/1,
         chdir/1,
         setrlimit/1,
         setgid/1,
@@ -90,6 +91,7 @@ all() ->
         chroot,
         jail,
         cap_enter,
+        cap_rights_limit,
         chdir,
         setrlimit,
         setgid,
@@ -462,6 +464,24 @@ cap_enter(Config) ->
             {ok, 1} = alcove:cap_getmode(Drv, [Child]);
         _ ->
             {skip, "cap_enter(2) not supported"}
+    end.
+
+cap_rights_limit(Config) ->
+    Drv = ?config(drv, Config),
+    Child = ?config(child, Config),
+    OS = ?config(os, Config),
+
+    case OS of
+        freebsd ->
+            {ok, FD} = alcove:open(Drv, [Child], "/etc/passwd", [o_rdonly], 0),
+            ok = alcove:cap_enter(Drv, [Child]),
+            ok = alcove:cap_rights_limit(Drv, [Child], FD, [cap_read]),
+            {ok, _} = alcove:read(Drv, [Child], FD, 64),
+            {error,enotcapable} = alcove:lseek(Drv, [Child], FD, 0, 0),
+            {error,ecapmode} = alcove:open(Drv, [Child], "/etc/passwd",
+                [o_rdonly], 0);
+        _ ->
+            {skip, "cap_rights_limit(2) not supported"}
     end.
 
 chdir(Config) ->

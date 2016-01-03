@@ -202,6 +202,8 @@ int alcove_decode_constant(const char *, size_t, int *, int *,
         const alcove_constant_t *);
 int alcove_decode_constant_list(const char *, size_t, int *, int *,
         const alcove_constant_t *);
+int alcove_decode_constant64(const char *buf, size_t len, int *index,
+        long long *val, const alcove_constant_t *constants);
 int alcove_decode_cstruct(const char *, size_t, int *, char *, size_t *,
         alcove_alloc_t **, ssize_t *);
 int alcove_decode_argv(const char *, size_t, int *, char ***);
