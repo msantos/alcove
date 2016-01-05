@@ -17,33 +17,39 @@
 
 #ifdef __FreeBSD__
 #include <sys/capsicum.h>
-#include "alcove_rights_constants.h"
+#include "alcove_cap_constants.h"
 #endif
 
 /*
- * cap_rights_limit flags
+ * cap_(rights|fcntl|ioctl)_limit flags
  *
  */
     ssize_t
-alcove_sys_rights_constant(alcove_state_t *ap, const char *arg, size_t len,
+alcove_sys_cap_constant(alcove_state_t *ap, const char *arg, size_t len,
         char *reply, size_t rlen)
 {
 #ifdef __FreeBSD__
     int index = 0;
     int rindex = 0;
 
-    char rights[MAXATOMLEN] = {0};
+    char flag[MAXATOMLEN] = {0};
 
-    /* rights */
-    if (alcove_decode_atom(arg, len, &index, rights) < 0)
+    UNUSED(ap);
+
+    /* flag */
+    if (alcove_decode_atom(arg, len, &index, flag) < 0)
         return -1;
 
     ALCOVE_ERR(alcove_encode_version(reply, rlen, &rindex));
     ALCOVE_ERR(alcove_encode_constant(reply, rlen, &rindex,
-                rights, alcove_rights_constants));
+                flag, alcove_cap_constants));
 
     return rindex;
 #else
+    UNUSED(ap);
+    UNUSED(arg);
+    UNUSED(len);
+
     return alcove_mk_atom(reply, rlen, "undef");
 #endif
 }

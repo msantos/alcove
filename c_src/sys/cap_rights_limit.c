@@ -17,7 +17,7 @@
 
 #if defined(__FreeBSD__)
 #include <sys/capsicum.h>
-#include "alcove_rights_constants.h"
+#include "alcove_cap_constants.h"
 
 static int alcove_decode_cap_rights_list(const char *buf, size_t len,
         int *index, cap_rights_t *rights,
@@ -39,6 +39,8 @@ alcove_sys_cap_rights_limit(alcove_state_t *ap, const char *arg, size_t len,
     int fd = -1;
     cap_rights_t rights;
 
+    UNUSED(ap);
+
     (void)cap_rights_init(&rights);
 
     /* fd */
@@ -47,7 +49,7 @@ alcove_sys_cap_rights_limit(alcove_state_t *ap, const char *arg, size_t len,
 
     /* rights */
     switch (alcove_decode_cap_rights_list(arg, len, &index, &rights,
-                alcove_rights_constants)) {
+                alcove_cap_constants)) {
         case 0:
             break;
         case 1:
@@ -63,6 +65,10 @@ alcove_sys_cap_rights_limit(alcove_state_t *ap, const char *arg, size_t len,
         ? alcove_mk_errno(reply, rlen, errno)
         : alcove_mk_atom(reply, rlen, "ok");
 #else
+    UNUSED(ap);
+    UNUSED(arg);
+    UNUSED(len);
+
     return alcove_mk_atom(reply, rlen, "undef");
 #endif
 }

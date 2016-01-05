@@ -12,7 +12,7 @@
  * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
-static const alcove_constant_t alcove_rights_constants[] = {
+static const alcove_constant_t alcove_cap_constants[] = {
 #ifdef CAP_READ
     ALCOVE_CONSTANT(CAP_READ),
 #endif
