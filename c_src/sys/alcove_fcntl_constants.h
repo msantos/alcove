@@ -19,6 +19,12 @@ static const alcove_constant_t alcove_fcntl_constants[] = {
 #ifdef F_SETFD
     ALCOVE_CONSTANT(F_SETFD),
 #endif
+#ifdef F_GETFL
+    ALCOVE_CONSTANT(F_GETFL),
+#endif
+#ifdef F_SETFL
+    ALCOVE_CONSTANT(F_SETFL),
+#endif
 #ifdef FD_CLOEXEC
     ALCOVE_CONSTANT(FD_CLOEXEC),
 #endif

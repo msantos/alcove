@@ -42,6 +42,7 @@
         jail/1,
         cap_enter/1,
         cap_rights_limit/1,
+        cap_fcntls_limit/1,
         chdir/1,
         setrlimit/1,
         setgid/1,
@@ -92,6 +93,7 @@ all() ->
         jail,
         cap_enter,
         cap_rights_limit,
+        cap_fcntls_limit,
         chdir,
         setrlimit,
         setgid,
@@ -480,6 +482,23 @@ cap_rights_limit(Config) ->
             {error,enotcapable} = alcove:lseek(Drv, [Child], FD, 0, 0),
             {error,ecapmode} = alcove:open(Drv, [Child], "/etc/passwd",
                 [o_rdonly], 0);
+        _ ->
+            {skip, "cap_rights_limit(2) not supported"}
+    end.
+
+cap_fcntls_limit(Config) ->
+    Drv = ?config(drv, Config),
+    Child = ?config(child, Config),
+    OS = ?config(os, Config),
+
+    case OS of
+        freebsd ->
+            {ok, FD} = alcove:open(Drv, [Child], "/etc/passwd", [o_rdonly], 0),
+            ok = alcove:cap_enter(Drv, [Child]),
+            ok = alcove:cap_rights_limit(Drv, [Child], FD, [cap_fcntl]),
+            ok = alcove:cap_fcntls_limit(Drv, [Child], FD, [cap_fcntl_setfl]),
+            {error, enotcapable} = alcove:fcntl(Drv, [Child], FD, f_getfl, 0),
+            {ok, 0} = alcove:fcntl(Drv, [Child], FD, f_setfl, 0);
         _ ->
             {skip, "cap_rights_limit(2) not supported"}
     end.
