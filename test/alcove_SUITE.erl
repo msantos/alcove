@@ -20,6 +20,7 @@
 
 -export([
         all/0,
+        groups/0,
         init_per_testcase/2,
         end_per_testcase/2
     ]).
@@ -70,11 +71,14 @@
         select/1,
         ioctl/1,
         symlink/1,
-        execvp_mid_chain/1
+        execvp_mid_chain/1,
+        no_os_specific_tests/1
     ]).
 
 all() ->
+    {unix, OS} = os:type(),
     [
+        {group, OS},
         version,
         iodata,
         pid,
@@ -83,17 +87,10 @@ all() ->
         event,
         sethostname,
         env,
-        clone_constant,
-        setns,
-        unshare,
         mount_constant,
         mount,
         tmpfs,
         chroot,
-        jail,
-        cap_enter,
-        cap_rights_limit,
-        cap_fcntls_limit,
         chdir,
         setrlimit,
         setgid,
@@ -115,13 +112,34 @@ all() ->
         stdout,
         stderr,
         execve,
-        fexecve,
         stream,
         open,
         select,
         ioctl,
         symlink,
         execvp_mid_chain
+    ].
+
+groups() ->
+    [
+        {linux, [], [
+                no_os_specific_tests,
+                clone_constant,
+                setns,
+                unshare,
+                fexecve
+            ]},
+        {freebsd, [], [
+                jail,
+                cap_enter,
+                cap_rights_limit,
+                cap_fcntls_limit,
+                fexecve
+            ]},
+        {darwin, [], [no_os_specific_tests]},
+        {netbsd, [], [no_os_specific_tests]},
+        {openbsd, [], [no_os_specific_tests]},
+        {solaris, [], [no_os_specific_tests]}
     ].
 
 init_per_testcase(_Test, Config) ->
@@ -142,14 +160,14 @@ init_per_testcase(_Test, Config) ->
                 ]),
             [{drv, Drv},
                 {child, Child},
-                {clone, true},
+                {namespace, true},
                 {os, linux}|Config];
 
         {_, {unix, OS}} ->
             {ok, Child} = alcove:fork(Drv, []),
             [{drv, Drv},
                 {child, Child},
-                {clone, false},
+                {namespace, false},
                 {os, OS}|Config]
     end.
 
@@ -206,9 +224,9 @@ pid(Config) ->
 getpid(Config) ->
     Drv = ?config(drv, Config),
     Child = ?config(child, Config),
-    Clone = ?config(clone, Config),
+    NS = ?config(namespace, Config),
 
-    case Clone of
+    case NS of
         true ->
             % Running in a PID namespace
             1 = alcove:getpid(Drv, [Child]);
@@ -253,9 +271,9 @@ event(Config) ->
 sethostname(Config) ->
     Drv = ?config(drv, Config),
     Child = ?config(child, Config),
-    Clone = ?config(clone, Config),
+    NS = ?config(namespace, Config),
 
-    case Clone of
+    case NS of
         true ->
             ok = alcove:sethostname(Drv, [Child], "alcove"),
             {ok, <<"alcove">>} = alcove:gethostname(Drv, [Child]);
@@ -280,60 +298,6 @@ env(Config) ->
     true = 0 =/= length(alcove:environ(Drv, [Child])),
     ok = alcove:clearenv(Drv, [Child]),
     true = 0 =:= length(alcove:environ(Drv, [Child])).
-
-clone_constant(Config) ->
-    Drv = ?config(drv, Config),
-    Child = ?config(child, Config),
-    Clone = ?config(clone, Config),
-
-    case Clone of
-        true ->
-            CLONE_NEWNS = alcove:clone_constant(Drv, [Child], clone_newns),
-            true = is_integer(CLONE_NEWNS);
-
-        false ->
-            {skip, "clone(2) not supported"}
-    end.
-
-setns(Config) ->
-    Drv = ?config(drv, Config),
-    Child = ?config(child, Config),
-    Clone = ?config(clone, Config),
-
-    case Clone of
-        true ->
-            {ok, Child1} = alcove:fork(Drv, []),
-            {ok,FD} = alcove:open(Drv, [Child1], [
-                    "/proc/",
-                    integer_to_list(Child),
-                    "/ns/uts"
-                ], [o_rdonly], 0),
-            ok = alcove:setns(Drv, [Child1], FD, 0),
-            ok = alcove:close(Drv, [Child1], FD),
-
-            Hostname = alcove:gethostname(Drv, [Child]),
-            Hostname = alcove:gethostname(Drv, [Child1]);
-
-        false ->
-            {skip, "setns(2) not supported"}
-    end.
-
-unshare(Config) ->
-    Drv = ?config(drv, Config),
-    Child = ?config(child, Config),
-    Clone = ?config(clone, Config),
-
-    case Clone of
-        true ->
-            Host = alcove:gethostname(Drv, []),
-            ok = alcove:unshare(Drv, [Child], [clone_newuts]),
-            ok = alcove:sethostname(Drv, [Child], "unshare"),
-            {ok, <<"unshare">>} = alcove:gethostname(Drv, [Child]),
-            Host = alcove:gethostname(Drv, []);
-
-        false ->
-            {skip, "unshare(2) not supported"}
-    end.
 
 mount_constant(Config) ->
     Drv = ?config(drv, Config),
@@ -360,9 +324,9 @@ mount_constant(Config) ->
 mount(Config) ->
     Drv = ?config(drv, Config),
     Child = ?config(child, Config),
-    Clone = ?config(clone, Config),
+    NS = ?config(namespace, Config),
 
-    case Clone of
+    case NS of
         true ->
             ok = alcove:mount(Drv, [Child], "/tmp", "/mnt", "", [
                     ms_bind,
@@ -378,10 +342,10 @@ mount(Config) ->
 tmpfs(Config) ->
     Drv = ?config(drv, Config),
     Child = ?config(child, Config),
-    Clone = ?config(clone, Config),
+    NS = ?config(namespace, Config),
     OS = ?config(os, Config),
 
-    case {OS, Clone} of
+    case {OS, NS} of
         {_, true} ->
             ok = alcove:mount(Drv, [Child], "tmpfs", "/mnt", "tmpfs", [ms_noexec], <<"size=16M", 0>>, <<>>),
             ok = alcove:umount(Drv, [Child], "/mnt");
@@ -421,86 +385,6 @@ chroot(Config) ->
             ok = alcove:chroot(Drv, [Child], "/rescue");
         _ ->
             {skip, "no chroot test defined for this platform"}
-    end.
-
-jail(Config) ->
-    Drv = ?config(drv, Config),
-    Child = ?config(child, Config),
-    OS = ?config(os, Config),
-
-    case OS of
-        freebsd ->
-            Jail0 = alcove_cstruct:jail(#alcove_jail{
-                    path = "/rescue",
-                    hostname = "test0",
-                    jailname = "jail0"
-                }),
-            {ok, JID0} = alcove:jail(Drv, [Child], Jail0),
-
-            {ok, Child0} = alcove:fork(Drv, []),
-            ok = alcove:jail_attach(Drv, [Child0], JID0),
-            alcove:exit(Drv, [Child0], 0),
-
-            {ok, Child1} = alcove:fork(Drv, []),
-            Jail1 = alcove_cstruct:jail(#alcove_jail{
-                    path = "/rescue",
-                    hostname = "test1",
-                    jailname = "jail1"
-                }),
-            {ok, JID1} = alcove:jail(Drv, [Child1], Jail1),
-            ok = alcove:jail_remove(Drv, [], JID1),
-            {error, einval} = alcove:jail_attach(Drv, [], JID1);
-
-        _ ->
-            {skip, "jail(2) not supported"}
-    end.
-
-cap_enter(Config) ->
-    Drv = ?config(drv, Config),
-    Child = ?config(child, Config),
-    OS = ?config(os, Config),
-
-    case OS of
-        freebsd ->
-            ok = alcove:cap_enter(Drv, [Child]),
-            {ok, 1} = alcove:cap_getmode(Drv, [Child]);
-        _ ->
-            {skip, "cap_enter(2) not supported"}
-    end.
-
-cap_rights_limit(Config) ->
-    Drv = ?config(drv, Config),
-    Child = ?config(child, Config),
-    OS = ?config(os, Config),
-
-    case OS of
-        freebsd ->
-            {ok, FD} = alcove:open(Drv, [Child], "/etc/passwd", [o_rdonly], 0),
-            ok = alcove:cap_enter(Drv, [Child]),
-            ok = alcove:cap_rights_limit(Drv, [Child], FD, [cap_read]),
-            {ok, _} = alcove:read(Drv, [Child], FD, 64),
-            {error,enotcapable} = alcove:lseek(Drv, [Child], FD, 0, 0),
-            {error,ecapmode} = alcove:open(Drv, [Child], "/etc/passwd",
-                [o_rdonly], 0);
-        _ ->
-            {skip, "cap_rights_limit(2) not supported"}
-    end.
-
-cap_fcntls_limit(Config) ->
-    Drv = ?config(drv, Config),
-    Child = ?config(child, Config),
-    OS = ?config(os, Config),
-
-    case OS of
-        freebsd ->
-            {ok, FD} = alcove:open(Drv, [Child], "/etc/passwd", [o_rdonly], 0),
-            ok = alcove:cap_enter(Drv, [Child]),
-            ok = alcove:cap_rights_limit(Drv, [Child], FD, [cap_fcntl]),
-            ok = alcove:cap_fcntls_limit(Drv, [Child], FD, [cap_fcntl_setfl]),
-            {error, enotcapable} = alcove:fcntl(Drv, [Child], FD, f_getfl, 0),
-            {ok, 0} = alcove:fcntl(Drv, [Child], FD, f_setfl, 0);
-        _ ->
-            {skip, "cap_rights_limit(2) not supported"}
     end.
 
 chdir(Config) ->
@@ -792,21 +676,6 @@ execve(Config) ->
     <<"FOO=bar\nBAR=1234567\n">> = alcove:stdout(Drv, [Child0], 5000),
     false = alcove:stdout(Drv, [Child1], 2000).
 
-fexecve(Config) ->
-    Drv = ?config(drv, Config),
-    Child = ?config(child, Config),
-    OS = ?config(os, Config),
-
-    case OS of
-        N when N =:= freebsd; N =:= linux ->
-            {ok, FD} = alcove:open(Drv, [Child], "/usr/bin/env", [o_rdonly,o_cloexec], 0),
-            ok = alcove:fexecve(Drv, [Child], FD, [""], ["FOO=bar", "BAR=1234567"]),
-            <<"FOO=bar\nBAR=1234567\n">> = alcove:stdout(Drv, [Child], 5000);
-
-        _ ->
-            {skip, "fexecve(2) not supported"}
-    end.
-
 execvp_with_signal(Config) ->
     Drv = ?config(drv, Config),
 
@@ -864,9 +733,9 @@ select(Config) ->
 ioctl(Config) ->
     Drv = ?config(drv, Config),
     OS = ?config(os, Config),
-    Clone = ?config(clone, Config),
+    NS = ?config(namespace, Config),
 
-    case {OS, Clone} of
+    case {OS, NS} of
         {linux, true} ->
             % Create a tap interface within a net namespace
             {ok, Child} = alcove:clone(Drv, [], [
@@ -958,6 +827,137 @@ stderr(Config) ->
         _ ->
             {skip, "stderr test not supported on this platform"}
     end.
+
+%%
+%% Portability
+%%
+no_os_specific_tests(_Config) ->
+    {skip, "No OS specific tests defined"}.
+
+fexecve(Config) ->
+    Drv = ?config(drv, Config),
+    Child = ?config(child, Config),
+
+    {ok, FD} = alcove:open(Drv, [Child], "/usr/bin/env", [o_rdonly,o_cloexec], 0),
+    ok = alcove:fexecve(Drv, [Child], FD, [""], ["FOO=bar", "BAR=1234567"]),
+    <<"FOO=bar\nBAR=1234567\n">> = alcove:stdout(Drv, [Child], 5000).
+
+%%
+%% Linux
+%%
+
+clone_constant(Config) ->
+    Drv = ?config(drv, Config),
+    Child = ?config(child, Config),
+    NS = ?config(namespace, Config),
+
+    case NS of
+        true ->
+            CLONE_NEWNS = alcove:clone_constant(Drv, [Child], clone_newns),
+            true = is_integer(CLONE_NEWNS);
+
+        false ->
+            {skip, "clone(2) not supported"}
+    end.
+
+setns(Config) ->
+    Drv = ?config(drv, Config),
+    Child = ?config(child, Config),
+    NS = ?config(namespace, Config),
+
+    case NS of
+        true ->
+            {ok, Child1} = alcove:fork(Drv, []),
+            {ok,FD} = alcove:open(Drv, [Child1], [
+                    "/proc/",
+                    integer_to_list(Child),
+                    "/ns/uts"
+                ], [o_rdonly], 0),
+            ok = alcove:setns(Drv, [Child1], FD, 0),
+            ok = alcove:close(Drv, [Child1], FD),
+
+            Hostname = alcove:gethostname(Drv, [Child]),
+            Hostname = alcove:gethostname(Drv, [Child1]);
+
+        false ->
+            {skip, "setns(2) not supported"}
+    end.
+
+unshare(Config) ->
+    Drv = ?config(drv, Config),
+    Child = ?config(child, Config),
+    NS = ?config(namespace, Config),
+
+    case NS of
+        true ->
+            Host = alcove:gethostname(Drv, []),
+            ok = alcove:unshare(Drv, [Child], [clone_newuts]),
+            ok = alcove:sethostname(Drv, [Child], "unshare"),
+            {ok, <<"unshare">>} = alcove:gethostname(Drv, [Child]),
+            Host = alcove:gethostname(Drv, []);
+
+        false ->
+            {skip, "unshare(2) not supported"}
+    end.
+
+%%
+%% FreeBSD
+%%
+
+jail(Config) ->
+    Drv = ?config(drv, Config),
+    Child = ?config(child, Config),
+
+    Jail0 = alcove_cstruct:jail(#alcove_jail{
+            path = "/rescue",
+            hostname = "test0",
+            jailname = "jail0"
+        }),
+    {ok, JID0} = alcove:jail(Drv, [Child], Jail0),
+
+    {ok, Child0} = alcove:fork(Drv, []),
+    ok = alcove:jail_attach(Drv, [Child0], JID0),
+    alcove:exit(Drv, [Child0], 0),
+
+    {ok, Child1} = alcove:fork(Drv, []),
+    Jail1 = alcove_cstruct:jail(#alcove_jail{
+            path = "/rescue",
+            hostname = "test1",
+            jailname = "jail1"
+        }),
+    {ok, JID1} = alcove:jail(Drv, [Child1], Jail1),
+    ok = alcove:jail_remove(Drv, [], JID1),
+    {error, einval} = alcove:jail_attach(Drv, [], JID1).
+
+cap_enter(Config) ->
+    Drv = ?config(drv, Config),
+    Child = ?config(child, Config),
+
+    ok = alcove:cap_enter(Drv, [Child]),
+    {ok, 1} = alcove:cap_getmode(Drv, [Child]).
+
+cap_rights_limit(Config) ->
+    Drv = ?config(drv, Config),
+    Child = ?config(child, Config),
+
+    {ok, FD} = alcove:open(Drv, [Child], "/etc/passwd", [o_rdonly], 0),
+    ok = alcove:cap_enter(Drv, [Child]),
+    ok = alcove:cap_rights_limit(Drv, [Child], FD, [cap_read]),
+    {ok, _} = alcove:read(Drv, [Child], FD, 64),
+    {error,enotcapable} = alcove:lseek(Drv, [Child], FD, 0, 0),
+    {error,ecapmode} = alcove:open(Drv, [Child], "/etc/passwd",
+        [o_rdonly], 0).
+
+cap_fcntls_limit(Config) ->
+    Drv = ?config(drv, Config),
+    Child = ?config(child, Config),
+
+    {ok, FD} = alcove:open(Drv, [Child], "/etc/passwd", [o_rdonly], 0),
+    ok = alcove:cap_enter(Drv, [Child]),
+    ok = alcove:cap_rights_limit(Drv, [Child], FD, [cap_fcntl]),
+    ok = alcove:cap_fcntls_limit(Drv, [Child], FD, [cap_fcntl_setfl]),
+    {error, enotcapable} = alcove:fcntl(Drv, [Child], FD, f_getfl, 0),
+    {ok, 0} = alcove:fcntl(Drv, [Child], FD, f_setfl, 0).
 
 %%
 %% Utility functions
