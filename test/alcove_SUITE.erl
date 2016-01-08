@@ -104,7 +104,6 @@ all() ->
         forkchain,
         eof,
         alloc,
-        prctl,
         priority,
         fcntl,
         execvp,
@@ -122,14 +121,14 @@ all() ->
 
 groups() ->
     [
-        {linux, [], [
-                no_os_specific_tests,
+        {linux, [sequence], [
                 clone_constant,
                 setns,
                 unshare,
+                prctl,
                 fexecve
             ]},
-        {freebsd, [], [
+        {freebsd, [sequence], [
                 jail,
                 cap_enter,
                 cap_rights_limit,
