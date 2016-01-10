@@ -20,16 +20,22 @@ ifeq ($(UNAME_SYS), Darwin)
 #	LDFLAGS ?= -arch x86_64 -flat_namespace -undefined suppress
 else ifeq ($(UNAME_SYS), FreeBSD)
 	CC ?= cc
-#	CFLAGS ?= -O3 -std=c99 -finline-functions -Wall -Wmissing-prototypes
+	LDFLAGS ?= -Wl,-Bsymbolic-functions -Wl,-z,relro
+	CFLAGS ?= -D_FORTIFY_SOURCE=2 -O2 -fstack-protector --param=ssp-buffer-size=4 -Wformat -Werror=format-security -fno-strict-aliasing
+else ifeq ($(UNAME_SYS), OpenBSD)
+	CC ?= cc
+	LDFLAGS ?= -Wl,-z,relro
+	CFLAGS ?= -D_FORTIFY_SOURCE=2 -O2 -fstack-protector --param=ssp-buffer-size=4 -Wformat -Werror=format-security -fno-strict-aliasing
 else ifeq ($(UNAME_SYS), Linux)
-	CC ?= gcc
-#	CFLAGS ?= -O3 -std=c99 -finline-functions -Wall -Wmissing-prototypes
+	CC ?= cc
+	LDFLAGS ?= -Wl,-Bsymbolic-functions -Wl,-z,relro
+	CFLAGS ?= -D_FORTIFY_SOURCE=2 -O2 -fstack-protector --param=ssp-buffer-size=4 -Wformat -Werror=format-security -fno-strict-aliasing
 else ifeq ($(UNAME_SYS), SunOS)
 	LDFLAGS += -lsocket -lnsl
-	CFLAGS += -std=c99 -D_POSIX_C_SOURCE=200112L -D__EXTENSIONS__=1
+	CFLAGS += -std=c99 -D_POSIX_C_SOURCE=200112L -D__EXTENSIONS__=1 -fno-strict-aliasing
 endif
 
-ALCOVE_CFLAGS ?= -g -Wall -Wextra -Wconversion
+ALCOVE_CFLAGS ?= -g -Wall
 CFLAGS += $(ALCOVE_CFLAGS) $(ALCOVE_DEFINE) -I $(C_SRC_DIR) -I $(ERTS_INCLUDE_DIR) -I $(ERL_INTERFACE_INCLUDE_DIR)
 
 LDLIBS += -L $(ERL_INTERFACE_LIB_DIR) $(ALCOVE_LDFLAGS) -lerl_interface -lei
