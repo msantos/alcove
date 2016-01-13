@@ -20,7 +20,7 @@
 -export([start_link/0, start_link/1, start_link/2]).
 -export([call/5]).
 -export([stdin/3, stdout/3, stderr/3, event/3]).
--export([raw/1, getopts/1]).
+-export([raw/1, getopts/1, progname/0]).
 
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2,
@@ -335,6 +335,7 @@ basedir(Module) ->
             Dir
         end.
 
+-spec progname() -> string().
 progname() ->
     filename:join([basedir(alcove), "alcove"]).
 
