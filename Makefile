@@ -24,4 +24,4 @@ dialyzer:
 	@$(REBAR) dialyzer
 
 typer:
-	@typer -I include --plt _build/default/*_plt -r ./src
+	@typer -pa _build/default/lib/alcove/ebin -I include --plt _build/default/*_plt -r ./src
