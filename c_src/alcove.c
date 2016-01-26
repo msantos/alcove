@@ -44,12 +44,6 @@ main(int argc, char *argv[])
     ap->maxchild = ap->maxfd / ALCOVE_MAXFILENO - ALCOVE_MAXFILENO;
     ap->maxforkdepth = MAXFORKDEPTH;
 
-    if (alcove_signal_init() < 0)
-        err(EXIT_FAILURE, "alcove_signal_init");
-
-    if (alcove_rlimit_init() < 0)
-        err(EXIT_FAILURE, "alcove_rlimit_init");
-
     while ( (ch = getopt(argc, argv, "c:d:m:hv")) != -1) {
         switch (ch) {
             case 'c':
@@ -83,6 +77,12 @@ main(int argc, char *argv[])
         err(EXIT_FAILURE, "calloc");
 
     if (boot) {
+        if (alcove_signal_init() < 0)
+            err(EXIT_FAILURE, "alcove_signal_init");
+
+        if (alcove_rlimit_init() < 0)
+            err(EXIT_FAILURE, "alcove_rlimit_init");
+
         if (alcove_fd_init(fifo) < 0)
             err(EXIT_FAILURE, "alcove_fd_init");
     }
