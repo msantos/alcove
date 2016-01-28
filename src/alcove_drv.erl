@@ -1,4 +1,4 @@
-%%% Copyright (c) 2014, Michael Santos <michael.santos@gmail.com>
+%%% Copyright (c) 2014-2016, Michael Santos <michael.santos@gmail.com>
 %%%
 %%% Permission to use, copy, modify, and/or distribute this software for any
 %%% purpose with or without fee is hereby granted, provided that the above
@@ -220,7 +220,7 @@ handle_info({Port, {data, Data}}, #state{raw = true, port = Port, buf = Buf, own
 handle_info({Port, {data, Data}}, #state{port = Port, buf = Buf, owner = Owner} = State) ->
     {Msgs, Rest} = alcove_codec:stream(<<Buf/binary, Data/binary>>),
     Terms = [ alcove_codec:decode(Msg) || Msg <- Msgs ],
-    [ Owner ! {Tag, self(), Pids, Term} || {Tag, Pids, Term} <- Terms ],
+    _ = [ Owner ! {Tag, self(), Pids, Term} || {Tag, Pids, Term} <- Terms ],
     {noreply, State#state{buf = Rest}};
 
 handle_info({'EXIT', Port, Reason}, #state{port = Port} = State) ->

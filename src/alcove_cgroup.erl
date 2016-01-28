@@ -1,4 +1,4 @@
-%%% Copyright (c) 2014, Michael Santos <michael.santos@gmail.com>
+%%% Copyright (c) 2014-2016, Michael Santos <michael.santos@gmail.com>
 %%%
 %%% Permission to use, copy, modify, and/or distribute this software for any
 %%% purpose with or without fee is hereby granted, provided that the above
@@ -52,7 +52,7 @@ create(Drv, Pids) ->
 
 -spec create(alcove_drv:ref(),alcove:forkchain(),[file:name_all()]) -> 'ok'.
 create(Drv, Pids, Namespaces) ->
-    [ create_1(Drv, Pids, Namespace) || Namespace <- expand(Namespaces) ],
+    _ = [ create_1(Drv, Pids, Namespace) || Namespace <- expand(Namespaces) ],
     ok.
 
 create_1(Drv, Pids, Namespace) ->
@@ -110,7 +110,7 @@ write(Drv, Pids, File, Bytes) ->
         {ok, FH} ->
             Size = iolist_size(Bytes),
             N = alcove:write(Drv, Pids, FH, Bytes),
-            alcove:close(Drv, Pids, FH),
+            _ = alcove:close(Drv, Pids, FH),
             % XXX will crash in the case of a partial write
             case N of
                 {ok, Size} ->
@@ -129,7 +129,7 @@ read(Drv, Pids, File) ->
     Reply = case alcove:open(Drv, Pids, File, [o_rdonly], 0) of
         {ok, FH} ->
             N = readbuf(Drv, Pids, FH),
-            alcove:close(Drv, Pids, FH),
+            _ = alcove:close(Drv, Pids, FH),
             N;
         Error ->
             Error
@@ -191,7 +191,7 @@ mounts(Drv, Pids) ->
                 Error ->
                     Error
             end,
-            alcove:close(Drv, Pids, FD),
+            _ = alcove:close(Drv, Pids, FD),
             Reply;
         _ ->
             {ok, []}
@@ -219,14 +219,14 @@ is_dir(Drv, Pids, Path) ->
         {error,eisdir} -> true;
         {error,_} -> false;
         {ok, FH} ->
-            alcove:close(Drv, Pids, FH),
+            _ = alcove:close(Drv, Pids, FH),
             false
     end.
 
 is_file(Drv, Pids, File) ->
     case alcove:open(Drv, Pids, File, [o_rdonly], 0) of
         {ok, FH} ->
-            alcove:close(Drv, Pids, FH),
+            _ = alcove:close(Drv, Pids, FH),
             true;
         _ ->
             false
