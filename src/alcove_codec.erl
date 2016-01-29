@@ -24,14 +24,14 @@
 %%
 %% Encode protocol terms to iodata
 %%
--spec call(atom(), [non_neg_integer()], [any()]) -> iodata().
+-spec call(atom(), [alcove:pid_t()], [any()]) -> iodata().
 call(Call, Pids, Arg) ->
     Bin = <<?UINT16(?ALCOVE_MSG_CALL), ?UINT16(alcove_proto:call(Call)),
     (term_to_binary(list_to_tuple(Arg)))/binary>>,
     Size = byte_size(Bin),
     stdin(Pids, [<<?UINT16(Size)>>, Bin]).
 
--spec stdin([non_neg_integer()], iodata()) -> iodata().
+-spec stdin([alcove:pid_t()], iodata()) -> iodata().
 stdin(Pids, Data) ->
     lists:foldl(fun(Pid, Acc) ->
                 Size = 2 + 4 + iolist_size(Acc),
@@ -63,7 +63,7 @@ message(<<?UINT16(Len), Data/binary>> = Bin) when Len =< byte_size(Data) ->
 message(Data) ->
     {<<>>, Data}.
 
--spec decode(binary()) -> {type(), [non_neg_integer()], term()}.
+-spec decode(binary()) -> {type(), [alcove:pid_t()], term()}.
 decode(Msg) ->
     decode(Msg, []).
 

@@ -432,7 +432,7 @@ specs() ->
 -spec close(alcove_drv:ref(),forkchain(),fd()) -> 'ok' | {'error', posix()}.
 -spec close(alcove_drv:ref(),forkchain(),fd(),timeout()) -> 'ok' | {'error', posix()}.
 
--spec define(alcove_drv:ref(),forkchain(),atom() | [atom()]) -> 'unknown' | integer().
+-spec define(alcove_drv:ref(),forkchain(),atom() | [atom()]) -> integer().
 
 -spec environ(alcove_drv:ref(),forkchain()) -> [binary()].
 -spec environ(alcove_drv:ref(),forkchain(),timeout()) -> [binary()].

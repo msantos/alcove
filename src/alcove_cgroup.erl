@@ -104,7 +104,7 @@ get(Drv, Pids, MntOpt, Namespace, Key) ->
     fold(Drv, MntOpt, Namespace, Fun, []).
 
 -spec write(alcove_drv:ref(),alcove:forkchain(),file:name_all(),iodata()) ->
-    {'error',file:posix()} | {'ok',non_neg_integer()}.
+    {'error',file:posix()} | 'ok'.
 write(Drv, Pids, File, Bytes) ->
     Reply = case alcove:open(Drv, Pids, File, [o_wronly], 0) of
         {ok, FH} ->
