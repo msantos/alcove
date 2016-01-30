@@ -22,7 +22,7 @@
 -export([mounts/1, mounts/2]).
 -export([join/2,relpath/1,expand/1]).
 
--spec supported(alcove_drv:ref(),alcove:forkchain()) -> boolean().
+-spec supported(alcove_drv:ref(),[alcove:pid_t()]) -> boolean().
 supported(Drv, Pids) ->
     foreach([
         % running on linux?
@@ -46,11 +46,11 @@ supported(Drv, Pids) ->
 %%  * the process may be running in a chroot or a different mount namespace
 %%
 
--spec create(alcove_drv:ref(),alcove:forkchain()) -> 'ok'.
+-spec create(alcove_drv:ref(),[alcove:pid_t()]) -> 'ok'.
 create(Drv, Pids) ->
     create(Drv, Pids, [<<"alcove">>]).
 
--spec create(alcove_drv:ref(),alcove:forkchain(),[file:name_all()]) -> 'ok'.
+-spec create(alcove_drv:ref(),[alcove:pid_t()],[file:name_all()]) -> 'ok'.
 create(Drv, Pids, Namespaces) ->
     _ = [ create_1(Drv, Pids, Namespace) || Namespace <- expand(Namespaces) ],
     ok.
@@ -66,11 +66,11 @@ create_1(Drv, Pids, Namespace) ->
     end,
     fold(Drv, <<>>, [], Fun, []).
 
--spec destroy(alcove_drv:ref(),alcove:forkchain()) -> [ok | {error, file:posix()}].
+-spec destroy(alcove_drv:ref(),[alcove:pid_t()]) -> [ok | {error, file:posix()}].
 destroy(Drv, Pids) ->
     destroy(Drv, Pids, [<<"alcove">>]).
 
--spec destroy(alcove_drv:ref(),alcove:forkchain(),[file:name_all()]) -> [ok | {error, file:posix()}].
+-spec destroy(alcove_drv:ref(),[alcove:pid_t()],[file:name_all()]) -> [ok | {error, file:posix()}].
 destroy(Drv, Pids, Namespace) ->
     Fun = fun(Cgroup, _Acc) ->
             Path = join(Cgroup, Namespace),
@@ -82,7 +82,7 @@ destroy(Drv, Pids, Namespace) ->
     end,
     fold(Drv, <<>>, [], Fun, []).
 
--spec set(alcove_drv:ref(),alcove:forkchain(),binary(),
+-spec set(alcove_drv:ref(),[alcove:pid_t()],binary(),
     [binary()],string() | binary(),string() | binary()) -> ok | {error, file:posix()}.
 set(Drv, Pids, MntOpt, Namespace, Key, Value) ->
     Fun = fun(Cgroup, _Acc) ->
@@ -94,7 +94,7 @@ set(Drv, Pids, MntOpt, Namespace, Key, Value) ->
         N -> N
     end.
 
--spec get(alcove_drv:ref(),alcove:forkchain(),
+-spec get(alcove_drv:ref(),[alcove:pid_t()],
     binary(),[binary()],string() | binary()) -> {ok,binary()}.
 get(Drv, Pids, MntOpt, Namespace, Key) ->
     Fun = fun(Cgroup, _Acc) ->
@@ -103,7 +103,7 @@ get(Drv, Pids, MntOpt, Namespace, Key) ->
     end,
     fold(Drv, MntOpt, Namespace, Fun, []).
 
--spec write(alcove_drv:ref(),alcove:forkchain(),file:name_all(),iodata()) ->
+-spec write(alcove_drv:ref(),[alcove:pid_t()],file:name_all(),iodata()) ->
     {'error',file:posix()} | 'ok'.
 write(Drv, Pids, File, Bytes) ->
     Reply = case alcove:open(Drv, Pids, File, [o_wronly], 0) of
@@ -123,7 +123,7 @@ write(Drv, Pids, File, Bytes) ->
     end,
     Reply.
 
--spec read(alcove_drv:ref(),alcove:forkchain(),file:name_all()) ->
+-spec read(alcove_drv:ref(),[alcove:pid_t()],file:name_all()) ->
     {'error',file:posix()} | {'ok',binary()}.
 read(Drv, Pids, File) ->
     Reply = case alcove:open(Drv, Pids, File, [o_rdonly], 0) of
