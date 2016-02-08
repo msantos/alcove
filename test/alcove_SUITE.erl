@@ -44,6 +44,7 @@
         cap_enter/1,
         cap_rights_limit/1,
         cap_fcntls_limit/1,
+        cap_ioctls_limit/1,
         chdir/1,
         setrlimit/1,
         setgid/1,
@@ -133,6 +134,7 @@ groups() ->
                 cap_enter,
                 cap_rights_limit,
                 cap_fcntls_limit,
+                cap_ioctls_limit,
                 fexecve
             ]},
         {darwin, [], [no_os_specific_tests]},
@@ -957,6 +959,38 @@ cap_fcntls_limit(Config) ->
     ok = alcove:cap_fcntls_limit(Drv, [Child], FD, [cap_fcntl_setfl]),
     {error, enotcapable} = alcove:fcntl(Drv, [Child], FD, f_getfl, 0),
     {ok, 0} = alcove:fcntl(Drv, [Child], FD, f_setfl, 0).
+
+cap_ioctls_limit(Config) ->
+    Drv = ?config(drv, Config),
+    Child = ?config(child, Config),
+
+    % port process does not have a tty: try to find a pty
+    % owned by the user running the test
+    {ok, FD} = open_pty(Drv, [Child]),
+    ok = alcove:cap_enter(Drv, [Child]),
+    ok = alcove:cap_rights_limit(Drv, [Child], FD, [cap_ioctl]),
+    ok = alcove:cap_ioctls_limit(Drv, [Child], FD, [tiocmget, tiocgwinsz]),
+    {error, enotcapable} = alcove:ioctl(Drv, [Child], FD, tiocmset, <<>>),
+    {ok, <<>>} = alcove:ioctl(Drv, [Child], FD, tiocmget, <<>>),
+    {ok, <<>>} = alcove:ioctl(Drv, [Child], FD, tiocgwinsz, <<>>).
+
+open_pty(Drv, Child) ->
+    {ok, Ptys} = alcove:readdir(Drv, Child, "/dev/pts"),
+    open_pty(
+      Drv,
+      Child,
+      lists:filter(fun(N) -> N =/= <<".">> andalso N =/= <<"..">> end, Ptys)
+    ).
+
+open_pty(_Drv, _Child, []) ->
+    {error, enxio};
+open_pty(Drv, Child, [Pty|Ptys]) ->
+    case alcove:open(Drv, Child, ["/dev/pts/", Pty], [o_rdwr,o_nonblock], 0) of
+        {ok, FD} ->
+            {ok, FD};
+        {error, _} ->
+            open_pty(Drv, Child, Ptys)
+    end.
 
 %%
 %% Utility functions
