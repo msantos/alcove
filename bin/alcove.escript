@@ -406,6 +406,24 @@ specs() ->
 -spec call(alcove_drv:ref(),[pid_t()],atom(),list()) -> term().
 -spec call(alcove_drv:ref(),[pid_t()],atom(),list(),timeout()) -> term().
 
+-spec cap_constant(alcove_drv:ref(),[pid_t()],atom()) -> integer() | 'unknown'.
+-spec cap_constant(alcove_drv:ref(),[pid_t()],atom(),timeout()) -> integer() | 'unknown'.
+
+-spec cap_enter(alcove_drv:ref(),[pid_t()]) -> 'ok' | {'error', posix()}.
+-spec cap_enter(alcove_drv:ref(),[pid_t()],timeout()) -> 'ok' | {'error', posix()}.
+
+-spec cap_fcntls_limit(alcove_drv:ref(),[pid_t()],fd(),constant()) -> 'ok' | {'error', posix()}.
+-spec cap_fcntls_limit(alcove_drv:ref(),[pid_t()],fd(),constant(),timeout()) -> 'ok' | {'error', posix()}.
+
+-spec cap_getmode(alcove_drv:ref(),[pid_t()]) -> {'ok', 0 | 1} | {'error', posix()}.
+-spec cap_getmode(alcove_drv:ref(),[pid_t()],timeout()) -> {'ok', 0 | 1} | {'error', posix()}.
+
+-spec cap_ioctls_limit(alcove_drv:ref(),[pid_t()],fd(),constant()) -> 'ok' | {'error', posix()}.
+-spec cap_ioctls_limit(alcove_drv:ref(),[pid_t()],fd(),constant(),timeout()) -> 'ok' | {'error', posix()}.
+
+-spec cap_rights_limit(alcove_drv:ref(),[pid_t()],fd(),constant()) -> 'ok' | {'error', posix()}.
+-spec cap_rights_limit(alcove_drv:ref(),[pid_t()],fd(),constant(),timeout()) -> 'ok' | {'error', posix()}.
+
 -spec chdir(alcove_drv:ref(),[pid_t()],iodata()) -> 'ok' | {'error', posix()}.
 -spec chdir(alcove_drv:ref(),[pid_t()],iodata(),timeout()) -> 'ok' | {'error', posix()}.
 
