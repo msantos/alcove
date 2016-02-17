@@ -112,7 +112,7 @@ alcove_signal_init()
         }
     }
 
-    act.sa_handler = sighandler;
+    act.sa_handler = alcove_sig_dfl;
 
     if (sigaction(SIGCHLD, &act, NULL) < 0)
         return -1;

@@ -266,7 +266,7 @@ event(Config) ->
 
     {ok, Fork} = alcove:fork(Drv, []),
     ok = alcove:exit(Drv, [Fork], 0),
-    {exit_status, 0} = alcove:event(Drv, [Fork], 5000),
+    {ok, Fork, 0} = alcove:waitpid(Drv, [], -1, 0),
     {signal, _} = alcove:event(Drv, [], 5000).
 
 sethostname(Config) ->

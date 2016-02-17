@@ -171,7 +171,18 @@ typedef struct {
     size_t len;
 } alcove_alloc_t;
 
-void sighandler(int sig);
+typedef struct {
+    int handler;
+    int signum;
+} alcove_sighandler_t;
+
+enum {
+    ALCOVE_SIG_DFL,
+    ALCOVE_SIG_CATCH
+};
+
+void alcove_sig_dfl(int sig);
+void alcove_sig_catch(int sig);
 
 void alcove_event_init(alcove_state_t *ap);
 void alcove_event_loop(alcove_state_t *ap);

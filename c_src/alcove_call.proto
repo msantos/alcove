@@ -83,4 +83,5 @@ unlink/1
 unsetenv/1
 unshare/1
 version/0
+waitpid/2
 write/2

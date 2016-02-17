@@ -15,8 +15,25 @@
 #include "alcove.h"
 
     void
-sighandler(int sig)
+alcove_sig_catch(int sig)
 {
-    if (write(ALCOVE_SIGWRITE_FILENO, &sig, sizeof(sig)) != sizeof(sig))
+    alcove_sighandler_t h;
+
+    h.handler = ALCOVE_SIG_CATCH;
+    h.signum = sig;
+
+    if (write(ALCOVE_SIGWRITE_FILENO, &h, sizeof(h)) != sizeof(h))
+        (void)close(ALCOVE_SIGWRITE_FILENO);
+}
+
+    void
+alcove_sig_dfl(int sig)
+{
+    alcove_sighandler_t h;
+
+    h.handler = ALCOVE_SIG_DFL;
+    h.signum = sig;
+
+    if (write(ALCOVE_SIGWRITE_FILENO, &h, sizeof(h)) != sizeof(h))
         (void)close(ALCOVE_SIGWRITE_FILENO);
 }

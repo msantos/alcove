@@ -65,6 +65,7 @@ static int read_from_pid(alcove_state_t *ap, alcove_child_t *c,
         void *arg1, void *arg2);
 
 static int alcove_handle_signal(alcove_state_t *ap);
+static int alcove_signal_event(alcove_state_t *ap, int signum);
 
     void
 alcove_event_init(alcove_state_t *ap)
@@ -627,27 +628,29 @@ read_from_pid(alcove_state_t *ap, alcove_child_t *c, void *arg1, void *arg2)
 
     static int
 alcove_handle_signal(alcove_state_t *ap) {
-    int index = 0;
-    char reply[MAXMSGLEN] = {0};
-    int signum = 0;
+    alcove_sighandler_t sig = {0};
     int status = 0;
     ssize_t n = 0;
 
-    n = read(ALCOVE_SIGREAD_FILENO, &signum, sizeof(signum));
+    n = read(ALCOVE_SIGREAD_FILENO, &sig, sizeof(sig));
 
     if (n < 0) {
-        if (errno == EAGAIN || errno == EINTR)
-            return 0;
-
-        return -1;
+        return (errno == EAGAIN || errno == EINTR) ? 0 : -1;
     }
-    else if (n == 0 || n != sizeof(signum))
+    else if (n == 0 || n != sizeof(sig))
         return -1;
 
-    switch (signum) {
+    switch (sig.signum) {
         case SIGCHLD:
             for ( ; ; ) {
                 pid_t pid = 0;
+
+                if (sig.handler == ALCOVE_SIG_CATCH) {
+                    if (alcove_signal_event(ap, SIGCHLD) < 0)
+                        return -1;
+
+                    return 0;
+                }
 
                 pid = waitpid(-1, &status, WNOHANG);
 
@@ -659,28 +662,26 @@ alcove_handle_signal(alcove_state_t *ap) {
 
                 (void)pid_foreach(ap, pid, &status, NULL,
                         pid_equal, exited_pid);
-
-                if ((ap->opt & alcove_opt_sigchld) == 0)
-                    continue;
-
-                ALCOVE_TUPLE2(reply, sizeof(reply), &index,
-                    "signal",
-                    alcove_signal_name(reply, sizeof(reply), &index, signum)
-                );
-
-                if (alcove_call_reply(ALCOVE_MSG_EVENT, reply, index) < 0)
-                    return -1;
             }
             break;
         default:
-            ALCOVE_TUPLE2(reply, sizeof(reply), &index,
-                "signal",
-                alcove_signal_name(reply, sizeof(reply), &index, signum)
-            );
-
-            if (alcove_call_reply(ALCOVE_MSG_EVENT, reply, index) < 0)
+            if (alcove_signal_event(ap, sig.signum) < 0)
                 return -1;
     }
 
     return 0;
 }
+
+    static int
+alcove_signal_event(alcove_state_t *ap, int signum) {
+    int index = 0;
+    char reply[MAXMSGLEN] = {0};
+
+    ALCOVE_TUPLE2(reply, sizeof(reply), &index,
+        "signal",
+        alcove_signal_name(reply, sizeof(reply), &index, signum)
+    );
+
+    if (alcove_call_reply(ALCOVE_MSG_EVENT, reply, index) < 0)
+        return -1;
+};

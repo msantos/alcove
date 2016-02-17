@@ -16,6 +16,9 @@
 #include "alcove_call.h"
 #include "alcove_signal_constants.h"
 
+static sighandler_t atom_to_sighandler(int signum, char *handler);
+static char *sighandler_to_atom(sighandler_t handler);
+
 /*
  * sigaction(2)
  *
@@ -53,29 +56,10 @@ alcove_sys_sigaction(alcove_state_t *ap, const char *arg, size_t len,
     if (alcove_decode_atom(arg, len, &index, handler) < 0)
         return -1;
 
-    if (strcmp(handler, "sig_dfl") == 0) {
-        act.sa_handler = SIG_DFL;
-    }
-    else if (strcmp(handler, "sig_ign") == 0) {
-        act.sa_handler = SIG_IGN;
-    }
-    else if (strcmp(handler, "sig_catch") == 0) {
-        act.sa_handler = sighandler;
-    }
-    else {
+    act.sa_handler = atom_to_sighandler(signum, handler);
+
+    if (act.sa_handler == SIG_ERR)
         return -1;
-    }
-
-    if (signum == SIGCHLD) {
-        ALCOVE_OK(reply, rlen, &rindex,
-                alcove_encode_atom(reply, rlen, &rindex,
-                    (ap->opt & alcove_opt_sigchld) ? "sig_catch" : "sig_dfl"));
-
-        ALCOVE_SETOPT(ap, alcove_opt_sigchld,
-                ((act.sa_handler == sighandler) ? 1 : 0));
-
-        return rindex;
-    }
 
     (void)sigfillset(&act.sa_mask);
 
@@ -86,16 +70,47 @@ alcove_sys_sigaction(alcove_state_t *ap, const char *arg, size_t len,
     ALCOVE_ERR(alcove_encode_tuple_header(reply, rlen, &rindex, 2));
     ALCOVE_ERR(alcove_encode_atom(reply, rlen, &rindex, "ok"));
 
-    if (oact.sa_handler == SIG_DFL)
-        ohandler = "sig_dfl";
-    else if (oact.sa_handler == SIG_IGN)
-        ohandler = "sig_ign";
-    else if (oact.sa_handler == sighandler)
-        ohandler = "sig_catch";
-    else
-        /* XXX returns badarg */
+    ohandler = sighandler_to_atom(oact.sa_handler);
+
+    /* Unknown signal handler installed: abort with badarg */
+    if (ohandler == NULL)
         return -1;
 
     ALCOVE_ERR(alcove_encode_atom(reply, rlen, &rindex, ohandler));
     return rindex;
+}
+
+    static sighandler_t
+atom_to_sighandler(int signum, char *handler)
+{
+    if (strcmp(handler, "sig_dfl") == 0) {
+        return (signum == SIGCHLD) ? alcove_sig_dfl : SIG_DFL;
+    }
+    else if (strcmp(handler, "sig_ign") == 0) {
+        return SIG_IGN;
+    }
+    else if (strcmp(handler, "sig_catch") == 0) {
+        return alcove_sig_catch;
+    }
+
+    return SIG_ERR;
+}
+
+    static char *
+sighandler_to_atom(sighandler_t handler)
+{
+    if (handler == SIG_DFL) {
+        return "sig_dfl";
+    }
+    else if (handler == SIG_IGN) {
+        return "sig_ign";
+    }
+    else if (handler == alcove_sig_catch) {
+        return "sig_catch";
+    }
+    else if (handler == alcove_sig_dfl) {
+        return "sig_dfl";
+    }
+
+    return NULL;
 }
