@@ -684,4 +684,6 @@ alcove_signal_event(alcove_state_t *ap, int signum) {
 
     if (alcove_call_reply(ALCOVE_MSG_EVENT, reply, index) < 0)
         return -1;
+
+    return 0;
 };

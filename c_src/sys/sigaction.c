@@ -17,7 +17,7 @@
 #include "alcove_signal_constants.h"
 
 static sighandler_t atom_to_sighandler(int signum, char *handler);
-static char *sighandler_to_atom(sighandler_t handler);
+static char *sighandler_to_atom(sig_t handler);
 
 /*
  * sigaction(2)
@@ -80,7 +80,7 @@ alcove_sys_sigaction(alcove_state_t *ap, const char *arg, size_t len,
     return rindex;
 }
 
-    static sighandler_t
+    static sig_t
 atom_to_sighandler(int signum, char *handler)
 {
     if (strcmp(handler, "sig_dfl") == 0) {
@@ -97,7 +97,7 @@ atom_to_sighandler(int signum, char *handler)
 }
 
     static char *
-sighandler_to_atom(sighandler_t handler)
+sighandler_to_atom(sig_t handler)
 {
     if (handler == SIG_DFL) {
         return "sig_dfl";
