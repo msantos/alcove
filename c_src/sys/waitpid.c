@@ -65,14 +65,63 @@ alcove_sys_waitpid(alcove_state_t *ap, const char *arg, size_t len,
             return -1;
     }
 
-    ALCOVE_TUPLE3(
-        reply,
-        rlen,
-        &rindex,
-        "ok",
-        alcove_encode_long(reply, rlen, &rindex, rv),
-        alcove_encode_long(reply, rlen, &rindex, status)
-    );
+    ALCOVE_ERR(alcove_encode_version(reply, rlen, &rindex));
+    ALCOVE_ERR(alcove_encode_tuple_header(reply, rlen, &rindex, 4));
+    ALCOVE_ERR(alcove_encode_atom(reply, rlen, &rindex, "ok"));
+    ALCOVE_ERR(alcove_encode_long(reply, rlen, &rindex, rv));
+    ALCOVE_ERR(alcove_encode_long(reply, rlen, &rindex, status));
+
+    if (WIFEXITED(status)) {
+        if (alcove_encode_list_header(reply, rlen, &rindex, 1) < 0)
+            return -1;
+
+        if (alcove_encode_tuple_header(reply, rlen, &rindex, 2) < 0)
+            return -1;
+
+        if (alcove_encode_atom(reply, rlen, &rindex, "exit_status") < 0)
+            return -1;
+
+        if (alcove_encode_long(reply, rlen, &rindex, WEXITSTATUS(status)) < 0)
+            return -1;
+    }
+
+    if (WIFSIGNALED(status)) {
+        if (alcove_encode_list_header(reply, rlen, &rindex, 1) < 0)
+            return -1;
+
+        if (alcove_encode_tuple_header(reply, rlen, &rindex, 2) < 0)
+            return -1;
+
+        if (alcove_encode_atom(reply, rlen, &rindex, "termsig") < 0)
+            return -1;
+
+        if (alcove_encode_long(reply, rlen, &rindex, WTERMSIG(status)) < 0)
+            return -1;
+    }
+
+    if (WIFSTOPPED(status)) {
+        if (alcove_encode_list_header(reply, rlen, &rindex, 1) < 0)
+            return -1;
+
+        if (alcove_encode_tuple_header(reply, rlen, &rindex, 2) < 0)
+            return -1;
+
+        if (alcove_encode_atom(reply, rlen, &rindex, "stopsig") < 0)
+            return -1;
+
+        if (alcove_encode_long(reply, rlen, &rindex, WSTOPSIG(status)) < 0)
+            return -1;
+    }
+
+    if (WIFCONTINUED(status)) {
+        if (alcove_encode_list_header(reply, rlen, &rindex, 1) < 0)
+            return -1;
+
+        if (alcove_encode_atom(reply, rlen, &rindex, "continued") < 0)
+            return -1;
+    }
+
+    ALCOVE_ERR(alcove_encode_empty_list(reply, rlen, &rindex));
 
     return rindex;
 }
