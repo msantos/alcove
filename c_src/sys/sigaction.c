@@ -16,7 +16,7 @@
 #include "alcove_call.h"
 #include "alcove_signal_constants.h"
 
-static sighandler_t atom_to_sighandler(int signum, char *handler);
+static sig_t atom_to_sighandler(int signum, char *handler);
 static char *sighandler_to_atom(sig_t handler);
 
 /*
