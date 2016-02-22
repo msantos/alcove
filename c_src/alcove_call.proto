@@ -55,6 +55,8 @@ pid/0
 pivot_root/2
 prctl/5
 prctl_constant/1
+ptrace/4
+ptrace_constant/1
 read/2
 readdir/1
 rlimit_constant/1

@@ -25,54 +25,56 @@
         end_per_testcase/2
     ]).
 -export([
-        version/1,
-        iodata/1,
-        pid/1,
-        getpid/1,
-        setopt/1,
-        event/1,
-        sethostname/1,
-        env/1,
-        clone_constant/1,
-        setns/1,
-        unshare/1,
-        mount_constant/1,
-        mount/1,
-        tmpfs/1,
-        chroot/1,
-        jail/1,
+        alloc/1,
+        badpid/1,
         cap_enter/1,
-        cap_rights_limit/1,
         cap_fcntls_limit/1,
         cap_ioctls_limit/1,
+        cap_rights_limit/1,
         chdir/1,
-        setrlimit/1,
-        setgid/1,
-        setuid/1,
-        setgroups/1,
-        fork/1,
-        badpid/1,
-        signal/1,
-        portstress/1,
-        forkstress/1,
-        forkchain/1,
+        chroot/1,
+        clone_constant/1,
+        env/1,
         eof/1,
-        alloc/1,
+        event/1,
+        execve/1,
+        execvp/1,
+        execvp_mid_chain/1,
+        execvp_with_signal/1,
+        fcntl/1,
+        fexecve/1,
+        fork/1,
+        forkchain/1,
+        forkstress/1,
+        getpid/1,
+        ioctl/1,
+        iodata/1,
+        jail/1,
+        mount/1,
+        mount_constant/1,
+        open/1,
+        pid/1,
+        portstress/1,
         prctl/1,
         priority/1,
-        fcntl/1,
-        execvp/1,
-        execvp_with_signal/1,
-        stdout/1,
-        stderr/1,
-        execve/1,
-        fexecve/1,
-        stream/1,
-        open/1,
+        ptrace/1,
         select/1,
-        ioctl/1,
+        setgid/1,
+        setgroups/1,
+        sethostname/1,
+        setns/1,
+        setopt/1,
+        setrlimit/1,
+        setuid/1,
+        signal/1,
+        stderr/1,
+        stdout/1,
+        stream/1,
         symlink/1,
-        execvp_mid_chain/1,
+        tmpfs/1,
+        unshare/1,
+        version/1,
+
         no_os_specific_tests/1
     ]).
 
@@ -123,19 +125,20 @@ all() ->
 groups() ->
     [
         {linux, [sequence], [
+                fexecve,
                 clone_constant,
                 setns,
                 unshare,
                 prctl,
-                fexecve
+                ptrace
             ]},
         {freebsd, [sequence], [
+                fexecve,
                 jail,
                 cap_enter,
                 cap_rights_limit,
                 cap_fcntls_limit,
-                cap_ioctls_limit,
-                fexecve
+                cap_ioctls_limit
             ]},
         {darwin, [], [no_os_specific_tests]},
         {netbsd, [], [no_os_specific_tests]},
@@ -900,6 +903,59 @@ unshare(Config) ->
         false ->
             {skip, "unshare(2) not supported"}
     end.
+
+ptrace(Config) ->
+    Drv = ?config(drv, Config),
+    Child1 = ?config(child, Config),
+
+    {ok, Child2} = alcove:fork(Drv, [Child1]),
+
+    % disable the alcove event loop: child process must be managed by
+    % the caller
+    {ok, sig_dfl} = alcove:sigaction(Drv, [Child1], sigchld, sig_catch),
+
+    % enable ptracing in the child process and exec() a command
+    {ok, 0, <<>>, <<>>} = alcove:ptrace(Drv, [Child1, Child2], ptrace_traceme,
+        0, 0, 0),
+    ok = alcove:execvp(Drv, [Child1, Child2], "cat", ["cat"]),
+
+    % the parent is notified
+    {signal, sigchld} = alcove:event(Drv, [Child1], 5000),
+    {ok, Child2, _, [{stopsig, sigtrap}]} = alcove:waitpid(Drv, [Child1], -1,
+        [wnohang]),
+
+    % should be no other events
+    {ok, 0, 0, []} = alcove:waitpid(Drv, [Child1], -1, [wnohang]),
+
+    % allow the process to continue
+    {ok, 0, <<>>, <<>>} = alcove:ptrace(Drv, [Child1], ptrace_cont, Child2, 0, 0),
+
+    true = alcove:stdin(Drv, [Child1, Child2], "test\n"),
+
+    ok = receive
+        {alcove_stdout, Drv, [Child1, Child2], <<"test\n">>} ->
+            ok
+    after
+        5000 ->
+            timeout
+    end,
+
+    % Send a SIGTERM and re-write it to a harmless SIGWINCH
+    ok = alcove:kill(Drv, [Child1], Child2, sigterm),
+    {signal, sigchld} = alcove:event(Drv, [Child1], 5000),
+    {ok, Child2, _, [{stopsig, sigterm}]} = alcove:waitpid(Drv, [Child1], -1,
+        [wnohang]),
+
+    {ok, 0, <<>>, <<>>} = alcove:ptrace(Drv, [Child1], ptrace_cont,
+        Child2, 0, 28),
+
+    % Convert a SIGWINCH to SIGTERM
+    ok = alcove:kill(Drv, [Child1], Child2, sigwinch),
+    {signal, sigchld} = alcove:event(Drv, [Child1], 5000),
+    {ok, 0, <<>>, <<>>} = alcove:ptrace(Drv, [Child1], ptrace_cont,
+        Child2, 0, 15),
+    {ok, Child2, _, [{termsig, sigterm}]} = alcove:waitpid(Drv, [Child1], -1,
+        [wnohang]).
 
 %%
 %% FreeBSD
