@@ -640,33 +640,24 @@ alcove_handle_signal(alcove_state_t *ap) {
     else if (n == 0 || n != sizeof(sig))
         return -1;
 
-    switch (sig.signum) {
-        case SIGCHLD:
-            for ( ; ; ) {
-                pid_t pid = 0;
+    if (sig.handler == ALCOVE_SIG_CATCH)
+        return (alcove_signal_event(ap, sig.signum) < 0) ? -1 : 0;
 
-                if (sig.handler == ALCOVE_SIG_CATCH) {
-                    if (alcove_signal_event(ap, SIGCHLD) < 0)
-                        return -1;
+    if (sig.signum != SIGCHLD)
+        return -1;
 
-                    return 0;
-                }
+    for ( ; ; ) {
+        pid_t pid = 0;
 
-                pid = waitpid(-1, &status, WNOHANG);
+        pid = waitpid(-1, &status, WNOHANG);
 
-                if (errno == ECHILD || pid == 0)
-                    return 0;
+        if (errno == ECHILD || pid == 0)
+            return 0;
 
-                if (pid < 0)
-                    return -1;
+        if (pid < 0)
+            return -1;
 
-                (void)pid_foreach(ap, pid, &status, NULL,
-                        pid_equal, exited_pid);
-            }
-            break;
-        default:
-            if (alcove_signal_event(ap, sig.signum) < 0)
-                return -1;
+        (void)pid_foreach(ap, pid, &status, NULL, pid_equal, exited_pid);
     }
 
     return 0;
