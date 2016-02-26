@@ -591,33 +591,26 @@ alloc(Config) ->
 prctl(Config) ->
     Drv = ?config(drv, Config),
     Child = ?config(child, Config),
-    OS = ?config(os, Config),
 
-    case OS of
-        linux ->
-            % capability is set:
-            %   returns 0 | 1 in function result, arg2 = int
-            {ok,1,0,0,0,0} = alcove:prctl(Drv, [Child], pr_capbset_read, 0, 0,0,0),
+    % capability is set:
+    %   returns 0 | 1 in function result, arg2 = int
+    {ok,1,0,0,0,0} = alcove:prctl(Drv, [Child], pr_capbset_read, 0, 0,0,0),
 
-            % set process name:
-            %   arg2 = char *, up to 16 bytes, NULL terminated
-            {ok,0,<<116,101,115,116,0>>,0,0,0} = alcove:prctl(Drv, [Child], pr_set_name, <<"test",0>>, 0,0,0),
+    % set process name:
+    %   arg2 = char *, up to 16 bytes, NULL terminated
+    {ok,0,<<116,101,115,116,0>>,0,0,0} = alcove:prctl(Drv, [Child], pr_set_name, <<"test",0>>, 0,0,0),
 
-            % get process name
-            %   value returned in arg2 = char *, up to 16 bytes
-            {ok,0,<<116,101,115,116,0,0,0,0,0,0,0,0,0,0,0,0,0>>,0,0,0} = alcove:prctl(Drv, [Child], pr_get_name, <<0:(17*8)>>, 0,0,0),
+    % get process name
+    %   value returned in arg2 = char *, up to 16 bytes
+    {ok,0,<<116,101,115,116,0,0,0,0,0,0,0,0,0,0,0,0,0>>,0,0,0} = alcove:prctl(Drv, [Child], pr_get_name, <<0:(17*8)>>, 0,0,0),
 
-            % set parent death signal
-            %  arg2 = signal
-            {ok,0,9,0,0,0} = alcove:prctl(Drv, [Child], pr_set_pdeathsig, 9, 0,0,0),
+    % set parent death signal
+    %  arg2 = signal
+    {ok,0,9,0,0,0} = alcove:prctl(Drv, [Child], pr_set_pdeathsig, 9, 0,0,0),
 
-            % get parent death signal
-            %  arg2 = int *
-            {ok,0,<<9,0,0,0>>,0,0,0} = alcove:prctl(Drv, [Child], pr_get_pdeathsig, <<0:32>>, 0,0,0);
-
-        _ ->
-            {skip, "prctl(2) not supported"}
-    end.
+    % get parent death signal
+    %  arg2 = int *
+    {ok,0,<<9,0,0,0>>,0,0,0} = alcove:prctl(Drv, [Child], pr_get_pdeathsig, <<0:32>>, 0,0,0).
 
 fcntl(Config) ->
     Drv = ?config(drv, Config),
