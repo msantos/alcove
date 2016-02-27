@@ -1,6 +1,7 @@
 alloc/1
 cap_constant/1
 cap_enter/0
+cap_fcntls_get/1
 cap_fcntls_limit/2
 cap_getmode/0
 cap_ioctls_limit/2

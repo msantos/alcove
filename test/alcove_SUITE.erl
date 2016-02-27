@@ -1007,6 +1007,8 @@ cap_fcntls_limit(Config) ->
     ok = alcove:cap_rights_limit(Drv, [Child], FD, [cap_fcntl]),
     ok = alcove:cap_fcntls_limit(Drv, [Child], FD, [cap_fcntl_setfl]),
     {error, enotcapable} = alcove:fcntl(Drv, [Child], FD, f_getfl, 0),
+    Flags = alcove:cap_constant(Drv, [Child], cap_fcntl_setfl),
+    {ok,Flags} = alcove:cap_fcntls_get(Drv, [Child], FD),
     {ok, 0} = alcove:fcntl(Drv, [Child], FD, f_setfl, 0).
 
 cap_ioctls_limit(Config) ->
