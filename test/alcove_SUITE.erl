@@ -265,12 +265,12 @@ setopt(Config) ->
 event(Config) ->
     Drv = ?config(drv, Config),
 
-    {ok,_} = alcove:sigaction(Drv, [], sigchld, sig_catch),
+    {ok,_} = alcove:sigaction(Drv, [], sigchld, sig_info),
 
     {ok, Fork} = alcove:fork(Drv, []),
     ok = alcove:exit(Drv, [Fork], 0),
     {ok, Fork, 0, [{exit_status, 0}]} = alcove:waitpid(Drv, [], -1, 0),
-    {signal, _} = alcove:event(Drv, [], 5000).
+    {signal, _, _} = alcove:event(Drv, [], 5000).
 
 sethostname(Config) ->
     Drv = ?config(drv, Config),
@@ -905,7 +905,7 @@ ptrace(Config) ->
 
     % disable the alcove event loop: child process must be managed by
     % the caller
-    {ok, sig_dfl} = alcove:sigaction(Drv, [Child1], sigchld, sig_catch),
+    {ok, sig_dfl} = alcove:sigaction(Drv, [Child1], sigchld, sig_info),
 
     % enable ptracing in the child process and exec() a command
     {ok, 0, <<>>, <<>>} = alcove:ptrace(Drv, [Child1, Child2], ptrace_traceme,
@@ -913,7 +913,7 @@ ptrace(Config) ->
     ok = alcove:execvp(Drv, [Child1, Child2], "cat", ["cat"]),
 
     % the parent is notified
-    {signal, sigchld} = alcove:event(Drv, [Child1], 5000),
+    {signal, sigchld, _} = alcove:event(Drv, [Child1], 5000),
     {ok, Child2, _, [{stopsig, sigtrap}]} = alcove:waitpid(Drv, [Child1], -1,
         [wnohang]),
 
@@ -935,7 +935,7 @@ ptrace(Config) ->
 
     % Send a SIGTERM and re-write it to a harmless SIGWINCH
     ok = alcove:kill(Drv, [Child1], Child2, sigterm),
-    {signal, sigchld} = alcove:event(Drv, [Child1], 5000),
+    {signal, sigchld, _} = alcove:event(Drv, [Child1], 5000),
     {ok, Child2, _, [{stopsig, sigterm}]} = alcove:waitpid(Drv, [Child1], -1,
         [wnohang]),
 
@@ -944,7 +944,7 @@ ptrace(Config) ->
 
     % Convert a SIGWINCH to SIGTERM
     ok = alcove:kill(Drv, [Child1], Child2, sigwinch),
-    {signal, sigchld} = alcove:event(Drv, [Child1], 5000),
+    {signal, sigchld, _} = alcove:event(Drv, [Child1], 5000),
     {ok, 0, <<>>, <<>>} = alcove:ptrace(Drv, [Child1], ptrace_cont,
         Child2, 0, 15),
     {ok, Child2, _, [{termsig, sigterm}]} = alcove:waitpid(Drv, [Child1], -1,

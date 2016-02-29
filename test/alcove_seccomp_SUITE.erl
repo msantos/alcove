@@ -111,7 +111,7 @@ trap(Config) ->
     Drv = ?config(drv, Config),
 
     {ok, Pid} = alcove:fork(Drv, []),
-    {ok,_} = alcove:sigaction(Drv, [Pid], sigsys, sig_catch),
+    {ok,_} = alcove:sigaction(Drv, [Pid], sigsys, sig_info),
 
     enforce(Drv, [Pid], ?BPF_STMT(?BPF_RET+?BPF_K, ?SECCOMP_RET_TRAP)),
 
@@ -124,7 +124,7 @@ trap(Config) ->
         Cwd -> {false, Cwd}
     end,
 
-    {signal, sigsys} = receive
+    {signal, sigsys, _} = receive
         {alcove_event,Drv,[Pid],Event} ->
             Event
     after

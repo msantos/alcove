@@ -1,4 +1,4 @@
-/* Copyright (c) 2014, Michael Santos <michael.santos@gmail.com>
+/* Copyright (c) 2014-2016, Michael Santos <michael.santos@gmail.com>
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -56,10 +56,16 @@ alcove_sys_sigaction(alcove_state_t *ap, const char *arg, size_t len,
     if (alcove_decode_atom(arg, len, &index, handler) < 0)
         return -1;
 
-    act.sa_handler = atom_to_sighandler(signum, handler);
+    if (strcmp(handler, "sig_info") == 0) {
+        act.sa_sigaction = alcove_sig_info;
+        act.sa_flags |= SA_SIGINFO;
+    }
+    else {
+        act.sa_handler = atom_to_sighandler(signum, handler);
 
-    if (act.sa_handler == SIG_ERR)
-        return -1;
+        if (act.sa_handler == SIG_ERR)
+            return -1;
+    }
 
     (void)sigfillset(&act.sa_mask);
 
@@ -70,7 +76,9 @@ alcove_sys_sigaction(alcove_state_t *ap, const char *arg, size_t len,
     ALCOVE_ERR(alcove_encode_tuple_header(reply, rlen, &rindex, 2));
     ALCOVE_ERR(alcove_encode_atom(reply, rlen, &rindex, "ok"));
 
-    ohandler = sighandler_to_atom(oact.sa_handler);
+    ohandler = (oact.sa_flags & SA_SIGINFO)
+        ? "sig_info"
+        : sighandler_to_atom(oact.sa_handler);
 
     /* Unknown signal handler installed: abort with badarg */
     if (ohandler == NULL)
@@ -89,9 +97,6 @@ atom_to_sighandler(int signum, char *handler)
     else if (strcmp(handler, "sig_ign") == 0) {
         return SIG_IGN;
     }
-    else if (strcmp(handler, "sig_catch") == 0) {
-        return alcove_sig_catch;
-    }
 
     return SIG_ERR;
 }
@@ -104,9 +109,6 @@ sighandler_to_atom(sig_t handler)
     }
     else if (handler == SIG_IGN) {
         return "sig_ign";
-    }
-    else if (handler == alcove_sig_catch) {
-        return "sig_catch";
     }
     else if (handler == alcove_sig_dfl) {
         return "sig_dfl";

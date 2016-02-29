@@ -947,7 +947,7 @@ atom is used as the argument and is not found on the platform.
     sigaction(Drv, ForkChain, Signum, Handler) -> {ok, OldHandler} | {error, posix()}
 
         Types   Signum = constant()
-                Handler = OldHandler = sig_dfl | sig_ign | sig_catch
+                Handler = OldHandler = sig_dfl | sig_ign | sig_info
 
         sigaction(2) : set process behaviour for signals
 
@@ -955,8 +955,11 @@ atom is used as the argument and is not found on the platform.
 
             sig_ign : ignores the signal
 
-            sig_catch : catches the signal and sends the controlling Erlang
-                        process an event, {signal, atom()}
+            sig_info : catches the signal and sends the controlling Erlang
+                       process an event: {signal, atom(), Info}
+
+                       'Info' is a binary containing the siginfo_t
+                       structure. See sigaction(2) for details.
 
         Multiple caught signals of the same type may be reported as one event.
 
