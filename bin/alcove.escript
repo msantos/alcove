@@ -412,6 +412,9 @@ specs() ->
 -spec cap_enter(alcove_drv:ref(),[pid_t()]) -> 'ok' | {'error', posix()}.
 -spec cap_enter(alcove_drv:ref(),[pid_t()],timeout()) -> 'ok' | {'error', posix()}.
 
+-spec cap_fcntls_get(alcove_drv:ref(),[pid_t()],fd()) -> {'ok', integer()} | {'error', posix()}.
+-spec cap_fcntls_get(alcove_drv:ref(),[pid_t()],fd(),timeout()) -> {'ok', integer()} | {'error', posix()}.
+
 -spec cap_fcntls_limit(alcove_drv:ref(),[pid_t()],fd(),constant()) -> 'ok' | {'error', posix()}.
 -spec cap_fcntls_limit(alcove_drv:ref(),[pid_t()],fd(),constant(),timeout()) -> 'ok' | {'error', posix()}.
 
