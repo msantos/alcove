@@ -1,4 +1,4 @@
-/* Copyright (c) 2014, Michael Santos <michael.santos@gmail.com>
+/* Copyright (c) 2014-2016, Michael Santos <michael.santos@gmail.com>
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -21,7 +21,7 @@ static int cons_pid(alcove_state_t *ap, alcove_child_t *c,
         void *arg1, void *arg2);
 
     ssize_t
-alcove_sys_pid(alcove_state_t *ap, const char *arg, size_t len,
+alcove_sys_children(alcove_state_t *ap, const char *arg, size_t len,
         char *reply, size_t rlen)
 {
     int rindex = 0;

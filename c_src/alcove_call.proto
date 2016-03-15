@@ -7,6 +7,7 @@ cap_getmode/0
 cap_ioctls_limit/2
 cap_rights_limit/2
 chdir/1
+children/0
 chmod/2
 chown/3
 chroot/1
@@ -52,7 +53,6 @@ mkfifo/2
 mount/6
 mount_constant/1
 open/3
-pid/0
 pivot_root/2
 prctl/5
 prctl_constant/1

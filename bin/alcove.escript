@@ -269,7 +269,7 @@ eof(_Drv, [], _Stdio) ->
 eof(Drv, Pids0, Stdio) ->
     [Pid|Rest] = lists:reverse(Pids0),
     Pids = lists:reverse(Rest),
-    Proc = pid(Drv, Pids),
+    Proc = children(Drv, Pids),
     case lists:keyfind(Pid, 2, Proc) of
         false ->
             {error,esrch};
@@ -430,6 +430,9 @@ specs() ->
 -spec chdir(alcove_drv:ref(),[pid_t()],iodata()) -> 'ok' | {'error', posix()}.
 -spec chdir(alcove_drv:ref(),[pid_t()],iodata(),timeout()) -> 'ok' | {'error', posix()}.
 
+-spec children(alcove_drv:ref(),[pid_t()]) -> [#alcove_pid{}].
+-spec children(alcove_drv:ref(),[pid_t()],timeout()) -> [#alcove_pid{}].
+
 -spec chmod(alcove_drv:ref(),[pid_t()],iodata(),mode_t()) -> 'ok' | {'error', posix()}.
 -spec chmod(alcove_drv:ref(),[pid_t()],iodata(),mode_t(),timeout()) -> 'ok' | {'error', posix()}.
 
@@ -562,9 +565,6 @@ specs() ->
 
 -spec open(alcove_drv:ref(),[pid_t()],iodata(),int32_t() | [constant()],mode_t()) -> {'ok',fd()} | {'error', posix()}.
 -spec open(alcove_drv:ref(),[pid_t()],iodata(),int32_t() | [constant()],mode_t(),timeout()) -> {'ok',fd()} | {'error', posix()}.
-
--spec pid(alcove_drv:ref(),[pid_t()]) -> [#alcove_pid{}].
--spec pid(alcove_drv:ref(),[pid_t()],timeout()) -> [#alcove_pid{}].
 
 -spec pivot_root(alcove_drv:ref(),[pid_t()],iodata(),iodata()) -> 'ok' | {'error', posix()}.
 -spec pivot_root(alcove_drv:ref(),[pid_t()],iodata(),iodata(),timeout()) -> 'ok' | {'error', posix()}.

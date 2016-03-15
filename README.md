@@ -375,6 +375,10 @@ atom is used as the argument and is not found on the platform.
 
         chdir(2) : change process current working directory.
 
+    children(Drv, ForkChain) -> [OSPid]
+
+        Returns the list of child PIDs for this process.
+
     chmod(Drv, ForkChain, Path, Mode) -> ok | {error, posix()}
 
         chmod(2) : change file permissions
@@ -704,10 +708,6 @@ atom is used as the argument and is not found on the platform.
         Lists of values are OR'ed:
 
             alcove:open(Drv, [], "/tmp/test", [o_wronly,o_creat], 8#644)
-
-    pid(Drv, ForkChain) -> [OSPid]
-
-        Returns the list of child PIDs for this process.
 
     prctl(Drv, ForkChain, Option, Arg2, Arg3, Arg4, Arg5) ->
         {ok, integer(), Val2, Val3, Val4, Val5} | {error, posix()}

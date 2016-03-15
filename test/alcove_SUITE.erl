@@ -53,7 +53,7 @@
         mount/1,
         mount_constant/1,
         open/1,
-        pid/1,
+        children/1,
         portstress/1,
         prctl/1,
         priority/1,
@@ -84,7 +84,7 @@ all() ->
         {group, OS},
         version,
         iodata,
-        pid,
+        children,
         getpid,
         setopt,
         event,
@@ -215,14 +215,14 @@ iodata(Config) ->
 
     ok.
 
-pid(Config) ->
+children(Config) ->
     Drv = ?config(drv, Config),
 
     {ok, Child} = alcove:fork(Drv, []),
     {ok, Grandchild} = alcove:fork(Drv, [Child]),
-    [#alcove_pid{}] = alcove:pid(Drv, [Child]),
+    [#alcove_pid{}] = alcove:children(Drv, [Child]),
     ok = alcove:execvp(Drv, [Child,Grandchild], "/bin/cat", ["/bin/cat"]),
-    [#alcove_pid{fdctl = -2}] = alcove:pid(Drv, [Child]),
+    [#alcove_pid{fdctl = -2}] = alcove:children(Drv, [Child]),
     ok = alcove:eof(Drv, [Child]).
 
 getpid(Config) ->

@@ -31,6 +31,7 @@
 
 -record(state, {
         owner,
+        ospid :: alcove:pid_t(),
         raw = false,
         port :: port(),
         fdctl :: port(),
@@ -169,7 +170,12 @@ init([Owner, Options]) ->
             % Decrease the link count of the fifo. The fifo is deleted in
             % the port because the port may be running as a different user.
             ok = call_unlink(Port, Fifo),
-            {ok, #state{port = Port, fdctl = Fdctl, owner = Owner}};
+            {ok, #state{
+                    port = Port,
+                    fdctl = Fdctl,
+                    owner = Owner,
+                    ospid = proplists:get_value(os_pid, erlang:port_info(Port))
+                }};
         {'EXIT', Port, normal} ->
             {stop, {error, port_init_failed}};
         {'EXIT', Port, Reason} ->
