@@ -20,7 +20,7 @@
 -export([start_link/0, start_link/1, start_link/2]).
 -export([call/5]).
 -export([stdin/3, stdout/3, stderr/3, event/3]).
--export([raw/1, getopts/1, progname/0]).
+-export([raw/1, getopts/1, progname/0, port/1]).
 
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2,
@@ -31,7 +31,6 @@
 
 -record(state, {
         owner,
-        ospid :: alcove:pid_t(),
         raw = false,
         port :: port(),
         fdctl :: port(),
@@ -124,6 +123,10 @@ event(Drv, Pids, Timeout) ->
 raw(Drv) ->
     gen_server:call(Drv, raw).
 
+-spec port(ref()) -> port().
+port(Drv) ->
+    gen_server:call(Drv, port).
+
 %%--------------------------------------------------------------------
 %%% Callbacks
 %%--------------------------------------------------------------------
@@ -173,8 +176,7 @@ init([Owner, Options]) ->
             {ok, #state{
                     port = Port,
                     fdctl = Fdctl,
-                    owner = Owner,
-                    ospid = proplists:get_value(os_pid, erlang:port_info(Port))
+                    owner = Owner
                 }};
         {'EXIT', Port, normal} ->
             {stop, {error, port_init_failed}};
@@ -188,6 +190,9 @@ handle_call({send, Buf}, {Owner,_Tag}, #state{port = Port, owner = Owner} = Stat
 
 handle_call(raw, {Owner,_Tag}, #state{owner = Owner} = State) ->
     {reply, ok, State#state{raw = true}};
+
+handle_call(port, {Owner,_Tag}, #state{owner = Owner, port = Port} = State) ->
+    {reply, Port, State};
 
 handle_call(stop, _From, State) ->
     {stop, normal, ok, State};
