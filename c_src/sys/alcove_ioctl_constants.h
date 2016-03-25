@@ -227,6 +227,9 @@ static const alcove_constant_t alcove_ioctl_constants[] = {
 #ifdef TIOCNXCL
     ALCOVE_CONSTANT(TIOCNXCL),
 #endif
+#ifdef TIOCFLUSH
+    ALCOVE_CONSTANT(TIOCFLUSH),
+#endif
 #ifdef TIOCSCTTY
     ALCOVE_CONSTANT(TIOCSCTTY),
 #endif
