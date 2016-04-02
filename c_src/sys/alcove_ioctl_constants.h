@@ -314,18 +314,6 @@ static const alcove_constant_t alcove_ioctl_constants[] = {
 #ifdef TIOCGSID
     ALCOVE_CONSTANT(TIOCGSID),
 #endif
-#ifdef TCGETS2
-    ALCOVE_CONSTANT(TCGETS2),
-#endif
-#ifdef TCSETS2
-    ALCOVE_CONSTANT(TCSETS2),
-#endif
-#ifdef TCSETSW2
-    ALCOVE_CONSTANT(TCSETSW2),
-#endif
-#ifdef TCSETSF2
-    ALCOVE_CONSTANT(TCSETSF2),
-#endif
 #ifdef TIOCGRS485
     ALCOVE_CONSTANT(TIOCGRS485),
 #endif
