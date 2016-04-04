@@ -33,7 +33,7 @@ alcove_sys_execvp(alcove_state_t *ap, const char *arg, size_t len,
     UNUSED(ap);
 
     /* progname */
-    if (alcove_decode_iolist(arg, len, &index, progname, &plen) ||
+    if (alcove_decode_iolist(arg, len, &index, progname, &plen) < 0 ||
             plen == 0)
         return -1;
 

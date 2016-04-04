@@ -34,7 +34,7 @@ alcove_sys_execve(alcove_state_t *ap, const char *arg, size_t len,
     UNUSED(ap);
 
     /* filename */
-    if (alcove_decode_iolist(arg, len, &index, filename, &flen) ||
+    if (alcove_decode_iolist(arg, len, &index, filename, &flen) < 0 ||
             flen == 0)
         return -1;
 
