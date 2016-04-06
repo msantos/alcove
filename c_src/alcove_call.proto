@@ -54,6 +54,7 @@ mount/6
 mount_constant/1
 open/3
 pivot_root/2
+pledge/2
 prctl/5
 prctl_constant/1
 ptrace/4

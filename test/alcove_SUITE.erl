@@ -53,6 +53,7 @@
         mount/1,
         mount_constant/1,
         open/1,
+        pledge/1,
         children/1,
         portstress/1,
         prctl/1,
@@ -140,9 +141,9 @@ groups() ->
                 cap_fcntls_limit,
                 cap_ioctls_limit
             ]},
+        {openbsd, [], [pledge]},
         {darwin, [], [no_os_specific_tests]},
         {netbsd, [], [no_os_specific_tests]},
-        {openbsd, [], [no_os_specific_tests]},
         {solaris, [], [no_os_specific_tests]}
     ].
 
@@ -1042,6 +1043,27 @@ open_pty(Drv, Child, [Pty|Ptys]) ->
         {error, _} ->
             open_pty(Drv, Child, Ptys)
     end.
+
+%%
+%% OpenBSD
+%%
+pledge(Config) ->
+    Drv = ?config(drv, Config),
+
+    {ok, Fork0} = alcove:fork(Drv, []),
+    {ok, Fork1} = alcove:fork(Drv, []),
+
+    ok = alcove:pledge(Drv, [Fork0], "stdio", []),
+    ok = alcove:pledge(Drv, [Fork1], "stdio proc exec", []),
+
+    alcove:getuid(Drv, [Fork0]),
+    alcove:getuid(Drv, [Fork1]),
+
+    {'EXIT',{{exit_status,_},_}} = (catch alcove:fork(Drv, [Fork0])),
+    {ok, Fork2} = alcove:fork(Drv, [Fork1]),
+    {'EXIT',{{termsig,sigabrt},_}} = (catch alcove:open(Drv, [Fork1], "/etc/passwd", [o_rdonly], 0)),
+
+    ok.
 
 %%
 %% Utility functions

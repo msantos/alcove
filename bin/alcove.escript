@@ -566,6 +566,9 @@ specs() ->
 -spec open(alcove_drv:ref(),[pid_t()],iodata(),int32_t() | [constant()],mode_t()) -> {'ok',fd()} | {'error', posix()}.
 -spec open(alcove_drv:ref(),[pid_t()],iodata(),int32_t() | [constant()],mode_t(),timeout()) -> {'ok',fd()} | {'error', posix()}.
 
+-spec pledge(alcove_drv:ref(),[pid_t()],iodata(),[string() | binary()]) -> 'ok' | {'error', posix()}.
+-spec pledge(alcove_drv:ref(),[pid_t()],iodata(),[string() | binary()],timeout()) -> 'ok' | {'error', posix()}.
+
 -spec pivot_root(alcove_drv:ref(),[pid_t()],iodata(),iodata()) -> 'ok' | {'error', posix()}.
 -spec pivot_root(alcove_drv:ref(),[pid_t()],iodata(),iodata(),timeout()) -> 'ok' | {'error', posix()}.
 
