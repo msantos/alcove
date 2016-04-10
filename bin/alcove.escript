@@ -572,15 +572,25 @@ specs() ->
 -spec pivot_root(alcove_drv:ref(),[pid_t()],iodata(),iodata()) -> 'ok' | {'error', posix()}.
 -spec pivot_root(alcove_drv:ref(),[pid_t()],iodata(),iodata(),timeout()) -> 'ok' | {'error', posix()}.
 
--type prctl_arg() :: binary() | constant() | cstruct().
--type prctl_val() :: binary() | integer() | cstruct().
--spec prctl(alcove_drv:ref(),[pid_t()],constant(),prctl_arg(),prctl_arg(),prctl_arg(),prctl_arg())
-    -> {'ok',integer(),prctl_val(),prctl_val(),prctl_val(),prctl_val()} | {'error', posix()}.
--spec prctl(alcove_drv:ref(),[pid_t()],constant(),prctl_arg(),prctl_arg(),prctl_arg(),prctl_arg(),timeout())
-    -> {'ok',integer(),prctl_val(),prctl_val(),prctl_val(),prctl_val()} | {'error', posix()}.
+-type ptr_arg() :: binary() | constant() | cstruct().
+-type ptr_val() :: binary() | integer() | cstruct().
+-spec prctl(alcove_drv:ref(),[pid_t()],constant(),ptr_arg(),ptr_arg(),ptr_arg(),ptr_arg())
+    -> {'ok',integer(),ptr_val(),ptr_val(),ptr_val(),ptr_val()} | {'error', posix()}.
+-spec prctl(alcove_drv:ref(),[pid_t()],constant(),ptr_arg(),ptr_arg(),ptr_arg(),ptr_arg(),timeout())
+    -> {'ok',integer(),ptr_val(),ptr_val(),ptr_val(),ptr_val()} | {'error', posix()}.
 
 -spec prctl_constant(alcove_drv:ref(),[pid_t()],atom()) -> 'unknown' | non_neg_integer().
 -spec prctl_constant(alcove_drv:ref(),[pid_t()],atom(),timeout()) -> 'unknown' | non_neg_integer().
+
+-spec ptrace(alcove_drv:ref(),[pid_t()],constant(),pid_t(),ptr_arg(),ptr_arg())
+    -> {'ok', integer(), ptr_val(), ptr_val()} | {'error', posix()}.
+-spec ptrace(alcove_drv:ref(),[pid_t()],constant(),pid_t(),ptr_arg(),ptr_arg(),timeout())
+    -> {'ok', integer(), ptr_val(), ptr_val()} | {'error', posix()}.
+
+-spec ptrace_constant(alcove_drv:ref(),[pid_t()],atom())
+    -> 'unknown' | integer().
+-spec ptrace_constant(alcove_drv:ref(),[pid_t()],atom(),timeout())
+    -> 'unknown' | integer().
 
 -spec read(alcove_drv:ref(),[pid_t()],fd(),size_t()) -> {'ok', binary()} | {'error', posix()}.
 -spec read(alcove_drv:ref(),[pid_t()],fd(),size_t(),timeout()) -> {'ok', binary()} | {'error', posix()}.
