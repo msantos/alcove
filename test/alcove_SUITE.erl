@@ -949,7 +949,7 @@ ptrace(Config) ->
     {ok, 0, <<>>, <<>>} = alcove:ptrace(Drv, [Child1], ptrace_cont,
         Child2, 0, 15),
     {ok, Child2, _, [{termsig, sigterm}]} = alcove:waitpid(Drv, [Child1], -1,
-        [wnohang]).
+        []).
 
 %%
 %% FreeBSD
