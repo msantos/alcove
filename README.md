@@ -68,7 +68,7 @@ Defaults!/path/to/alcove/priv/alcove !requiretty
 When starting alcove, pass in the `exec` option:
 
 ```erlang
-{ok, Drv} = alcove_drv:start([{exec, "sudo"}]).
+{ok, Drv} = alcove_drv:start([{exec, "sudo -n"}]).
 ```
 
 * setuid
@@ -109,7 +109,7 @@ create an interactive shell we access through standard I/O.
 In order to call chroot(2), the port will need root privileges:
 
 ```erlang
-{ok, Drv} = alocve_drv:start([{exec, "sudo"}]).
+{ok, Drv} = alocve_drv:start([{exec, "sudo -n"}]).
 ```
 
 Following the steps outlined earlier, we want to set some process
@@ -240,7 +240,7 @@ See `examples/nsex.erl`.
 
 ```erlang
 start() ->
-    {ok, Drv} = alcove_drv:start([{exec, "sudo"}]),
+    {ok, Drv} = alcove_drv:start([{exec, "sudo -n"}]),
 
     % Create a new cgroup for our processes
     ok = alcove_cgroup:create(Drv, [], <<"alcove">>),

@@ -149,7 +149,7 @@ groups() ->
 
 init_per_testcase(_Test, Config) ->
     % export ALCOVE_TEST_EXEC="sudo valgrind --leak-check=yes --log-file=/tmp/alcove.log"
-    Exec = getenv("ALCOVE_TEST_EXEC", "sudo"),
+    Exec = getenv("ALCOVE_TEST_EXEC", "sudo -n"),
     Use_fork = false =/= getenv("ALCOVE_TEST_USE_FORK", false),
 
     {ok, Drv} = alcove_drv:start_link([{exec, Exec}, {maxchild, 8}]),
