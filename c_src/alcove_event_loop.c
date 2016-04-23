@@ -373,8 +373,6 @@ alcove_call_fake_reply(pid_t pid, u_int16_t type, char *buf, size_t len)
     unsigned char callhdr[MAXHDRLEN] = {0};
     u_int16_t callhdrlen = 0;
 
-    ssize_t n = -1;
-
     callhdrlen = alcove_call_hdr(callhdr, sizeof(callhdr), type, len);
 
     proxyhdrlen = alcove_proxy_hdr(proxyhdr, sizeof(proxyhdr),
@@ -387,9 +385,7 @@ alcove_call_fake_reply(pid_t pid, u_int16_t type, char *buf, size_t len)
     iov[2].iov_base = buf;
     iov[2].iov_len = len;
 
-    n = alcove_write(STDOUT_FILENO, iov, ALCOVE_IOVEC_COUNT(iov));
-
-    return n;
+    return alcove_write(STDOUT_FILENO, iov, ALCOVE_IOVEC_COUNT(iov));
 }
 
     static int
