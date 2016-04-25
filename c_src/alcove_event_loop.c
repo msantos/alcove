@@ -40,9 +40,9 @@ static int alcove_stdin(alcove_state_t *ap);
 static ssize_t alcove_msg_call(alcove_state_t *ap, unsigned char *buf,
         u_int16_t buflen);
 
-static ssize_t alcove_proxy_hdr(unsigned char *hdr, size_t hdrlen,
+static size_t alcove_proxy_hdr(unsigned char *hdr, size_t hdrlen,
         u_int16_t type, pid_t pid, size_t buflen);
-static ssize_t alcove_call_hdr(unsigned char *hdr, size_t hdrlen,
+static size_t alcove_call_hdr(unsigned char *hdr, size_t hdrlen,
         u_int16_t type, size_t buflen);
 
 static ssize_t alcove_child_stdio(int fdin, u_int16_t depth,
@@ -256,14 +256,14 @@ alcove_msg_call(alcove_state_t *ap, unsigned char *buf, u_int16_t buflen)
     return alcove_call_reply(ALCOVE_MSG_CALL, reply, rlen);
 }
 
-    static ssize_t
+    static size_t
 alcove_proxy_hdr(unsigned char *hdr, size_t hdrlen, u_int16_t type,
         pid_t pid, size_t buflen)
 {
     u_int16_t len = 0;
 
     if (hdrlen < 8)
-        return -1;
+        return 0;
 
     put_int16(sizeof(type) + sizeof(pid) + buflen, hdr); len = 2;
     put_int16(type, hdr+len); len += 2;
@@ -272,14 +272,14 @@ alcove_proxy_hdr(unsigned char *hdr, size_t hdrlen, u_int16_t type,
     return len;
 }
 
-    static ssize_t
+    static size_t
 alcove_call_hdr(unsigned char *hdr, size_t hdrlen, u_int16_t type,
         size_t buflen)
 {
     u_int16_t len = 0;
 
     if (hdrlen < 4)
-        return -1;
+        return 0;
 
     put_int16(sizeof(type) + buflen, hdr); len = 2;
     put_int16(type, hdr+len); len += 2;
@@ -336,7 +336,7 @@ alcove_child_stdio(int fdin, u_int16_t depth, alcove_child_t *c,
 
     hdrlen = alcove_proxy_hdr(hdr, sizeof(hdr), type, c->pid, n);
 
-    if (hdrlen < 0)
+    if (hdrlen == 0)
         return -1;
 
     iov[0].iov_base = hdr;
@@ -357,7 +357,7 @@ alcove_call_reply(u_int16_t type, char *buf, size_t len)
 
     hdrlen = alcove_call_hdr(hdr, sizeof(hdr), type, len);
 
-    if (hdrlen < 0)
+    if (hdrlen == 0)
         return -1;
 
     iov[0].iov_base = hdr;
@@ -381,13 +381,13 @@ alcove_call_fake_reply(pid_t pid, u_int16_t type, char *buf, size_t len)
 
     callhdrlen = alcove_call_hdr(callhdr, sizeof(callhdr), type, len);
 
-    if (callhdrlen < 0)
+    if (callhdrlen == 0)
         return -1;
 
     proxyhdrlen = alcove_proxy_hdr(proxyhdr, sizeof(proxyhdr),
             ALCOVE_MSG_PROXY, pid, callhdrlen + len);
 
-    if (proxyhdrlen < 0)
+    if (proxyhdrlen == 0)
         return -1;
 
     iov[0].iov_base = proxyhdr;
