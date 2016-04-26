@@ -19,7 +19,7 @@
 static int alcove_signal_init();
 static int alcove_rlimit_init();
 static int alcove_fd_init(char *fifo);
-int alcove_fdmove(int fd, int dst);
+static int alcove_fdmove(int fd, int dst);
 
 static void usage(void);
 
@@ -227,7 +227,7 @@ alcove_fd_init(char *fifo)
     return 0;
 }
 
-    int
+    static int
 alcove_fdmove(int fd, int dst)
 {
     int flags = 0;
