@@ -26,12 +26,6 @@ typedef struct {
 } alcove_arg_t;
 
 int alcove_stdio(alcove_stdio_t *fd);
-int alcove_set_cloexec(int fd);
-int alcove_close_pipe(int fd[2]);
-int alcove_close_fd(int fd);
 int alcove_child_fun(void *arg);
 int alcove_parent_fd(alcove_state_t *ap, alcove_stdio_t *fd, pid_t pid);
 int avail_pid(alcove_state_t *ap, alcove_child_t *c, void *arg1, void *arg2);
-int stdio_pid(alcove_state_t *ap, alcove_child_t *c, void *arg1, void *arg2);
-int close_parent_fd(alcove_state_t *ap, alcove_child_t *c,
-                void *arg1, void *arg2);

@@ -19,6 +19,14 @@
 #define PIPE_READ 0
 #define PIPE_WRITE 1
 
+static int alcove_set_cloexec(int fd);
+static int alcove_close_pipe(int fd[2]);
+static int alcove_close_fd(int fd);
+static int stdio_pid(alcove_state_t *ap, alcove_child_t *c,
+        void *arg1, void *arg2);
+static int close_parent_fd(alcove_state_t *ap, alcove_child_t *c,
+        void *arg1, void *arg2);
+
 /*
  * Utility functions
  */
@@ -41,13 +49,13 @@ alcove_stdio(alcove_stdio_t *fd)
     return 0;
 }
 
-    int
+    static int
 alcove_set_cloexec(int fd)
 {
     return alcove_setfd(fd, FD_CLOEXEC);
 }
 
-    int
+    static int
 alcove_close_pipe(int fd[2])
 {
     if (alcove_close_fd(fd[0]) < 0)
@@ -59,7 +67,7 @@ alcove_close_pipe(int fd[2])
     return 0;
 }
 
-    int
+    static int
 alcove_close_fd(int fd)
 {
     if (fd >= 0)
@@ -156,7 +164,7 @@ avail_pid(alcove_state_t *ap, alcove_child_t *c, void *arg1, void *arg2)
     return 1;
 }
 
-    int
+    static int
 stdio_pid(alcove_state_t *ap, alcove_child_t *c, void *arg1, void *arg2)
 {
     alcove_stdio_t *fd = arg1;
@@ -173,7 +181,7 @@ stdio_pid(alcove_state_t *ap, alcove_child_t *c, void *arg1, void *arg2)
     return 0;
 }
 
-    int
+    static int
 close_parent_fd(alcove_state_t *ap, alcove_child_t *c, void *arg1, void *arg2)
 {
     UNUSED(ap);
