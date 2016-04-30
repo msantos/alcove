@@ -18,7 +18,7 @@
 #if defined(__FreeBSD__)
 #include <sys/jail.h>
 
-void alcove_free_cstruct(alcove_alloc_t *ptr, ssize_t nptr);
+static void alcove_free_cstruct(alcove_alloc_t *ptr, ssize_t nptr);
 #endif
 
 /*
@@ -72,7 +72,7 @@ alcove_sys_jail(alcove_state_t *ap, const char *arg, size_t len,
 }
 
 #if defined(__FreeBSD__)
-    void
+    static void
 alcove_free_cstruct(alcove_alloc_t *ptr, ssize_t nptr)
 {
     int i = 0;
