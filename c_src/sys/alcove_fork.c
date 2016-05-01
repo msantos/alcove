@@ -1,4 +1,4 @@
-/* Copyright (c) 2014, Michael Santos <michael.santos@gmail.com>
+/* Copyright (c) 2014-2016, Michael Santos <michael.santos@gmail.com>
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -139,13 +139,13 @@ alcove_parent_fd(alcove_state_t *ap, alcove_stdio_t *fd, pid_t pid)
             || (close(fd->in[PIPE_READ]) < 0)
             || (close(fd->out[PIPE_WRITE]) < 0)
             || (close(fd->err[PIPE_WRITE]) < 0))
-        err(errno, "close");
+        exit(errno);
 
     if ( (alcove_set_cloexec(fd->ctl[PIPE_WRITE]) < 0)
             || (alcove_set_cloexec(fd->in[PIPE_WRITE]) < 0)
             || (alcove_set_cloexec(fd->out[PIPE_READ]) < 0)
             || (alcove_set_cloexec(fd->err[PIPE_READ]) < 0))
-        err(errno, "alcove_set_cloexec");
+        exit(errno);
 
     return pid_foreach(ap, 0, fd, &pid, pid_equal, stdio_pid);
 }
