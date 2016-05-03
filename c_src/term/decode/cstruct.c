@@ -1,4 +1,4 @@
-/* Copyright (c) 2014, Michael Santos <michael.santos@gmail.com>
+/* Copyright (c) 2014-2016, Michael Santos <michael.santos@gmail.com>
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -155,7 +155,7 @@ alcove_decode_cstruct(const char *arg, size_t len, int *index,
                         if (val > 0) {
                         p = calloc(val, 1);
                         if (p == NULL)
-                            err(errno, "calloc");
+                            exit(errno);
                         (*ptr)[i].len = val;
                         }
                         else {
@@ -204,7 +204,7 @@ alcove_malloc(ssize_t size)
     buf = malloc(size);
 
     if (buf == NULL)
-        err(ENOMEM, "malloc");
+        exit(ENOMEM);
 
     return buf;
 }
