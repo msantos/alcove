@@ -42,7 +42,7 @@ alcove_decode_argv(const char *arg, size_t len, int *index,
     *argv = calloc(arity + 1, sizeof(char *));
 
     if (*argv == NULL)
-        err(errno, "calloc");
+        exit(errno);
 
     for (i = 0; i < arity; i++) {
         (*argv)[i] = alcove_x_decode_iolist_to_string(arg, len, index);
@@ -74,7 +74,7 @@ alcove_x_decode_iolist_to_string(const char *buf, size_t len, int *index)
 
     res = strdup(tmp);
     if (res == NULL)
-        err(errno, "strdup");
+        exit(errno);
 
     return res;
 }
