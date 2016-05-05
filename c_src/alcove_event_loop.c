@@ -77,7 +77,7 @@ alcove_event_init(alcove_state_t *ap)
     tlen = alcove_mk_atom(t, sizeof(t), "ok");
 
     if (alcove_call_reply(ALCOVE_MSG_CALL, t, tlen) < 0)
-        err(EXIT_FAILURE, "alcove_call_reply");
+        exit(EXIT_FAILURE);
 
     alcove_event_loop(ap);
 }
@@ -95,14 +95,14 @@ alcove_event_loop(alcove_state_t *ap)
         ap->child = realloc(ap->child, sizeof(alcove_child_t) * ap->fdsetsize);
 
         if (ap->child == NULL)
-            err(errno, "realloc");
+            exit(errno);
     }
 
     (void)memset(ap->child, 0, sizeof(alcove_child_t) * ap->fdsetsize);
 
     fds = calloc(sizeof(struct pollfd), ap->maxfd);
     if (fds == NULL)
-        err(errno, "calloc");
+        exit(errno);
 
     for ( ; ; ) {
         long maxfd = sysconf(_SC_OPEN_MAX);
@@ -112,7 +112,7 @@ alcove_event_loop(alcove_state_t *ap)
             ap->maxfd = maxfd;
             fds = realloc(fds, sizeof(struct pollfd) * maxfd);
             if (fds == NULL)
-                err(errno, "realloc");
+                exit(errno);
             (void)memset(fds, 0, sizeof(struct pollfd) * maxfd);
         }
 
@@ -138,7 +138,7 @@ alcove_event_loop(alcove_state_t *ap)
                 case EINTR:
                     continue;
                 default:
-                    err(errno, "poll");
+                    exit(errno);
             }
         }
 
@@ -158,7 +158,7 @@ alcove_event_loop(alcove_state_t *ap)
 
         if (fds[ALCOVE_SIGREAD_FILENO].revents & (POLLIN|POLLERR|POLLHUP|POLLNVAL)) {
             if (alcove_handle_signal(ap) < 0)
-                err(errno, "alcove_handle_signal");
+                exit(errno);
         }
 
         (void)pid_foreach(ap, 0, fds, NULL, pid_not_equal, read_from_pid);
