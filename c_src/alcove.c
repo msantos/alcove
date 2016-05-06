@@ -35,7 +35,7 @@ main(int argc, char *argv[])
 
     ap = calloc(1, sizeof(alcove_state_t));
     if (ap == NULL)
-        err(EXIT_FAILURE, "calloc");
+        exit(ENOMEM);
 
     ALCOVE_SETOPT(ap, alcove_opt_termsig, 1);
     ALCOVE_SETOPT(ap, alcove_opt_exit_status, 1);
@@ -50,13 +50,13 @@ main(int argc, char *argv[])
                 if (fifo) free(fifo);
                 fifo = strdup(optarg);
                 if (fifo == NULL)
-                    err(EXIT_FAILURE, "strdup");
+                    exit(ENOMEM);
                 break;
             case 'd':
                 boot = 0;
                 ap->depth = (u_int16_t)atoi(optarg);
                 if (ap->depth > UINT8_MAX)
-                    err(EXIT_FAILURE, "maxforkdepth");
+                    exit(EXIT_FAILURE);
                 break;
             case 'm':
                 ap->maxchild = (u_int16_t)atoi(optarg);
@@ -74,17 +74,17 @@ main(int argc, char *argv[])
 
     ap->child = calloc(ap->fdsetsize, sizeof(alcove_child_t));
     if (ap->child == NULL)
-        err(EXIT_FAILURE, "calloc");
+        exit(ENOMEM);
 
     if (boot) {
         if (alcove_signal_init() < 0)
-            err(EXIT_FAILURE, "alcove_signal_init");
+            exit(errno);
 
         if (alcove_rlimit_init() < 0)
-            err(EXIT_FAILURE, "alcove_rlimit_init");
+            exit(errno);
 
         if (alcove_fd_init(fifo) < 0)
-            err(EXIT_FAILURE, "alcove_fd_init");
+            exit(errno);
     }
 
     free(fifo);
