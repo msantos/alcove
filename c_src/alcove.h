@@ -1,4 +1,4 @@
-/* Copyright (c) 2014, Michael Santos <michael.santos@gmail.com>
+/* Copyright (c) 2014-2016, Michael Santos <michael.santos@gmail.com>
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -250,9 +250,3 @@ ssize_t alcove_call(alcove_state_t *ap, u_int32_t call,
         const char *arg, size_t len, char *reply, size_t rlen);
 
 char *erl_errno_id(int error);
-
-#define VERBOSE(x, ...) do { \
-    if (ap->verbose >= x) { \
-        warnx(__VA_ARGS__); \
-    } \
-} while (0)
