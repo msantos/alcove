@@ -72,7 +72,7 @@
     (x)->opt = (v) ? (x)->opt | (k) : (x)->opt & ~(k)
 
 #define ALCOVE_ERR(_x) \
-    if ((_x) < 0) errx(errno, "internal error")
+    if ((_x) < 0) errx(errno, "internal error:%s:%d", __FILE__, __LINE__)
 
 #define ALCOVE_TUPLE2(_msg, _len, _index, _tag, _term) do { \
     *(_index) = 0; \
