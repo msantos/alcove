@@ -63,6 +63,9 @@ static int write_to_pid(alcove_state_t *ap, alcove_child_t *c,
         void *arg1, void *arg2);
 static int read_from_pid(alcove_state_t *ap, alcove_child_t *c,
         void *arg1, void *arg2);
+static int read_child_fdctl(alcove_state_t *ap, alcove_child_t *c);
+static int read_child_stdout(alcove_state_t *ap, alcove_child_t *c);
+static int read_child_stderr(alcove_state_t *ap, alcove_child_t *c);
 
 static int alcove_handle_signal(alcove_state_t *ap);
 static int alcove_signal_event(alcove_state_t *ap, int signum, siginfo_t *info);
@@ -464,6 +467,11 @@ exited_pid(alcove_state_t *ap, alcove_child_t *c, void *arg1, void *arg2)
 
     UNUSED(arg2);
 
+    /* Flush any pending reads and ensure messages are received in order */
+    (void)read_child_fdctl(ap, c);
+    (void)read_child_stdout(ap, c);
+    (void)read_child_stderr(ap, c);
+
     if ( (c->fdin >= 0) && (ap->opt & alcove_opt_stdin_closed)) {
         index = alcove_mk_atom(t, sizeof(t), "stdin_closed");
         if (alcove_call_fake_reply(c->pid, ALCOVE_MSG_CTL, t, index) < 0)
@@ -566,72 +574,103 @@ write_to_pid(alcove_state_t *ap, alcove_child_t *c, void *arg1, void *arg2)
 read_from_pid(alcove_state_t *ap, alcove_child_t *c, void *arg1, void *arg2)
 {
     struct pollfd *fds = arg1;
-    int len = 0;
-    char t[MAXMSGLEN] = {0};
 
     UNUSED(arg2);
 
     if (c->fdctl > -1 &&
             (fds[c->fdctl].revents & (POLLIN|POLLERR|POLLHUP|POLLNVAL))) {
-        unsigned char buf;
-        ssize_t n;
-
-        n = read(c->fdctl, &buf, sizeof(buf));
-        (void)close(c->fdctl);
-        c->fdctl = -1;
-
-        if (n == 0) {
-            c->fdctl = ALCOVE_CHILD_EXEC;
-            len = alcove_mk_atom(t, sizeof(t), "fdctl_closed");
-
-            if (alcove_call_fake_reply(c->pid, ALCOVE_MSG_CTL, t, len) < 0)
-                return -1;
-        }
+        if (read_child_fdctl(ap, c) < 0)
+            return -1;
     }
 
     if (c->fdout > -1 &&
             (fds[c->fdout].revents & (POLLIN|POLLERR|POLLHUP|POLLNVAL))) {
-        switch (alcove_child_stdio(c->fdout, ap->depth,
-                    c, ALCOVE_MSG_TYPE(c))) {
-            case 0:
-                if (ap->opt & alcove_opt_stdout_closed) {
-                    len = alcove_mk_atom(t, sizeof(t), "stdout_closed");
-                    if (alcove_call_fake_reply(c->pid, ALCOVE_MSG_CTL,
-                                t, len) < 0)
-                        return -1;
-                }
-                /* fall through */
-            case -1:
-                (void)close(c->fdout);
-                c->fdout = -1;
-                break;
-            default:
-                break;
-        }
+        if (read_child_stdout(ap, c) < 0)
+            return -1;
     }
 
     if (c->fderr > -1 &&
             (fds[c->fderr].revents & (POLLIN|POLLERR|POLLHUP|POLLNVAL))) {
-        switch (alcove_child_stdio(c->fderr, ap->depth,
-                    c, ALCOVE_MSG_STDERR)) {
-            case 0:
-                if (ap->opt & alcove_opt_stderr_closed) {
-                    len = alcove_mk_atom(t, sizeof(t), "stderr_closed");
-                    if (alcove_call_fake_reply(c->pid, ALCOVE_MSG_CTL,
-                                t, len) < 0)
-                        return -1;
-                }
-                /* fall through */
-            case -1:
-                (void)close(c->fderr);
-                c->fderr = -1;
-                break;
-            default:
-                break;
-        }
+        if (read_child_stderr(ap, c) < 0)
+            return -1;
     }
 
     return 1;
+}
+
+    static int
+read_child_fdctl(alcove_state_t *ap, alcove_child_t *c)
+{
+    unsigned char buf;
+    ssize_t n;
+    int len = 0;
+    char t[MAXMSGLEN] = {0};
+
+    UNUSED(ap);
+
+    n = read(c->fdctl, &buf, sizeof(buf));
+    (void)close(c->fdctl);
+    c->fdctl = -1;
+
+    if (n == 0) {
+        c->fdctl = ALCOVE_CHILD_EXEC;
+        len = alcove_mk_atom(t, sizeof(t), "fdctl_closed");
+
+        if (alcove_call_fake_reply(c->pid, ALCOVE_MSG_CTL, t, len) < 0)
+            return -1;
+    }
+
+    return 0;
+}
+
+    static int
+read_child_stdout(alcove_state_t *ap, alcove_child_t *c)
+{
+    int len = 0;
+    char t[MAXMSGLEN] = {0};
+
+    switch (alcove_child_stdio(c->fdout, ap->depth, c, ALCOVE_MSG_TYPE(c))) {
+        case 0:
+            if (ap->opt & alcove_opt_stdout_closed) {
+                len = alcove_mk_atom(t, sizeof(t), "stdout_closed");
+                if (alcove_call_fake_reply(c->pid, ALCOVE_MSG_CTL, t, len) < 0)
+                    return -1;
+            }
+            /* fall through */
+        case -1:
+            (void)close(c->fdout);
+            c->fdout = -1;
+            break;
+        default:
+            break;
+    }
+
+    return 0;
+}
+
+    static int
+read_child_stderr(alcove_state_t *ap, alcove_child_t *c)
+{
+    int len = 0;
+    char t[MAXMSGLEN] = {0};
+
+    switch (alcove_child_stdio(c->fderr, ap->depth, c, ALCOVE_MSG_STDERR)) {
+        case 0:
+            if (ap->opt & alcove_opt_stderr_closed) {
+                len = alcove_mk_atom(t, sizeof(t), "stderr_closed");
+                if (alcove_call_fake_reply(c->pid, ALCOVE_MSG_CTL, t, len) < 0)
+                    return -1;
+            }
+            /* fall through */
+        case -1:
+            (void)close(c->fderr);
+            c->fderr = -1;
+            break;
+        default:
+            break;
+    }
+
+    return 0;
 }
 
     static int
