@@ -468,9 +468,9 @@ exited_pid(alcove_state_t *ap, alcove_child_t *c, void *arg1, void *arg2)
     UNUSED(arg2);
 
     /* Flush any pending reads and ensure messages are received in order */
-    (void)read_child_fdctl(ap, c);
-    (void)read_child_stdout(ap, c);
-    (void)read_child_stderr(ap, c);
+    if (c->fdctl > -1) (void)read_child_fdctl(ap, c);
+    if (c->fdout > -1) (void)read_child_stdout(ap, c);
+    if (c->fderr > -1) (void)read_child_stderr(ap, c);
 
     if ( (c->fdin >= 0) && (ap->opt & alcove_opt_stdin_closed)) {
         index = alcove_mk_atom(t, sizeof(t), "stdin_closed");
