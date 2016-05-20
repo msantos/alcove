@@ -80,7 +80,7 @@ alcove_event_init(alcove_state_t *ap)
     tlen = alcove_mk_atom(t, sizeof(t), "ok");
 
     if (alcove_call_reply(ALCOVE_MSG_CALL, t, tlen) < 0)
-        exit(EXIT_FAILURE);
+        exit(EIO);
 
     alcove_event_loop(ap);
 }
