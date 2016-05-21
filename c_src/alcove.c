@@ -56,7 +56,7 @@ main(int argc, char *argv[])
                 boot = 0;
                 ap->depth = (u_int16_t)atoi(optarg);
                 if (ap->depth > UINT8_MAX)
-                    exit(EXIT_FAILURE);
+                    exit(EAGAIN);
                 break;
             case 'm':
                 ap->maxchild = (u_int16_t)atoi(optarg);
@@ -266,5 +266,5 @@ usage()
             __progname
             );
 
-    exit (EXIT_FAILURE);
+    exit (ENOTSUP);
 }
