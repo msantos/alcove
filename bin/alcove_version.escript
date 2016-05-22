@@ -4,10 +4,10 @@
 %%% Generate the alcove version from the app file
 %%%
 main([]) ->
-    Header = "c_src/alcove_version.h",
-    main([Header]);
+    File = "src/alcove.app.src",
+    main([File]);
 
-main([Header]) ->
-    {ok, [{application, alcove, App}]} = file:consult("src/alcove.app.src"),
+main([File]) ->
+    {ok, [{application, alcove, App}]} = file:consult(File),
     VSN = proplists:get_value(vsn, App),
-    file:write_file(Header, "#define ALCOVE_VERSION \"" ++ VSN ++ "\"\n").
+    io:format("#define ALCOVE_VERSION \"~s\"~n", [VSN]).
