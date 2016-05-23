@@ -1,4 +1,4 @@
-/* Copyright (c) 2015, Michael Santos <michael.santos@gmail.com>
+/* Copyright (c) 2015-2016, Michael Santos <michael.santos@gmail.com>
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -679,16 +679,14 @@ alcove_handle_signal(alcove_state_t *ap) {
     int status = 0;
     ssize_t n = 0;
 
+    errno = 0;
     n = read(ALCOVE_SIGREAD_FILENO, &sig, sizeof(sig));
 
-    if (n < 0) {
+    if (n != sizeof(sig))
         return (errno == EAGAIN || errno == EINTR) ? 0 : -1;
-    }
-    else if (n == 0 || n != sizeof(sig))
-        return -1;
 
     if (sig.handler == ALCOVE_SIG_INFO)
-        return (alcove_signal_event(ap, sig.signum, &sig.info) < 0) ? -1 : 0;
+        return alcove_signal_event(ap, sig.signum, &sig.info);
 
     if (sig.signum != SIGCHLD)
         return -1;
