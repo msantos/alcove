@@ -4,39 +4,15 @@
 %%% Generate the alcove.erl file
 %%%
 main([]) ->
-    File = "alcove.erl",
+    ModuleName = "alcove",
     Proto = "c_src/alcove_call.proto",
-    main([File, Proto]);
+    main([ModuleName, Proto]);
 
-main([File, Proto]) ->
-    mkerl(File, Proto).
-
-license() ->
-    {{Year,_,_},{_,_,_}} = calendar:universal_time(),
-
-    Date = integer_to_list(Year),
-
-    License = [
-" Copyright (c) " ++ Date ++ ", Michael Santos <michael.santos@gmail.com>",
-" Permission to use, copy, modify, and/or distribute this software for any",
-" purpose with or without fee is hereby granted, provided that the above",
-" copyright notice and this permission notice appear in all copies.",
-"",
-" THE SOFTWARE IS PROVIDED \"AS IS\" AND THE AUTHOR DISCLAIMS ALL WARRANTIES",
-" WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF",
-" MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR",
-" ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES",
-" WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN",
-" ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF",
-" OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE."],
-
-    erl_syntax:comment(License).
-
-mkerl(File, Proto) ->
+main([ModuleName, Proto]) ->
     Module = erl_syntax:attribute(
             erl_syntax:atom(module),
-            [erl_syntax:atom(filename:basename(File, ".erl"))]
-            ),
+            [erl_syntax:atom(ModuleName)]
+        ),
     Includes = includes(["alcove.hrl"]),
 
     % Type specs
@@ -124,8 +100,7 @@ mkerl(File, Proto) ->
             {"%%__SPECS__%%", specs()}
         ]),
 
-%    io:format("~s~n", [Code]).
-    file:write_file(File, [Code]).
+    io:format("~s~n", [Code]).
 
 arg(Prefix, Arity) ->
     [ erl_syntax:variable(string:concat(Prefix, integer_to_list(N))) || N <- lists:seq(1,Arity) ].
@@ -689,3 +664,24 @@ specs() ->
 -spec version(alcove_drv:ref(),[pid_t()]) -> binary().
 -spec version(alcove_drv:ref(),[pid_t()],timeout()) -> binary().
 ".
+
+license() ->
+    {{Year,_,_},{_,_,_}} = calendar:universal_time(),
+
+    Date = integer_to_list(Year),
+
+    License = [
+" Copyright (c) " ++ Date ++ ", Michael Santos <michael.santos@gmail.com>",
+" Permission to use, copy, modify, and/or distribute this software for any",
+" purpose with or without fee is hereby granted, provided that the above",
+" copyright notice and this permission notice appear in all copies.",
+"",
+" THE SOFTWARE IS PROVIDED \"AS IS\" AND THE AUTHOR DISCLAIMS ALL WARRANTIES",
+" WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF",
+" MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR",
+" ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES",
+" WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN",
+" ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF",
+" OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE."],
+
+    erl_syntax:comment(License).
