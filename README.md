@@ -213,7 +213,8 @@ true
 <<"sh: can't create foo: Too many open files\n">>
 
 % Try to fork a new process
-8> alcove:stderr(P, [Sh]).
+8> alcove:stdin(Drv, [Sh], "ls\n").
+9> alcove:stderr(P, [Sh]).
 <<"sh: can't fork\n">>
 
 % If we check the parent for events, we can see the child has exited
