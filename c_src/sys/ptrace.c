@@ -22,7 +22,7 @@
 
 typedef struct {
     u_char type;
-    unsigned long long arg;
+    unsigned long arg;
     char data[MAXMSGLEN];
     size_t len;
 } alcove_ptrace_arg_t;
@@ -88,7 +88,7 @@ alcove_sys_ptrace(alcove_state_t *ap, const char *arg, size_t len,
         case ERL_SMALL_INTEGER_EXT:
         case ERL_INTEGER_EXT:
             addr.type = ALCOVE_PTRACEARG_INT;
-            if (alcove_decode_ulonglong(arg, len, &index, &addr.arg) < 0)
+            if (alcove_decode_ulong(arg, len, &index, &addr.arg) < 0)
                 return -1;
 
             break;
@@ -124,7 +124,7 @@ alcove_sys_ptrace(alcove_state_t *ap, const char *arg, size_t len,
         case ERL_SMALL_INTEGER_EXT:
         case ERL_INTEGER_EXT:
             data.type = ALCOVE_PTRACEARG_INT;
-            if (alcove_decode_ulonglong(arg, len, &index, &data.arg) < 0)
+            if (alcove_decode_ulong(arg, len, &index, &data.arg) < 0)
                 return -1;
 
             break;
