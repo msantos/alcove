@@ -52,20 +52,12 @@ main([ModuleName, Proto]) ->
 
                     % name(Drv, Pids, ...) -> name(Drv, Pids, ..., infinity)
                     Pattern1 = [erl_syntax:variable("Drv"), erl_syntax:variable("Pids")|Arg],
-                    Body1 = erl_syntax:application(
-                        erl_syntax:atom(Fun),
-                        lists:flatten([erl_syntax:variable("Drv"), erl_syntax:variable("Pids"), Arg, erl_syntax:atom(infinity)])
-                    ),
+                    Body1 = call(Fun, Arg, "infinity"),
                     Clause1 = erl_syntax:clause(Pattern1, [], [Body1]),
 
                     % name(Drv, Pids, ..., Timeout) -> alcove:call(Drv, Pids, Fun, [...], Timeout)
                     Pattern2 = lists:flatten([erl_syntax:variable("Drv"), erl_syntax:variable("Pids"), Arg, erl_syntax:variable("Timeout")]),
-                    Body2 = erl_syntax:application(
-                        erl_syntax:atom(call),
-                        [erl_syntax:variable("Drv"), erl_syntax:variable("Pids"),
-                            erl_syntax:atom(Fun), erl_syntax:list(Arg),
-                            erl_syntax:variable("Timeout")]
-                    ),
+                    Body2 = call(Fun, Arg, "Timeout"),
                     Clause2 = erl_syntax:clause(Pattern2, [], [Body2]),
 
                     [erl_syntax:function(erl_syntax:atom(Fun), [Clause1]),
@@ -104,6 +96,72 @@ main([ModuleName, Proto]) ->
 
 arg(Prefix, Arity) ->
     [ erl_syntax:variable(string:concat(Prefix, integer_to_list(N))) || N <- lists:seq(1,Arity) ].
+
+call(Fun, Arg, Timeout) ->
+    erl_syntax:case_expr(
+      erl_syntax:application(
+        erl_syntax:atom("alcove_drv"),
+        erl_syntax:atom("call"),
+        lists:flatten([
+                       erl_syntax:variable("Drv"),
+                       erl_syntax:variable("Pids"),
+                       erl_syntax:atom(Fun),
+                       erl_syntax:list(Arg),
+                       case Timeout of
+                           "infinity" -> erl_syntax:atom("infinity");
+                           _ -> erl_syntax:variable(Timeout)
+                       end
+                      ])
+       ),
+      [
+       erl_syntax:clause(
+         [erl_syntax:variable("Error")],
+         [
+          [
+           erl_syntax:infix_expr(
+             erl_syntax:variable("Error"),
+             erl_syntax:operator("=:="),
+             erl_syntax:atom("badarg")
+            )
+          ],
+          [
+           erl_syntax:infix_expr(
+             erl_syntax:variable("Error"),
+             erl_syntax:operator("=:="),
+             erl_syntax:atom("undef")
+            )
+          ]
+         ],
+         [
+          erl_syntax:application(
+            erl_syntax:atom("erlang"),
+            erl_syntax:atom("error"),
+            [
+             erl_syntax:variable("Error"),
+             erl_syntax:list(
+               lists:flatten([
+                              erl_syntax:variable("Drv"),
+                              erl_syntax:variable("Pids"),
+                              Arg,
+                              case Timeout of
+                                  "infinity" -> [];
+                                  _ -> erl_syntax:variable("Timeout")
+                              end
+                             ])
+              )
+            ]
+           )
+         ]
+        ),
+
+       erl_syntax:clause(
+         [erl_syntax:variable("Reply")],
+         none,
+         [erl_syntax:variable("Reply")]
+        )
+
+      ]
+     ).
 
 % List the supported alcove API functions
 calls(Proto) ->
