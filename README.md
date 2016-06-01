@@ -1019,28 +1019,19 @@ atom is used as the argument and is not found on the platform.
         Writes a buffer to a file descriptor and returns the number of
         bytes written.
 
-The alcove module functions can be rewritten to use call/2,3,4,5 which
-allows setting timeouts.
+The alcove module functions accept an additional argument which allows
+setting timeouts. For example:
 
-    call(Drv, ForkChain, Call, Argv) -> term()
-    call(Drv, ForkChain, Call, Argv, Timeout) -> term()
+    write(Drv, ForkChain, FD, Buf) -> {ok, Count} | {error, posix()}
+    write(Drv, ForkChain, FD, Buf, timeout()) -> {ok, Count} | {error, posix()}
 
-        Types   Call = chdir | chmod | chown | chroot | ...
-                Argv = [iodata()]
-                Timeout = timeout()
+By default, timeout is set to infinity. Similar to gen_server:call/3,
+setting an integer timeout will cause the process to crash if the
+timeout is reached. If the failure is caught, the caller must deal with
+any delayed messages that arrive for the Unix process described by the
+fork chain.
 
-        Make a synchronous call into the port driver.
-
-            alcove:call(Drv, ForkChain, execve,
-                    ["/bin/ls", ["/bin/ls", "-al"], ["HOME=/home/foo"]])
-
-        By default, timeout is set to infinity. Similar to
-        gen_server:call/3, setting an integer timeout will cause the
-        process to crash if the timeout is reached. If the failure is
-        caught, the caller must deal with any delayed messages that
-        arrive for the Unix process described by the fork chain.
-
-        See "Message Format" for a description of the messages.
+See "Message Format" for a description of the messages.
 
 ### Standard I/0
 

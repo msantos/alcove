@@ -187,8 +187,7 @@ static_exports() ->
      {stdout,2}, {stdout,3},
      {stderr,2}, {stderr,3},
      {eof,2}, {eof,3},
-     {event,2}, {event,3},
-     {call,4}, {call,5}].
+     {event,2}, {event,3}].
 
 static() ->
     [ static({Fun, Arity}) || {Fun, Arity} <- static_exports() ].
@@ -327,22 +326,6 @@ static({event,3}) ->
 "
 event(Drv, Pids, Timeout) ->
     alcove_drv:event(Drv, Pids, Timeout).
-";
-
-static({call,4}) ->
-"
-call(Drv, Pids, Command, Argv) ->
-    call(Drv, Pids, Command, Argv, infinity).
-";
-static({call,5}) ->
-"
-call(Drv, Pids, Command, Argv, Timeout) when is_pid(Drv), is_list(Argv) ->
-    case alcove_drv:call(Drv, Pids, Command, Argv, Timeout) of
-        Error when Error =:= badarg; Error =:= undef ->
-            erlang:error(Error, [Drv, Pids, Command, Argv, Timeout]);
-        Reply ->
-            Reply
-    end.
 ".
 
 includes(Header) ->
@@ -435,9 +418,6 @@ specs() ->
     ]).
 
 -spec audit_arch() -> atom().
-
--spec call(alcove_drv:ref(),[pid_t()],atom(),list()) -> term().
--spec call(alcove_drv:ref(),[pid_t()],atom(),list(),timeout()) -> term().
 
 -spec cap_constant(alcove_drv:ref(),[pid_t()],atom()) -> integer() | 'unknown'.
 -spec cap_constant(alcove_drv:ref(),[pid_t()],atom(),timeout()) -> integer() | 'unknown'.
