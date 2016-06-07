@@ -68,7 +68,7 @@ static int read_child_stdout(alcove_state_t *ap, alcove_child_t *c);
 static int read_child_stderr(alcove_state_t *ap, alcove_child_t *c);
 
 static int alcove_handle_signal(alcove_state_t *ap);
-static int alcove_signal_event(alcove_state_t *ap, int signum, siginfo_t *info);
+static int alcove_signal_event(alcove_state_t *ap, siginfo_t *info);
 
     void
 alcove_event_init(alcove_state_t *ap)
@@ -686,9 +686,9 @@ alcove_handle_signal(alcove_state_t *ap) {
         return (errno == EAGAIN || errno == EINTR) ? 0 : -1;
 
     if (sig.handler == ALCOVE_SIG_INFO)
-        return alcove_signal_event(ap, sig.signum, &sig.info);
+        return alcove_signal_event(ap, &sig.info);
 
-    if (sig.signum != SIGCHLD)
+    if (sig.info.si_signo != SIGCHLD)
         return -1;
 
     for ( ; ; ) {
@@ -709,13 +709,13 @@ alcove_handle_signal(alcove_state_t *ap) {
 }
 
     static int
-alcove_signal_event(alcove_state_t *ap, int signum, siginfo_t *info) {
+alcove_signal_event(alcove_state_t *ap, siginfo_t *info) {
     int index = 0;
     char reply[MAXMSGLEN] = {0};
 
     ALCOVE_TUPLE3(reply, sizeof(reply), &index,
         "signal",
-        alcove_signal_name(reply, sizeof(reply), &index, signum),
+        alcove_signal_name(reply, sizeof(reply), &index, info->si_signo),
         alcove_encode_binary(reply, sizeof(reply), &index,
             info, (info == NULL ? 0 : sizeof(siginfo_t)))
     );

@@ -173,7 +173,6 @@ typedef struct {
 
 typedef struct {
     int handler;
-    int signum;
     siginfo_t info;
 } alcove_sighandler_t;
 

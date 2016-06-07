@@ -22,7 +22,6 @@ alcove_sig_info(int sig, siginfo_t *info, void *context)
     UNUSED(context);
 
     h.handler = ALCOVE_SIG_INFO;
-    h.signum = sig;
     (void)memcpy(&h.info, info, sizeof(h.info));
 
     if (write(ALCOVE_SIGWRITE_FILENO, &h, sizeof(h)) != sizeof(h))
@@ -35,7 +34,7 @@ alcove_sig_dfl(int sig)
     alcove_sighandler_t h;
 
     h.handler = ALCOVE_SIG_DFL;
-    h.signum = sig;
+    h.info.si_signo = sig;
 
     if (write(ALCOVE_SIGWRITE_FILENO, &h, sizeof(h)) != sizeof(h))
         (void)close(ALCOVE_SIGWRITE_FILENO);
