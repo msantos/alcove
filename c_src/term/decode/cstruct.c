@@ -198,8 +198,7 @@ alcove_malloc(ssize_t size)
     void *buf = NULL;
 
     if (size <= 0 || size >= INT32_MAX)
-        errx(ENOMEM, "malloc:invalid size:%ld",
-                (unsigned long)size);
+        exit(ENOMEM);
 
     buf = malloc(size);
 
