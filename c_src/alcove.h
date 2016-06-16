@@ -35,8 +35,6 @@
 
 #include <ei.h>
 
-#include <err.h>
-
 #include "erl_errno.h"
 #include "alcove_version.h"
 
