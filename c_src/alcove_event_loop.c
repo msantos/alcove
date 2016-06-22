@@ -675,20 +675,24 @@ read_child_stderr(alcove_state_t *ap, alcove_child_t *c)
 
     static int
 alcove_handle_signal(alcove_state_t *ap) {
-    alcove_sighandler_t sig = {0};
+    siginfo_t info = {0};
+    struct sigaction oact;
     int status = 0;
     ssize_t n = 0;
 
     errno = 0;
-    n = read(ALCOVE_SIGREAD_FILENO, &sig, sizeof(sig));
+    n = read(ALCOVE_SIGREAD_FILENO, &info, sizeof(info));
 
-    if (n != sizeof(sig))
+    if (n != sizeof(info))
         return (errno == EAGAIN || errno == EINTR) ? 0 : -1;
 
-    if (sig.handler == ALCOVE_SIG_INFO)
-        return alcove_signal_event(ap, &sig.info);
+    if (sigaction(info.si_signo, NULL, &oact) < 0)
+        return -1;
 
-    if (sig.info.si_signo != SIGCHLD)
+    if (oact.sa_sigaction == alcove_sig_info)
+        return alcove_signal_event(ap, &info);
+
+    if (info.si_signo != SIGCHLD)
         return -1;
 
     for ( ; ; ) {

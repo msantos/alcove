@@ -149,6 +149,7 @@ filter(Drv) ->
         ?VALIDATE_ARCHITECTURE(Arch),
         ?EXAMINE_SYSCALL,
         allow_syscall(Drv, sys_rt_sigreturn),
+        allow_syscall(Drv, sys_rt_sigaction),
         allow_syscall(Drv, sys_sigreturn),
         allow_syscall(Drv, sys_exit_group),
         allow_syscall(Drv, sys_exit),

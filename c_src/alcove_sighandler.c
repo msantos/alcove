@@ -17,25 +17,17 @@
     void
 alcove_sig_info(int sig, siginfo_t *info, void *context)
 {
-    alcove_sighandler_t h;
-
     UNUSED(context);
 
-    h.handler = ALCOVE_SIG_INFO;
-    (void)memcpy(&h.info, info, sizeof(h.info));
-
-    if (write(ALCOVE_SIGWRITE_FILENO, &h, sizeof(h)) != sizeof(h))
+    if (write(ALCOVE_SIGWRITE_FILENO, info, sizeof(siginfo_t)) != sizeof(siginfo_t))
         (void)close(ALCOVE_SIGWRITE_FILENO);
 }
 
     void
-alcove_sig_dfl(int sig)
+alcove_sig_dfl(int sig, siginfo_t *info, void *context)
 {
-    alcove_sighandler_t h;
+    UNUSED(context);
 
-    h.handler = ALCOVE_SIG_DFL;
-    h.info.si_signo = sig;
-
-    if (write(ALCOVE_SIGWRITE_FILENO, &h, sizeof(h)) != sizeof(h))
+    if (write(ALCOVE_SIGWRITE_FILENO, info, sizeof(siginfo_t)) != sizeof(siginfo_t))
         (void)close(ALCOVE_SIGWRITE_FILENO);
 }
