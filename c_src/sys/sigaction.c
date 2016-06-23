@@ -37,8 +37,6 @@ alcove_sys_sigaction(alcove_state_t *ap, const char *arg, size_t len,
     struct sigaction act;
     struct sigaction oact;
 
-    UNUSED(ap);
-
     (void)memset(&act, 0, sizeof(act));
     (void)memset(&oact, 0, sizeof(oact));
 
@@ -57,6 +55,23 @@ alcove_sys_sigaction(alcove_state_t *ap, const char *arg, size_t len,
     if (alcove_decode_atom(arg, len, &index, handler) < 0)
         return -1;
 
+    /* SIGCHLD handling */
+    if (signum == SIGCHLD) {
+        ohandler = ap->sigchld ? "sig_info" : "sig_dfl";
+
+        if (strcmp(handler, "sig_info") == 0) {
+            ap->sigchld = 1;
+        }
+        else if (strcmp(handler, "sig_dfl") == 0) {
+            ap->sigchld = 0;
+        }
+        else {
+            return -1;
+        }
+
+        goto REPLY;
+    }
+
     if (atom_to_sighandler(&act, signum, handler) < 0)
         return -1;
 
@@ -66,31 +81,29 @@ alcove_sys_sigaction(alcove_state_t *ap, const char *arg, size_t len,
     if (sigaction(signum, &act, &oact) < 0)
         alcove_mk_errno(reply, rlen, errno);
 
-    ALCOVE_ERR(alcove_encode_version(reply, rlen, &rindex));
-    ALCOVE_ERR(alcove_encode_tuple_header(reply, rlen, &rindex, 2));
-    ALCOVE_ERR(alcove_encode_atom(reply, rlen, &rindex, "ok"));
-
     ohandler = sighandler_to_atom(&oact);
 
     /* Unknown signal handler installed: abort with badarg */
     if (ohandler == NULL)
         return -1;
 
+REPLY:
+    ALCOVE_ERR(alcove_encode_version(reply, rlen, &rindex));
+    ALCOVE_ERR(alcove_encode_tuple_header(reply, rlen, &rindex, 2));
+    ALCOVE_ERR(alcove_encode_atom(reply, rlen, &rindex, "ok"));
     ALCOVE_ERR(alcove_encode_atom(reply, rlen, &rindex, ohandler));
+
     return rindex;
 }
 
     static int
 atom_to_sighandler(struct sigaction *act, int signum, char *handler)
 {
-    if (signum == SIGCHLD && (strcmp(handler, "sig_dfl") == 0)) {
-        act->sa_sigaction = alcove_sig_dfl;
+    if (strcmp(handler, "sig_info") == 0) {
+        act->sa_sigaction = alcove_sig_info;
     }
     else if (strcmp(handler, "sig_dfl") == 0) {
         act->sa_handler = SIG_DFL;
-    }
-    else if (strcmp(handler, "sig_info") == 0) {
-        act->sa_sigaction = alcove_sig_info;
     }
     else if (strcmp(handler, "sig_ign") == 0) {
         act->sa_handler = SIG_IGN;
@@ -105,10 +118,7 @@ atom_to_sighandler(struct sigaction *act, int signum, char *handler)
     static char *
 sighandler_to_atom(struct sigaction *act)
 {
-    if (act->sa_sigaction == alcove_sig_dfl) {
-        return "sig_dfl";
-    }
-    else if (act->sa_sigaction == alcove_sig_info) {
+    if (act->sa_sigaction == alcove_sig_info) {
         return "sig_info";
     }
     else if (act->sa_handler == SIG_DFL) {

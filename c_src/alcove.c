@@ -113,7 +113,7 @@ alcove_signal_init()
     }
 
     act.sa_flags |= SA_SIGINFO;
-    act.sa_sigaction = alcove_sig_dfl;
+    act.sa_sigaction = alcove_sig_info;
 
     if (sigaction(SIGCHLD, &act, NULL) < 0)
         return -1;

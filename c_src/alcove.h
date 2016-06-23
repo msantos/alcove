@@ -152,6 +152,7 @@ typedef struct {
     int32_t opt;
     u_int8_t verbose;
     long maxfd;
+    u_int8_t sigchld;
     u_int16_t maxchild;
     u_int16_t maxforkdepth;
     u_int16_t fdsetsize;
@@ -169,7 +170,6 @@ typedef struct {
     size_t len;
 } alcove_alloc_t;
 
-void alcove_sig_dfl(int sig, siginfo_t *info, void *context);
 void alcove_sig_info(int sig, siginfo_t *info, void *context);
 
 void alcove_event_init(alcove_state_t *ap);

@@ -22,12 +22,3 @@ alcove_sig_info(int sig, siginfo_t *info, void *context)
     if (write(ALCOVE_SIGWRITE_FILENO, info, sizeof(siginfo_t)) != sizeof(siginfo_t))
         (void)close(ALCOVE_SIGWRITE_FILENO);
 }
-
-    void
-alcove_sig_dfl(int sig, siginfo_t *info, void *context)
-{
-    UNUSED(context);
-
-    if (write(ALCOVE_SIGWRITE_FILENO, info, sizeof(siginfo_t)) != sizeof(siginfo_t))
-        (void)close(ALCOVE_SIGWRITE_FILENO);
-}
