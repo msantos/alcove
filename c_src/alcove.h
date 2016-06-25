@@ -127,8 +127,7 @@ enum {
     alcove_opt_stdout_closed = 1 << 1, /* Report child stdout closed */
     alcove_opt_stderr_closed = 1 << 2, /* Report child stderr closed */
     alcove_opt_exit_status = 1 << 3,   /* Report child exit status */
-    alcove_opt_termsig = 1 << 4,       /* Report child termination signal */
-    alcove_opt_sigchld = 1 << 5        /* Report SIGCHLD */
+    alcove_opt_termsig = 1 << 4        /* Report child termination signal */
 };
 
 enum {
