@@ -30,10 +30,13 @@ alcove_sys_sigaction(alcove_state_t *ap, const char *arg, size_t len,
 {
     int index = 0;
     int rindex = 0;
+    int type = 0;
+    int arity = 0;
 
     int signum = 0;
     char handler[MAXATOMLEN] = {0};
     char *ohandler = NULL;
+    struct sigaction *pact = NULL;
     struct sigaction act;
     struct sigaction oact;
 
@@ -52,33 +55,42 @@ alcove_sys_sigaction(alcove_state_t *ap, const char *arg, size_t len,
     }
 
     /* handler */
-    if (alcove_decode_atom(arg, len, &index, handler) < 0)
+    if (alcove_get_type(arg, len, &index, &type, &arity) < 0)
         return -1;
+
+    switch (type) {
+        case ERL_BINARY_EXT:
+            if (arity > 0)
+                return -1;
+
+            break;
+
+        default:
+            if (alcove_decode_atom(arg, len, &index, handler) < 0)
+                return -1;
+
+            if (atom_to_sighandler(&act, signum, handler) < 0)
+                return -1;
+
+            act.sa_flags |= SA_SIGINFO;
+            (void)sigfillset(&act.sa_mask);
+
+            pact = &act;
+    }
 
     /* SIGCHLD handling */
     if (signum == SIGCHLD) {
         ohandler = ap->sigchld ? "sig_info" : "sig_dfl";
 
-        if (strcmp(handler, "sig_info") == 0) {
-            ap->sigchld = 1;
-        }
-        else if (strcmp(handler, "sig_dfl") == 0) {
-            ap->sigchld = 0;
-        }
-        else {
-            return -1;
-        }
+        if (pact == NULL)
+            goto REPLY;
+
+        ap->sigchld = (pact->sa_sigaction == alcove_sig_info) ? 1 : 0;
 
         goto REPLY;
     }
 
-    if (atom_to_sighandler(&act, signum, handler) < 0)
-        return -1;
-
-    act.sa_flags |= SA_SIGINFO;
-    (void)sigfillset(&act.sa_mask);
-
-    if (sigaction(signum, &act, &oact) < 0)
+    if (sigaction(signum, pact, &oact) < 0)
         alcove_mk_errno(reply, rlen, errno);
 
     ohandler = sighandler_to_atom(&oact);

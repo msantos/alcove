@@ -489,11 +489,13 @@ signal(Config) ->
     {ok, Child} = alcove:fork(Drv, []),
 
     {ok, sig_dfl} = alcove:sigaction(Drv, [Child], sigterm, sig_ign),
+    {ok, sig_ign} = alcove:sigaction(Drv, [Child], sigterm, <<>>),
     ok = alcove:kill(Drv, [], Child, sigterm),
     Pid0 = alcove:getpid(Drv, [Child]),
     true = is_integer(Pid0),
 
     {ok, sig_ign} = alcove:sigaction(Drv, [Child], sigterm, sig_dfl),
+    {ok, sig_dfl} = alcove:sigaction(Drv, [Child], sigterm, <<>>),
     ok = alcove:kill(Drv, [], Child, sigterm),
     {termsig, sigterm} = alcove:event(Drv, [Child], 5000),
     alcove:kill(Drv, [], Child, 0),
