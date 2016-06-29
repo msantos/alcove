@@ -16,11 +16,11 @@
     }).
 
 -record(alcove_pid, {
-        pid = 0 :: non_neg_integer(),
-        fdctl = -1 :: integer(),
-        stdin = -1 :: integer(),
-        stdout = -1 :: integer(),
-        stderr = -1 :: integer()
+        pid = 0 :: alcove:pid_t(),
+        fdctl = -1 :: alcove:fd(),
+        stdin = -1 :: alcove:fd(),
+        stdout = -1 :: alcove:fd(),
+        stderr = -1 :: alcove:fd()
     }).
 
 -record(alcove_timeval, {
