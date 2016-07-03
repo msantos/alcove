@@ -1,30 +1,48 @@
-Setns = fun(CONFIG) -> case os:type() of
-        {unix,linux} ->
-            Prog = "
+TMPDIR = os:getenv("TMPDIR", "/tmp"),
+Compile = fun(Name0, Prog) ->
+    Name = filename:join(TMPDIR, Name0),
+    ok = file:write_file(Name, Prog, [write, exclusive]),
+    Retval = os:cmd(["${CC-cc} -o /dev/null ", Name, " > /dev/null 2>&1; printf \"%d\" $?"]),
+    ok = file:delete(Name),
+    Retval =:= "0"
+end,
+Only = fun(OS, Supported, Unsupported) ->
+    case os:type() of
+        OS -> Supported();
+        _ -> Unsupported()
+    end
+end,
+Linux = fun(Name, Prog, Supported, Unsupported) ->
+    Only(
+        {unix,linux},
+        fun() ->
+            case Compile(Name, Prog) of
+                true ->
+                    Supported;
+                false ->
+                    Unsupported
+            end
+        end,
+        fun() ->
+            Unsupported
+        end
+    )
+end,
+Setns = fun(CONFIG) ->
+    Prog = "
 #define _GNU_SOURCE
 #include <sched.h>
 int main(int argc, char *argv[]) {
     (void)setns(0,0);
     return 0;
 }",
-            file:write_file("test/test_setns.c", Prog),
-            Retval = os:cmd("${CC-cc} -o /dev/null test/test_setns.c > /dev/null 2>&1; printf \"%d\" $?"),
-            file:delete("test/test_setns.c"),
-            case Retval of
-                "0" ->
-                    Cflags = os:getenv("ALCOVE_DEFINE", "") ++ " -DHAVE_SETNS",
-                    os:putenv("ALCOVE_DEFINE", Cflags);
-                _ ->
-                    true
-            end;
-        _ ->
-            true
-    end,
+    Define = os:getenv("ALCOVE_DEFINE", ""),
+    Env = Linux("test_setns.c", Prog, Define ++ " -DHAVE_SETNS", Define),
+    true = os:putenv("ALCOVE_DEFINE", Env),
     CONFIG
 end,
-Seccomp = fun(CONFIG) -> case os:type() of
-        {unix,linux} ->
-            Prog = "
+Seccomp = fun(CONFIG) ->
+    Prog = "
 #include <linux/seccomp.h>
 int main(int argc, char *argv[]) {
 #ifdef SECCOMP_MODE_FILTER
@@ -33,19 +51,9 @@ int main(int argc, char *argv[]) {
     return 1;
 #endif
 }",
-            file:write_file("test/test_seccomp.c", Prog),
-            Retval = os:cmd("${CC-cc} -o /dev/null test/test_seccomp.c > /dev/null 2>&1; printf \"%d\" $?"),
-            file:delete("test/test_seccomp.c"),
-            case Retval of
-                "0" ->
-                    Cflags = os:getenv("ALCOVE_DEFINE", "") ++ " -DHAVE_SECCOMP",
-                    os:putenv("ALCOVE_DEFINE", Cflags);
-                _ ->
-                    true
-            end;
-        _ ->
-            true
-    end,
+    Define = os:getenv("ALCOVE_DEFINE", ""),
+    Env = Linux("test_seccomp.c", Prog, Define ++ " -DHAVE_SECCOMP", Define),
+    true = os:putenv("ALCOVE_DEFINE", Env),
     CONFIG
 end,
 lists:foldl(fun(Fun, Cfg) ->
