@@ -2,31 +2,32 @@ TMPDIR = os:getenv("TMPDIR", "/tmp"),
 Compile = fun(Name0, Prog) ->
     Name = filename:join(TMPDIR, Name0),
     ok = file:write_file(Name, Prog, [write, exclusive]),
-    Retval = os:cmd(["${CC-cc} -o /dev/null ", Name, " > /dev/null 2>&1; printf \"%d\" $?"]),
+    Cmd = erlang:open_port({spawn, ["${CC-cc} -o /dev/null ", Name]},
+            [stream, exit_status]),
+    Status = receive
+        {Cmd, {exit_status, 0}} ->
+            true;
+        {Cmd, {exit_status, _}} ->
+            false
+    end,
     ok = file:delete(Name),
-    Retval =:= "0"
+    Status
 end,
-Only = fun(OS, Supported, Unsupported) ->
+Only = fun(OS, Name, Prog, Supported, Unsupported) ->
     case os:type() of
-        OS -> Supported();
-        _ -> Unsupported()
-    end
-end,
-Linux = fun(Name, Prog, Supported, Unsupported) ->
-    Only(
-        {unix,linux},
-        fun() ->
+        OS ->
             case Compile(Name, Prog) of
                 true ->
                     Supported;
                 false ->
                     Unsupported
-            end
-        end,
-        fun() ->
+            end;
+        _ ->
             Unsupported
-        end
-    )
+    end
+end,
+Linux = fun(Name, Prog, Supported, Unsupported) ->
+    Only({unix,linux}, Name, Prog, Supported, Unsupported)
 end,
 Setns = fun(CONFIG) ->
     Prog = "
@@ -36,9 +37,9 @@ int main(int argc, char *argv[]) {
     (void)setns(0,0);
     return 0;
 }",
+    Flag = Linux("test_setns.c", Prog, "-DHAVE_SETNS", ""),
     Define = os:getenv("ALCOVE_DEFINE", ""),
-    Env = Linux("test_setns.c", Prog, Define ++ " -DHAVE_SETNS", Define),
-    true = os:putenv("ALCOVE_DEFINE", Env),
+    true = os:putenv("ALCOVE_DEFINE", [Define, " ", Flag]),
     CONFIG
 end,
 Seccomp = fun(CONFIG) ->
@@ -51,9 +52,9 @@ int main(int argc, char *argv[]) {
     return 1;
 #endif
 }",
+    Flag = Linux("test_seccomp.c", Prog, "-DHAVE_SECCOMP", ""),
     Define = os:getenv("ALCOVE_DEFINE", ""),
-    Env = Linux("test_seccomp.c", Prog, Define ++ " -DHAVE_SECCOMP", Define),
-    true = os:putenv("ALCOVE_DEFINE", Env),
+    true = os:putenv("ALCOVE_DEFINE", [Define, " ", Flag]),
     CONFIG
 end,
 lists:foldl(fun(Fun, Cfg) ->
