@@ -29,6 +29,10 @@ end,
 Linux = fun(Name, Prog, Supported, Unsupported) ->
     Only({unix,linux}, Name, Prog, Supported, Unsupported)
 end,
+Append = fun(Str, Flag) ->
+    string:join(sets:to_list(sets:add_element(Flag,
+                    sets:from_list(string:tokens(Str, " ")))), " ")
+end,
 Setns = fun(CONFIG) ->
     Prog = "
 #define _GNU_SOURCE
@@ -39,7 +43,7 @@ int main(int argc, char *argv[]) {
 }",
     Flag = Linux("test_setns.c", Prog, "-DHAVE_SETNS", ""),
     Define = os:getenv("ALCOVE_DEFINE", ""),
-    true = os:putenv("ALCOVE_DEFINE", [Define, " ", Flag]),
+    true = os:putenv("ALCOVE_DEFINE", Append(Define, Flag)),
     CONFIG
 end,
 Seccomp = fun(CONFIG) ->
@@ -54,7 +58,7 @@ int main(int argc, char *argv[]) {
 }",
     Flag = Linux("test_seccomp.c", Prog, "-DHAVE_SECCOMP", ""),
     Define = os:getenv("ALCOVE_DEFINE", ""),
-    true = os:putenv("ALCOVE_DEFINE", [Define, " ", Flag]),
+    true = os:putenv("ALCOVE_DEFINE", Append(Define, Flag)),
     CONFIG
 end,
 lists:foldl(fun(Fun, Cfg) ->
