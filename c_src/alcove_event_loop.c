@@ -310,14 +310,15 @@ alcove_child_stdio(int fdin, u_int16_t depth, alcove_child_t *c,
             || (type == ALCOVE_MSG_STDERR))
         read_len = ALCOVE_MSGLEN(depth, sizeof(buf));
 
-    errno = 0;
     n = read(fdin, buf, read_len);
 
-    if (n <= 0) {
-        if (errno == 0)
+    switch (n) {
+        case 0:
             return 0;
-
-        return -1;
+        case -1:
+            return (errno == EINTR || errno == EAGAIN) ? 0 : -1;
+        default:
+            break;
     }
 
     if ( (c->fdctl != ALCOVE_CHILD_EXEC)
@@ -335,7 +336,6 @@ alcove_child_stdio(int fdin, u_int16_t depth, alcove_child_t *c,
 
         n += 2;
     }
-
 
     hdrlen = alcove_proxy_hdr(hdr, sizeof(hdr), type, c->pid, n);
 
