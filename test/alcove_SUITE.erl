@@ -637,6 +637,7 @@ priority(Config) ->
     {ok, Fork0} = alcove:fork(Drv, []),
     {ok, Fork1} = alcove:fork(Drv, [Fork0]),
     {ok, Fork2} = alcove:fork(Drv, [Fork0]),
+    {ok, Fork3} = alcove:fork(Drv, [Fork0]),
 
     {ok, 0} = alcove:getpriority(Drv, [Fork0,Fork1], prio_process, 0),
     ok = alcove:setpriority(Drv, [Fork0,Fork1], prio_process, 0, 10),
@@ -657,6 +658,11 @@ priority(Config) ->
 
     ok = alcove:setpriority(Drv, [Fork0,Fork2], prio_process, 0, -1),
     {ok, -1} = alcove:getpriority(Drv, [Fork0,Fork2], prio_process, 0),
+
+    {ok, Fork3} = alcove:setsid(Drv, [Fork0,Fork3]),
+    {ok, 0} = alcove:getpriority(Drv, [Fork0,Fork3], prio_pgrp, 0),
+    ok = alcove:setpriority(Drv, [Fork0,Fork3], prio_pgrp, 0, 10),
+    {ok, 10} = alcove:getpriority(Drv, [Fork0,Fork3], prio_pgrp, 0),
 
     ok = alcove:exit(Drv, [Fork0], 0).
 

@@ -16,7 +16,7 @@ static const alcove_constant_t alcove_prio_constants[] = {
 #ifdef PRIO_PROCESS
     ALCOVE_CONSTANT(PRIO_PROCESS),
 #endif
-#ifdef PRIO_PPGRP
+#ifdef PRIO_PGRP
     ALCOVE_CONSTANT(PRIO_PGRP),
 #endif
 #ifdef PRIO_USER
