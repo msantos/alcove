@@ -95,9 +95,9 @@ alcove_sys_sigaction(alcove_state_t *ap, const char *arg, size_t len,
 
     ohandler = sighandler_to_atom(&oact);
 
-    /* Unknown signal handler installed: abort with badarg */
+    /* Unknown signal handler installed: crash process */
     if (ohandler == NULL)
-        return -1;
+        abort();
 
 REPLY:
     ALCOVE_ERR(alcove_encode_version(reply, rlen, &rindex));
