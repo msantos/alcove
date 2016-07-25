@@ -1,4 +1,5 @@
 TMPDIR = os:getenv("TMPDIR", "/tmp"),
+
 Compile = fun(Name0, Prog) ->
     Name = filename:join(TMPDIR, Name0),
     ok = file:write_file(Name, Prog, [write, exclusive]),
@@ -13,6 +14,7 @@ Compile = fun(Name0, Prog) ->
     ok = file:delete(Name),
     Status
 end,
+
 Only = fun(OS, Name, Prog, Supported, Unsupported) ->
     case os:type() of
         OS ->
@@ -26,13 +28,21 @@ Only = fun(OS, Name, Prog, Supported, Unsupported) ->
             Unsupported
     end
 end,
+
 Linux = fun(Name, Prog, Supported, Unsupported) ->
     Only({unix,linux}, Name, Prog, Supported, Unsupported)
 end,
+
 Append = fun(Str, Flag) ->
     string:join(sets:to_list(sets:add_element(Flag,
                     sets:from_list(string:tokens(Str, " ")))), " ")
 end,
+
+%%
+%% Tests
+%%
+
+% Linux: support for setns(2)
 Setns = fun(CONFIG) ->
     Prog = "
 #define _GNU_SOURCE
@@ -46,14 +56,14 @@ int main(int argc, char *argv[]) {
     true = os:putenv("ALCOVE_DEFINE", Append(Define, Flag)),
     CONFIG
 end,
+
+% Linux: support for seccomp mode using prctl(2)
 Seccomp = fun(CONFIG) ->
     Prog = "
 #include <linux/seccomp.h>
 int main(int argc, char *argv[]) {
 #ifdef SECCOMP_MODE_FILTER
     return 0;
-#else
-    return 1;
 #endif
 }",
     Flag = Linux("test_seccomp.c", Prog, "-DHAVE_SECCOMP", ""),
@@ -61,6 +71,7 @@ int main(int argc, char *argv[]) {
     true = os:putenv("ALCOVE_DEFINE", Append(Define, Flag)),
     CONFIG
 end,
+
 lists:foldl(fun(Fun, Cfg) ->
         Fun(Cfg)
     end,
