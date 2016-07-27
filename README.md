@@ -310,7 +310,6 @@ alcove_drv
             Option = stderr_to_stdout | {env, [{Key, Val}]}
                 | {exec, string()}
                 | {progname, string()}
-                | verbose | {verbose, non_neg_integer()}
                 | {maxchild, non_neg_integer()}
 
     Create the alcove port.
@@ -485,7 +484,7 @@ atom is used as the argument and is not found on the platform.
 
     getopt(Drv, ForkChain, Options) -> integer() | false
 
-        Types   Options = verbose | childlimit | exit_status | maxchild |
+        Types   Options = childlimit | exit_status | maxchild |
                           maxforkdepth | termsig
 
         Retrieve port options for event loop. These options are
@@ -494,11 +493,6 @@ atom is used as the argument and is not found on the platform.
 
         The initial values for these options are set for the port by
         alcove_drv:start/1.
-
-            verbose : non_neg_integer() : 0
-
-                Write debug information to stderr. The port will send
-                stderr to the console.
 
             childlimit : non_neg_integer() : (ulimit -n) / 4 - 4
 

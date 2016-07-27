@@ -149,7 +149,6 @@ typedef struct {
 
 typedef struct {
     int32_t opt;
-    u_int8_t verbose;
     long maxfd;
     u_int8_t sigchld;
     u_int16_t maxchild;

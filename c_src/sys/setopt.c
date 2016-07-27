@@ -1,4 +1,4 @@
-/* Copyright (c) 2014, Michael Santos <michael.santos@gmail.com>
+/* Copyright (c) 2014-2016, Michael Santos <michael.santos@gmail.com>
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -32,10 +32,7 @@ alcove_sys_setopt(alcove_state_t *ap, const char *arg, size_t len,
     if (alcove_decode_uint(arg, len, &index, &val) < 0)
         return -1;
 
-    if (strcmp(opt, "verbose") == 0) {
-        ap->verbose = val;
-    }
-    else if (strcmp(opt, "exit_status") == 0) {
+    if (strcmp(opt, "exit_status") == 0) {
         ALCOVE_SETOPT(ap, alcove_opt_exit_status, val);
     }
     else if (strcmp(opt, "maxchild") == 0) {

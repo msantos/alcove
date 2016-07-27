@@ -1,4 +1,4 @@
-/* Copyright (c) 2014, Michael Santos <michael.santos@gmail.com>
+/* Copyright (c) 2014-2016, Michael Santos <michael.santos@gmail.com>
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -28,10 +28,7 @@ alcove_sys_getopt(alcove_state_t *ap, const char *arg, size_t len,
     if (alcove_decode_atom(arg, len, &index, opt) < 0)
         return -1;
 
-    if (strcmp(opt, "verbose") == 0) {
-        val = ap->verbose;
-    }
-    else if (strcmp(opt, "childlimit") == 0) {
+    if (strcmp(opt, "childlimit") == 0) {
         val = ap->fdsetsize;
     }
     else if (strcmp(opt, "exit_status") == 0) {

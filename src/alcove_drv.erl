@@ -300,8 +300,6 @@ getopts(Options) when is_list(Options) ->
     Progname = proplists:get_value(progname, Options, progname()),
 
     Options1 = lists:map(fun
-                    (verbose) ->
-                        {verbose, 1};
                     (N) when is_atom(N) ->
                         {N, true};
                     ({_,_} = N) ->
@@ -313,7 +311,6 @@ getopts(Options) when is_list(Options) ->
     [find_executable(Cmd)|Argv].
 
 optarg({fdctl, Arg})            -> switch("c", Arg);
-optarg({verbose, Arg})          -> switch(string:copies("v", Arg));
 optarg({maxchild, Arg})         -> switch("m", integer_to_list(Arg));
 optarg({depth, Arg})            -> switch("d", integer_to_list(Arg));
 optarg(_)                       -> "".
