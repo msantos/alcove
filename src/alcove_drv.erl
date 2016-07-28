@@ -315,9 +315,6 @@ optarg({maxchild, Arg})         -> switch("m", integer_to_list(Arg));
 optarg({depth, Arg})            -> switch("d", integer_to_list(Arg));
 optarg(_)                       -> "".
 
-switch(Switch) ->
-    [lists:concat(["-", Switch])].
-
 switch(Switch, Arg) when is_binary(Arg) ->
     switch(Switch, binary_to_list(Arg));
 switch(Switch, Arg) ->
