@@ -67,6 +67,7 @@
         setopt/1,
         setrlimit/1,
         setuid/1,
+        socket/1,
         signal/1,
         stderr/1,
         stdout/1,
@@ -117,6 +118,7 @@ all() ->
         execve,
         stream,
         open,
+        socket,
         select,
         ioctl,
         symlink,
@@ -717,6 +719,12 @@ open(Config) ->
     {error, enoent} = alcove:open(Drv, [], File, O_RDONLY, 0),
     {error, enoent} = alcove:open(Drv, [], File, [O_RDONLY,O_RDONLY,O_RDONLY,O_RDONLY], 0),
     {error, enoent} = alcove:open(Drv, [], File, [o_rdonly, o_rdonly, o_rdonly], 0).
+
+socket(Config) ->
+    Drv = ?config(drv, Config),
+
+    {ok, Socket} = alcove:socket(Drv, [], af_inet, sock_stream, 0),
+    ok = alcove:close(Drv, [], Socket).
 
 select(Config) ->
     Drv = ?config(drv, Config),

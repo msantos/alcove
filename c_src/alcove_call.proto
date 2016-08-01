@@ -80,6 +80,7 @@ setsid/0
 setuid/1
 sigaction/2
 signal_constant/1
+socket/3
 symlink/2
 syscall_constant/1
 umount/1
