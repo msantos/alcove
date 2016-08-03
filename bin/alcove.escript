@@ -670,6 +670,9 @@ specs() ->
 -spec signal_constant(alcove_drv:ref(),[pid_t()],atom()) -> 'unknown' | non_neg_integer().
 -spec signal_constant(alcove_drv:ref(),[pid_t()],atom(),timeout()) -> 'unknown' | non_neg_integer().
 
+-spec socket(alcove_drv:ref(),[pid_t()],constant(),constant(),int32_t()) -> {'ok',fd()} | {'error', posix()}.
+-spec socket(alcove_drv:ref(),[pid_t()],constant(),constant(),int32_t(),timeout()) -> {'ok',fd()} | {'error', posix()}.
+
 -spec syscall_constant(alcove_drv:ref(),[pid_t()],atom()) -> 'unknown' | non_neg_integer().
 -spec syscall_constant(alcove_drv:ref(),[pid_t()],atom(),timeout()) -> 'unknown' | non_neg_integer().
 

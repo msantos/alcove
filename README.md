@@ -974,6 +974,13 @@ atom is used as the argument and is not found on the platform.
 
         Convert signal names to integers.
 
+    socket(Drv, ForkChain, Domain, Type, Protocol) -> {ok, fd()} | {error, posix()}
+
+        Types   Domain = Type = constant()
+                Protocol = int32_t()
+
+        socket(2) : returns a file descriptor for a communication endpoint
+
     symlink(Drv, ForkChain, Oldpath, Newpath) -> ok | {error, posix()}
 
         Types   Oldpath = Newpath = iodata()
