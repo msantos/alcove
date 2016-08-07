@@ -140,7 +140,6 @@ enum {
 typedef struct {
     pid_t pid;
     int exited;
-    int termsig;
     int fdctl;
     int fdin;
     int fdout;

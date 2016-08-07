@@ -478,13 +478,11 @@ exited_pid(alcove_state_t *ap, alcove_child_t *c, void *arg1, void *arg2)
             return -1;
     }
 
-    c->exited = 1 << 8;
+    c->exited = 1;
     (void)close(c->fdin);
     c->fdin = -1;
 
     if (WIFEXITED(*status)) {
-        c->exited |= WEXITSTATUS(*status);
-
         if (ap->opt & alcove_opt_exit_status) {
             ALCOVE_TUPLE2(t, sizeof(t), &index,
                     "exit_status",
@@ -497,12 +495,10 @@ exited_pid(alcove_state_t *ap, alcove_child_t *c, void *arg1, void *arg2)
     }
 
     if (WIFSIGNALED(*status)) {
-        c->termsig = WTERMSIG(*status);
-
         if (ap->opt & alcove_opt_termsig) {
             ALCOVE_TUPLE2(t, sizeof(t), &index,
                 "termsig",
-                alcove_signal_name(t, sizeof(t), &index, c->termsig)
+                alcove_signal_name(t, sizeof(t), &index, WTERMSIG(*status))
             );
 
             if (alcove_call_fake_reply(c->pid, ALCOVE_MSG_EVENT, t, index) < 0)
@@ -539,7 +535,6 @@ set_pid(alcove_state_t *ap, alcove_child_t *c, void *arg1, void *arg2)
     if (c->exited && c->fdout == -1 && c->fderr == -1 && c->fdctl < 0) {
         c->pid = 0;
         c->exited = 0;
-        c->termsig = 0;
     }
 
     return 1;
