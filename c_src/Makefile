@@ -51,19 +51,10 @@ link_verbose = $(link_verbose_$(V))
 SOURCES := $(shell find $(C_SRC_DIR) -type f \( -name "*.c" \))
 OBJECTS = $(addsuffix .o, $(basename $(SOURCES)))
 
-COMPILE_C = $(c_verbose) $(CC) $(CFLAGS) -c
+COMPILE_C = $(c_verbose) $(CC) $(CFLAGS)
 
-#all: privdir $(OBJECTS)
-#	$(CC) $(CFLAGS) -o $(C_SRC_OUTPUT) $(SOURCES) $(LDFLAGS) $(LDLIBS)
-
-$(C_SRC_OUTPUT): privdir $(OBJECTS)
-	$(link_verbose) $(CC) $(OBJECTS) $(LDFLAGS) $(LDLIBS) -o $(C_SRC_OUTPUT)
-
-%.o: %.c
-	$(COMPILE_C) $(OUTPUT_OPTION) $<
-
-privdir:
-	@mkdir -p $(BASEDIR)/priv/
+$(C_SRC_OUTPUT):
+	$(COMPILE_C) -o $(C_SRC_OUTPUT) $(SOURCES) $(LDFLAGS) $(LDLIBS)
 
 clean:
 	@rm -f $(C_SRC_OUTPUT) $(OBJECTS) \
