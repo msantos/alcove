@@ -9,7 +9,6 @@ ebin/
 .erlang
 .eunit/
 *.[oa]
-priv/
 .rebar/
 .rebar3/
 src/alcove.erl
