@@ -102,16 +102,16 @@ call(Fun, Arg, Timeout) ->
       erl_syntax:application(
         erl_syntax:atom("alcove_drv"),
         erl_syntax:atom("call"),
-        lists:flatten([
-                       erl_syntax:variable("Drv"),
-                       erl_syntax:variable("Pids"),
-                       erl_syntax:atom(Fun),
-                       erl_syntax:list(Arg),
-                       case Timeout of
-                           "infinity" -> erl_syntax:atom("infinity");
-                           _ -> erl_syntax:variable(Timeout)
-                       end
-                      ])
+        [
+            erl_syntax:variable("Drv"),
+            erl_syntax:variable("Pids"),
+            erl_syntax:atom(Fun),
+            erl_syntax:list(Arg),
+            case Timeout of
+                "infinity" -> erl_syntax:atom("infinity");
+                _ -> erl_syntax:variable(Timeout)
+            end
+        ]
        ),
       [
        erl_syntax:clause(
