@@ -264,7 +264,12 @@ define_foreach(Drv, ForkChain, Constant, [Fun|Rest]) ->
 static({stdin,3}) ->
 "
 stdin(Drv, Pids, Data) ->
-    alcove_drv:stdin(Drv, Pids, Data).
+    case alcove_drv:stdin(Drv, Pids, Data) of
+        true ->
+            true;
+        badarg ->
+            erlang:error(badarg, [Drv, Pids, Data])
+    end.
 ";
 
 static({stdout,2}) ->

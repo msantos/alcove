@@ -99,13 +99,7 @@ send(Drv, Data) ->
 
 -spec stdin(ref(),[alcove:pid_t()],iodata()) -> 'true'.
 stdin(Drv, Pids, Data) ->
-    Stdin = alcove_codec:stdin(Pids, Data),
-    case iolist_size(Stdin) =< 16#ffff of
-        true ->
-            send(Drv, Stdin);
-        false ->
-            erlang:error(badarg)
-    end.
+    send(Drv, alcove_codec:stdin(Pids, Data)).
 
 -spec stdout(ref(),[alcove:pid_t()],timeout()) -> 'false' | binary().
 stdout(Drv, Pids, Timeout) ->
