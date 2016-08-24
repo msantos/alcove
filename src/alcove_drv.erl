@@ -97,7 +97,7 @@ send(Drv, Data) ->
             badarg
     end.
 
--spec stdin(ref(),[alcove:pid_t()],iodata()) -> 'true'.
+-spec stdin(ref(),[alcove:pid_t()],iodata()) -> 'true' | 'badarg'.
 stdin(Drv, Pids, Data) ->
     send(Drv, alcove_codec:stdin(Pids, Data)).
 
