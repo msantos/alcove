@@ -704,6 +704,13 @@ specs() ->
 -spec unshare(alcove_drv:ref(),[pid_t()],int32_t() | [constant()]) -> 'ok' | {'error', posix()}.
 -spec unshare(alcove_drv:ref(),[pid_t()],int32_t() | [constant()],timeout()) -> 'ok' | {'error', posix()}.
 
+-type waitpid_value() :: {exit_status, int32_t()}
+    | {termsig, atom()}
+    | {stopsig, atom()}
+    | continued.
+-spec waitpid(alcove_drv:ref(),[pid_t()],pid_t(),int32_t() | [constant()]) -> {'ok', pid_t(), [waitpid_value()]} | {'error', posix()}.
+-spec waitpid(alcove_drv:ref(),[pid_t()],pid_t(),int32_t() | [constant()],timeout()) -> {'ok', pid_t(), [waitpid_value()]} | {'error', posix()}.
+
 -spec write(alcove_drv:ref(),[pid_t()],fd(),iodata()) -> {'ok', ssize_t()} | {'error', posix()}.
 -spec write(alcove_drv:ref(),[pid_t()],fd(),iodata(),timeout()) -> {'ok', ssize_t()} | {'error', posix()}.
 
