@@ -30,12 +30,12 @@
 -export_type([ref/0]).
 
 -record(state, {
-        owner,
-        raw = false,
-        port :: port(),
-        fdctl :: port(),
-        buf = <<>> :: binary()
-    }).
+          owner :: pid(),
+          raw = false,
+          port :: port(),
+          fdctl :: port(),
+          buf = <<>> :: binary()
+         }).
 
 -spec start() -> {ok, ref()}.
 start() ->
