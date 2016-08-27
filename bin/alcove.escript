@@ -115,6 +115,34 @@ call(Fun, Arg, Timeout) ->
        ),
       [
        erl_syntax:clause(
+         [erl_syntax:tuple([
+                            erl_syntax:atom("alcove_error"),
+                            erl_syntax:variable("Error")
+                           ])],
+         none,
+         [
+          erl_syntax:application(
+            erl_syntax:atom("erlang"),
+            erl_syntax:atom("error"),
+            [
+             erl_syntax:variable("Error"),
+             erl_syntax:list(
+               lists:flatten([
+                              erl_syntax:variable("Drv"),
+                              erl_syntax:variable("Pids"),
+                              Arg,
+                              case Timeout of
+                                  "infinity" -> [];
+                                  _ -> erl_syntax:variable("Timeout")
+                              end
+                             ])
+              )
+            ]
+           )
+         ]
+        ),
+
+       erl_syntax:clause(
          [erl_syntax:variable("Error")],
          [
           [
@@ -267,8 +295,8 @@ stdin(Drv, Pids, Data) ->
     case alcove_drv:stdin(Drv, Pids, Data) of
         true ->
             true;
-        badarg ->
-            erlang:error(badarg, [Drv, Pids, Data])
+        {alcove_error, Error} ->
+            erlang:error(Error, [Drv, Pids, Data])
     end.
 ";
 

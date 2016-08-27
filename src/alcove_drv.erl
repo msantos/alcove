@@ -78,26 +78,26 @@ call(Drv, Pids, Command, Argv, Timeout)
             Error
     end.
 
--spec sync_send(ref(),iodata()) -> true | badarg.
+-spec sync_send(ref(),iodata()) -> true | {alcove_error, badarg}.
 sync_send(Drv, Data) ->
     case iolist_size(Data) =< 16#ffff of
         true ->
             gen_server:call(Drv, {send, Data}, infinity);
         false ->
-            badarg
+            {alcove_error, badarg}
     end.
 
--spec send(ref(),iodata()) -> true | badarg.
+-spec send(ref(),iodata()) -> true | {alcove_error, badarg}.
 send(Drv, Data) ->
     case iolist_size(Data) =< 16#ffff of
         true ->
             gen_server:cast(Drv, {send, Data}),
             true;
         false ->
-            badarg
+            {alcove_error, badarg}
     end.
 
--spec stdin(ref(),[alcove:pid_t()],iodata()) -> 'true' | 'badarg'.
+-spec stdin(ref(),[alcove:pid_t()],iodata()) -> 'true' | {alcove_error, 'badarg'}.
 stdin(Drv, Pids, Data) ->
     send(Drv, alcove_codec:stdin(Pids, Data)).
 
@@ -250,34 +250,34 @@ call_reply(Drv, Pids, false, Timeout) ->
         {alcove_ctl, Drv, Pids, fdctl_closed} ->
             ok;
         {alcove_ctl, Drv, _Pids, badpid} ->
-            erlang:error(badpid);
+            {alcove_error, badpid};
         {alcove_call, Drv, Pids, Event} ->
             Event
     after
         Timeout ->
-            erlang:error(timeout)
+            {alcove_error, timeout}
     end;
 call_reply(Drv, Pids, true, Timeout) ->
     receive
         {alcove_ctl, Drv, Pids, fdctl_closed} ->
             call_reply(Drv, Pids, true, Timeout);
         {alcove_event, Drv, Pids, {termsig,_} = Event} ->
-            erlang:error(Event);
+            {alcove_error, Event};
         {alcove_event, Drv, Pids, {exit_status,_} = Event} ->
-            erlang:error(Event);
+            {alcove_error, Event};
         {alcove_ctl, Drv, _Pids, badpid} ->
-            erlang:error(badpid);
+            {alcove_error, badpid};
         {alcove_call, Drv, Pids, Event} ->
             Event
     after
         Timeout ->
-            erlang:error(timeout)
+            {alcove_error, timeout}
     end.
 
 reply(Drv, Pids, Type, Timeout) ->
     receive
         {alcove_ctl, Drv, _Pids, badpid} ->
-            erlang:error(badpid);
+            {alcove_error, badpid};
         {Type, Drv, Pids, Event} ->
             Event
     after
