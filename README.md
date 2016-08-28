@@ -202,13 +202,13 @@ herding cat's:
 
 % Test the shell is working
 6> alcove:stdin(P, [Sh], "echo hello\n").
-true
+ok
 7> alcove:stdout(P, [Sh]).
 <<"hello\n">>
 
 % Attempt to create a file
 6> alcove:stdin(Drv, [Sh], "> foo\n").
-true
+ok
 7> alcove:stderr(P, [Sh]).
 <<"sh: can't create foo: Too many open files\n">>
 
@@ -1042,7 +1042,7 @@ See "Message Format" for a description of the messages.
 These functions handle stdin, stdout and stderr for the processs after
 exec(3) has been called.
 
-    stdin(Drv, ForkChain, Buf) -> true
+    stdin(Drv, ForkChain, Buf) -> ok
 
         Types   Buf = iodata()
 

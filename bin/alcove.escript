@@ -293,8 +293,8 @@ static({stdin,3}) ->
 "
 stdin(Drv, Pids, Data) ->
     case alcove_drv:stdin(Drv, Pids, Data) of
-        true ->
-            true;
+        ok ->
+            ok;
         {alcove_error, Error} ->
             erlang:error(Error, [Drv, Pids, Data])
     end.
@@ -712,7 +712,7 @@ specs() ->
 -spec stderr(alcove_drv:ref(),[pid_t()]) -> 'false' | binary().
 -spec stderr(alcove_drv:ref(),[pid_t()],timeout()) -> 'false' | binary().
 
--spec stdin(alcove_drv:ref(),[pid_t()],iodata()) -> 'true'.
+-spec stdin(alcove_drv:ref(),[pid_t()],iodata()) -> 'ok'.
 
 -spec stdout(alcove_drv:ref(),[pid_t()]) -> 'false' | binary().
 -spec stdout(alcove_drv:ref(),[pid_t()],timeout()) -> 'false' | binary().

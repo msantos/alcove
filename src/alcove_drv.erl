@@ -72,13 +72,13 @@ call(Drv, Pids, Command, Argv, Timeout)
          (is_integer(Timeout) orelse Timeout =:= infinity) ->
     Data = alcove_codec:call(Command, Pids, Argv),
     case sync_send(Drv, Data) of
-        true ->
+        ok ->
             call_reply(Drv, Pids, alcove_proto:will_return(Command), Timeout);
         Error ->
             Error
     end.
 
--spec sync_send(ref(),iodata()) -> true | {alcove_error, badarg}.
+-spec sync_send(ref(),iodata()) -> ok | {alcove_error, badarg}.
 sync_send(Drv, Data) ->
     case iolist_size(Data) =< 16#ffff of
         true ->
@@ -87,17 +87,16 @@ sync_send(Drv, Data) ->
             {alcove_error, badarg}
     end.
 
--spec send(ref(),iodata()) -> true | {alcove_error, badarg}.
+-spec send(ref(),iodata()) -> ok | {alcove_error, badarg}.
 send(Drv, Data) ->
     case iolist_size(Data) =< 16#ffff of
         true ->
-            gen_server:cast(Drv, {send, Data}),
-            true;
+            gen_server:cast(Drv, {send, Data});
         false ->
             {alcove_error, badarg}
     end.
 
--spec stdin(ref(),[alcove:pid_t()],iodata()) -> 'true' | {alcove_error, 'badarg'}.
+-spec stdin(ref(),[alcove:pid_t()],iodata()) -> 'ok' | {alcove_error, 'badarg'}.
 stdin(Drv, Pids, Data) ->
     send(Drv, alcove_codec:stdin(Pids, Data)).
 
@@ -179,8 +178,8 @@ init([Owner, Options]) ->
     end.
 
 handle_call({send, Buf}, {Owner,_Tag}, #state{port = Port, owner = Owner} = State) ->
-    Reply = erlang:port_command(Port, Buf),
-    {reply, Reply, State};
+    true = erlang:port_command(Port, Buf),
+    {reply, ok, State};
 
 handle_call(raw, {Owner,_Tag}, #state{owner = Owner} = State) ->
     {reply, ok, State#state{raw = true}};

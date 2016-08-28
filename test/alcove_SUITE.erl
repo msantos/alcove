@@ -820,7 +820,7 @@ stdout(Config) ->
 
     ok = alcove:execvp(Drv, [Child], "/bin/sh", ["/bin/sh"]),
 
-    true = alcove:stdin(Drv, [Child], "echo 0123456789\n"),
+    ok = alcove:stdin(Drv, [Child], "echo 0123456789\n"),
     <<"0123456789\n">> = alcove:stdout(Drv, [Child], 5000).
 
 stderr(Config) ->
@@ -830,7 +830,7 @@ stderr(Config) ->
 
     ok = alcove:execvp(Drv, [Child], "/bin/sh", ["/bin/sh"]),
 
-    true = alcove:stdin(Drv, [Child], "nonexistent 0123456789\n"),
+    ok = alcove:stdin(Drv, [Child], "nonexistent 0123456789\n"),
     Reply = alcove:stderr(Drv, [Child], 5000),
 
     case OS of
@@ -940,7 +940,7 @@ ptrace(Config) ->
     % allow the process to continue
     {ok, 0, <<>>, <<>>} = alcove:ptrace(Drv, [Child1], ptrace_cont, Child2, 0, 0),
 
-    true = alcove:stdin(Drv, [Child1, Child2], "test\n"),
+    ok = alcove:stdin(Drv, [Child1, Child2], "test\n"),
 
     ok = receive
         {alcove_stdout, Drv, [Child1, Child2], <<"test\n">>} ->
