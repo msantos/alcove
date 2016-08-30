@@ -248,8 +248,10 @@ call_reply(Drv, Pids, false, Timeout) ->
     receive
         {alcove_ctl, Drv, Pids, fdctl_closed} ->
             ok;
-        {alcove_ctl, Drv, _Pids, badpid} ->
-            {alcove_error, badpid};
+        {alcove_ctl, Drv, Pids, Error} ->
+            {alcove_error, Error};
+        {alcove_call, Drv, Pids, Error} when Error =:= badarg; Error =:= undef ->
+            {alcove_error, Error};
         {alcove_call, Drv, Pids, Event} ->
             Event
     after
@@ -260,12 +262,14 @@ call_reply(Drv, Pids, true, Timeout) ->
     receive
         {alcove_ctl, Drv, Pids, fdctl_closed} ->
             call_reply(Drv, Pids, true, Timeout);
+        {alcove_ctl, Drv, Pids, Error} ->
+            {alcove_error, Error};
         {alcove_event, Drv, Pids, {termsig,_} = Event} ->
             {alcove_error, Event};
         {alcove_event, Drv, Pids, {exit_status,_} = Event} ->
             {alcove_error, Event};
-        {alcove_ctl, Drv, _Pids, badpid} ->
-            {alcove_error, badpid};
+        {alcove_call, Drv, Pids, Error} when Error =:= badarg; Error =:= undef ->
+            {alcove_error, Error};
         {alcove_call, Drv, Pids, Event} ->
             Event
     after
@@ -275,8 +279,12 @@ call_reply(Drv, Pids, true, Timeout) ->
 
 reply(Drv, Pids, Type, Timeout) ->
     receive
-        {alcove_ctl, Drv, _Pids, badpid} ->
-            {alcove_error, badpid};
+        {alcove_ctl, Drv, Pids, fdctl_closed} ->
+            reply(Drv, Pids, Type, Timeout);
+        {alcove_ctl, Drv, Pids, Error} ->
+            {alcove_error, Error};
+        {alcove_call, Drv, Pids, Error} when Error =:= badarg; Error =:= undef ->
+            {alcove_error, Error};
         {Type, Drv, Pids, Event} ->
             Event
     after

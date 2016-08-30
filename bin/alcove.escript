@@ -143,46 +143,6 @@ call(Fun, Arg, Timeout) ->
         ),
 
        erl_syntax:clause(
-         [erl_syntax:variable("Error")],
-         [
-          [
-           erl_syntax:infix_expr(
-             erl_syntax:variable("Error"),
-             erl_syntax:operator("=:="),
-             erl_syntax:atom("badarg")
-            )
-          ],
-          [
-           erl_syntax:infix_expr(
-             erl_syntax:variable("Error"),
-             erl_syntax:operator("=:="),
-             erl_syntax:atom("undef")
-            )
-          ]
-         ],
-         [
-          erl_syntax:application(
-            erl_syntax:atom("erlang"),
-            erl_syntax:atom("error"),
-            [
-             erl_syntax:variable("Error"),
-             erl_syntax:list(
-               lists:flatten([
-                              erl_syntax:variable("Drv"),
-                              erl_syntax:variable("Pids"),
-                              Arg,
-                              case Timeout of
-                                  "infinity" -> [];
-                                  _ -> erl_syntax:variable("Timeout")
-                              end
-                             ])
-              )
-            ]
-           )
-         ]
-        ),
-
-       erl_syntax:clause(
          [erl_syntax:variable("Reply")],
          none,
          [erl_syntax:variable("Reply")]
