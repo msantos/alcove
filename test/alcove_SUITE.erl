@@ -357,7 +357,7 @@ tmpfs(Config) ->
             ok = alcove:mount(Drv, [Child], "tmpfs", "/mnt", "tmpfs", [ms_noexec], <<"size=16M", 0>>, <<>>),
             ok = alcove:umount(Drv, [Child], "/mnt");
 
-        {N, false} when N =:= linux; N =:= openbsd ->
+        {N, false} when N =:= linux ->
             % Linux: running in a fork in the global namespace
             Dir = "/tmp/alcove." ++ [ crypto:rand_uniform(16#30,16#39) || _ <- lists:seq(1,8) ],
             ok = alcove:mkdir(Drv, [Child], Dir, 8#700),
