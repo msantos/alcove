@@ -32,6 +32,7 @@
         cap_ioctls_limit/1,
         cap_rights_limit/1,
         chdir/1,
+        children/1,
         chroot/1,
         clone_constant/1,
         env/1,
@@ -53,8 +54,8 @@
         mount/1,
         mount_constant/1,
         open/1,
+        pipe_buf/1,
         pledge/1,
-        children/1,
         portstress/1,
         prctl/1,
         priority/1,
@@ -67,8 +68,8 @@
         setopt/1,
         setrlimit/1,
         setuid/1,
-        socket/1,
         signal/1,
+        socket/1,
         stderr/1,
         stdout/1,
         stream/1,
@@ -122,7 +123,8 @@ all() ->
         select,
         ioctl,
         symlink,
-        execvp_mid_chain
+        execvp_mid_chain,
+        pipe_buf
     ].
 
 groups() ->
@@ -841,6 +843,28 @@ stderr(Config) ->
         _ ->
             {skip, "stderr test not supported on this platform"}
     end.
+
+pipe_buf(Config) ->
+    Drv = ?config(drv, Config),
+    Child = ?config(child, Config),
+
+    ok = alcove:execvp(Drv, [Child], "sleep", ["sleep", "999999999"]),
+    Stdin = binary:copy(<<"x">>, 10000),
+
+    % Fill up the pipe buffer. On Linux, the capacity is 65535 bytes.
+    [ ok = alcove:stdin(Drv, [Child], Stdin) || _ <- lists:seq(1,7) ],
+
+    Reply = receive
+        {alcove_ctl, Drv, [Child], badwrite} ->
+            ok
+    after
+        10000 ->
+            timeout
+    end,
+
+    alcove:kill(Drv, [], Child, 9),
+
+    ok = Reply.
 
 %%
 %% Portability

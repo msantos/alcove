@@ -147,6 +147,9 @@ alcove_parent_fd(alcove_state_t *ap, alcove_stdio_t *fd, pid_t pid)
             || (alcove_set_cloexec(fd->err[PIPE_READ]) < 0))
         abort();
 
+    if (fcntl(fd->in[PIPE_WRITE], F_SETFL, O_NONBLOCK) < 0)
+        abort();
+
     return pid_foreach(ap, 0, fd, &pid, pid_equal, stdio_pid);
 }
 

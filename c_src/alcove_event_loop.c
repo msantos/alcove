@@ -556,8 +556,23 @@ write_to_pid(alcove_state_t *ap, alcove_child_t *c, void *arg1, void *arg2)
     do {
         n = write(c->fdin, buf + written, *buflen - written);
 
-        if (n <= 0)
+        if (n <= 0) {
+            switch (errno) {
+                case EINTR:
+                    continue;
+                case EAGAIN: {
+                    int tlen = 0;
+                    char t[MAXMSGLEN] = {0};
+                    tlen = alcove_mk_atom(t, sizeof(t), "badwrite");
+                    if (alcove_call_fake_reply(c->pid, ALCOVE_MSG_CTL, t, tlen) < 0)
+                        abort();
+                    break;
+                }
+                default:
+                    break;
+            }
             return n;
+        }
 
         written += n;
     } while (written < *buflen);
