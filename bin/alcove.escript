@@ -268,7 +268,11 @@ stdout(Drv, Pids) ->
 static({stdout,3}) ->
 "
 stdout(Drv, Pids, Timeout) ->
-    alcove_drv:stdout(Drv, Pids, Timeout).
+    case alcove_drv:stdout(Drv, Pids, Timeout) of
+        {alcove_error, Error} ->
+            erlang:error(Error, [Drv, Pids, Timeout]);
+        Reply -> Reply
+    end.
 ";
 
 static({stderr,2}) ->
@@ -279,7 +283,11 @@ stderr(Drv, Pids) ->
 static({stderr,3}) ->
 "
 stderr(Drv, Pids, Timeout) ->
-    alcove_drv:stderr(Drv, Pids, Timeout).
+    case alcove_drv:stderr(Drv, Pids, Timeout) of
+        {alcove_error, Error} ->
+            erlang:error(Error, [Drv, Pids, Timeout]);
+        Reply -> Reply
+    end.
 ";
 
 static({eof,2}) ->

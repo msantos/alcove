@@ -862,6 +862,14 @@ pipe_buf(Config) ->
             timeout
     end,
 
+    ok = alcove:stdin(Drv, [Child], Stdin),
+    timer:sleep(1000), % XXX allow time for the message to be received
+    {'EXIT',{badwrite,_}} = (catch alcove:stdout(Drv, [Child])),
+
+    ok = alcove:stdin(Drv, [Child], Stdin),
+    timer:sleep(1000), % XXX allow time for the message to be received
+    {'EXIT',{badwrite,_}} = (catch alcove:stderr(Drv, [Child])),
+
     alcove:kill(Drv, [], Child, 9),
 
     ok = Reply.
