@@ -547,6 +547,9 @@ specs() ->
 -spec ioctl(alcove_drv:ref(), [pid_t()], fd(), constant(), cstruct()) -> {'ok',iodata()} | {'error', posix()}.
 -spec ioctl(alcove_drv:ref(), [pid_t()], fd(), constant(), cstruct(), timeout()) -> {'ok',iodata()} | {'error', posix()}.
 
+-spec ioctl_constant(alcove_drv:ref(),[pid_t()],atom()) -> integer() | 'unknown'.
+-spec ioctl_constant(alcove_drv:ref(),[pid_t()],atom(),timeout()) -> integer() | 'unknown'.
+
 -spec jail(alcove_drv:ref(),[pid_t()],cstruct()) -> {'ok', int32_t()} | {'error', posix()}.
 -spec jail(alcove_drv:ref(),[pid_t()],cstruct(),timeout()) -> {'ok', int32_t()} | {'error', posix()}.
 
