@@ -271,6 +271,8 @@ stdout(Drv, Pids, Timeout) ->
     case alcove_drv:stdout(Drv, Pids, Timeout) of
         {alcove_error, Error} ->
             erlang:error(Error, [Drv, Pids, Timeout]);
+        {alcove_pipe, Error} ->
+            {error, Error};
         Reply -> Reply
     end.
 ";
@@ -286,6 +288,8 @@ stderr(Drv, Pids, Timeout) ->
     case alcove_drv:stderr(Drv, Pids, Timeout) of
         {alcove_error, Error} ->
             erlang:error(Error, [Drv, Pids, Timeout]);
+        {alcove_pipe, Error} ->
+            {error, Error};
         Reply -> Reply
     end.
 ";

@@ -18,7 +18,7 @@
 -export([decode/1]).
 -export([stream/1]).
 
--type type() :: alcove_call | alcove_stdout | alcove_stderr | alcove_event.
+-type type() :: alcove_call | alcove_stdout | alcove_stderr | alcove_event | alcove_pipe.
 -export_type([type/0]).
 
 %%
@@ -83,4 +83,7 @@ decode(<<?UINT16(Len), ?UINT16(?ALCOVE_MSG_EVENT), Data/binary>>, Pids) when Len
     {alcove_event, lists:reverse(Pids), binary_to_term(Data)};
 
 decode(<<?UINT16(Len), ?UINT16(?ALCOVE_MSG_CTL), Data/binary>>, Pids) when Len =:= 2 + byte_size(Data) ->
-    {alcove_ctl, lists:reverse(Pids), binary_to_term(Data)}.
+    {alcove_ctl, lists:reverse(Pids), binary_to_term(Data)};
+
+decode(<<?UINT16(Len), ?UINT16(?ALCOVE_MSG_PIPE), Data/binary>>, Pids) when Len =:= 2 + byte_size(Data) ->
+    {alcove_pipe, lists:reverse(Pids), binary_to_term(Data)}.

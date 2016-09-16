@@ -855,8 +855,8 @@ pipe_buf(Config) ->
     [ ok = alcove:stdin(Drv, [Child], Stdin) || _ <- lists:seq(1,7) ],
 
     Reply = receive
-        {alcove_ctl, Drv, [Child], badwrite} ->
-            ok
+        {alcove_pipe, Drv, [Child], Bytes} ->
+            {ok, Bytes}
     after
         10000 ->
             timeout
@@ -864,15 +864,15 @@ pipe_buf(Config) ->
 
     ok = alcove:stdin(Drv, [Child], Stdin),
     timer:sleep(1000), % XXX allow time for the message to be received
-    {'EXIT',{badwrite,_}} = (catch alcove:stdout(Drv, [Child])),
+    {error, {eagain,_}} = alcove:stdout(Drv, [Child]),
 
     ok = alcove:stdin(Drv, [Child], Stdin),
     timer:sleep(1000), % XXX allow time for the message to be received
-    {'EXIT',{badwrite,_}} = (catch alcove:stderr(Drv, [Child])),
+    {error, {eagain,_}} = alcove:stderr(Drv, [Child]),
 
     alcove:kill(Drv, [], Child, 9),
 
-    ok = Reply.
+    {ok, _} = Reply.
 
 %%
 %% Portability

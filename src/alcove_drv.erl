@@ -250,6 +250,8 @@ call_reply(Drv, Pids, false, Timeout) ->
             ok;
         {alcove_ctl, Drv, Pids, Error} ->
             {alcove_error, Error};
+        {alcove_pipe, Drv, Pids, Bytes} ->
+            {alcove_error, {eagain, Bytes}};
         {alcove_call, Drv, Pids, Error} when Error =:= badarg; Error =:= undef ->
             {alcove_error, Error};
         {alcove_call, Drv, Pids, Event} ->
@@ -270,6 +272,8 @@ call_reply(Drv, Pids, true, Timeout) ->
             {alcove_error, Event};
         {alcove_call, Drv, Pids, Error} when Error =:= badarg; Error =:= undef ->
             {alcove_error, Error};
+        {alcove_pipe, Drv, Pids, Bytes} ->
+            {alcove_error, {eagain, Bytes}};
         {alcove_call, Drv, Pids, Event} ->
             Event
     after
@@ -285,6 +289,8 @@ reply(Drv, Pids, Type, Timeout) ->
             {alcove_error, Error};
         {alcove_call, Drv, Pids, Error} when Error =:= badarg; Error =:= undef ->
             {alcove_error, Error};
+        {alcove_pipe, Drv, Pids, Bytes} ->
+            {alcove_pipe, {eagain, Bytes}};
         {Type, Drv, Pids, Event} ->
             Event
     after

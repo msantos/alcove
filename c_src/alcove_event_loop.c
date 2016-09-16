@@ -27,6 +27,7 @@ enum {
     ALCOVE_MSG_CALL,
     ALCOVE_MSG_EVENT,
     ALCOVE_MSG_CTL,
+    ALCOVE_MSG_PIPE,
 };
 
 #define ALCOVE_CHILD_EXEC -2
@@ -563,8 +564,8 @@ write_to_pid(alcove_state_t *ap, alcove_child_t *c, void *arg1, void *arg2)
                 case EAGAIN: {
                     int tlen = 0;
                     char t[MAXMSGLEN] = {0};
-                    tlen = alcove_mk_atom(t, sizeof(t), "badwrite");
-                    if (alcove_call_fake_reply(c->pid, ALCOVE_MSG_CTL, t, tlen) < 0)
+                    tlen = alcove_mk_long(t, sizeof(t), written);
+                    if (alcove_call_fake_reply(c->pid, ALCOVE_MSG_PIPE, t, tlen) < 0)
                         abort();
                     break;
                 }

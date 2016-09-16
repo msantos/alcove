@@ -47,3 +47,4 @@
 -define(ALCOVE_MSG_CALL, 4).
 -define(ALCOVE_MSG_EVENT, 5).
 -define(ALCOVE_MSG_CTL, 6).
+-define(ALCOVE_MSG_PIPE, 7).
