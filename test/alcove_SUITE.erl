@@ -848,7 +848,7 @@ pipe_buf(Config) ->
     Drv = ?config(drv, Config),
     Child = ?config(child, Config),
 
-    ok = alcove:execvp(Drv, [Child], "sleep", ["sleep", "999999999"]),
+    ok = alcove:execvp(Drv, [Child], "sleep", ["sleep", "60"]),
     Stdin = binary:copy(<<"x">>, 10000),
 
     % Fill up the pipe buffer. On Linux, the capacity is 65535 bytes.
