@@ -787,7 +787,6 @@ symlink(Config) ->
 
 execvp_mid_chain(Config) ->
     Drv = ?config(drv, Config),
-    OS = ?config(os, Config),
 
     Chain = chain(Drv, 8),
     {Pids, Rest} = lists:split(3, Chain),
@@ -798,14 +797,9 @@ execvp_mid_chain(Config) ->
     false = alcove:event(Drv, Chain, 2000),
     Reply = [ alcove:kill(Drv, [], Pid, 0) || Pid <- Rest ],
 
-    ChildState = case OS of
-        openbsd -> {error,esrch};
-        _ -> ok
-    end,
-
     % The child spawned by the exec'ed process becomes a zombie
     % because the PID will not be reaped.
-    [ChildState,
+    [ok,
         {error, esrch},
         {error, esrch},
         {error, esrch},
