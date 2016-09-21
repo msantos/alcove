@@ -49,7 +49,7 @@ static size_t alcove_call_hdr(unsigned char *hdr, size_t hdrlen,
 static ssize_t alcove_child_stdio(int fdin, u_int16_t depth,
         alcove_child_t *c, u_int16_t type);
 static ssize_t alcove_call_reply(u_int16_t, char *, size_t);
-static ssize_t alcove_call_fake_reply(pid_t pid, u_int16_t type,
+static ssize_t alcove_call_spoof(pid_t pid, u_int16_t type,
         char *, size_t);
 
 static int alcove_get_uint16(int fd, u_int16_t *val);
@@ -224,7 +224,7 @@ alcove_stdin(alcove_state_t *ap)
                 int tlen = 0;
                 char t[MAXMSGLEN] = {0};
                 tlen = alcove_mk_atom(t, sizeof(t), "badpid");
-                if (alcove_call_fake_reply(pid, ALCOVE_MSG_CTL, t, tlen) < 0)
+                if (alcove_call_spoof(pid, ALCOVE_MSG_CTL, t, tlen) < 0)
                     return -1;
             }
 
@@ -373,7 +373,7 @@ alcove_call_reply(u_int16_t type, char *buf, size_t len)
 }
 
     static ssize_t
-alcove_call_fake_reply(pid_t pid, u_int16_t type, char *buf, size_t len)
+alcove_call_spoof(pid_t pid, u_int16_t type, char *buf, size_t len)
 {
     struct iovec iov[3];
 
@@ -475,7 +475,7 @@ exited_pid(alcove_state_t *ap, alcove_child_t *c, void *arg1, void *arg2)
 
     if ( (c->fdin >= 0) && (ap->opt & alcove_opt_stdin_closed)) {
         index = alcove_mk_atom(t, sizeof(t), "stdin_closed");
-        if (alcove_call_fake_reply(c->pid, ALCOVE_MSG_CTL, t, index) < 0)
+        if (alcove_call_spoof(c->pid, ALCOVE_MSG_CTL, t, index) < 0)
             return -1;
     }
 
@@ -490,7 +490,7 @@ exited_pid(alcove_state_t *ap, alcove_child_t *c, void *arg1, void *arg2)
                     alcove_encode_long(t, sizeof(t), &index, WEXITSTATUS(*status))
                     );
 
-            if (alcove_call_fake_reply(c->pid, ALCOVE_MSG_EVENT, t, index))
+            if (alcove_call_spoof(c->pid, ALCOVE_MSG_EVENT, t, index))
                 return -1;
         }
     }
@@ -502,7 +502,7 @@ exited_pid(alcove_state_t *ap, alcove_child_t *c, void *arg1, void *arg2)
                 alcove_signal_name(t, sizeof(t), &index, WTERMSIG(*status))
             );
 
-            if (alcove_call_fake_reply(c->pid, ALCOVE_MSG_EVENT, t, index) < 0)
+            if (alcove_call_spoof(c->pid, ALCOVE_MSG_EVENT, t, index) < 0)
                 return -1;
         }
     }
@@ -565,7 +565,7 @@ write_to_pid(alcove_state_t *ap, alcove_child_t *c, void *arg1, void *arg2)
                     int tlen = 0;
                     char t[MAXMSGLEN] = {0};
                     tlen = alcove_mk_long(t, sizeof(t), written);
-                    if (alcove_call_fake_reply(c->pid, ALCOVE_MSG_PIPE, t, tlen) < 0)
+                    if (alcove_call_spoof(c->pid, ALCOVE_MSG_PIPE, t, tlen) < 0)
                         abort();
                     break;
                 }
@@ -627,7 +627,7 @@ read_child_fdctl(alcove_state_t *ap, alcove_child_t *c)
         c->fdctl = ALCOVE_CHILD_EXEC;
         len = alcove_mk_atom(t, sizeof(t), "fdctl_closed");
 
-        if (alcove_call_fake_reply(c->pid, ALCOVE_MSG_CTL, t, len) < 0)
+        if (alcove_call_spoof(c->pid, ALCOVE_MSG_CTL, t, len) < 0)
             return -1;
     }
 
@@ -644,7 +644,7 @@ read_child_stdout(alcove_state_t *ap, alcove_child_t *c)
         case 0:
             if (ap->opt & alcove_opt_stdout_closed) {
                 len = alcove_mk_atom(t, sizeof(t), "stdout_closed");
-                if (alcove_call_fake_reply(c->pid, ALCOVE_MSG_CTL, t, len) < 0)
+                if (alcove_call_spoof(c->pid, ALCOVE_MSG_CTL, t, len) < 0)
                     return -1;
             }
             /* fall through */
@@ -669,7 +669,7 @@ read_child_stderr(alcove_state_t *ap, alcove_child_t *c)
         case 0:
             if (ap->opt & alcove_opt_stderr_closed) {
                 len = alcove_mk_atom(t, sizeof(t), "stderr_closed");
-                if (alcove_call_fake_reply(c->pid, ALCOVE_MSG_CTL, t, len) < 0)
+                if (alcove_call_spoof(c->pid, ALCOVE_MSG_CTL, t, len) < 0)
                     return -1;
             }
             /* fall through */
