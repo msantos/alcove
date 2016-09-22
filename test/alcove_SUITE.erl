@@ -1092,6 +1092,11 @@ open_pty(Drv, Child, [Pty|Ptys]) ->
 pledge(Config) ->
     Drv = ?config(drv, Config),
 
+    ok = alcove:setrlimit(Drv, [], rlimit_core, #alcove_rlimit{
+                                                   cur = 0,
+                                                   max = 0
+                                                  }),
+
     {ok, Fork0} = alcove:fork(Drv, []),
     {ok, Fork1} = alcove:fork(Drv, []),
 
