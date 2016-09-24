@@ -1,4 +1,4 @@
-/* Copyright (c) 2015, Michael Santos <michael.santos@gmail.com>
+/* Copyright (c) 2015-2016, Michael Santos <michael.santos@gmail.com>
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -23,7 +23,7 @@
 alcove_sys_fexecve(alcove_state_t *ap, const char *arg, size_t len,
         char *reply, size_t rlen)
 {
-#if defined(__linux__) || defined(__FreeBSD__)
+#if defined(HAVE_FEXECVE)
     int index = 0;
 
     int fd = -1;

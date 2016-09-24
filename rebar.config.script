@@ -15,15 +15,19 @@ Compile = fun(Name0, Prog) ->
     Status
 end,
 
+Test = fun(Name, Prog, Supported, Unsupported) ->
+    case Compile(Name, Prog) of
+        true ->
+            Supported;
+        false ->
+            Unsupported
+    end
+end,
+
 Only = fun(OS, Name, Prog, Supported, Unsupported) ->
     case os:type() of
         OS ->
-            case Compile(Name, Prog) of
-                true ->
-                    Supported;
-                false ->
-                    Unsupported
-            end;
+            Test(Name, Prog, Supported, Unsupported);
         _ ->
             Unsupported
     end
@@ -41,6 +45,20 @@ end,
 %%
 %% Tests
 %%
+
+% Support for fexecve(3)
+Fexecve = fun(CONFIG) ->
+    Prog = "
+#include <unistd.h>
+int main(int argc, char *argv[], char *envp[]) {
+    (void)fexecve(0, argv, envp);
+    return 0;
+}",
+    Flag = Test("test_fexecve.c", Prog, "-DHAVE_FEXECVE", ""),
+    Define = os:getenv("ALCOVE_DEFINE", ""),
+    true = os:putenv("ALCOVE_DEFINE", Append(Define, Flag)),
+    CONFIG
+end,
 
 % Linux: support for setns(2)
 Setns = fun(CONFIG) ->
@@ -76,5 +94,5 @@ lists:foldl(fun(Fun, Cfg) ->
         Fun(Cfg)
     end,
     CONFIG,
-    [Setns, Seccomp]
+    [Fexecve, Setns, Seccomp]
 ).
