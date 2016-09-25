@@ -42,6 +42,11 @@ Append = fun(Str, Flag) ->
                     sets:from_list(string:tokens(Str, " ")))), " ")
 end,
 
+Setenv = fun(Key, Val) ->
+    Cur = os:getenv(Key, ""),
+    os:putenv(Key, Append(Cur, Val))
+end,
+
 %%
 %% Tests
 %%
@@ -55,8 +60,7 @@ int main(int argc, char *argv[], char *envp[]) {
     return 0;
 }",
     Flag = Test("test_fexecve.c", Prog, "-DHAVE_FEXECVE", ""),
-    Define = os:getenv("ALCOVE_DEFINE", ""),
-    true = os:putenv("ALCOVE_DEFINE", Append(Define, Flag)),
+    true = Setenv("ALCOVE_DEFINE", Flag),
     CONFIG
 end,
 
@@ -70,8 +74,7 @@ int main(int argc, char *argv[]) {
     return 0;
 }",
     Flag = Linux("test_setns.c", Prog, "-DHAVE_SETNS", ""),
-    Define = os:getenv("ALCOVE_DEFINE", ""),
-    true = os:putenv("ALCOVE_DEFINE", Append(Define, Flag)),
+    true = Setenv("ALCOVE_DEFINE", Flag),
     CONFIG
 end,
 
@@ -85,8 +88,7 @@ int main(int argc, char *argv[]) {
 #endif
 }",
     Flag = Linux("test_seccomp.c", Prog, "-DHAVE_SECCOMP", ""),
-    Define = os:getenv("ALCOVE_DEFINE", ""),
-    true = os:putenv("ALCOVE_DEFINE", Append(Define, Flag)),
+    true = Setenv("ALCOVE_DEFINE", Flag),
     CONFIG
 end,
 
