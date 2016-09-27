@@ -12,15 +12,16 @@
  * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
-#include <sys/ioctl.h>
-
 #include <net/if.h>
 #if defined(__linux__)
 #include <linux/if_tun.h>
+#include <linux/serial.h>
 #elif defined(__sunos__)
 #else
 #include <net/if_tun.h>
 #endif
+
+#include <sys/ioctl.h>
 
 static const alcove_constant_t alcove_ioctl_constants[] = {
 #ifdef SIOCADDRT
