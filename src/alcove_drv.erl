@@ -100,11 +100,11 @@ send(Drv, Data) ->
 stdin(Drv, Pids, Data) ->
     send(Drv, alcove_codec:stdin(Pids, Data)).
 
--spec stdout(ref(),[alcove:pid_t()],timeout()) -> 'false' | binary().
+-spec stdout(ref(),[alcove:pid_t()],timeout()) -> 'false' | binary() | {alcove_error, any()} | {alcove_pipe, integer()}.
 stdout(Drv, Pids, Timeout) ->
     reply(Drv, Pids, alcove_stdout, Timeout).
 
--spec stderr(ref(),[alcove:pid_t()],timeout()) -> 'false' | binary().
+-spec stderr(ref(),[alcove:pid_t()],timeout()) -> 'false' | binary() | {alcove_error, any()} | {alcove_pipe, integer()}.
 stderr(Drv, Pids, Timeout) ->
     reply(Drv, Pids, alcove_stderr, Timeout).
 
