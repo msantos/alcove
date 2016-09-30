@@ -37,27 +37,27 @@
           buf = <<>> :: binary()
          }).
 
--spec start() -> {ok, ref()}.
+-spec start() -> 'ignore' | {'error',_} | {'ok',pid()}.
 start() ->
     start(self(), []).
 
--spec start(proplists:proplist()) -> {ok, ref()}.
+-spec start(proplists:proplist()) -> 'ignore' | {'error',_} | {'ok',pid()}.
 start(Options) ->
     start(self(), Options).
 
--spec start(pid(), proplists:proplist()) -> {ok, ref()}.
+-spec start(pid(), proplists:proplist()) -> 'ignore' | {'error',_} | {'ok',pid()}.
 start(Owner, Options) ->
     gen_server:start(?MODULE, [Owner, Options], []).
 
--spec start_link() -> {ok, ref()}.
+-spec start_link() -> 'ignore' | {'error',_} | {'ok',pid()}.
 start_link() ->
     start_link(self(), []).
 
--spec start_link(proplists:proplist()) -> {ok, ref()}.
+-spec start_link(proplists:proplist()) -> 'ignore' | {'error',_} | {'ok',pid()}.
 start_link(Options) ->
     start_link(self(), Options).
 
--spec start_link(pid(), proplists:proplist()) -> {ok, ref()}.
+-spec start_link(pid(), proplists:proplist()) -> 'ignore' | {'error',_} | {'ok',pid()}.
 start_link(Owner, Options) ->
     gen_server:start_link(?MODULE, [Owner, Options], []).
 
