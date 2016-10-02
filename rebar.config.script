@@ -42,9 +42,11 @@ Append = fun(Str, Flag) ->
                     sets:from_list(string:tokens(Str, " ")))), " ")
 end,
 
-Setenv = fun(Key, Val) ->
-    Cur = os:getenv(Key, ""),
-    os:putenv(Key, Append(Cur, Val))
+Setenv = fun(_Key, "") ->
+                true;
+            (Key, Val) ->
+                Cur = os:getenv(Key, ""),
+                os:putenv(Key, Append(Cur, Val))
 end,
 
 %%
