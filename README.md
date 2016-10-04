@@ -672,6 +672,24 @@ atom is used as the argument and is not found on the platform.
 
         mount(2) : mount a filesystem, Linux style
 
+        The arguments are:
+
+            * source
+            * target
+            * filesystem type
+            * flags
+            * data
+
+        An empty binary may be used to specify NULL.
+
+        For example, filesystems mounted in a Linux mount namespace may
+        be visible in the global mount namepace. To avoid this, first
+        remount the root filesystem within mount namespace using the
+        MS_REC|MS_PRIVATE flags:
+
+            {ok, Task} = prx:clone(Parent, [clone_newns]),
+            ok = prx:mount(Task, "none", "/", <<>>, [ms_rec, ms_private], <<>>).
+
         On BSD systems, the Source argument is ignored and passed to
         the system mount call as:
 
