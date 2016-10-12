@@ -830,9 +830,9 @@ stderr(Config) ->
     Reply = alcove:stderr(Drv, [Child], 5000),
 
     case OS of
-        N when N =:= linux; N =:= openbsd ->
+        N when N =:= linux; N =:= openbsd; N =:= freebsd ->
             <<"/bin/sh: ", _/binary>> = Reply;
-        N when N =:= freebsd; N =:= netbsd ->
+        netbsd ->
             <<"nonexistent: not found\n">> = Reply;
         _ ->
             {skip, "stderr test not supported on this platform"}
