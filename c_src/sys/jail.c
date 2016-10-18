@@ -77,10 +77,8 @@ alcove_free_cstruct(alcove_alloc_t *ptr, ssize_t nptr)
 {
     int i = 0;
 
-    for (i = 0; i < nptr; i++) {
-        if (ptr[i].p)
-            free(ptr[i].p);
-    }
+    for (i = 0; i < nptr; i++)
+        free(ptr[i].p);
 
     free(ptr);
 }
