@@ -1,3 +1,5 @@
+.PHONY: test dialyzer typer clean compile examples eg all
+
 REBAR ?= rebar3
 
 all: compile
@@ -8,17 +10,12 @@ compile:
 clean:
 	@$(REBAR) clean
 
-deps:
-	@$(REBAR) get-deps
-
-test: compile
-	@$(REBAR) xref eunit recursive=false
+test:
+	@$(REBAR) ct
 
 examples: eg
 eg:
 	@erlc -I deps -o ebin examples/*.erl
-
-.PHONY: test dialyzer typer clean
 
 dialyzer:
 	@$(REBAR) dialyzer
