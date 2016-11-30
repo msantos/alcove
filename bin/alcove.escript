@@ -296,11 +296,14 @@ stderr(Drv, Pids, Timeout) ->
 
 static({eof,2}) ->
 "
+-spec eof(alcove_drv:ref(),[pid_t()]) -> 'ok' | {'error',posix()}.
 eof(Drv, Pids) ->
     eof(Drv, Pids, stdin).
 ";
 static({eof,3}) ->
 "
+-spec eof(alcove_drv:ref(),[pid_t()],'stdin' | 'stdout' | 'stderr')
+    -> 'ok' | {'error',posix()}.
 eof(_Drv, [], _Stdio) ->
     {error,esrch};
 eof(Drv, Pids0, Stdio) ->
@@ -476,8 +479,6 @@ specs() ->
 
 -spec environ(alcove_drv:ref(),[pid_t()]) -> [binary()].
 -spec environ(alcove_drv:ref(),[pid_t()],timeout()) -> [binary()].
-
--spec eof(alcove_drv:ref(),[pid_t()],'stdin' | 'stdout' | 'stderr') -> 'ok' | {'error',posix()}.
 
 -spec errno_id(alcove_drv:ref(),[pid_t()],int32_t()) -> posix().
 -spec errno_id(alcove_drv:ref(),[pid_t()],int32_t(),timeout()) -> posix().
