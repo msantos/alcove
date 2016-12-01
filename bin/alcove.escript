@@ -498,6 +498,9 @@ specs() ->
 -spec fcntl(alcove_drv:ref(), [pid_t()], fd(), constant(), int64_t()) -> {'ok',int64_t()} | {'error', posix()}.
 -spec fcntl(alcove_drv:ref(), [pid_t()], fd(), constant(), int64_t(), timeout()) -> {'ok',int64_t()} | {'error', posix()}.
 
+-spec fcntl_constant(alcove_drv:ref(),[pid_t()],atom()) -> integer() | 'unknown'.
+-spec fcntl_constant(alcove_drv:ref(),[pid_t()],atom(),timeout()) -> integer() | 'unknown'.
+
 -spec fexecve(alcove_drv:ref(),[pid_t()],fd(),[iodata()],[iodata()]) -> 'ok' | {'error',posix()}.
 -spec fexecve(alcove_drv:ref(),[pid_t()],fd(),[iodata()],[iodata()],timeout()) -> 'ok' | {'error',posix()}.
 
