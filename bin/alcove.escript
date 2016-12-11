@@ -406,6 +406,10 @@ specs() ->
     | 'ewouldblock'
     | 'exdev' | 'exfull'.
 
+-type alcove_pid() :: #alcove_pid{}.
+-type alcove_rlimit() :: #alcove_pid{}.
+-type alcove_timeval() :: #alcove_timeval{}.
+
 -export_type([
         uint8_t/0, uint16_t/0, uint32_t/0, uint64_t/0,
         int8_t/0, int16_t/0, int32_t/0, int64_t/0,
@@ -422,7 +426,11 @@ specs() ->
         pid_t/0,
         constant/0,
 
-        posix/0
+        posix/0,
+
+        alcove_pid/0,
+        alcove_rlimit/0,
+        alcove_timeval/0
     ]).
 
 -spec audit_arch() -> atom().
@@ -451,8 +459,8 @@ specs() ->
 -spec chdir(alcove_drv:ref(),[pid_t()],iodata()) -> 'ok' | {'error', posix()}.
 -spec chdir(alcove_drv:ref(),[pid_t()],iodata(),timeout()) -> 'ok' | {'error', posix()}.
 
--spec children(alcove_drv:ref(),[pid_t()]) -> [#alcove_pid{}].
--spec children(alcove_drv:ref(),[pid_t()],timeout()) -> [#alcove_pid{}].
+-spec children(alcove_drv:ref(),[pid_t()]) -> [alcove_pid()].
+-spec children(alcove_drv:ref(),[pid_t()],timeout()) -> [alcove_pid()].
 
 -spec chmod(alcove_drv:ref(),[pid_t()],iodata(),mode_t()) -> 'ok' | {'error', posix()}.
 -spec chmod(alcove_drv:ref(),[pid_t()],iodata(),mode_t(),timeout()) -> 'ok' | {'error', posix()}.
@@ -543,8 +551,8 @@ specs() ->
 -spec getresuid(alcove_drv:ref(),[pid_t()]) -> {'ok', uid_t(), uid_t(), uid_t()} | {'error', posix()}.
 -spec getresuid(alcove_drv:ref(),[pid_t()],timeout()) -> {'ok', uid_t(), uid_t(), uid_t()} | {'error', posix()}.
 
--spec getrlimit(alcove_drv:ref(),[pid_t()],constant()) -> {'ok', #alcove_rlimit{}} | {'error', posix()}.
--spec getrlimit(alcove_drv:ref(),[pid_t()],constant(),timeout()) -> {'ok', #alcove_rlimit{}} | {'error', posix()}.
+-spec getrlimit(alcove_drv:ref(),[pid_t()],constant()) -> {'ok', alcove_rlimit()} | {'error', posix()}.
+-spec getrlimit(alcove_drv:ref(),[pid_t()],constant(),timeout()) -> {'ok', alcove_rlimit()} | {'error', posix()}.
 
 -spec getsid(alcove_drv:ref(),[pid_t()],pid_t()) -> {'ok', pid_t()} | {'error', posix()}.
 -spec getsid(alcove_drv:ref(),[pid_t()],pid_t(),timeout()) -> {'ok', pid_t()} | {'error', posix()}.
@@ -633,9 +641,9 @@ specs() ->
 -spec rlimit_constant(alcove_drv:ref(),[pid_t()],atom(),timeout()) -> 'unknown' | non_neg_integer().
 
 -spec select(alcove_drv:ref(),[pid_t()],fd_set(),fd_set(),fd_set(),
-    <<>> | #alcove_timeval{}) -> {ok, fd_set(), fd_set(), fd_set()} | {'error', posix()}.
+    <<>> | alcove_timeval()) -> {ok, fd_set(), fd_set(), fd_set()} | {'error', posix()}.
 -spec select(alcove_drv:ref(),[pid_t()],fd_set(),fd_set(),fd_set(),
-    <<>> | #alcove_timeval{},timeout()) -> {ok, fd_set(), fd_set(), fd_set()} | {'error', posix()}.
+    <<>> | alcove_timeval(),timeout()) -> {ok, fd_set(), fd_set(), fd_set()} | {'error', posix()}.
 
 -spec setenv(alcove_drv:ref(),[pid_t()],iodata(),iodata(),int32_t()) -> 'ok' | {'error', posix()}.
 -spec setenv(alcove_drv:ref(),[pid_t()],iodata(),iodata(),int32_t(),timeout()) -> 'ok' | {'error', posix()}.
@@ -670,8 +678,8 @@ specs() ->
 -spec setresuid(alcove_drv:ref(),[pid_t()],uid_t(),uid_t(),uid_t()) -> 'ok' | {'error', posix()}.
 -spec setresuid(alcove_drv:ref(),[pid_t()],uid_t(),uid_t(),uid_t(),timeout()) -> 'ok' | {'error', posix()}.
 
--spec setrlimit(alcove_drv:ref(),[pid_t()],constant(),#alcove_rlimit{}) -> 'ok' | {'error', posix()}.
--spec setrlimit(alcove_drv:ref(),[pid_t()],constant(),#alcove_rlimit{},timeout()) -> 'ok' | {'error', posix()}.
+-spec setrlimit(alcove_drv:ref(),[pid_t()],constant(),alcove_rlimit()) -> 'ok' | {'error', posix()}.
+-spec setrlimit(alcove_drv:ref(),[pid_t()],constant(),alcove_rlimit(),timeout()) -> 'ok' | {'error', posix()}.
 
 -spec setsid(alcove_drv:ref(),[pid_t()]) -> {ok,pid_t()} | {error, posix()}.
 -spec setsid(alcove_drv:ref(),[pid_t()],timeout()) -> {ok,pid_t()} | {error, posix()}.
