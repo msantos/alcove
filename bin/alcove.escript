@@ -560,8 +560,8 @@ specs() ->
 -spec getuid(alcove_drv:ref(),[pid_t()]) -> uid_t().
 -spec getuid(alcove_drv:ref(),[pid_t()],timeout()) -> uid_t().
 
--spec ioctl(alcove_drv:ref(), [pid_t()], fd(), constant(), cstruct()) -> {'ok',iodata()} | {'error', posix()}.
--spec ioctl(alcove_drv:ref(), [pid_t()], fd(), constant(), cstruct(), timeout()) -> {'ok',iodata()} | {'error', posix()}.
+-spec ioctl(alcove_drv:ref(), [pid_t()], fd(), constant(), cstruct()) -> {'ok',integer(),iodata()} | {'error', posix()}.
+-spec ioctl(alcove_drv:ref(), [pid_t()], fd(), constant(), cstruct(), timeout()) -> {'ok',integer(),iodata()} | {'error', posix()}.
 
 -spec ioctl_constant(alcove_drv:ref(),[pid_t()],atom()) -> integer() | 'unknown'.
 -spec ioctl_constant(alcove_drv:ref(),[pid_t()],atom(),timeout()) -> integer() | 'unknown'.

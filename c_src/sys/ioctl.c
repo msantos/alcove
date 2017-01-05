@@ -1,4 +1,4 @@
-/* Copyright (c) 2015, Michael Santos <michael.santos@gmail.com>
+/* Copyright (c) 2015-2016, Michael Santos <michael.santos@gmail.com>
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -120,8 +120,9 @@ alcove_sys_ioctl(alcove_state_t *ap, const char *arg, size_t len,
         return alcove_mk_errno(reply, rlen, errno);
 
     ALCOVE_ERR(alcove_encode_version(reply, rlen, &rindex));
-    ALCOVE_ERR(alcove_encode_tuple_header(reply, rlen, &rindex, 2));
+    ALCOVE_ERR(alcove_encode_tuple_header(reply, rlen, &rindex, 3));
     ALCOVE_ERR(alcove_encode_atom(reply, rlen, &rindex, "ok"));
+    ALCOVE_ERR(alcove_encode_long(reply, rlen, &rindex, rv));
 
     switch (argp.type) {
         case ALCOVE_IOARG_CSTRUCT:

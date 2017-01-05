@@ -572,12 +572,14 @@ atom is used as the argument and is not found on the platform.
 
         getuid(2) : returns the process user ID
 
-    ioctl(Drv, ForkChain, FD, Request, Argp) -> {ok, binary()} | {error, posix()}
+    ioctl(Drv, ForkChain, FD, Request, Argp) -> {ok, Result, Bin} | {error, posix()}
 
         Types   FD = int32_t()
                 Request = int32_t()
                 Argp = binary() | Cstruct
                 Cstruct = [binary() | {ptr, non_neg_integer() | binary()}]
+                Result = integer()
+                Bin = binary()
 
         ioctl(2) : control device
 
@@ -586,6 +588,20 @@ atom is used as the argument and is not found on the platform.
 
         Argp can be either a binary or a list represention of a C
         struct. See prctl/7 below for a description of the list elements.
+
+        On success, ioctl/5 returns a 3-tuple:
+
+            Result: an integer equal to the return value of the ioctl.
+
+                    Usually 0 but some ioctl's may use the return value as the
+                    output parameter.
+
+            Bin: the value depends on the type of the input parameter Argp.
+
+                    cstruct: contains the contents of the memory pointed to by
+                             Argp
+
+                    integer/binary: an empty binary
 
         An example of creating a tap device in a net namespace on Linux:
 

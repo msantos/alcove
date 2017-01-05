@@ -762,7 +762,7 @@ ioctl(Config) ->
                     clone_newnet
                 ]),
             {ok, FD} = alcove:open(Drv, [Child], "/dev/net/tun", [o_rdwr], 0),
-            {ok,<<"tap", _/binary>>} = alcove:ioctl(Drv, [Child], FD, tunsetiff, <<
+            {ok, 0, <<"tap", _/binary>>} = alcove:ioctl(Drv, [Child], FD, tunsetiff, <<
                 0:(16*8),         % generate a tuntap device name
                 (16#0002 bor 16#1000):2/native-unsigned-integer-unit:8, % IFF_TAP, IFF_NO_PI
                 0:(14*8)
