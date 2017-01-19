@@ -46,8 +46,8 @@ alcove_sys_select(alcove_state_t *ap, const char *arg, size_t len,
 
     UNUSED(ap);
 
-    /* -Wmissing-field-initializers */
-    (void)memset(&tv, 0, sizeof(tv));
+    tv.tv_sec = 0;
+    tv.tv_usec = 0;
 
     /* readfds */
     if (alcove_list_to_fd_set(arg, len, &index, &readfds, &nfds) < 0)
