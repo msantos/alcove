@@ -74,7 +74,10 @@ alcove_sys_select(alcove_state_t *ap, const char *arg, size_t len,
             break;
 
         case ERL_SMALL_TUPLE_EXT:
-        case ERL_LARGE_TUPLE_EXT:
+        case ERL_LARGE_TUPLE_EXT: {
+            long long tv_sec = 0;
+            long long tv_usec = 0;
+
             if (alcove_decode_tuple_header(arg, len, &index, &arity) < 0 || arity != 3)
                 return -1;
 
@@ -88,13 +91,16 @@ alcove_sys_select(alcove_state_t *ap, const char *arg, size_t len,
                 return -1;
 
             /* sec */
-            if (alcove_decode_longlong(arg, len, &index, (long long *)&tv.tv_sec) < 0)
+            if (alcove_decode_longlong(arg, len, &index, &tv_sec) < 0)
                 return -1;
 
             /* usec */
-            if (alcove_decode_longlong(arg, len, &index, (long long *)&tv.tv_usec) < 0)
+            if (alcove_decode_longlong(arg, len, &index, &tv_usec) < 0)
                 return -1;
 
+            tv.tv_sec = tv_sec;
+            tv.tv_usec = tv_usec;
+            }
             break;
 
         default:
