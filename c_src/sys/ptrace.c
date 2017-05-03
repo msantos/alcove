@@ -1,4 +1,4 @@
-/* Copyright (c) 2016, Michael Santos <michael.santos@gmail.com>
+/* Copyright (c) 2016-2017, Michael Santos <michael.santos@gmail.com>
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -66,7 +66,7 @@ alcove_sys_ptrace(alcove_state_t *ap, const char *arg, size_t len,
     (void)memset(&data, 0, sizeof(data));
 
     /* request */
-    switch (alcove_decode_constant(arg, len, &index, (int *)&request,
+    switch (alcove_decode_constant(arg, len, &index, &request,
                 alcove_ptrace_constants)) {
         case 0:
             break;
