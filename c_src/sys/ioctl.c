@@ -1,4 +1,4 @@
-/* Copyright (c) 2015-2016, Michael Santos <michael.santos@gmail.com>
+/* Copyright (c) 2015-2017, Michael Santos <michael.santos@gmail.com>
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -47,6 +47,7 @@ alcove_sys_ioctl(alcove_state_t *ap, const char *arg, size_t len,
 #else
     unsigned long request = 0;
 #endif
+    int val = 0;
     alcove_ioctl_arg_t argp;
     alcove_alloc_t *elem = NULL;
     ssize_t nelem = 0;
@@ -63,9 +64,10 @@ alcove_sys_ioctl(alcove_state_t *ap, const char *arg, size_t len,
         return -1;
 
     /* request */
-    switch (alcove_decode_constant(arg, len, &index, (int *)&request,
+    switch (alcove_decode_constant(arg, len, &index, &val,
                 alcove_ioctl_constants)) {
         case 0:
+            request = val;
             break;
         case 1:
             return alcove_mk_error(reply, rlen, "enotsup");
