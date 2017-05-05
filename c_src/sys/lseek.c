@@ -1,4 +1,4 @@
-/* Copyright (c) 2014, Michael Santos <michael.santos@gmail.com>
+/* Copyright (c) 2014-2017, Michael Santos <michael.santos@gmail.com>
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -29,6 +29,8 @@ alcove_sys_lseek(alcove_state_t *ap, const char *arg, size_t len,
     off_t offset = 0;
     int whence = 0;
 
+    long long val = 0;
+
     UNUSED(ap);
 
     /* fd */
@@ -36,8 +38,10 @@ alcove_sys_lseek(alcove_state_t *ap, const char *arg, size_t len,
         return -1;
 
     /* offset */
-    if (alcove_decode_longlong(arg, len, &index, (long long *)&offset) < 0)
+    if (alcove_decode_longlong(arg, len, &index, &val) < 0)
         return -1;
+
+    offset = val;
 
     /* whence */
     if (alcove_decode_int(arg, len, &index, &whence) < 0)
