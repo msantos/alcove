@@ -1,4 +1,4 @@
-/* Copyright (c) 2014, Michael Santos <michael.santos@gmail.com>
+/* Copyright (c) 2014-2017, Michael Santos <michael.santos@gmail.com>
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -35,6 +35,8 @@ alcove_sys_open(alcove_state_t *ap, const char *arg, size_t len,
     mode_t mode = {0};
     int fd = 0;
 
+    u_int32_t val = 0;
+
     UNUSED(ap);
 
     /* pathname */
@@ -54,8 +56,10 @@ alcove_sys_open(alcove_state_t *ap, const char *arg, size_t len,
     }
 
     /* mode */
-    if (alcove_decode_uint(arg, len, &index, (u_int32_t *)&mode) < 0)
+    if (alcove_decode_uint(arg, len, &index, &val) < 0)
         return -1;
+
+    mode = val;
 
     fd = open(pathname, flags, mode);
 
