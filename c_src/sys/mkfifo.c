@@ -30,6 +30,7 @@ alcove_sys_mkfifo(alcove_state_t *ap, const char *arg, size_t len,
     char pathname[PATH_MAX] = {0};
     size_t plen = sizeof(pathname)-1;
     mode_t mode = {0};
+    u_int32_t val = 0;
     int rv = 0;
 
     UNUSED(ap);
@@ -40,8 +41,10 @@ alcove_sys_mkfifo(alcove_state_t *ap, const char *arg, size_t len,
         return -1;
 
     /* mode */
-    if (alcove_decode_uint(arg, len, &index, (u_int32_t *)&mode) < 0)
+    if (alcove_decode_uint(arg, len, &index, (u_int32_t *)&val) < 0)
         return -1;
+
+    mode = val;
 
     rv = mkfifo(pathname, mode);
 
