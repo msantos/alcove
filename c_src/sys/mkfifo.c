@@ -41,7 +41,7 @@ alcove_sys_mkfifo(alcove_state_t *ap, const char *arg, size_t len,
         return -1;
 
     /* mode */
-    if (alcove_decode_uint(arg, len, &index, (u_int32_t *)&val) < 0)
+    if (alcove_decode_uint(arg, len, &index, &val) < 0)
         return -1;
 
     mode = val;
