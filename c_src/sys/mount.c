@@ -1,4 +1,4 @@
-/* Copyright (c) 2014, Michael Santos <michael.santos@gmail.com>
+/* Copyright (c) 2014-2017, Michael Santos <michael.santos@gmail.com>
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -37,6 +37,7 @@ alcove_sys_mount(alcove_state_t *ap, const char *arg, size_t len,
     char filesystemtype[PATH_MAX] = {0};
     size_t flen = sizeof(filesystemtype)-1;
     unsigned long mountflags = 0;
+    int val = 0;
     char data[MAXMSGLEN] = {0};
     size_t dlen = sizeof(data);
     char opt[MAXMSGLEN] = {0};
@@ -60,9 +61,10 @@ alcove_sys_mount(alcove_state_t *ap, const char *arg, size_t len,
         return -1;
 
     /* mountflags */
-    switch (alcove_decode_constant_list(arg, len, &index, (int *)&mountflags,
+    switch (alcove_decode_constant_list(arg, len, &index, &val,
                 alcove_mount_constants)) {
         case 0:
+            mountflags = val;
             break;
         case 1:
             return alcove_mk_error(reply, rlen, "enotsup");
