@@ -111,12 +111,12 @@ alcove_sys_mount(alcove_state_t *ap, const char *arg, size_t len,
             );
 #else
     rv = mount(
-            MAYBE_NULL(flen, filesystemtype),
-            target,
-            mountflags,
-            MAYBE_NULL(dlen, data)
+            MAYBE_NULL(flen, filesystemtype)
+            ,target
+            ,mountflags
+            ,MAYBE_NULL(dlen, data)
 #ifdef __NetBSD__
-            , dlen
+            ,dlen
 #endif
             );
 #endif
