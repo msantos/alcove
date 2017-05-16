@@ -1,4 +1,4 @@
-/* Copyright (c) 2014, Michael Santos <michael.santos@gmail.com>
+/* Copyright (c) 2014-2017, Michael Santos <michael.santos@gmail.com>
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -28,6 +28,7 @@ alcove_sys_read(alcove_state_t *ap, const char *arg, size_t len,
 
     int fd = -1;
     size_t count = 0;
+    unsigned long long val = 0;
     char buf[MAXMSGLEN] = {0};
     int rv = 0;
 
@@ -38,9 +39,10 @@ alcove_sys_read(alcove_state_t *ap, const char *arg, size_t len,
         return -1;
 
     /* count */
-    if (alcove_decode_ulonglong(arg, len, &index,
-                (unsigned long long *)&count) < 0)
+    if (alcove_decode_ulonglong(arg, len, &index, &val) < 0)
         return -1;
+
+    count = val;
 
     /* Silently truncate too large values of count */
     rv = read(fd, buf, MIN(count,rlen));
