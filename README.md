@@ -109,7 +109,7 @@ create an interactive shell we access through standard I/O.
 In order to call chroot(2), the port will need root privileges:
 
 ```erlang
-{ok, Drv} = alocve_drv:start([{exec, "sudo -n"}]).
+{ok, Drv} = alcove_drv:start([{exec, "sudo -n"}]).
 ```
 
 Following the steps outlined earlier, we want to set some process
