@@ -1,4 +1,4 @@
-/* Copyright (c) 2014, Michael Santos <michael.santos@gmail.com>
+/* Copyright (c) 2014-2017, Michael Santos <michael.santos@gmail.com>
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -19,19 +19,15 @@ alcove_decode_binary(const char *buf, size_t len, int *index, void *p, size_t *p
 {
     int type = 0;
     int arity = 0;
-
-    union {
-        long _long;
-        size_t _size_t;
-    } n = {0};
+    long val = 0;
 
     if (alcove_get_type(buf, len, index, &type, &arity) < 0)
         return -1;
 
-    if (ei_decode_binary(buf, index, p, &n._long) < 0 || n._long < 0)
+    if (ei_decode_binary(buf, index, p, &val) < 0 || val < 0)
         return -1;
 
-    *plen = n._size_t;
+    *plen = val;
 
     return 0;
 }
