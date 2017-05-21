@@ -40,7 +40,7 @@ alcove_sys_mkdir(alcove_state_t *ap, const char *arg, size_t len,
         return -1;
 
     /* mode */
-    if (alcove_decode_uint(arg, len, &index, &mode) < 0)
+    if (alcove_decode_uint(arg, len, &index, &val) < 0)
         return -1;
 
     mode = val;
