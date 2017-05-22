@@ -1,4 +1,4 @@
-%%% Copyright (c) 2014-2015, Michael Santos <michael.santos@gmail.com>
+%%% Copyright (c) 2014-2017, Michael Santos <michael.santos@gmail.com>
 %%%
 %%% Permission to use, copy, modify, and/or distribute this software for any
 %%% purpose with or without fee is hereby granted, provided that the above
@@ -1065,8 +1065,8 @@ cap_ioctls_limit(Config) ->
     ok = alcove:cap_rights_limit(Drv, [Child], FD, [cap_ioctl]),
     ok = alcove:cap_ioctls_limit(Drv, [Child], FD, [tiocmget, tiocgwinsz]),
     {error, enotcapable} = alcove:ioctl(Drv, [Child], FD, tiocmset, <<>>),
-    {ok, <<>>} = alcove:ioctl(Drv, [Child], FD, tiocmget, <<>>),
-    {ok, <<>>} = alcove:ioctl(Drv, [Child], FD, tiocgwinsz, <<>>).
+    {ok, 0, <<>>} = alcove:ioctl(Drv, [Child], FD, tiocmget, <<>>),
+    {ok, 0, <<>>} = alcove:ioctl(Drv, [Child], FD, tiocgwinsz, <<>>).
 
 open_pty(Drv, Child) ->
     {ok, Ptys} = alcove:readdir(Drv, Child, "/dev/pts"),
