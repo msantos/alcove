@@ -1,4 +1,4 @@
-/* Copyright (c) 2016, Michael Santos <michael.santos@gmail.com>
+/* Copyright (c) 2016-2017, Michael Santos <michael.santos@gmail.com>
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -123,10 +123,7 @@ alcove_decode_cap_ioctls_list(const char *buf, size_t len,
         case ERL_LIST_EXT: {
             int i = 0;
             int length = 0;
-            union {
-                unsigned long ul;
-                long long ll;
-            } constant = {0};
+            long long constant = 0;
             int rv = 0;
 
             if (ei_decode_list_header(buf, index, &length) < 0)
@@ -134,12 +131,15 @@ alcove_decode_cap_ioctls_list(const char *buf, size_t len,
 
             for (i = 0; i < length; i++) {
                 rv = alcove_decode_constant64(buf, len, index,
-                        &constant.ll, constants);
+                        &constant, constants);
 
                 if (rv != 0)
                     return rv;
 
-                cmds[n++] = constant.ul;
+                if (constant < 0 || constant > UINT32_MAX)
+                    return -1;
+
+                cmds[n++] = constant;
             }
 
             /* [] */
