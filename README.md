@@ -608,7 +608,7 @@ atom is used as the argument and is not found on the platform.
             {ok, Child} = alcove:clone(Drv, [], [clone_newnet]),
             {ok, FD} = alcove:open(Drv, [Child], "/dev/net/tun", [o_rdwr], 0),
             TUNSETIFF = alcove_ioctl:iow($T, 202, 4),
-            {ok, <<"tap", N, _/binary>>} = alcove:ioctl(Drv, [Child], FD,
+            {ok, _, <<"tap", N, _/binary>>} = alcove:ioctl(Drv, [Child], FD,
                 TUNSETIFF, <<
                 0:(16*8), % generate a tuntap device name
                 (16#0002 bor 16#1000):2/native-unsigned-integer-unit:8, % IFF_TAP, IFF_NO_PI
