@@ -120,10 +120,8 @@ alcove_decode_cap_rights_list(const char *buf, size_t len, int *index,
         case ERL_LIST_EXT: {
             int i = 0;
             int length = 0;
-            union {
-                uint64_t u64;
-                long long ll;
-            } constant = {0};
+            uint64_t constant = 0;
+            long long val = 0;
             int rv = 0;
 
             if (ei_decode_list_header(buf, index, &length) < 0)
@@ -131,12 +129,17 @@ alcove_decode_cap_rights_list(const char *buf, size_t len, int *index,
 
             for (i = 0; i < length; i++) {
                 rv = alcove_decode_constant64(buf, len, index,
-                        &constant.ll, constants);
+                        &val, constants);
 
                 if (rv != 0)
                     return rv;
 
-                (void)cap_rights_set(rights, constant.u64);
+                if (constant < 0 || constant > INT64_MAX)
+                    return -1;
+
+                constant = val;
+
+                (void)cap_rights_set(rights, constant);
             }
 
             /* [] */
