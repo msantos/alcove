@@ -134,7 +134,7 @@ alcove_decode_cap_rights_list(const char *buf, size_t len, int *index,
                 if (rv != 0)
                     return rv;
 
-                if (constant < 0 || constant > INT64_MAX)
+                if (val < 0 || val > INT64_MAX)
                     return -1;
 
                 constant = val;
