@@ -1,4 +1,4 @@
-/* Copyright (c) 2016, Michael Santos <michael.santos@gmail.com>
+/* Copyright (c) 2016-2017, Michael Santos <michael.santos@gmail.com>
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -33,10 +33,8 @@ alcove_sys_cap_fcntls_limit(alcove_state_t *ap, const char *arg, size_t len,
     int rv = 0;
 
     int fd = -1;
-    union {
-        uint32_t u;
-        int32_t i;
-    } rights = {0};
+    int32_t val = 0;
+    uint32_t rights = 0;
 
     UNUSED(ap);
 
@@ -45,9 +43,12 @@ alcove_sys_cap_fcntls_limit(alcove_state_t *ap, const char *arg, size_t len,
         return -1;
 
     /* rights */
-    switch (alcove_decode_constant_list(arg, len, &index, &rights.i,
+    switch (alcove_decode_constant_list(arg, len, &index, &val,
                 alcove_cap_constants)) {
         case 0:
+            if (val < 0)
+                return -1;
+            rights = val;
             break;
         case 1:
             return alcove_mk_error(reply, rlen, "enotsup");
@@ -55,8 +56,7 @@ alcove_sys_cap_fcntls_limit(alcove_state_t *ap, const char *arg, size_t len,
             return -1;
     }
 
-
-    rv = cap_fcntls_limit(fd, rights.u);
+    rv = cap_fcntls_limit(fd, rights);
 
     return (rv < 0)
         ? alcove_mk_errno(reply, rlen, errno)
