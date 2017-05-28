@@ -93,19 +93,22 @@ alcove_sys_prctl(alcove_state_t *ap, const char *arg, size_t len,
 
             case ERL_ATOM_EXT: {
                 char define[MAXATOMLEN] = {0};
-                union {
-                    unsigned long ul;
-                    long long ll;
-                } constant;
+                long long val = 0;
+                unsigned long constant = 0;
 
                 if (alcove_decode_atom(arg, len, &index, define) < 0)
                     return -1;
 
-                if (alcove_lookup_constant(define, &constant.ll,
+                if (alcove_lookup_constant(define, &val,
                             alcove_prctl_constants) < 0)
                     return alcove_mk_error(reply, rlen, "enotsup");
 
-                prarg[i].arg = constant.ul;
+                if (val < 0 || val > INT32_MAX)
+                    return -1;
+
+                constant = val;
+
+                prarg[i].arg = constant;
                 }
                 break;
 
