@@ -1,4 +1,4 @@
-/* Copyright (c) 2014, Michael Santos <michael.santos@gmail.com>
+/* Copyright (c) 2014-2017, Michael Santos <michael.santos@gmail.com>
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -17,15 +17,13 @@
     int
 alcove_decode_int(const char *buf, size_t len, int *index, int *n)
 {
-    union {
-        int i;
-        long l;
-    } val;
+    long val = 0;
 
-    if (alcove_decode_long(buf, len, index, &val.l) < 0 || val.l > INT32_MAX)
+    if (alcove_decode_long(buf, len, index, &val) < 0 || val < INT32_MIN
+            || val > INT32_MAX)
         return -1;
 
-    *n = val.i;
+    *n = val;
 
     return 0;
 }
