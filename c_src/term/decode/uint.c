@@ -17,15 +17,12 @@
     int
 alcove_decode_uint(const char *buf, size_t len, int *index, u_int32_t *n)
 {
-    union {
-        u_int32_t i;
-        unsigned long l;
-    } val;
+    unsigned long val = 0;
 
-    if (alcove_decode_ulong(buf, len, index, &val.l) < 0 || val.l > UINT32_MAX)
+    if (alcove_decode_ulong(buf, len, index, &val) < 0 || val > UINT32_MAX)
         return -1;
 
-    *n = val.i;
+    *n = val;
 
     return 0;
 }
