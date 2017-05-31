@@ -1,4 +1,4 @@
-/* Copyright (c) 2014, Michael Santos <michael.santos@gmail.com>
+/* Copyright (c) 2014-2017, Michael Santos <michael.santos@gmail.com>
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -23,10 +23,7 @@ alcove_decode_constant(const char *buf, size_t len, int *index, int *val,
 
     char define[MAXATOMLEN] = {0};
 
-    union {
-        int i;
-        long long ll;
-    } constant;
+    long long constant = 0;
 
     if (alcove_get_type(buf, len, index, &type, &arity) < 0)
         return -1;
@@ -36,10 +33,13 @@ alcove_decode_constant(const char *buf, size_t len, int *index, int *val,
             if (alcove_decode_atom(buf, len, index, define) < 0)
                 return -1;
 
-            if (alcove_lookup_constant(define, &constant.ll, constants) < 0)
+            if (alcove_lookup_constant(define, &constant, constants) < 0)
                 return 1;
 
-            *val = constant.i;
+            if (constant < INT32_MIN || constant > INT32_MAX)
+                return -1;
+
+            *val = constant;
 
             break;
 
