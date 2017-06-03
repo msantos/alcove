@@ -22,8 +22,8 @@ alcove_decode_cstruct(const char *arg, size_t len, int *index,
 {
     int type = 0;
     int arity = 0;
-    size_t size = 0;
-    long tmp_size = 0;
+    size_t tmp_size = 0;
+    long size = 0;
 
     int tmp_index = 0;
     int tmp_arity = 0;
@@ -65,14 +65,14 @@ alcove_decode_cstruct(const char *arg, size_t len, int *index,
                 if (tmp_arity > sizeof(tmp))
                     return -1;
 
-                if (alcove_decode_binary(arg, len, &tmp_index, tmp, &size) < 0)
+                if (alcove_decode_binary(arg, len, &tmp_index, tmp, &tmp_size) < 0)
                     return -1;
 
-                if (size > INT32_MAX)
+                if (tmp_size > INT32_MAX)
                     return -1;
 
-                n += size;
-                total += size;
+                n += tmp_size;
+                total += tmp_size;
                 break;
 
             case ERL_SMALL_TUPLE_EXT:
@@ -102,14 +102,14 @@ alcove_decode_cstruct(const char *arg, size_t len, int *index,
                         break;
 
                     case ERL_BINARY_EXT:
-                        if (alcove_decode_binary(arg, len, &tmp_index, tmp, &size) < 0)
+                        if (alcove_decode_binary(arg, len, &tmp_index, tmp, &tmp_size) < 0)
                             return -1;
 
-                        if (size > INT32_MAX)
+                        if (tmp_size > INT32_MAX)
                             return -1;
 
                         n += sizeof(void *);
-                        total += size;
+                        total += tmp_size;
                         break;
 
                     default:
@@ -141,10 +141,10 @@ alcove_decode_cstruct(const char *arg, size_t len, int *index,
 
         switch (type) {
             case ERL_BINARY_EXT:
-                (void)ei_decode_binary(arg, index, res, &tmp_size);
-                res += tmp_size;
+                (void)ei_decode_binary(arg, index, res, &size);
+                res += size;
                 (*ptr)[i].p = NULL;
-                (*ptr)[i].len = tmp_size;
+                (*ptr)[i].len = size;
                 break;
 
             case ERL_SMALL_TUPLE_EXT:
@@ -177,11 +177,11 @@ alcove_decode_cstruct(const char *arg, size_t len, int *index,
 
                     case ERL_BINARY_EXT: {
                         char *p = NULL;
-                        (void)ei_decode_binary(arg, index, tmp, &tmp_size);
-                        if (tmp_size > 0) {
-                        p = alcove_malloc(tmp_size);
-                        (void)memcpy(p, tmp, tmp_size);
-                        (*ptr)[i].len = tmp_size;
+                        (void)ei_decode_binary(arg, index, tmp, &size);
+                        if (size > 0) {
+                        p = alcove_malloc(size);
+                        (void)memcpy(p, tmp, size);
+                        (*ptr)[i].len = size;
                         }
                         else {
                         /* NULL pointer: return a binary */
