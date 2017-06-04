@@ -64,6 +64,9 @@ alcove_sys_mount(alcove_state_t *ap, const char *arg, size_t len,
     switch (alcove_decode_constant_list(arg, len, &index, &val,
                 alcove_mount_constants)) {
         case 0:
+            if (val < 0)
+                return -1;
+
             mountflags = val;
             break;
         case 1:
