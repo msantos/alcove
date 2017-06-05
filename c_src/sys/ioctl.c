@@ -42,11 +42,7 @@ alcove_sys_ioctl(alcove_state_t *ap, const char *arg, size_t len,
     int type = 0;
     int arity = 0;
     int d = 0;
-#if defined(__linux__) || defined(__sunos__)
-    int request = 0;
-#else
     unsigned long request = 0;
-#endif
     int val = 0;
     alcove_ioctl_arg_t argp;
     alcove_alloc_t *elem = NULL;
