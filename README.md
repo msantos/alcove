@@ -23,7 +23,16 @@ be requested to fork(2):
 ```
 
 Now there are 2 processes in a parent/child relationship, sitting in
-their event loops. We access the child process by using the fork chain:
+their event loops:
+
+```
+beam.smp
+  |-erl_child_setup
+  |   `-alcove
+  |       `-alcove
+```
+
+We access the child process by using the fork chain:
 
 ```erlang
 {ok, Child2} = alcove:fork(Drv, [Child1]),
@@ -45,6 +54,17 @@ calling exec(3):
 
 ```erlang
 ok = alcove:execvp(Drv, [Child1,Child2], "/bin/cat", ["/bin/cat"]).
+```
+
+The process tree now looks like:
+
+```
+beam.smp
+  |-erl_child_setup
+  |   `-alcove
+  |       |-alcove
+  |       |   `-cat
+  |       `-alcove
 ```
 
 We can interact with the process via stdin, stdout and stderr:
