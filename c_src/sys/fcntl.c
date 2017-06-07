@@ -46,14 +46,11 @@ alcove_sys_fcntl(alcove_state_t *ap, const char *arg, size_t len,
 
     int fd = 0;
     int cmd = 0;
-    alcove_fcntl_arg_t argp;
+    alcove_fcntl_arg_t argp = {0};
 
     int rv = 0;
 
     UNUSED(ap);
-
-    /* -Wmissing-field-initializers */
-    (void)memset(&argp, 0, sizeof(argp));
 
     /* fd */
     if (alcove_decode_int(arg, len, &index, &fd) < 0)
