@@ -1,4 +1,4 @@
-/* Copyright (c) 2014, Michael Santos <michael.santos@gmail.com>
+/* Copyright (c) 2014-2017, Michael Santos <michael.santos@gmail.com>
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -26,8 +26,8 @@ alcove_sys_fork(alcove_state_t *ap, const char *arg, size_t len,
 {
     int rindex = 0;
 
-    alcove_arg_t child_arg;
-    alcove_stdio_t fd;
+    alcove_arg_t child_arg = {0};
+    alcove_stdio_t fd = {0};
     pid_t pid = 0;
     sigset_t oldset;
     sigset_t set;
@@ -35,10 +35,6 @@ alcove_sys_fork(alcove_state_t *ap, const char *arg, size_t len,
 
     UNUSED(arg);
     UNUSED(len);
-
-    /* -Wmissing-field-initializers */
-    (void)memset(&child_arg, 0, sizeof(child_arg));
-    (void)memset(&fd, 0, sizeof(fd));
 
     if (ap->depth >= ap->maxforkdepth)
         return alcove_mk_errno(reply, rlen, EAGAIN);
