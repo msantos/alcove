@@ -1,4 +1,4 @@
-/* Copyright (c) 2014-2016, Michael Santos <michael.santos@gmail.com>
+/* Copyright (c) 2014-2017, Michael Santos <michael.santos@gmail.com>
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -37,11 +37,8 @@ alcove_sys_sigaction(alcove_state_t *ap, const char *arg, size_t len,
     char handler[MAXATOMLEN] = {0};
     char *ohandler = NULL;
     struct sigaction *pact = NULL;
-    struct sigaction act;
-    struct sigaction oact;
-
-    (void)memset(&act, 0, sizeof(act));
-    (void)memset(&oact, 0, sizeof(oact));
+    struct sigaction act = {0};
+    struct sigaction oact = {0};
 
     /* signum */
     switch (alcove_decode_constant(arg, len, &index, &signum,
