@@ -1,4 +1,4 @@
-/* Copyright (c) 2014, Michael Santos <michael.santos@gmail.com>
+/* Copyright (c) 2014-2017, Michael Santos <michael.santos@gmail.com>
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -28,13 +28,10 @@ alcove_sys_getrlimit(alcove_state_t *ap, const char *arg, size_t len,
     int rindex = 0;
 
     int resource = 0;
-    struct rlimit rlim;
+    struct rlimit rlim = {0};
     int rv = 0;
 
     UNUSED(ap);
-
-    /* -Wmissing-field-initializers */
-    (void)memset(&rlim, 0, sizeof(rlim));
 
     /* resource */
     switch (alcove_decode_constant(arg, len, &index, &resource,
