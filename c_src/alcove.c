@@ -1,4 +1,4 @@
-/* Copyright (c) 2014-2015, Michael Santos <michael.santos@gmail.com>
+/* Copyright (c) 2014-2017, Michael Santos <michael.santos@gmail.com>
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -32,6 +32,7 @@ main(int argc, char *argv[])
     int ch = 0;
     char *fifo = NULL;
     int boot = 1;
+    struct rlimit maxfd = {0};
 
     ap = calloc(1, sizeof(alcove_state_t));
     if (ap == NULL)
@@ -40,7 +41,10 @@ main(int argc, char *argv[])
     ALCOVE_SETOPT(ap, alcove_opt_termsig, 1);
     ALCOVE_SETOPT(ap, alcove_opt_exit_status, 1);
 
-    ap->maxfd = sysconf(_SC_OPEN_MAX);
+    if (getrlimit(RLIMIT_NOFILE, &maxfd) < 0)
+        exit(errno);
+
+    ap->maxfd = maxfd.rlim_cur;
     ap->maxchild = ap->maxfd / ALCOVE_MAXFILENO - ALCOVE_MAXFILENO;
     ap->maxforkdepth = MAXFORKDEPTH;
 

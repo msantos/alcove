@@ -1,4 +1,4 @@
-/* Copyright (c) 2015-2016, Michael Santos <michael.santos@gmail.com>
+/* Copyright (c) 2015-2017, Michael Santos <michael.santos@gmail.com>
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -109,15 +109,18 @@ alcove_event_loop(alcove_state_t *ap)
         exit(errno);
 
     for ( ; ; ) {
-        long maxfd = sysconf(_SC_OPEN_MAX);
+        struct rlimit maxfd = {0};
         int i = 0;
 
-        if (ap->maxfd < maxfd) {
-            ap->maxfd = maxfd;
-            fds = realloc(fds, sizeof(struct pollfd) * maxfd);
+        if (getrlimit(RLIMIT_NOFILE, &maxfd) < 0)
+            exit(errno);
+
+        if (ap->maxfd != maxfd.rlim_cur) {
+            ap->maxfd = maxfd.rlim_cur;
+            fds = realloc(fds, sizeof(struct pollfd) * ap->maxfd);
             if (fds == NULL)
                 exit(errno);
-            (void)memset(fds, 0, sizeof(struct pollfd) * maxfd);
+            (void)memset(fds, 0, sizeof(struct pollfd) * ap->maxfd);
         }
 
         for (i = 0; i < ap->maxfd; i++) {
@@ -133,11 +136,7 @@ alcove_event_loop(alcove_state_t *ap)
 
         (void)pid_foreach(ap, 0, fds, NULL, pid_not_equal, set_pid);
 
-#if defined(__linux__) || defined(__sunos__) || defined(__OpenBSD__)
-        if (poll(fds, maxfd, -1) < 0) {
-#else
         if (poll(fds, ap->maxfd, -1) < 0) {
-#endif
             switch (errno) {
                 case EINTR:
                     continue;
