@@ -52,18 +52,14 @@ alcove_sys_ptrace(alcove_state_t *ap, const char *arg, size_t len,
 
     int request = 0;
     pid_t pid = 0;
-    alcove_ptrace_arg_t addr;
-    alcove_ptrace_arg_t data;
+    alcove_ptrace_arg_t addr = {0};
+    alcove_ptrace_arg_t data = {0};
     alcove_alloc_t *elem = NULL;
     ssize_t nelem = 0;
 
     long rv = 0;
 
     UNUSED(ap);
-
-    /* -Wmissing-field-initializers */
-    (void)memset(&addr, 0, sizeof(addr));
-    (void)memset(&data, 0, sizeof(data));
 
     /* request */
     switch (alcove_decode_constant(arg, len, &index, &request,
