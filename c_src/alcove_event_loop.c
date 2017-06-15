@@ -91,17 +91,6 @@ alcove_event_loop(alcove_state_t *ap)
 {
     struct pollfd *fds = NULL;
 
-    if (ap->fdsetsize != ap->maxchild) {
-        /* the array may be shrinking */
-        (void)memset(ap->child, 0, sizeof(alcove_child_t) * ap->fdsetsize);
-
-        ap->fdsetsize = ap->maxchild;
-        ap->child = realloc(ap->child, sizeof(alcove_child_t) * ap->fdsetsize);
-
-        if (ap->child == NULL)
-            exit(errno);
-    }
-
     (void)memset(ap->child, 0, sizeof(alcove_child_t) * ap->fdsetsize);
 
     fds = calloc(sizeof(struct pollfd), ap->maxfd);
@@ -117,10 +106,18 @@ alcove_event_loop(alcove_state_t *ap)
 
         if (ap->maxfd != maxfd.rlim_cur) {
             ap->maxfd = maxfd.rlim_cur;
-            fds = realloc(fds, sizeof(struct pollfd) * ap->maxfd);
+            fds = reallocarray(fds, sizeof(struct pollfd), ap->maxfd);
             if (fds == NULL)
                 exit(errno);
             (void)memset(fds, 0, sizeof(struct pollfd) * ap->maxfd);
+
+            ap->maxchild = ap->maxfd / ALCOVE_MAXFILENO - ALCOVE_MAXFILENO;
+            ap->fdsetsize = ap->maxchild;
+
+            ap->child = recallocarray(ap->child, sizeof(alcove_child_t),
+                    sizeof(alcove_child_t), ap->fdsetsize);
+            if (ap->child == NULL)
+                exit(errno);
         }
 
         for (i = 0; i < ap->maxfd; i++) {

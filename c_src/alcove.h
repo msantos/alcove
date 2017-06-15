@@ -234,3 +234,15 @@ ssize_t alcove_call(alcove_state_t *ap, u_int32_t call,
         const char *arg, size_t len, char *reply, size_t rlen);
 
 char *erl_errno_id(int error);
+
+#ifndef HAVE_EXPLICIT_BZERO
+void explicit_bzero(void *p, size_t n);
+#endif
+
+#ifndef HAVE_REALLOCARRAY
+void *reallocarray(void *optr, size_t nmemb, size_t size);
+#endif
+
+#ifndef HAVE_RECALLOCARRAY
+void *recallocarray(void *ptr, size_t oldnmemb, size_t newnmemb, size_t size);
+#endif
