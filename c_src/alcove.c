@@ -45,7 +45,7 @@ main(int argc, char *argv[])
         exit(errno);
 
     ap->maxfd = maxfd.rlim_cur;
-    ap->maxchild = ap->maxfd / ALCOVE_MAXFILENO - ALCOVE_MAXFILENO;
+    ap->maxchild = ALCOVE_MAXCHILD(ap->maxfd);
     ap->maxforkdepth = MAXFORKDEPTH;
 
     while ( (ch = getopt(argc, argv, "c:d:m:h")) != -1) {

@@ -111,7 +111,7 @@ alcove_event_loop(alcove_state_t *ap)
                 exit(errno);
             (void)memset(fds, 0, sizeof(struct pollfd) * ap->maxfd);
 
-            ap->maxchild = ap->maxfd / ALCOVE_MAXFILENO - ALCOVE_MAXFILENO;
+            ap->maxchild = ALCOVE_MAXCHILD(ap->maxfd);
             ap->fdsetsize = ap->maxchild;
 
             ap->child = recallocarray(ap->child, sizeof(alcove_child_t),

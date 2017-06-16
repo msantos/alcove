@@ -1,4 +1,4 @@
-/* Copyright (c) 2014-2016, Michael Santos <michael.santos@gmail.com>
+/* Copyright (c) 2014-2017, Michael Santos <michael.santos@gmail.com>
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -136,6 +136,8 @@ enum {
     ALCOVE_FDCTL_FILENO,
     ALCOVE_MAXFILENO
 };
+
+#define ALCOVE_MAXCHILD(_nfds) ((_nfds) / ALCOVE_MAXFILENO - ALCOVE_MAXFILENO)
 
 typedef struct {
     pid_t pid;
