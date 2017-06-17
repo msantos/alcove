@@ -330,7 +330,6 @@ alcove_drv
             Option = stderr_to_stdout | {env, [{Key, Val}]}
                 | {exec, string()}
                 | {progname, string()}
-                | {maxchild, non_neg_integer()}
 
     Create the alcove port.
 

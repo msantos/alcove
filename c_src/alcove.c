@@ -48,7 +48,7 @@ main(int argc, char *argv[])
     ap->maxchild = ALCOVE_MAXCHILD(ap->maxfd);
     ap->maxforkdepth = MAXFORKDEPTH;
 
-    while ( (ch = getopt(argc, argv, "c:d:m:h")) != -1) {
+    while ( (ch = getopt(argc, argv, "c:d:h")) != -1) {
         switch (ch) {
             case 'c':
                 if (fifo) free(fifo);
@@ -61,9 +61,6 @@ main(int argc, char *argv[])
                 ap->depth = (u_int16_t)atoi(optarg);
                 if (ap->depth > UINT8_MAX)
                     exit(EAGAIN);
-                break;
-            case 'm':
-                ap->maxchild = (u_int16_t)atoi(optarg);
                 break;
             case 'h':
             default:
@@ -262,8 +259,7 @@ usage()
     (void)fprintf(stderr, "%s %s\n",
             __progname, ALCOVE_VERSION);
     (void)fprintf(stderr,
-            "usage: %s -c <path> [<options>]\n"
-            "   -m <num>        max children\n",
+            "usage: %s -c <path> [<options>]\n",
             __progname
             );
 

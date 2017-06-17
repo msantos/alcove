@@ -318,7 +318,6 @@ getopts(Options) when is_list(Options) ->
     [find_executable(Cmd)|Argv].
 
 optarg({fdctl, Arg})            -> switch("c", Arg);
-optarg({maxchild, Arg})         -> switch("m", integer_to_list(Arg));
 optarg({depth, Arg})            -> switch("d", integer_to_list(Arg));
 optarg(_)                       -> "".
 

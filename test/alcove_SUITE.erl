@@ -250,12 +250,12 @@ setopt(Config) ->
 
     {ok, Fork} = alcove:fork(Drv, []),
 
-    true = alcove:setopt(Drv, [Fork], maxchild, 128),
+    true = alcove:setopt(Drv, [Fork], maxforkdepth, 128),
 
     {ok, Fork1} = alcove:fork(Drv, [Fork]),
 
-    128 = alcove:getopt(Drv, [Fork], maxchild),
-    128 = alcove:getopt(Drv, [Fork, Fork1], maxchild),
+    128 = alcove:getopt(Drv, [Fork], maxforkdepth),
+    128 = alcove:getopt(Drv, [Fork, Fork1], maxforkdepth),
 
     alcove:exit(Drv, [Fork, Fork1], 0),
 
@@ -452,6 +452,11 @@ setgroups(Config) ->
 fork(Config) ->
     Drv = ?config(drv, Config),
     Child = ?config(child, Config),
+
+    {ok, RL} = alcove:getrlimit(Drv, [Child], rlimit_nofile),
+    ok = alcove:setrlimit(Drv, [Child], rlimit_nofile,
+                          RL#alcove_rlimit{cur = 64}),
+    4 = alcove:getopt(Drv, [Child], maxchild),
 
     Pids = [ alcove:fork(Drv, [Child]) || _ <- lists:seq(1, 32) ],
     [{error, eagain}|_Rest] = lists:reverse(Pids),

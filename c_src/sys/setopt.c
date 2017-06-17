@@ -1,4 +1,4 @@
-/* Copyright (c) 2014-2016, Michael Santos <michael.santos@gmail.com>
+/* Copyright (c) 2014-2017, Michael Santos <michael.santos@gmail.com>
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -34,9 +34,6 @@ alcove_sys_setopt(alcove_state_t *ap, const char *arg, size_t len,
 
     if (strcmp(opt, "exit_status") == 0) {
         ALCOVE_SETOPT(ap, alcove_opt_exit_status, val);
-    }
-    else if (strcmp(opt, "maxchild") == 0) {
-        ap->maxchild = val;
     }
     else if (strcmp(opt, "maxforkdepth") == 0) {
         ap->maxforkdepth = MIN(val,UINT8_MAX);
