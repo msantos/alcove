@@ -45,7 +45,7 @@ main(int argc, char *argv[])
         exit(errno);
 
     ap->maxfd = maxfd.rlim_cur;
-    ap->maxchild = ALCOVE_MAXCHILD(ap->maxfd);
+    ap->fdsetsize = ALCOVE_MAXCHILD(ap->maxfd);
     ap->maxforkdepth = MAXFORKDEPTH;
 
     while ( (ch = getopt(argc, argv, "c:d:h")) != -1) {
@@ -67,8 +67,6 @@ main(int argc, char *argv[])
                 usage();
         }
     }
-
-    ap->fdsetsize = ap->maxchild;
 
     ap->child = calloc(ap->fdsetsize, sizeof(alcove_child_t));
     if (ap->child == NULL)

@@ -503,8 +503,7 @@ atom is used as the argument and is not found on the platform.
 
     getopt(Drv, ForkChain, Options) -> integer() | false
 
-        Types   Options = childlimit | exit_status | maxchild |
-                          maxforkdepth | termsig
+        Types   Options = exit_status | maxchild | maxforkdepth | termsig
 
         Retrieve port options for event loop. These options are
         configurable per process, with the default settings inherited
@@ -513,22 +512,16 @@ atom is used as the argument and is not found on the platform.
         The initial values for these options are set for the port by
         alcove_drv:start/1.
 
-            childlimit : non_neg_integer() : (ulimit -n) / 4 - 4
+            maxchild : non_neg_integer() : (ulimit -n) / 4 - 4
 
                 Number of child processes allowed for this process. This
-                value cannot be changed by a running process.
+                value can be modifed by adjusting RLIMIT_NOFILE for
+                the process.
 
             exit_status : 1 | 0 : 0
 
                 Controls whether the controlling Erlang process is
                 informed of a process' exit value.
-
-            maxchild : non_neg_integer() : childlimit
-
-                Sets the childlimit for processes forked by this process.
-
-                This value can be greater than the running process'
-                childlimit.
 
             maxforkdepth : non_neg_integer() : 16
 
