@@ -54,7 +54,7 @@ end,
 %%
 
 % Support for fexecve(3)
-Fexecve = fun(CONFIG) ->
+Fexecve = fun(Config) ->
     Prog = "
 #include <unistd.h>
 int main(int argc, char *argv[], char *envp[]) {
@@ -63,11 +63,11 @@ int main(int argc, char *argv[], char *envp[]) {
 }",
     Flag = Test("test_fexecve.c", Prog, "-DHAVE_FEXECVE", ""),
     true = Setenv("ALCOVE_DEFINE", Flag),
-    CONFIG
+    Config
 end,
 
 % Linux: support for setns(2)
-Setns = fun(CONFIG) ->
+Setns = fun(Config) ->
     Prog = "
 #define _GNU_SOURCE
 #include <sched.h>
@@ -77,11 +77,11 @@ int main(int argc, char *argv[]) {
 }",
     Flag = Linux("test_setns.c", Prog, "-DHAVE_SETNS", ""),
     true = Setenv("ALCOVE_DEFINE", Flag),
-    CONFIG
+    Config
 end,
 
 % Linux: support for seccomp mode using prctl(2)
-Seccomp = fun(CONFIG) ->
+Seccomp = fun(Config) ->
     Prog = "
 #include <linux/seccomp.h>
 int main(int argc, char *argv[]) {
@@ -91,7 +91,7 @@ int main(int argc, char *argv[]) {
 }",
     Flag = Linux("test_seccomp.c", Prog, "-DHAVE_SECCOMP", ""),
     true = Setenv("ALCOVE_DEFINE", Flag),
-    CONFIG
+    Config
 end,
 
 lists:foldl(fun(Fun, Cfg) ->
