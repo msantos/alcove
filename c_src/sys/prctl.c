@@ -1,4 +1,4 @@
-/* Copyright (c) 2014, Michael Santos <michael.santos@gmail.com>
+/* Copyright (c) 2014-2017, Michael Santos <michael.santos@gmail.com>
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -58,14 +58,11 @@ alcove_sys_prctl(alcove_state_t *ap, const char *arg, size_t len,
     ssize_t nelem[4] = {0};
     int i = 0;
 
-    alcove_prctl_arg_t prarg[4];
+    alcove_prctl_arg_t prarg[4] = {0};
 
     int rv = 0;
 
     UNUSED(ap);
-
-    /* -Wmissing-field-initializers */
-    (void)memset(&prarg, 0, sizeof(prarg));
 
     /* option */
     switch (alcove_decode_constant(arg, len, &index, &option,
