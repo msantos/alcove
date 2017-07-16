@@ -92,10 +92,9 @@ main(int argc, char *argv[])
     static int
 alcove_signal_init()
 {
-    struct sigaction act;
+    struct sigaction act = {0};
     int sig = 0;
 
-    (void)memset(&act, 0, sizeof(act));
     act.sa_handler = SIG_DFL;
     (void)sigfillset(&act.sa_mask);
 
@@ -120,10 +119,7 @@ alcove_signal_init()
     static int
 alcove_rlimit_init()
 {
-    struct rlimit stack_size;
-
-    /* -Wmissing-field-initializers */
-    (void)memset(&stack_size, 0, sizeof(stack_size));
+    struct rlimit stack_size = {0};
 
     if (getrlimit(RLIMIT_STACK, &stack_size) < 0)
         return -1;
