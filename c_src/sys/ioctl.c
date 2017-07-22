@@ -43,7 +43,7 @@ alcove_sys_ioctl(alcove_state_t *ap, const char *arg, size_t len,
     int arity = 0;
     int d = 0;
     unsigned long request = 0;
-    int val = 0;
+    long long val = 0;
     alcove_ioctl_arg_t argp = {0};
     alcove_alloc_t *elem = NULL;
     ssize_t nelem = 0;
@@ -57,7 +57,7 @@ alcove_sys_ioctl(alcove_state_t *ap, const char *arg, size_t len,
         return -1;
 
     /* request */
-    switch (alcove_decode_constant(arg, len, &index, &val,
+    switch (alcove_decode_constant64(arg, len, &index, &val,
                 alcove_ioctl_constants)) {
         case 0:
             request = val;
