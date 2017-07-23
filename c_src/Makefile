@@ -20,7 +20,7 @@ ifeq ($(UNAME_SYS), Darwin)
 #	LDFLAGS ?= -arch x86_64 -flat_namespace -undefined suppress
 else ifeq ($(UNAME_SYS), FreeBSD)
 	CC ?= cc
-	LDFLAGS ?= -Wl,-Bsymbolic-functions -Wl,-z,relro
+	LDFLAGS ?= -Wno-missing-braces -Wl,-Bsymbolic-functions -Wl,-z,relro
 	CFLAGS ?= -D_FORTIFY_SOURCE=2 -O2 -fstack-protector --param=ssp-buffer-size=4 -Wformat -Werror=format-security -fno-strict-aliasing
 else ifeq ($(UNAME_SYS), OpenBSD)
 	CC ?= cc
