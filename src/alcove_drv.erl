@@ -159,18 +159,22 @@ init([Owner, Options]) ->
 
     % Block until the port has fully initialized
     receive
-        % {alcove_call, [], ok}
-        {Port, {data,<<0,8,0,4,131,100,0,2,111,107>>}} ->
-            Fdctl = erlang:open_port(Fifo, [in]),
+        {Port, {data, Data}} ->
+            case alcove_codec:decode(Data) of
+                {alcove_call, [], ok} ->
+                    Fdctl = erlang:open_port(Fifo, [in]),
 
-            % Decrease the link count of the fifo. The fifo is deleted in
-            % the port because the port may be running as a different user.
-            ok = call_unlink(Port, Fifo),
-            {ok, #state{
-                    port = Port,
-                    fdctl = Fdctl,
-                    owner = Owner
-                }};
+                    % Decrease the link count of the fifo. The fifo is deleted in
+                    % the port because the port may be running as a different user.
+                    ok = call_unlink(Port, Fifo),
+                    {ok, #state{
+                            port = Port,
+                            fdctl = Fdctl,
+                            owner = Owner
+                        }};
+                Error ->
+                    {stop, {error, Error}}
+            end;
         {'EXIT', Port, normal} ->
             {stop, {error, port_init_failed}};
         {'EXIT', Port, Reason} ->
