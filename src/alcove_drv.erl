@@ -1,4 +1,4 @@
-%%% Copyright (c) 2014-2016, Michael Santos <michael.santos@gmail.com>
+%%% Copyright (c) 2014-2017, Michael Santos <michael.santos@gmail.com>
 %%%
 %%% Permission to use, copy, modify, and/or distribute this software for any
 %%% purpose with or without fee is hereby granted, provided that the above
@@ -160,21 +160,18 @@ init([Owner, Options]) ->
     % Block until the port has fully initialized
     receive
         {Port, {data, Data}} ->
-            case alcove_codec:decode(Data) of
-                {alcove_call, [], ok} ->
-                    Fdctl = erlang:open_port(Fifo, [in]),
+            {alcove_call, [], ok} = alcove_codec:decode(Data),
 
-                    % Decrease the link count of the fifo. The fifo is deleted in
-                    % the port because the port may be running as a different user.
-                    ok = call_unlink(Port, Fifo),
-                    {ok, #state{
-                            port = Port,
-                            fdctl = Fdctl,
-                            owner = Owner
-                        }};
-                Error ->
-                    {stop, {error, Error}}
-            end;
+            Fdctl = erlang:open_port(Fifo, [in]),
+
+            % Decrease the link count of the fifo. The fifo is deleted in
+            % the port because the port may be running as a different user.
+            ok = call_unlink(Port, Fifo),
+            {ok, #state{
+                    port = Port,
+                    fdctl = Fdctl,
+                    owner = Owner
+                }};
         {'EXIT', Port, normal} ->
             {stop, {error, port_init_failed}};
         {'EXIT', Port, Reason} ->
