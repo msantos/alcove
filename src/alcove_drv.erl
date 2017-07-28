@@ -141,7 +141,8 @@ init([Owner, Options]) ->
     Fifo = lists:concat([
             Ctldir,
             "/fdctl.",
-            crypto:rand_uniform(0, 16#ffffffff)
+            os:getpid(), "-",
+            pid_to_list(self())
         ]),
 
     [Cmd|Argv] = getopts([{fdctl, Fifo}|Options]),
