@@ -361,7 +361,7 @@ tmpfs(Config) ->
 
         {N, false} when N =:= linux ->
             % Linux: running in a fork in the global namespace
-            Dir = "/tmp/alcove." ++ [ crypto:rand_uniform(16#30,16#39) || _ <- lists:seq(1,8) ],
+            Dir = "/tmp/alcove." ++ os:getpid(),
             ok = alcove:mkdir(Drv, [Child], Dir, 8#700),
             ok = alcove:mount(Drv, [Child], "tmpfs", Dir, "tmpfs", [noexec],
                 <<"size=16M", 0>>, <<>>),
@@ -369,7 +369,7 @@ tmpfs(Config) ->
             ok = alcove:rmdir(Drv, [Child], Dir);
 
         {sunos, false} ->
-            Dir = "/tmp/alcove." ++ [ crypto:rand_uniform(16#30,16#39) || _ <- lists:seq(1,8) ],
+            Dir = "/tmp/alcove." ++ os:getpid(),
             ok = alcove:mkdir(Drv, [Child], Dir, 8#700),
             ok = alcove:mount(Drv, [Child], "swap", Dir, "tmpfs", [ms_optionstr],
                 <<>>, <<"size=16m", 0:4096>>),
@@ -1127,10 +1127,12 @@ getenv(Name, Default) ->
     end.
 
 get_unused_pid(Drv) ->
-    PID = crypto:rand_uniform(16#0affffff, 16#0fffffff),
+    get_unused_pid(Drv, 16#0affffff).
+
+get_unused_pid(Drv, PID) ->
     case alcove:kill(Drv, [], PID, 0) of
         {error,esrch} -> PID;
-        _ -> get_unused_pid(Drv)
+        _ -> get_unused_pid(Drv, PID+1)
     end.
 
 forkstress_1(_Drv, _Child, 0) ->
