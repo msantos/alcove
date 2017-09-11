@@ -34,6 +34,7 @@
         chdir/1,
         children/1,
         chroot/1,
+        chmod/1,
         clone_constant/1,
         env/1,
         eof/1,
@@ -102,6 +103,7 @@ all() ->
         setgid,
         setuid,
         setgroups,
+        chmod,
         fork,
         badpid,
         signal,
@@ -402,6 +404,20 @@ chdir(Config) ->
 
     ok = alcove:chdir(Drv, [Child], "/"),
     {ok, <<"/">>} = alcove:getcwd(Drv, [Child]).
+
+chmod(Config) ->
+    Drv = ?config(drv, Config),
+    Child = ?config(child, Config),
+
+    ok = alcove:setuid(Drv, [Child], 65534),
+
+    Dir = "/tmp/alcove-chmod." ++ os:getpid(),
+    ok = alcove:mkdir(Drv, [Child], Dir, 8#700),
+    {ok, _} = alcove:readdir(Drv, [Child], Dir),
+    ok = alcove:chmod(Drv, [Child], Dir, 8#000),
+    {error, eacces} = alcove:readdir(Drv, [Child], Dir),
+    ok = alcove:chmod(Drv, [Child], Dir, 8#700),
+    ok = alcove:rmdir(Drv, [Child], Dir).
 
 setrlimit(Config) ->
     Drv = ?config(drv, Config),
