@@ -412,11 +412,17 @@ chmod(Config) ->
     ok = alcove:setuid(Drv, [Child], 65534),
 
     Dir = "/tmp/alcove-chmod." ++ os:getpid(),
+
     ok = alcove:mkdir(Drv, [Child], Dir, 8#700),
     {ok, _} = alcove:readdir(Drv, [Child], Dir),
     ok = alcove:chmod(Drv, [Child], Dir, 8#000),
     {error, eacces} = alcove:readdir(Drv, [Child], Dir),
     ok = alcove:chmod(Drv, [Child], Dir, 8#700),
+
+    ok = alcove:chown(Drv, [], Dir, 0, 0),
+    {error, eperm} = alcove:rmdir(Drv, [Child], Dir),
+    ok = alcove:chown(Drv, [], Dir, 65534, 65534),
+
     ok = alcove:rmdir(Drv, [Child], Dir).
 
 setrlimit(Config) ->
