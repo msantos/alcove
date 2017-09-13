@@ -52,6 +52,7 @@
         ioctl/1,
         iodata/1,
         jail/1,
+        mkfifo/1,
         mount/1,
         mount_constant/1,
         open/1,
@@ -123,6 +124,7 @@ all() ->
         open,
         socket,
         select,
+        mkfifo,
         ioctl,
         symlink,
         execvp_mid_chain,
@@ -772,6 +774,24 @@ select(Config) ->
         _ ->
             {ok, [FD], [FD], []}
     end.
+
+mkfifo(Config) ->
+    Drv = ?config(drv, Config),
+    Child = ?config(child, Config),
+
+    Fifo = "/tmp/alcove-fifo." ++ os:getpid(),
+
+    ok = alcove:mkfifo(Drv, [Child], Fifo, 8#700),
+
+    {ok, RFD} = alcove:open(Drv, [Child], Fifo, [o_rdonly, o_nonblock], 0),
+    {ok, WFD} = alcove:open(Drv, [], Fifo, [o_wronly, o_nonblock], 0),
+
+    {ok, N} = alcove:write(Drv, [], WFD, <<"123456789">>),
+    {ok, <<"123456789">>} = alcove:read(Drv, [Child], RFD, N),
+
+    ok = alcove:unlink(Drv, [Child], Fifo),
+
+    ok.
 
 ioctl(Config) ->
     Drv = ?config(drv, Config),
