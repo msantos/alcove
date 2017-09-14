@@ -45,6 +45,7 @@
         execvp_with_signal/1,
         fcntl/1,
         fexecve/1,
+        file_constant/1,
         fork/1,
         forkchain/1,
         forkstress/1,
@@ -89,6 +90,7 @@ all() ->
         {group, OS},
         version,
         iodata,
+        file_constant,
         children,
         getpid,
         setopt,
@@ -221,6 +223,18 @@ iodata(Config) ->
 
     {'EXIT',{badarg,_}} = (catch alcove:iolist_to_bin(Drv, [],
             [[[[[[[[[[[[[[[[["fail"]]]]]]]]]]]]]]]]])),
+
+    ok.
+
+file_constant(Config) ->
+    Drv = ?config(drv, Config),
+    Child = ?config(child, Config),
+
+    O_WRONLY = alcove:file_constant(Drv, [], o_wronly),
+    O_RDONLY = alcove:file_constant(Drv, [Child], o_rdonly),
+
+    true = is_integer(O_WRONLY),
+    true = is_integer(O_RDONLY),
 
     ok.
 
