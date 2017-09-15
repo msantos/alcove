@@ -51,6 +51,7 @@
         forkstress/1,
         getpid/1,
         ioctl/1,
+        ioctl_constant/1,
         iodata/1,
         jail/1,
         mkfifo/1,
@@ -91,6 +92,7 @@ all() ->
         version,
         iodata,
         file_constant,
+        ioctl_constant,
         children,
         getpid,
         setopt,
@@ -230,11 +232,23 @@ file_constant(Config) ->
     Drv = ?config(drv, Config),
     Child = ?config(child, Config),
 
-    O_WRONLY = alcove:file_constant(Drv, [], o_wronly),
+    O_RDONLY = alcove:file_constant(Drv, [Child], 'O_RDONLY'),
     O_RDONLY = alcove:file_constant(Drv, [Child], o_rdonly),
-
-    true = is_integer(O_WRONLY),
     true = is_integer(O_RDONLY),
+
+    unknown = alcove:file_constant(Drv, [], nonexist),
+
+    ok.
+
+ioctl_constant(Config) ->
+    Drv = ?config(drv, Config),
+    Child = ?config(child, Config),
+
+    SIOCGIFADDR = alcove:ioctl_constant(Drv, [], 'SIOCGIFADDR'),
+    SIOCGIFADDR = alcove:ioctl_constant(Drv, [], siocgifaddr),
+    true = is_integer(SIOCGIFADDR),
+
+    unknown = alcove:ioctl_constant(Drv, [], nonexist),
 
     ok.
 
