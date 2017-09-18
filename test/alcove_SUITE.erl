@@ -232,7 +232,7 @@ file_constant(Config) ->
     Drv = ?config(drv, Config),
     Child = ?config(child, Config),
 
-    O_RDONLY = alcove:file_constant(Drv, [Child], 'O_RDONLY'),
+    O_RDONLY = alcove:file_constant(Drv, [], 'O_RDONLY'),
     O_RDONLY = alcove:file_constant(Drv, [Child], o_rdonly),
     true = is_integer(O_RDONLY),
 
@@ -245,7 +245,7 @@ ioctl_constant(Config) ->
     Child = ?config(child, Config),
 
     SIOCGIFADDR = alcove:ioctl_constant(Drv, [], 'SIOCGIFADDR'),
-    SIOCGIFADDR = alcove:ioctl_constant(Drv, [], siocgifaddr),
+    SIOCGIFADDR = alcove:ioctl_constant(Drv, [Child], siocgifaddr),
     true = is_integer(SIOCGIFADDR),
 
     unknown = alcove:ioctl_constant(Drv, [], nonexist),
