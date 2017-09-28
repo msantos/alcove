@@ -73,6 +73,7 @@
         setrlimit/1,
         setuid/1,
         signal/1,
+        signal_constant/1,
         socket/1,
         stderr/1,
         stdout/1,
@@ -93,6 +94,7 @@ all() ->
         iodata,
         file_constant,
         ioctl_constant,
+        signal_constant,
         children,
         getpid,
         setopt,
@@ -249,6 +251,18 @@ ioctl_constant(Config) ->
     true = is_integer(SIOCGIFADDR),
 
     unknown = alcove:ioctl_constant(Drv, [], nonexist),
+
+    ok.
+
+signal_constant(Config) ->
+    Drv = ?config(drv, Config),
+    Child = ?config(child, Config),
+
+    SIGHUP = alcove:signal_constant(Drv, [], 'SIGHUP'),
+    SIGHUP = alcove:signal_constant(Drv, [Child], sighup),
+    true = is_integer(SIGHUP),
+
+    unknown = alcove:signal_constant(Drv, [], nonexist),
 
     ok.
 
