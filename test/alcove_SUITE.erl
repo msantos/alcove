@@ -64,6 +64,7 @@
         prctl/1,
         priority/1,
         ptrace/1,
+        rlimit_constant/1,
         select/1,
         setgid/1,
         setgroups/1,
@@ -94,6 +95,7 @@ all() ->
         iodata,
         file_constant,
         ioctl_constant,
+        rlimit_constant,
         signal_constant,
         children,
         getpid,
@@ -251,6 +253,18 @@ ioctl_constant(Config) ->
     true = is_integer(SIOCGIFADDR),
 
     unknown = alcove:ioctl_constant(Drv, [], nonexist),
+
+    ok.
+
+rlimit_constant(Config) ->
+    Drv = ?config(drv, Config),
+    Child = ?config(child, Config),
+
+    RLIMIT_NOFILE = alcove:rlimit_constant(Drv, [], 'RLIMIT_NOFILE'),
+    RLIMIT_NOFILE = alcove:rlimit_constant(Drv, [Child], rlimit_nofile),
+    true = is_integer(RLIMIT_NOFILE),
+
+    unknown = alcove:rlimit_constant(Drv, [], nonexist),
 
     ok.
 
