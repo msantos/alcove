@@ -62,6 +62,7 @@
         pledge/1,
         portstress/1,
         prctl/1,
+        prctl_constant/1,
         priority/1,
         ptrace/1,
         rlimit_constant/1,
@@ -144,6 +145,7 @@ groups() ->
         {linux, [sequence], [
                 fexecve,
                 clone_constant,
+                prctl_constant,
                 setns,
                 unshare,
                 prctl,
@@ -253,6 +255,18 @@ ioctl_constant(Config) ->
     true = is_integer(SIOCGIFADDR),
 
     unknown = alcove:ioctl_constant(Drv, [], nonexist),
+
+    ok.
+
+prctl_constant(Config) ->
+    Drv = ?config(drv, Config),
+    Child = ?config(child, Config),
+
+    PR_SET_NAME = alcove:prctl_constant(Drv, [], 'PR_SET_NAME'),
+    PR_SET_NAME = alcove:prctl_constant(Drv, [Child], pr_set_name),
+    true = is_integer(PR_SET_NAME),
+
+    unknown = alcove:prctl_constant(Drv, [], nonexist),
 
     ok.
 
