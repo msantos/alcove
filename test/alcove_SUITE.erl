@@ -65,6 +65,7 @@
         prctl_constant/1,
         priority/1,
         ptrace/1,
+        ptrace_constant/1,
         rlimit_constant/1,
         select/1,
         setgid/1,
@@ -146,6 +147,7 @@ groups() ->
                 fexecve,
                 clone_constant,
                 prctl_constant,
+                ptrace_constant,
                 setns,
                 unshare,
                 prctl,
@@ -267,6 +269,18 @@ prctl_constant(Config) ->
     true = is_integer(PR_SET_NAME),
 
     unknown = alcove:prctl_constant(Drv, [], nonexist),
+
+    ok.
+
+ptrace_constant(Config) ->
+    Drv = ?config(drv, Config),
+    Child = ?config(child, Config),
+
+    PTRACE_TRACEME = alcove:ptrace_constant(Drv, [], 'PTRACE_TRACEME'),
+    PTRACE_TRACEME = alcove:ptrace_constant(Drv, [Child], ptrace_traceme),
+    true = is_integer(PTRACE_TRACEME),
+
+    unknown = alcove:ptrace_constant(Drv, [], nonexist),
 
     ok.
 
