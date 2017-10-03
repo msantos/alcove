@@ -82,6 +82,7 @@
         stdout/1,
         stream/1,
         symlink/1,
+        syscall_constant/1,
         tmpfs/1,
         unshare/1,
         version/1,
@@ -148,6 +149,7 @@ groups() ->
                 clone_constant,
                 prctl_constant,
                 ptrace_constant,
+                syscall_constant,
                 setns,
                 unshare,
                 prctl,
@@ -305,6 +307,18 @@ signal_constant(Config) ->
     true = is_integer(SIGHUP),
 
     unknown = alcove:signal_constant(Drv, [], nonexist),
+
+    ok.
+
+syscall_constant(Config) ->
+    Drv = ?config(drv, Config),
+    Child = ?config(child, Config),
+
+    N = alcove:syscall_constant(Drv, [], 'SYS_exit'),
+    N = alcove:syscall_constant(Drv, [Child], sys_exit),
+    true = is_integer(N),
+
+    unknown = alcove:syscall_constant(Drv, [], nonexist),
 
     ok.
 
