@@ -1,12 +1,18 @@
 {application, alcove,
     [
-    {description, "Erlang application container/sandbox"},
-    {vsn, "0.22.1"},
+    {description, "Unix process containers and sandboxes"},
+    {vsn, "0.22.2"},
     {registered, []},
     {applications, [
         kernel,
         stdlib,
         sasl
             ]},
-    {env, []}
-    ]}.
+    {env, []},
+
+    {licenses, ["ISC"]},
+    {maintainers, ["Michael Santos"]},
+    {links, [
+        {"Github", "https://github.com/msantos/alcove"}
+     ]}
+]}.
