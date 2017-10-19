@@ -17,7 +17,7 @@
      ]},
 
     % bin, rebar3_hex.hrl:?DEFAULT_FILES
-    ["bin", "src", "c_src", "include", "rebar.config.script",
-     "priv", "rebar.config", "rebar.lock","README*", "readme*",
-     "LICENSE*", "license*","NOTICE"]
+    {files, ["bin", "src", "c_src", "include", "rebar.config.script",
+             "priv", "rebar.config", "rebar.lock","README*", "readme*",
+             "LICENSE*", "license*","NOTICE"]}
 ]}.
