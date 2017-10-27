@@ -15,6 +15,7 @@ clearenv/0
 clone/1
 clone_constant/1
 close/1
+connect/2
 environ/0
 errno_id/1
 execve/3

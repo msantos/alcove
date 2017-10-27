@@ -434,6 +434,10 @@ atom is used as the argument and is not found on the platform.
 
         close(2) : close a file descriptor.
 
+    connect(Drv, ForkChain, Fd, Sockaddr) -> ok | {error, posix()}
+
+        connect(2) : initiate a connection on a socket
+
     environ(Drv, ForkChain) -> [binary()]
 
         environ(7) : return the process environment variables

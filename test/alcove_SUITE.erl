@@ -36,6 +36,7 @@
         chroot/1,
         chmod/1,
         clone_constant/1,
+        connect/1,
         env/1,
         eof/1,
         event/1,
@@ -135,6 +136,7 @@ all() ->
         open,
         socket,
         select,
+        connect,
         mkfifo,
         ioctl,
         symlink,
@@ -872,6 +874,42 @@ select(Config) ->
         _ ->
             {ok, [FD], [FD], []}
     end.
+
+connect(Config) ->
+    Drv = ?config(drv, Config),
+
+    {ok, NC} = alcove:fork(Drv, []),
+    {ok, Process} = alcove:fork(Drv, []),
+
+    Sockname = <<"/tmp/alcove.",
+                 (integer_to_binary(alcove:getpid(Drv, [])))/binary>>,
+    ok = alcove:execvp(Drv, [NC], "nc", ["nc", "-l", "-U", Sockname]),
+
+    {ok, Socket} = alcove:socket(Drv, [Process], af_unix, sock_stream, 0),
+
+	% #define UNIX_PATH_MAX   108
+	% struct sockaddr_un {
+	% 	__kernel_sa_family_t sun_family; /* AF_UNIX */
+	% 	char sun_path[UNIX_PATH_MAX];   /* pathname */
+	% };
+    AF_UNIX = 1,
+    Len = (108 - byte_size(Sockname)) * 8,
+    ok = alcove:connect(Drv, [Process], Socket, [
+                                          <<AF_UNIX:2/native-integer-unit:8>>,
+                                          Sockname,
+                                          <<0:Len>>
+                                         ]),
+
+    % alcove process -> nc
+    {ok, 11} = alcove:write(Drv, [Process], Socket, <<"alcove->nc\n">>),
+    <<"alcove->nc\n">> = alcove:stdout(Drv, [NC]),
+
+    % nc -> alcove process
+    ok = alcove:stdin(Drv, [NC], <<"nc->alcove\n">>),
+    timer:sleep(1000),
+    {ok, <<"nc->alcove\n">>} = alcove:read(Drv, [Process], Socket, 11),
+
+    ok.
 
 mkfifo(Config) ->
     Drv = ?config(drv, Config),
