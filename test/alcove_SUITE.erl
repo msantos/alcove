@@ -902,11 +902,14 @@ connect(Config) ->
 
     % alcove process -> nc
     {ok, 11} = alcove:write(Drv, [Process], Socket, <<"alcove->nc\n">>),
-    <<"alcove->nc\n">> = alcove:stdout(Drv, [NC]),
+    <<"alcove->nc\n">> = receive
+                             {alcove_stdout, Drv, [NC], Data} ->
+                                 Data
+                         end,
 
     % nc -> alcove process
     ok = alcove:stdin(Drv, [NC], <<"nc->alcove\n">>),
-    timer:sleep(1000),
+    {ok, [Socket], [], []} = alcove:select(Drv, [Process], [Socket], [], [Socket], <<>>),
     {ok, <<"nc->alcove\n">>} = alcove:read(Drv, [Process], Socket, 11),
 
     ok.
