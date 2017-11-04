@@ -21,15 +21,15 @@ ifeq ($(UNAME_SYS), Darwin)
 else ifeq ($(UNAME_SYS), FreeBSD)
 	CC ?= cc
 	LDFLAGS ?= -Wno-missing-braces -Wl,-Bsymbolic-functions -Wl,-z,relro
-	CFLAGS ?= -D_FORTIFY_SOURCE=2 -O2 -fstack-protector --param=ssp-buffer-size=4 -Wformat -Werror=format-security -fno-strict-aliasing
+	CFLAGS ?= -D_FORTIFY_SOURCE=2 -O2 -fstack-protector-strong -Wformat -Werror=format-security -fno-strict-aliasing
 else ifeq ($(UNAME_SYS), OpenBSD)
 	CC ?= cc
 	LDFLAGS ?= -Wl,-z,relro
-	CFLAGS ?= -D_FORTIFY_SOURCE=2 -O2 -fstack-protector --param=ssp-buffer-size=4 -Wformat -Werror=format-security -fno-strict-aliasing
+	CFLAGS ?= -D_FORTIFY_SOURCE=2 -O2 -fstack-protector-strong -Wformat -Werror=format-security -fno-strict-aliasing
 else ifeq ($(UNAME_SYS), Linux)
 	CC ?= cc
 	LDFLAGS ?= -Wl,-Bsymbolic-functions -Wl,-z,relro
-	CFLAGS ?= -D_FORTIFY_SOURCE=2 -O2 -fstack-protector --param=ssp-buffer-size=4 -Wformat -Werror=format-security -fno-strict-aliasing
+	CFLAGS ?= -D_FORTIFY_SOURCE=2 -O2 -fstack-protector-strong -Wformat -Werror=format-security -fno-strict-aliasing
 else ifeq ($(UNAME_SYS), SunOS)
 	LDFLAGS += -lsocket -lnsl
 	CFLAGS += -std=c99 -D_POSIX_C_SOURCE=200112L -D__EXTENSIONS__=1 -fno-strict-aliasing
