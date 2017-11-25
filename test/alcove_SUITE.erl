@@ -19,6 +19,7 @@
 -include_lib("alcove/include/alcove_seccomp.hrl").
 
 -export([
+        suite/0,
         all/0,
         groups/0,
         init_per_testcase/2,
@@ -90,6 +91,10 @@
 
         no_os_specific_tests/1
     ]).
+
+suite() ->
+    Timeout = list_to_integer(os:getenv("ALCOVE_TEST_TIMEOUT", "30")),
+    [{timetrap, {seconds, Timeout}}].
 
 all() ->
     {unix, OS} = os:type(),
