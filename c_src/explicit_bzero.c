@@ -5,8 +5,6 @@
  * Written by Ted Unangst
  */
 
-#include "alcove.h"
-
 #include <string.h>
 
 /*

@@ -17,7 +17,6 @@
 
 /* OPENBSD ORIGINAL: lib/libc/stdlib/reallocarray.c */
 
-#include "alcove.h"
 #ifndef HAVE_REALLOCARRAY
 
 #include <sys/types.h>

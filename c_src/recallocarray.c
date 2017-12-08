@@ -17,7 +17,6 @@
 
 /* OPENBSD ORIGINAL: lib/libc/stdlib/recallocarray.c */
 
-#include "alcove.h"
 #ifndef HAVE_RECALLOCARRAY
 
 #include <errno.h>
@@ -27,6 +26,8 @@
 #endif
 #include <string.h>
 #include <unistd.h>
+
+#include "explicit_bzero.h"
 
 /*
  * This is sqrt(SIZE_MAX+1), as s1*s2 <= SIZE_MAX
