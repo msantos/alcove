@@ -81,7 +81,7 @@ int main(int argc, char *argv[]) {
 end,
 
 % Linux: support for seccomp mode using prctl(2)
-Seccomp = fun(Config) ->
+PrctlSeccomp = fun(Config) ->
     Prog = "
 #include <linux/seccomp.h>
 int main(int argc, char *argv[]) {
@@ -89,7 +89,7 @@ int main(int argc, char *argv[]) {
     return 0;
 #endif
 }",
-    Flag = Linux("test_seccomp.c", Prog, "-DHAVE_SECCOMP", ""),
+    Flag = Linux("test_prctl_seccomp.c", Prog, "-DHAVE_PRCTL_SECCOMP", ""),
     true = Setenv("ALCOVE_DEFINE", Flag),
     Config
 end,
@@ -98,5 +98,5 @@ lists:foldl(fun(Fun, Cfg) ->
         Fun(Cfg)
     end,
     CONFIG,
-    [Fexecve, Setns, Seccomp]
+    [Fexecve, Setns, PrctlSeccomp]
 ).

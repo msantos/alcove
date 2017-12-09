@@ -17,7 +17,7 @@
 
 #ifdef __linux__
 #include <sys/prctl.h>
-#ifdef HAVE_SECCOMP
+#ifdef HAVE_PRCTL_SECCOMP
 #include <linux/seccomp.h>
 #endif
 #endif
