@@ -25,18 +25,26 @@
         end_per_testcase/2
     ]).
 -export([
-        kill/1,
-        allow/1,
-        trap/1
+        kill_prctl/1,
+        allow_prctl/1,
+        trap_prctl/1,
+
+        kill_seccomp/1,
+        allow_seccomp/1,
+        trap_seccomp/1
     ]).
 
 all() ->
     case os:type() of
         {unix, linux} ->
             [
-                kill,
-                allow,
-                trap
+                kill_prctl,
+                allow_prctl,
+                trap_prctl,
+
+                kill_seccomp,
+                allow_seccomp,
+                trap_seccomp
             ];
         _ ->
             {skip, "seccomp tests are Linux only"}
@@ -78,14 +86,31 @@ end_per_testcase(_Test, Config) ->
 %%
 %% Tests
 %%
+kill_prctl(Config) ->
+  kill(Config, prctl).
+
+allow_prctl(Config) ->
+  allow(Config, prctl).
+
+trap_prctl(Config) ->
+  trap(Config, prctl).
+
+kill_seccomp(Config) ->
+  kill(Config, seccomp).
+
+allow_seccomp(Config) ->
+  allow(Config, seccomp).
+
+trap_seccomp(Config) ->
+  trap(Config, seccomp).
 
 % Seccomp filter terminates the process wiith SIGSYS if the system call
 % is not allowed.
-kill(Config) ->
+kill(Config, Syscall) ->
     Drv = ?config(drv, Config),
 
     {ok, Pid} = alcove:fork(Drv, []),
-    enforce(Drv, [Pid], ?BPF_STMT(?BPF_RET+?BPF_K, ?SECCOMP_RET_KILL)),
+    enforce(Drv, [Pid], ?BPF_STMT(?BPF_RET+?BPF_K, ?SECCOMP_RET_KILL), Syscall),
     % Allowed: cached by process
     Pid = alcove:getpid(Drv, [Pid]),
     % Not allowed: SIGSYS
@@ -95,11 +120,11 @@ kill(Config) ->
 
 % Seccomp filter matches a whitelist of system calls. Unmatched system
 % calls are allowed.
-allow(Config) ->
+allow(Config, Syscall) ->
     Drv = ?config(drv, Config),
 
     {ok, Pid} = alcove:fork(Drv, []),
-    enforce(Drv, [Pid], ?BPF_STMT(?BPF_RET+?BPF_K, ?SECCOMP_RET_ALLOW)),
+    enforce(Drv, [Pid], ?BPF_STMT(?BPF_RET+?BPF_K, ?SECCOMP_RET_ALLOW), Syscall),
     Pid = alcove:getpid(Drv, [Pid]),
     {ok, _} = alcove:getcwd(Drv, [Pid]),
     ok = alcove:kill(Drv, [], Pid, 0),
@@ -107,13 +132,13 @@ allow(Config) ->
 
 % Seccomp filter traps any syscall that is not whitelisted. The system
 % call returns an error or a dummy value. The process is not terminated.
-trap(Config) ->
+trap(Config, Syscall) ->
     Drv = ?config(drv, Config),
 
     {ok, Pid} = alcove:fork(Drv, []),
     {ok,_} = alcove:sigaction(Drv, [Pid], sigsys, sig_info),
 
-    enforce(Drv, [Pid], ?BPF_STMT(?BPF_RET+?BPF_K, ?SECCOMP_RET_TRAP)),
+    enforce(Drv, [Pid], ?BPF_STMT(?BPF_RET+?BPF_K, ?SECCOMP_RET_TRAP), Syscall),
 
     % Allowed: cached by process
     Pid = alcove:getpid(Drv, [Pid]),
@@ -161,7 +186,7 @@ filter(Drv) ->
         allow_syscall(Drv, sys_poll)
     ].
 
-enforce(Drv, Pids, Filter0) ->
+enforce(Drv, Pids, Filter0, Syscall) ->
     Filter = filter(Drv) ++ [Filter0],
 
     {ok,_,_,_,_,_} = alcove:prctl(Drv, Pids, pr_set_no_new_privs, 1, 0, 0, 0),
@@ -173,5 +198,14 @@ enforce(Drv, Pids, Filter0) ->
         <<0:Pad>>,
         {ptr, list_to_binary(Filter)}
     ],
-    alcove:prctl(Drv, Pids,
-        pr_set_seccomp, seccomp_mode_filter, Prog, 0, 0).
+
+    case Syscall of
+      prctl ->
+        {ok,_,_,_,_,_} = alcove:prctl(Drv, Pids, pr_set_seccomp,
+                                      seccomp_mode_filter, Prog, 0, 0);
+
+      seccomp ->
+        ok = alcove:seccomp(Drv, Pids, seccomp_set_mode_filter, 0, Prog)
+    end,
+
+    ok.

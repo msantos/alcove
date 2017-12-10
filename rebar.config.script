@@ -3,7 +3,7 @@ TMPDIR = os:getenv("TMPDIR", "/tmp"),
 Compile = fun(Name0, Prog) ->
     Name = filename:join(TMPDIR, Name0),
     ok = file:write_file(Name, Prog, [write, exclusive]),
-    Cmd = erlang:open_port({spawn, ["${CC-cc} -o /dev/null ", Name]},
+    Cmd = erlang:open_port({spawn, ["${CC-cc} -Werror -o /dev/null ", Name]},
             [stream, exit_status]),
     Status = receive
         {Cmd, {exit_status, 0}} ->
@@ -94,9 +94,29 @@ int main(int argc, char *argv[]) {
     Config
 end,
 
+% Linux: support for seccomp mode using seccomp(2)
+Seccomp = fun(Config) ->
+    Prog = "
+#include <stddef.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <linux/audit.h>
+#include <linux/filter.h>
+#include <linux/seccomp.h>
+#include <sys/prctl.h>
+
+int main(int argc, char *argv[]) {
+    return seccomp(SECCOMP_SET_MODE_STRICT, 0, NULL);
+}",
+    Flag = Linux("test_seccomp.c", Prog, "-DHAVE_SECCOMP", ""),
+    true = Setenv("ALCOVE_DEFINE", Flag),
+    Config
+end,
+
 lists:foldl(fun(Fun, Cfg) ->
         Fun(Cfg)
     end,
     CONFIG,
-    [Fexecve, Setns, PrctlSeccomp]
+    [Fexecve, Setns, PrctlSeccomp, Seccomp]
 ).
