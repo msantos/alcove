@@ -640,6 +640,12 @@ specs() ->
 -spec rlimit_constant(alcove_drv:ref(),[pid_t()],atom()) -> 'unknown' | non_neg_integer().
 -spec rlimit_constant(alcove_drv:ref(),[pid_t()],atom(),timeout()) -> 'unknown' | non_neg_integer().
 
+-spec seccomp(alcove_drv:ref(),[pid_t()],constant(),constant(),cstruct()) -> 'ok' | {'error', posix()}.
+-spec seccomp(alcove_drv:ref(),[pid_t()],constant(),constant(),cstruct(),timeout()) -> 'ok' | {'error', posix()}.
+
+-spec seccomp_constant(alcove_drv:ref(),[pid_t()],atom()) -> 'unknown' | non_neg_integer().
+-spec seccomp_constant(alcove_drv:ref(),[pid_t()],atom(),timeout()) -> 'unknown' | non_neg_integer().
+
 -spec select(alcove_drv:ref(),[pid_t()],fd_set(),fd_set(),fd_set(),
     <<>> | alcove_timeval()) -> {ok, fd_set(), fd_set(), fd_set()} | {'error', posix()}.
 -spec select(alcove_drv:ref(),[pid_t()],fd_set(),fd_set(),fd_set(),

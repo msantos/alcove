@@ -756,12 +756,12 @@ atom is used as the argument and is not found on the platform.
 
     pledge(Drv, ForkChain, Promises, Paths) -> ok | {error, posix()}
 
-	Types	Promises = iodata()
-		Paths = [string() | binary()]
+        Types	Promises = iodata()
+              Paths = [string() | binary()]
 
-	OpenBSD only.
+        OpenBSD only.
 
-	pledge(2) : restrict system operations
+        pledge(2) : restrict system operations
 
     prctl(Drv, ForkChain, Option, Arg2, Arg3, Arg4, Arg5) ->
         {ok, integer(), Val2, Val3, Val4, Val5} | {error, posix()}
@@ -848,6 +848,20 @@ atom is used as the argument and is not found on the platform.
     rmdir(Drv, ForkChain, Path) -> ok | {error, posix()}
 
         rmdir(2) : delete a directory
+
+    seccomp(Drv, ForkChain, Operation, Flags, Prog) -> ok | {error, posix()}
+
+        Types   Operation = constant()
+                Flags = constant()
+                Prog = [binary() | {ptr, non_neg_integer() | binary()}]
+
+        seccomp(2) : restrict system operations
+
+        See prctl/7.
+
+    seccomp_constant(Drv, ForkChain, atom()) -> integer() | unknown
+
+        Convert seccomp option names to integers.
 
     select(Drv, ForkChain, Readfds, Writefds, Exceptfds, Timeout) -> {ok, Readfds, Writefds, Exceptfds} | {error, posix()}
 
