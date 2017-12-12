@@ -125,16 +125,6 @@ alcove_sys_seccomp(alcove_state_t *ap, const char *arg, size_t len,
 
             break;
 
-        case ERL_BINARY_EXT:
-            args.type = ALCOVE_SCARG_BINARY;
-            if (arity > sizeof(args.data))
-                return -1;
-            if (alcove_decode_binary(arg, len, &index,
-                        args.data, &(args.len)) < 0)
-                return -1;
-
-            break;
-
         case ERL_NIL_EXT:
             if (alcove_decode_list_header(arg, len, &index, &arity) < 0 ||
                     arity != 0)
