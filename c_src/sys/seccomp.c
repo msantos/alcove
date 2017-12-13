@@ -32,16 +32,9 @@
 #include "alcove_seccomp_constants.h"
 
 typedef struct {
-    u_char type;
-    unsigned int arg;
     char data[MAXMSGLEN];
     size_t len;
 } alcove_seccomp_arg_t;
-
-enum {
-    ALCOVE_SCARG_CSTRUCT,
-    ALCOVE_SCARG_BINARY
-};
 
 #ifdef __linux__
 #ifndef HAVE_SECCOMP
@@ -117,7 +110,6 @@ alcove_sys_seccomp(alcove_state_t *ap, const char *arg, size_t len,
 
     switch (type) {
         case ERL_LIST_EXT:
-            args.type = ALCOVE_SCARG_CSTRUCT;
             args.len = sizeof(args.data);
             if (alcove_decode_cstruct(arg, len, &index, args.data,
                     &(args.len), &elem, &nelem) < 0)
