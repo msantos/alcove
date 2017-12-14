@@ -51,7 +51,12 @@ all() ->
     end.
 
 init_per_suite(Config) ->
-    {ok, Drv} = alcove_drv:start_link(),
+    Ctldir = case os:getenv("ALCOVE_TEST_CTLDIR", false) of
+               false -> [];
+               Dir -> [{ctldir, Dir}]
+             end,
+
+    {ok, Drv} = alcove_drv:start_link(Ctldir),
     Result = try alcove:clone_constant(Drv, [], seccomp_mode_filter) of
         _ ->
             Config

@@ -181,7 +181,12 @@ init_per_testcase(_Test, Config) ->
     Exec = getenv("ALCOVE_TEST_EXEC", "sudo -n"),
     Use_fork = false =/= getenv("ALCOVE_TEST_USE_FORK", false),
 
-    {ok, Drv} = alcove_drv:start_link([{exec, Exec}, {maxchild, 8}]),
+    Ctldir = case getenv("ALCOVE_TEST_CTLDIR", false) of
+               false -> [];
+               Dir -> [{ctldir, Dir}]
+             end,
+
+    {ok, Drv} = alcove_drv:start_link([{exec, Exec}, {maxchild, 8}] ++ Ctldir),
 
     case {Use_fork, os:type()} of
         {false, {unix,linux}} ->
