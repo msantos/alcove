@@ -1,4 +1,4 @@
-%%% Copyright (c) 2014, Michael Santos <michael.santos@gmail.com>
+%%% Copyright (c) 2014-2017, Michael Santos <michael.santos@gmail.com>
 %%%
 %%% Permission to use, copy, modify, and/or distribute this software for any
 %%% purpose with or without fee is hereby granted, provided that the above
@@ -57,8 +57,11 @@ init_per_suite(Config) ->
              end,
 
     {ok, Drv} = alcove_drv:start_link(Ctldir),
-    Result = try alcove:clone_constant(Drv, [], seccomp_mode_filter) of
-        _ ->
+    Result = try alcove:prctl_constant(Drv, [], seccomp_mode_filter) of
+        unknown ->
+            {skip, "seccomp not supported"};
+
+        N when is_integer(N) ->
             Config
     catch
         error:undef ->
