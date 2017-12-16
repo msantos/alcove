@@ -51,12 +51,7 @@ all() ->
     end.
 
 init_per_suite(Config) ->
-    Ctldir = case os:getenv("ALCOVE_TEST_CTLDIR", false) of
-               false -> [];
-               Dir -> [{ctldir, Dir}]
-             end,
-
-    {ok, Drv} = alcove_drv:start_link(Ctldir),
+    {ok, Drv} = start_link([]),
     Result = try alcove:prctl_constant(Drv, [], seccomp_mode_filter) of
         unknown ->
             {skip, "seccomp not supported"};
@@ -79,7 +74,7 @@ init_per_testcase(_Test, Config) ->
         Env -> Env
     end,
 
-    {ok, Drv} = alcove_drv:start_link([
+    {ok, Drv} = start_link([
             {exec, Exec},
             {maxchild, 8},
             termsig
@@ -217,3 +212,11 @@ enforce(Drv, Pids, Filter0, Syscall) ->
     end,
 
     ok.
+
+start_link(Opt) ->
+    Ctldir = case os:getenv("ALCOVE_TEST_CTLDIR") of
+               false -> [];
+               Dir -> [{ctldir, Dir}]
+             end,
+
+    alcove_drv:start_link(Opt ++ Ctldir).
