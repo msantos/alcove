@@ -141,8 +141,7 @@ init([Owner, Options]) ->
     Fifo = lists:concat([
             Ctldir,
             "/fdctl.",
-            os:getpid(), "-",
-            pid_to_list(self())
+            erlang:phash2([os:getpid(), self()])
         ]),
 
     [Cmd|Argv] = getopts([{fdctl, Fifo}|Options]),
