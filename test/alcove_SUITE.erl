@@ -40,6 +40,7 @@
         connect/1,
         env/1,
         eof/1,
+        errno_id/1,
         event/1,
         execve/1,
         execvp/1,
@@ -106,6 +107,7 @@ all() ->
         ioctl_constant,
         rlimit_constant,
         signal_constant,
+        errno_id,
         children,
         getpid,
         setopt,
@@ -331,6 +333,14 @@ syscall_constant(Config) ->
     true = is_integer(N),
 
     unknown = alcove:syscall_constant(Drv, [], nonexist),
+
+    ok.
+
+errno_id(Config) ->
+    Drv = ?config(drv, Config),
+
+    eperm = alcove:errno_id(Drv, [], 1),
+    unknown = alcove:errno_id(Drv, [], 0),
 
     ok.
 
