@@ -24,7 +24,6 @@
 #include <linux/seccomp.h>
 #include <linux/filter.h>
 #include <linux/audit.h>
-//#include <linux/signal.h>
 #include <sys/ptrace.h>
 #endif
 #endif
