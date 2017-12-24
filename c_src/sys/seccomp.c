@@ -16,7 +16,9 @@
 #include "alcove_call.h"
 
 #ifndef HAVE_SECCOMP
+#ifdef __linux__
 #include <syscall.h>
+#endif
 #endif
 
 #ifdef __linux__
