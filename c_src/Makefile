@@ -24,7 +24,7 @@ else ifeq ($(UNAME_SYS), FreeBSD)
 	CFLAGS ?= -D_FORTIFY_SOURCE=2 -O2 -fstack-protector-strong -Wformat -Werror=format-security -fno-strict-aliasing
 else ifeq ($(UNAME_SYS), OpenBSD)
 	CC ?= cc
-	LDFLAGS ?= -Wl,-z,relro,-z,now
+	LDFLAGS ?= -Wno-missing-braces -Wl,-z,relro,-z,now
 	CFLAGS ?= -D_FORTIFY_SOURCE=2 -O2 -fstack-protector-strong -Wformat -Werror=format-security -fno-strict-aliasing
 else ifeq ($(UNAME_SYS), Linux)
 	CC ?= cc
