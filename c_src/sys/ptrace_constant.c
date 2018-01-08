@@ -17,7 +17,9 @@
 
 #ifdef __linux__
 #include <sys/ptrace.h>
+#ifndef PTRACE_TRACEME
 #include <linux/ptrace.h>
+#endif
 #endif
 
 #include "alcove_ptrace_constants.h"

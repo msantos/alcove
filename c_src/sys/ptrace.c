@@ -17,7 +17,9 @@
 
 #if defined(__linux__)
 #include <sys/ptrace.h>
+#ifndef PTRACE_TRACEME
 #include <linux/ptrace.h>
+#endif
 #include "alcove_ptrace_constants.h"
 
 typedef struct {
