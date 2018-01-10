@@ -6,6 +6,12 @@ containers like sandboxes or Linux containers. alcove works by giving
 Erlang processes access to the system primitives used for isolating and
 controlling Unix processes.
 
+_alcove_ is an external port process (a standalone Unix process that
+communicates with the erlang VM using stdin/stdout). _prx_ is a higher
+level library that maps the alcove Unix processes to Erlang processes:
+
+    https://github.com/msantos/prx
+
 Overview
 ========
 
