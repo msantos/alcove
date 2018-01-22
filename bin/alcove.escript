@@ -95,7 +95,8 @@ main([ModuleName, Proto]) ->
     io:format("~s~n", [Code]).
 
 arg(Prefix, Arity) ->
-    [ erl_syntax:variable(string:concat(Prefix, integer_to_list(N))) || N <- lists:seq(1,Arity) ].
+    [ erl_syntax:variable(lists:flatten([Prefix, integer_to_list(N)]))
+      || N <- lists:seq(1,Arity) ].
 
 call(Fun, Arg, Timeout) ->
     erl_syntax:case_expr(
