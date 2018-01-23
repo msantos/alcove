@@ -30,7 +30,7 @@ alcove_sys_connect(alcove_state_t *ap, const char *arg, size_t len,
 
     int fd = 0;
     struct sockaddr_storage sa = {0};
-	size_t salen = sizeof(sa);
+    size_t salen = sizeof(sa);
     alcove_alloc_t *elem = NULL;
     ssize_t nelem = 0;
 
@@ -43,13 +43,13 @@ alcove_sys_connect(alcove_state_t *ap, const char *arg, size_t len,
         return -1;
 
     /* struct sockaddr */
-    if (alcove_decode_cstruct(arg, len, &index, (char *)&sa, &salen,
-			&elem, &nelem) < 0)
+    if (alcove_decode_cstruct(arg, len, &index, (char *)&sa, &salen, &elem,
+          &nelem) < 0)
         return -1;
 
-	rv = connect(fd, (salen == 0 ? NULL : (struct sockaddr *)&sa), salen);
+    rv = connect(fd, (salen == 0 ? NULL : (struct sockaddr *)&sa), salen);
 
     return (rv < 0)
-		? alcove_mk_errno(reply, rlen, errno)
-        : alcove_mk_atom(reply, rlen, "ok");
+      ? alcove_mk_errno(reply, rlen, errno)
+      : alcove_mk_atom(reply, rlen, "ok");
 }
