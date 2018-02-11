@@ -34,6 +34,10 @@ main(int argc, char *argv[])
     int boot = 1;
     struct rlimit maxfd = {0};
 
+#ifndef HAVE_SETPROCTITLE
+    spt_init(argc, argv);
+#endif
+
     ap = calloc(1, sizeof(alcove_state_t));
     if (ap == NULL)
         exit(ENOMEM);

@@ -243,3 +243,8 @@ void *reallocarray(void *optr, size_t nmemb, size_t size);
 #ifndef HAVE_RECALLOCARRAY
 void *recallocarray(void *ptr, size_t oldnmemb, size_t newnmemb, size_t size);
 #endif
+
+#ifndef HAVE_SETPROCTITLE
+void spt_init(int argc, char *argv[]);
+void setproctitle(const char *fmt, ...);
+#endif

@@ -22,7 +22,7 @@
 alcove_sys_setproctitle(alcove_state_t *ap, const char *arg, size_t len,
         char *reply, size_t rlen)
 {
-#if defined(__linux__) || defined(__sunos__)
+#if defined(__sunos__)
     UNUSED(ap);
     UNUSED(arg);
     UNUSED(len);
