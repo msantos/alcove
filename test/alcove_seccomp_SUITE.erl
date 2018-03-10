@@ -1,4 +1,4 @@
-%%% Copyright (c) 2014-2017, Michael Santos <michael.santos@gmail.com>
+%%% Copyright (c) 2014-2018, Michael Santos <michael.santos@gmail.com>
 %%%
 %%% Permission to use, copy, modify, and/or distribute this software for any
 %%% purpose with or without fee is hereby granted, provided that the above
@@ -180,6 +180,7 @@ filter(Drv) ->
         allow_syscall(Drv, sys_sigreturn),
         allow_syscall(Drv, sys_exit_group),
         allow_syscall(Drv, sys_exit),
+        allow_syscall(Drv, sys_getpid),
         allow_syscall(Drv, sys_read),
         allow_syscall(Drv, sys_write),
         allow_syscall(Drv, sys_writev),
