@@ -141,6 +141,8 @@ trap(Config, Syscall) ->
     {ok, Pid} = alcove:fork(Drv, []),
     {ok,_} = alcove:sigaction(Drv, [Pid], sigsys, sig_info),
 
+    ok = alcove:chdir(Drv, [Pid], "/tmp"),
+
     enforce(Drv, [Pid], ?BPF_STMT(?BPF_RET+?BPF_K, ?SECCOMP_RET_TRAP), Syscall),
 
     % Allowed: cached by process
@@ -149,6 +151,7 @@ trap(Config, Syscall) ->
     true = case alcove:getcwd(Drv, [Pid]) of
         {error,unknown} -> true;
         {ok,<<>>} -> true;
+        {ok,<<"/">>} -> true;
         Cwd -> {false, Cwd}
     end,
 
