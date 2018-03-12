@@ -905,6 +905,8 @@ connect(Config) ->
                  (integer_to_binary(alcove:getpid(Drv, [])))/binary>>,
     ok = alcove:execvp(Drv, [NC], "nc", ["nc", "-l", "-U", Sockname]),
 
+    ok = waitfor(Sockname),
+
     {ok, Socket} = alcove:socket(Drv, [Process], af_unix, sock_stream, 0),
 
 	% #define UNIX_PATH_MAX   108
@@ -933,6 +935,16 @@ connect(Config) ->
     {ok, <<"nc->alcove\n">>} = alcove:read(Drv, [Process], Socket, 11),
 
     ok.
+
+waitfor(Sockname) ->
+    case file:read_file_info(Sockname) of
+        {ok, _} -> ok;
+        {error, enoent} ->
+            timer:sleep(1),
+            waitfor(Sockname);
+        {error, eperm} -> ok;
+        Error -> Error
+    end.
 
 mkfifo(Config) ->
     Drv = ?config(drv, Config),
