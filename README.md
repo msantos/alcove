@@ -387,6 +387,13 @@ Functions marked as operating system specific will return
 
     constant() = atom() | integer()
 
+    alcove_pid() =
+        #alcove_pid{pid = alcove:pid_t(),
+                    fdctl = alcove::fd(),
+                    stdin = alcove::fd(),
+                    stdout = alcove::fd(),
+                    stderr = alcove::fd()}
+
 ### Event Loop
 
 These functions can be called while the process is running in the event
@@ -400,7 +407,9 @@ atom is used as the argument and is not found on the platform.
 
         chdir(2) : change process current working directory.
 
-    children(Drv, ForkChain) -> [OSPid]
+    children(Drv, ForkChain) -> [Child]
+
+        Types   Child = #alcove_pid{}
 
         Returns the list of child PIDs for this process.
 
