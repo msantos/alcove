@@ -212,6 +212,11 @@ init_per_testcase(_Test, Config) ->
                 {os, OS}|Config]
     end.
 
+end_per_testcase(connect, Config) ->
+    Drv = ?config(drv, Config),
+    [ _ = alcove:kill(Drv, [], Pid#alcove_pid.pid, 9)
+      || Pid <- alcove:children(Drv, []) ],
+    alcove_drv:stop(Drv);
 end_per_testcase(_Test, Config) ->
     Drv = ?config(drv, Config),
     alcove_drv:stop(Drv).
@@ -909,11 +914,11 @@ connect(Config) ->
 
     {ok, Socket} = alcove:socket(Drv, [Process], af_unix, sock_stream, 0),
 
-	% #define UNIX_PATH_MAX   108
-	% struct sockaddr_un {
-	% 	__kernel_sa_family_t sun_family; /* AF_UNIX */
-	% 	char sun_path[UNIX_PATH_MAX];   /* pathname */
-	% };
+    % #define UNIX_PATH_MAX   108
+    % struct sockaddr_un {
+    % 	__kernel_sa_family_t sun_family; /* AF_UNIX */
+    % 	char sun_path[UNIX_PATH_MAX];   /* pathname */
+    % };
     AF_UNIX = 1,
     Len = (108 - byte_size(Sockname)) * 8,
     ok = alcove:connect(Drv, [Process], Socket, [
