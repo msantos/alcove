@@ -22,12 +22,12 @@ else ifeq ($(UNAME_SYS), FreeBSD)
 	CC ?= cc
 	LDFLAGS ?= -Wno-missing-braces -Wl,-Bsymbolic-functions -Wl,-z,relro,-z,now
 	CFLAGS ?= -D_FORTIFY_SOURCE=2 -O2 -fstack-protector-strong -Wformat -Werror=format-security -fno-strict-aliasing \
-	          -DHAVE_STDINT_H -DHAVE_REALLOCARRAY
+	          -DHAVE_STDINT_H -DHAVE_REALLOCARRAY -DHAVE_SETPROCTITLE
 else ifeq ($(UNAME_SYS), OpenBSD)
 	CC ?= cc
 	LDFLAGS ?= -Wno-missing-braces -Wl,-z,relro,-z,now
 	CFLAGS ?= -D_FORTIFY_SOURCE=2 -O2 -fstack-protector-strong -Wformat -Werror=format-security -fno-strict-aliasing \
-	          -DHAVE_REALLOCARRAY -DHAVE_RECALLOCARRAY
+	          -DHAVE_REALLOCARRAY -DHAVE_RECALLOCARRAY -DHAVE_SETPROCTITLE
 else ifeq ($(UNAME_SYS), Linux)
 	CC ?= cc
 	LDFLAGS ?= -Wl,-Bsymbolic-functions -Wl,-z,relro,-z,now
