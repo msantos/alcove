@@ -920,9 +920,10 @@ connect(Config) ->
     % 	char sun_path[UNIX_PATH_MAX];   /* pathname */
     % };
     AF_UNIX = 1,
-    Len = (108 - byte_size(Sockname)) * 8,
+    SocknameLen = byte_size(Sockname),
+    Len = (unix_path_max() - SocknameLen) * 8,
     ok = alcove:connect(Drv, [Process], Socket, [
-                                          <<AF_UNIX:2/native-integer-unit:8>>,
+                                          sockaddr_common(AF_UNIX, SocknameLen),
                                           Sockname,
                                           <<0:Len>>
                                          ]),
@@ -940,6 +941,28 @@ connect(Config) ->
     {ok, <<"nc->alcove\n">>} = alcove:read(Drv, [Process], Socket, 11),
 
     ok.
+
+% UNIX_PATH_MAX
+unix_path_max() ->
+    case erlang:system_info(os_type) of
+        {unix,BSD} when BSD == darwin;
+            BSD == openbsd;
+            BSD == netbsd;
+            BSD == freebsd -> 104;
+        {unix,_} -> 108
+    end.
+
+% struct sockaddr
+sockaddr_common(Family, Length) ->
+    case erlang:system_info(os_type) of
+        {unix,BSD} when BSD == darwin;
+            BSD == openbsd;
+            BSD == netbsd;
+            BSD == freebsd ->
+            <<Length:8, Family:8>>;
+        {unix,_} ->
+            <<Family:16/native>>
+    end.
 
 waitfor(Sockname) ->
     case file:read_file_info(Sockname) of
