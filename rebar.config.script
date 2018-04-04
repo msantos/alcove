@@ -3,7 +3,11 @@ TMPDIR = os:getenv("TMPDIR", "/tmp"),
 Compile = fun(Name0, Prog) ->
     Name = filename:join(TMPDIR, [os:getpid(), "-", Name0]),
     ok = file:write_file(Name, Prog, [write, exclusive]),
-    Cmd = erlang:open_port({spawn, ["${CC-cc} -Werror -o /dev/null ", Name]},
+    IO = case os:getenv("ALCOVE_CONFIG_VERBOSE", false) of
+      false -> " > /dev/null 2>&1";
+      _ -> ""
+    end,
+    Cmd = erlang:open_port({spawn, ["${CC-cc} -Werror -o /dev/null ", Name, IO]},
             [stream, exit_status]),
     Status = receive
         {Cmd, {exit_status, 0}} ->
