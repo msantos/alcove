@@ -179,18 +179,19 @@ filter(Drv) ->
     [
         ?VALIDATE_ARCHITECTURE(Arch),
         ?EXAMINE_SYSCALL,
-        allow_syscall(Drv, sys_rt_sigreturn),
-        allow_syscall(Drv, sys_sigreturn),
-        allow_syscall(Drv, sys_exit_group),
         allow_syscall(Drv, sys_exit),
+        allow_syscall(Drv, sys_exit_group),
         allow_syscall(Drv, sys_getpid),
-        allow_syscall(Drv, sys_read),
-        allow_syscall(Drv, sys_write),
-        allow_syscall(Drv, sys_writev),
-        allow_syscall(Drv, sys_setrlimit),
         allow_syscall(Drv, sys_getrlimit),
+        allow_syscall(Drv, sys_poll),
+        allow_syscall(Drv, sys_read),
+        allow_syscall(Drv, sys_restart_syscall),
+        allow_syscall(Drv, sys_rt_sigreturn),
+        allow_syscall(Drv, sys_setrlimit),
+        allow_syscall(Drv, sys_sigreturn),
         allow_syscall(Drv, sys_ugetrlimit),
-        allow_syscall(Drv, sys_poll)
+        allow_syscall(Drv, sys_write),
+        allow_syscall(Drv, sys_writev)
     ].
 
 enforce(Drv, Pids, Filter0, Syscall) ->
