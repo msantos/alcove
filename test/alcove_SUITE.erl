@@ -1,4 +1,4 @@
-%%% Copyright (c) 2014-2017, Michael Santos <michael.santos@gmail.com>
+%%% Copyright (c) 2014-2018, Michael Santos <michael.santos@gmail.com>
 %%%
 %%% Permission to use, copy, modify, and/or distribute this software for any
 %%% purpose with or without fee is hereby granted, provided that the above
@@ -122,7 +122,6 @@ all() ->
         setrlimit,
         setgid,
         setuid,
-        setgroups,
         chmod,
         fork,
         badpid,
@@ -154,6 +153,7 @@ all() ->
 groups() ->
     [
         {linux, [sequence], [
+                setgroups,
                 fexecve,
                 clone_constant,
                 prctl_constant,
@@ -165,6 +165,7 @@ groups() ->
                 ptrace
             ]},
         {freebsd, [sequence], [
+                setgroups,
                 fexecve,
                 jail,
                 cap_enter,
@@ -172,10 +173,10 @@ groups() ->
                 cap_fcntls_limit,
                 cap_ioctls_limit
             ]},
-        {openbsd, [], [pledge]},
+        {openbsd, [], [setgroups, pledge]},
         {darwin, [], [no_os_specific_tests]},
-        {netbsd, [], [no_os_specific_tests]},
-        {solaris, [], [no_os_specific_tests]}
+        {netbsd, [], [setgroups]},
+        {solaris, [], [setgroups]}
     ].
 
 init_per_testcase(_Test, Config) ->
@@ -535,6 +536,7 @@ chdir(Config) ->
 chmod(Config) ->
     Drv = ?config(drv, Config),
     Child = ?config(child, Config),
+    OS = ?config(os, Config),
 
     ok = alcove:setuid(Drv, [Child], 65534),
 
@@ -547,7 +549,14 @@ chmod(Config) ->
     ok = alcove:chmod(Drv, [Child], Dir, 8#700),
 
     ok = alcove:chown(Drv, [], Dir, 0, 0),
-    {error, eperm} = alcove:rmdir(Drv, [Child], Dir),
+    Reply = alcove:rmdir(Drv, [Child], Dir),
+    Reply = case OS of
+        darwin ->
+             {error, eacces};
+        _ ->
+             {error, eperm}
+    end,
+
     ok = alcove:chown(Drv, [], Dir, 65534, 65534),
 
     ok = alcove:rmdir(Drv, [Child], Dir).
@@ -891,7 +900,7 @@ select(Config) ->
     Reply = alcove:select(Drv, [], [FD], [FD], [FD], #alcove_timeval{sec = 1, usec = 1}),
 
     Reply = case OS of
-        sunos ->
+        N when N =:= sunos; N =:= darwin ->
             % select(3c): File descriptors associated with regular files
             % always select true for ready to read, ready to write, and
             % error conditions.
@@ -1076,7 +1085,7 @@ stderr(Config) ->
     Reply = alcove:stderr(Drv, [Child], 5000),
 
     case OS of
-        N when N =:= linux; N =:= openbsd; N =:= freebsd ->
+        N when N =:= linux; N =:= openbsd; N =:= freebsd; N =:= darwin ->
             <<"/bin/sh: ", _/binary>> = Reply;
         netbsd ->
             <<"nonexistent: not found\n">> = Reply;

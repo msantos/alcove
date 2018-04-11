@@ -1,4 +1,4 @@
-/* Copyright (c) 2014, Michael Santos <michael.santos@gmail.com>
+/* Copyright (c) 2014-2018, Michael Santos <michael.santos@gmail.com>
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -22,7 +22,7 @@
 alcove_sys_setresgid(alcove_state_t *ap, const char *arg, size_t len,
         char *reply, size_t rlen)
 {
-#if defined(__sunos__)
+#if defined(__sunos__) || defined(__APPLE__)
     UNUSED(ap);
     UNUSED(arg);
     UNUSED(len);

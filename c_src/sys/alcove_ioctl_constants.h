@@ -1,4 +1,4 @@
-/* Copyright (c) 2015, Michael Santos <michael.santos@gmail.com>
+/* Copyright (c) 2015-2018, Michael Santos <michael.santos@gmail.com>
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -16,7 +16,7 @@
 #if defined(__linux__)
 #include <linux/if_tun.h>
 #include <linux/serial.h>
-#elif defined(__sunos__)
+#elif defined(__sunos__) || defined(__APPLE__)
 #else
 #include <net/if_tun.h>
 #endif
