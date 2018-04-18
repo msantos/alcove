@@ -846,8 +846,8 @@ execve(Config) ->
     ok = alcove:execve(Drv, [Child1], "/usr/bin/env",
         ["/usr/bin/env"], []),
 
-    <<"FOO=bar\nBAR=1234567\n">> = alcove:stdout(Drv, [Child0], 5000),
-    false = alcove:stdout(Drv, [Child1], 2000).
+    [<<"FOO=bar\nBAR=1234567\n">>] = alcove:stdout(Drv, [Child0], 5000),
+    [] = alcove:stdout(Drv, [Child1], 2000).
 
 execvp_with_signal(Config) ->
     Drv = ?config(drv, Config),
@@ -1048,7 +1048,7 @@ execvp_mid_chain(Config) ->
     ok = alcove:execvp(Drv, Pids, "/bin/cat", ["/bin/cat"]),
 
     alcove:stdin(Drv, Pids, "test\n"),
-    <<"test\n">> = alcove:stdout(Drv, Pids, 5000),
+    [<<"test\n">>] = alcove:stdout(Drv, Pids, 5000),
     false = alcove:event(Drv, Chain, 2000),
     Reply = [ alcove:kill(Drv, [], Pid, 0) || Pid <- Rest ],
 
@@ -1072,7 +1072,7 @@ stdout(Config) ->
     ok = alcove:execvp(Drv, [Child], "/bin/sh", ["/bin/sh"]),
 
     ok = alcove:stdin(Drv, [Child], "echo 0123456789\n"),
-    <<"0123456789\n">> = alcove:stdout(Drv, [Child], 5000).
+    [<<"0123456789\n">>] = alcove:stdout(Drv, [Child], 5000).
 
 stderr(Config) ->
     Drv = ?config(drv, Config),
@@ -1086,9 +1086,9 @@ stderr(Config) ->
 
     case OS of
         N when N =:= linux; N =:= openbsd; N =:= freebsd; N =:= darwin ->
-            <<"/bin/sh: ", _/binary>> = Reply;
+            [<<"/bin/sh: ", _/binary>>] = Reply;
         netbsd ->
-            <<"nonexistent: not found\n">> = Reply;
+            [<<"nonexistent: not found\n">>] = Reply;
         _ ->
             {skip, "stderr test not supported on this platform"}
     end.
@@ -1113,11 +1113,11 @@ pipe_buf(Config) ->
 
     ok = alcove:stdin(Drv, [Child], Stdin),
     timer:sleep(1000), % XXX allow time for the message to be received
-    {error, {eagain,_}} = alcove:stdout(Drv, [Child]),
+    {'EXIT',{{eagain,0},_}} = (catch alcove:stdout(Drv, [Child])),
 
     ok = alcove:stdin(Drv, [Child], Stdin),
     timer:sleep(1000), % XXX allow time for the message to be received
-    {error, {eagain,_}} = alcove:stderr(Drv, [Child]),
+    {'EXIT',{{eagain,0},_}} = (catch alcove:stderr(Drv, [Child])),
 
     alcove:kill(Drv, [], Child, 9),
 
@@ -1135,7 +1135,7 @@ fexecve(Config) ->
 
     {ok, FD} = alcove:open(Drv, [Child], "/usr/bin/env", [o_rdonly,o_cloexec], 0),
     ok = alcove:fexecve(Drv, [Child], FD, [""], ["FOO=bar", "BAR=1234567"]),
-    <<"FOO=bar\nBAR=1234567\n">> = alcove:stdout(Drv, [Child], 5000).
+    [<<"FOO=bar\nBAR=1234567\n">>] = alcove:stdout(Drv, [Child], 5000).
 
 %%
 %% Linux

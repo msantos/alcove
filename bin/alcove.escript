@@ -257,7 +257,9 @@ stdin(Drv, Pids, Data) ->
         ok ->
             ok;
         {alcove_error, Error} ->
-            erlang:error(Error, [Drv, Pids, Data])
+            erlang:error(Error, [Drv, Pids, Data]);
+        {alcove_pipe, Error} ->
+            {error, Error}
     end.
 ";
 
@@ -269,12 +271,18 @@ stdout(Drv, Pids) ->
 static({stdout,3}) ->
 "
 stdout(Drv, Pids, Timeout) ->
+    stdout_1(Drv, Pids, Timeout, []).
+
+stdout_1(Drv, Pids, Timeout, Acc) ->
     case alcove_drv:stdout(Drv, Pids, Timeout) of
+        false ->
+            lists:reverse(Acc);
         {alcove_error, Error} ->
             erlang:error(Error, [Drv, Pids, Timeout]);
         {alcove_pipe, Error} ->
-            {error, Error};
-        Reply -> Reply
+            erlang:error(Error, [Drv, Pids, Timeout]);
+        Reply ->
+            stdout_1(Drv, Pids, Timeout, [Reply|Acc])
     end.
 ";
 
@@ -286,12 +294,18 @@ stderr(Drv, Pids) ->
 static({stderr,3}) ->
 "
 stderr(Drv, Pids, Timeout) ->
+    stderr_1(Drv, Pids, Timeout, []).
+
+stderr_1(Drv, Pids, Timeout, Acc) ->
     case alcove_drv:stderr(Drv, Pids, Timeout) of
+        false ->
+            lists:reverse(Acc);
         {alcove_error, Error} ->
             erlang:error(Error, [Drv, Pids, Timeout]);
         {alcove_pipe, Error} ->
-            {error, Error};
-        Reply -> Reply
+            erlang:error(Error, [Drv, Pids, Timeout]);
+        Reply ->
+            stderr_1(Drv, Pids, Timeout, [Reply|Acc])
     end.
 ";
 
@@ -706,13 +720,13 @@ specs() ->
 -spec syscall_constant(alcove_drv:ref(),[pid_t()],atom()) -> 'unknown' | non_neg_integer().
 -spec syscall_constant(alcove_drv:ref(),[pid_t()],atom(),timeout()) -> 'unknown' | non_neg_integer().
 
--spec stderr(alcove_drv:ref(),[pid_t()]) -> 'false' | binary().
--spec stderr(alcove_drv:ref(),[pid_t()],timeout()) -> 'false' | binary().
+-spec stderr(alcove_drv:ref(),[pid_t()]) -> [binary()].
+-spec stderr(alcove_drv:ref(),[pid_t()],timeout()) -> [binary()].
 
 -spec stdin(alcove_drv:ref(),[pid_t()],iodata()) -> 'ok'.
 
--spec stdout(alcove_drv:ref(),[pid_t()]) -> 'false' | binary().
--spec stdout(alcove_drv:ref(),[pid_t()],timeout()) -> 'false' | binary().
+-spec stdout(alcove_drv:ref(),[pid_t()]) -> [binary()].
+-spec stdout(alcove_drv:ref(),[pid_t()],timeout()) -> [binary()].
 
 -spec symlink(alcove_drv:ref(),[pid_t()],iodata(),iodata()) -> 'ok' | {error, posix()}.
 -spec symlink(alcove_drv:ref(),[pid_t()],iodata(),iodata(),timeout()) -> 'ok' | {error, posix()}.

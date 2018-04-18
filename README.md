@@ -76,7 +76,7 @@ We can interact with the process via stdin, stdout and stderr:
 
 ```erlang
 alcove:stdin(Drv, [Child1,Child2], "hello process\n"),
-<<"hello process\n">> = alcove:stdout(Drv, [Child1,Child2]).
+[<<"hello process\n">>] = alcove:stdout(Drv, [Child1,Child2]).
 ```
 
 Setting Up Privileges
@@ -215,7 +215,7 @@ rebar shell
 
 3> alcove:stdin(Drv, [Cat], "test test\n").
 4> alcove:stdout(Drv, [Cat]).
-<<"test test\n">>
+[<<"test test\n">>]
 ```
 
 We can test the limits of the sandbox by using a shell instead of
@@ -229,18 +229,18 @@ herding cat's:
 6> alcove:stdin(P, [Sh], "echo hello\n").
 ok
 7> alcove:stdout(P, [Sh]).
-<<"hello\n">>
+[<<"hello\n">>]
 
 % Attempt to create a file
 6> alcove:stdin(Drv, [Sh], "> foo\n").
 ok
 7> alcove:stderr(P, [Sh]).
-<<"sh: can't create foo: Too many open files\n">>
+[<<"sh: can't create foo: Too many open files\n">>]
 
 % Try to fork a new process
 8> alcove:stdin(Drv, [Sh], "ls\n").
 9> alcove:stderr(P, [Sh]).
-<<"sh: can't fork\n">>
+[<<"sh: can't fork\n">>]
 
 % If we check the parent for events, we can see the child has exited
 10> alcove:event(P, []).
@@ -1126,11 +1126,11 @@ exec(3) has been called.
 
         Send data to stdin of the process.
 
-    stdout(Drv, ForkChain) -> binary() | false
+    stdout(Drv, ForkChain) -> [binary()]
 
         Read stdout from the process.
 
-    stderr(Drv, ForkChain) -> binary() | false
+    stderr(Drv, ForkChain) -> [binary()]
 
         Read stderr from the process.
 
