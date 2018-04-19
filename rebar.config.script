@@ -118,9 +118,25 @@ int main(int argc, char *argv[]) {
     Config
 end,
 
-lists:foldl(fun(Fun, Cfg) ->
-        Fun(Cfg)
+RunTests = try alcove_drv:progname() of
+    Progname ->
+        case file:read_file_info(Progname) of
+            {ok, _} -> false;
+            _ -> true
+        end
+    catch
+        _:_ ->
+            true
     end,
-    CONFIG,
-    [Fexecve, Setns, PrctlSeccomp, Seccomp]
-).
+
+case RunTests of
+    true ->
+        lists:foldl(fun(Fun, Cfg) ->
+                Fun(Cfg)
+            end,
+            CONFIG,
+            [Fexecve, Setns, PrctlSeccomp, Seccomp]
+        );
+    false ->
+        CONFIG
+end.
