@@ -768,10 +768,10 @@ atom is used as the argument and is not found on the platform.
 
             alcove:open(Drv, [], "/tmp/test", [o_wronly,o_creat], 8#644)
 
-    pledge(Drv, ForkChain, Promises, Paths) -> ok | {error, posix()}
+    pledge(Drv, ForkChain, Promises, ExecPromises) -> ok | {error, posix()}
 
-        Types	Promises = iodata()
-              Paths = [string() | binary()]
+        Types  Promises = iodata() | null
+               ExecPromises = iodata() | null
 
         OpenBSD only.
 

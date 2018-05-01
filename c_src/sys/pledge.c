@@ -1,4 +1,4 @@
-/* Copyright (c) 2016, Michael Santos <michael.santos@gmail.com>
+/* Copyright (c) 2016-2018, Michael Santos <michael.santos@gmail.com>
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -25,30 +25,56 @@ alcove_sys_pledge(alcove_state_t *ap, const char *arg, size_t len,
 {
 #if defined(__OpenBSD__)
     int index = 0;
+    int type = 0;
+    int arity = 0;
 
     char promises[PATH_MAX] = {0};
     size_t plen = sizeof(promises)-1;
-    char **paths = NULL;
-    int errnum = 0;
+    char execpromises[PATH_MAX] = {0};
+    size_t elen = sizeof(execpromises)-1;
     int rv = 0;
 
     UNUSED(ap);
 
     /* promises */
-    if (alcove_decode_iolist(arg, len, &index, promises, &plen) < 0)
+    if (alcove_get_type(arg, len, &index, &type, &arity) < 0)
         return -1;
 
-    /* paths */
-    if (alcove_decode_argv(arg, len, &index, &paths) < 0)
+    switch (type) {
+        case ERL_ATOM_EXT:
+            if (alcove_decode_null(arg, len, &index) < 0)
+                return -1;
+
+            plen = -1;
+            break;
+
+        default:
+           if (alcove_decode_iolist(arg, len, &index, promises, &plen) < 0)
+               return -1;
+    }
+
+    /* execpromises */
+    if (alcove_get_type(arg, len, &index, &type, &arity) < 0)
         return -1;
 
-    rv = pledge(promises, (const char **)paths);
-    errnum = errno;
+    switch (type) {
+        case ERL_ATOM_EXT:
+            if (alcove_decode_null(arg, len, &index) < 0)
+                return -1;
 
-    alcove_free_argv(paths);
+            elen = -1;
+            break;
+
+        default:
+           if (alcove_decode_iolist(arg, len, &index, execpromises, &elen) < 0)
+               return -1;
+    }
+
+    rv = pledge(plen == -1 ? NULL : promises,
+            elen == -1 ? NULL : execpromises);
 
     return (rv < 0)
-        ? alcove_mk_errno(reply, rlen, errnum)
+        ? alcove_mk_errno(reply, rlen, errno)
         : alcove_mk_atom(reply, rlen, "ok");
 #else
     UNUSED(ap);

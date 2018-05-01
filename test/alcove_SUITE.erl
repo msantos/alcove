@@ -1355,8 +1355,18 @@ pledge(Config) ->
     {ok, Fork0} = alcove:fork(Drv, []),
     {ok, Fork1} = alcove:fork(Drv, []),
 
-    ok = alcove:pledge(Drv, [Fork0], "stdio", []),
-    ok = alcove:pledge(Drv, [Fork1], "stdio proc exec", []),
+    {ok, Fork2} = alcove:fork(Drv, []),
+    {ok, Fork3} = alcove:fork(Drv, []),
+
+    % NULL does modify the pledge list
+    ok = alcove:pledge(Drv, [Fork0], null, ""),
+    ok = alcove:pledge(Drv, [Fork0], 'NULL', ""),
+
+    ok = alcove:pledge(Drv, [Fork0], "stdio", ""),
+    ok = alcove:pledge(Drv, [Fork1], "stdio proc exec", ""),
+
+    ok = alcove:pledge(Drv, [Fork2], "stdio exec", null),
+    ok = alcove:pledge(Drv, [Fork3], "stdio exec", ""),
 
     alcove:getuid(Drv, [Fork0]),
     alcove:getuid(Drv, [Fork1]),
@@ -1364,6 +1374,18 @@ pledge(Config) ->
     {'EXIT',{{exit_status,_},_}} = (catch alcove:fork(Drv, [Fork0])),
     {ok, _} = alcove:fork(Drv, [Fork1]),
     {'EXIT',{{termsig,sigabrt},_}} = (catch alcove:open(Drv, [Fork1], "/etc/passwd", [o_rdonly], 0)),
+
+
+    ok = alcove:execvp(Drv, [Fork2], "cat", ["shouldrun"]),
+
+    alcove:stdin(Drv, [Fork2], "test\n"),
+    <<"test\n">> = alcove:stdout(Drv, [Fork2], 5000),
+    false = alcove:event(Drv, [Fork2], 2000),
+
+    %{'EXIT',{{termsig,sigabrt},_}} = (catch alcove:execvp(Drv, [Fork3], "cat", ["shouldfail"])),
+    ok = (catch alcove:execvp(Drv, [Fork3], "cat", ["shouldfail"])),
+
+    {termsig,sigabrt} = alcove:event(Drv, [Fork3], 2000),
 
     ok.
 
