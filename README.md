@@ -6,8 +6,8 @@ containers like sandboxes or Linux containers. alcove works by giving
 Erlang processes access to the system primitives used for isolating and
 controlling Unix processes.
 
-_alcove_ is an external port process (a standalone
-Unix process that communicates with the erlang VM using
+_alcove_ is an external port process (a stand-alone
+Unix process that communicates with the Erlang VM using
 stdin/stdout). [prx](https://github.com/msantos/prx) is a higher level
 library that maps the alcove Unix processes to Erlang processes.
 
@@ -103,7 +103,7 @@ chown root:root priv/alcove
 chmod u+s priv/alcove
 ```
 
-* Linux: file capabilites
+* Linux: file capabilities
 
   See capabilities(7) and setcap(8).
 
@@ -533,10 +533,10 @@ atom is used as the argument and is not found on the platform.
             maxchild : non_neg_integer() : (ulimit -n) / 4 - 4
 
                 Number of child processes allowed for this process. This
-                value can be modifed by adjusting RLIMIT_NOFILE for
+                value can be modified by adjusting RLIMIT_NOFILE for
                 the process.
 
-            exit_status : 1 | 0 : 0
+            exit_status : 1 | 0 : 1
 
                 Controls whether the controlling Erlang process is
                 informed of a process' exit value.
@@ -545,7 +545,7 @@ atom is used as the argument and is not found on the platform.
 
                 Sets the maximum length of the fork chain.
 
-            termsig : 1 | 0 : 0
+            termsig : 1 | 0 : 1
 
                 If a child process exits because of a signal, notify
                 the controlling Erlang process.
@@ -584,7 +584,7 @@ atom is used as the argument and is not found on the platform.
 
     getrlimit(Drv, ForkChain, constant()) -> {ok, #alcove_rlimit{}} | {error, posix()}
 
-        getrlimit(2) : retrive the resource limits for a process. Returns
+        getrlimit(2) : retrieve the resource limits for a process. Returns
         a record:
 
             -include_lib("alcove/include/alcove.hrl").
@@ -729,7 +729,7 @@ atom is used as the argument and is not found on the platform.
         An empty binary may be used to specify NULL.
 
         For example, filesystems mounted in a Linux mount namespace may
-        be visible in the global mount namepace. To avoid this, first
+        be visible in the global mount namespace. To avoid this, first
         remount the root filesystem within mount namespace using the
         MS_REC|MS_PRIVATE flags:
 
@@ -1117,7 +1117,7 @@ See "Message Format" for a description of the messages.
 
 ### Standard I/0
 
-These functions handle stdin, stdout and stderr for the processs after
+These functions handle stdin, stdout and stderr for the processes after
 exec(3) has been called.
 
     stdin(Drv, ForkChain, Buf) -> ok
