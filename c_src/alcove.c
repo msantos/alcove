@@ -1,4 +1,4 @@
-/* Copyright (c) 2014-2017, Michael Santos <michael.santos@gmail.com>
+/* Copyright (c) 2014-2018, Michael Santos <michael.santos@gmail.com>
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -51,6 +51,7 @@ main(int argc, char *argv[])
     ap->maxfd = maxfd.rlim_cur;
     ap->fdsetsize = ALCOVE_MAXCHILD(ap->maxfd);
     ap->maxforkdepth = MAXFORKDEPTH;
+    ap->signaloneof = SIGTERM;
 
     while ( (ch = getopt(argc, argv, "c:d:h")) != -1) {
         switch (ch) {

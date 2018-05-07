@@ -70,6 +70,8 @@ static int read_child_stderr(alcove_state_t *ap, alcove_child_t *c);
 
 static int alcove_handle_signal(alcove_state_t *ap);
 static int alcove_signal_event(alcove_state_t *ap, siginfo_t *info);
+static int signal_pid(alcove_state_t *ap, alcove_child_t *c, void *arg1,
+    void *arg2);
 
     void
 alcove_event_init(alcove_state_t *ap)
@@ -147,10 +149,18 @@ alcove_event_loop(alcove_state_t *ap)
                     break;
                 case 1:
                     /* EOF */
+                    if (ap->signaloneof > 0) {
+                      (void)pid_foreach(ap, 0, NULL, NULL, pid_not_equal,
+                          signal_pid);
+                    }
                     free(fds);
                     return;
                 case -1:
                 default:
+                    if (ap->signaloneof > 0) {
+                      (void)pid_foreach(ap, 0, NULL, NULL, pid_not_equal,
+                          signal_pid);
+                    }
                     exit(errno);
             }
         }
@@ -728,3 +738,17 @@ alcove_signal_event(alcove_state_t *ap, siginfo_t *info) {
 
     return 0;
 };
+
+    static int
+signal_pid(alcove_state_t *ap, alcove_child_t *c, void *arg1, void *arg2)
+{
+    UNUSED(arg1);
+    UNUSED(arg2);
+
+    if (c->fdctl == ALCOVE_CHILD_EXEC) {
+      (void)kill(c->pid, ap->signaloneof);
+      (void)kill(c->pid, SIGCONT);
+    }
+
+    return 1;
+}

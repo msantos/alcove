@@ -127,7 +127,8 @@ enum {
     alcove_opt_stdout_closed = 1 << 1, /* Report child stdout closed */
     alcove_opt_stderr_closed = 1 << 2, /* Report child stderr closed */
     alcove_opt_exit_status = 1 << 3,   /* Report child exit status */
-    alcove_opt_termsig = 1 << 4        /* Report child termination signal */
+    alcove_opt_termsig = 1 << 4,       /* Report child termination signal */
+    alcove_opt_signaloneof = 1 << 5    /* Signal child processes on EOF */
 };
 
 enum {
@@ -155,6 +156,7 @@ typedef struct {
     u_int16_t maxforkdepth;
     u_int16_t fdsetsize;
     u_int16_t depth;
+    int signaloneof;
     alcove_child_t *child;
 } alcove_state_t;
 

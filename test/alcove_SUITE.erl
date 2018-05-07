@@ -34,8 +34,8 @@
         cap_rights_limit/1,
         chdir/1,
         children/1,
-        chroot/1,
         chmod/1,
+        chroot/1,
         clone_constant/1,
         connect/1,
         env/1,
@@ -86,6 +86,7 @@
         stream/1,
         symlink/1,
         syscall_constant/1,
+        signaloneof/1,
         tmpfs/1,
         unshare/1,
         version/1,
@@ -147,7 +148,8 @@ all() ->
         ioctl,
         symlink,
         execvp_mid_chain,
-        pipe_buf
+        pipe_buf,
+        signaloneof
     ].
 
 groups() ->
@@ -1122,6 +1124,40 @@ pipe_buf(Config) ->
     alcove:kill(Drv, [], Child, 9),
 
     {ok, _} = Reply.
+
+signaloneof(Config) ->
+    Drv = ?config(drv, Config),
+    Child = ?config(child, Config),
+
+    true = alcove:setopt(Drv, [Child], signaloneof, 15),
+
+    {ok, F0} = alcove:fork(Drv, [Child]),
+    {ok, F00} = alcove:fork(Drv, [Child, F0]),
+    {ok, F000} = alcove:fork(Drv, [Child, F0, F00]),
+%    {ok, F1} = alcove:fork(Drv, [Child]),
+%    {ok, F2} = alcove:fork(Drv, [Child]),
+
+    ok = alcove:execvp(Drv, [Child, F0, F00, F000], "sleep", ["sleep-signaloneof1", "60"]),
+%    ok = alcove:execvp(Drv, [Child, F1], "sleep", ["sleep-signaloneof2", "60"]),
+%    ok = alcove:execvp(Drv, [Child, F2], "sleep", ["sleep-signaloneof3", "60"]),
+
+    % Force the child to exit by closing stdin
+    [ ok = alcove:close(Drv, [], Pid#alcove_pid.stdin)
+      || Pid <- alcove:children(Drv, []) ],
+
+    ok = receive
+           {alcove_event, Drv, [Child], {exit_status, _}} ->
+             ok
+         after
+           30000 ->
+             timeout
+         end,
+
+    {error, esrch} = alcove:kill(Drv, [], F000, 0),
+%    {error, esrch} = alcove:kill(Drv, [], F1, 0),
+%    {error, esrch} = alcove:kill(Drv, [], F2, 0),
+
+    ok.
 
 %%
 %% Portability
