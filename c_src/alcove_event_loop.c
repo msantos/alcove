@@ -1,4 +1,4 @@
-/* Copyright (c) 2015-2017, Michael Santos <michael.santos@gmail.com>
+/* Copyright (c) 2015-2018, Michael Santos <michael.santos@gmail.com>
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -327,6 +327,10 @@ alcove_child_stdio(int fdin, u_int16_t depth, alcove_child_t *c,
             break;
     }
 
+    if ((c->fdctl == ALCOVE_CHILD_EXEC) && (c->flowcontrol > 0)) {
+        c->flowcontrol--;
+    }
+
     if ( (c->fdctl != ALCOVE_CHILD_EXEC)
             && (type != ALCOVE_MSG_STDERR)) {
         if (n < 2)
@@ -530,12 +534,12 @@ set_pid(alcove_state_t *ap, alcove_child_t *c, void *arg1, void *arg2)
 
     if (c->fdout > -1) {
         fds[c->fdout].fd = c->fdout;
-        fds[c->fdout].events = POLLIN;
+        fds[c->fdout].events = c->flowcontrol ? POLLIN : 0;
     }
 
     if (c->fderr > -1) {
         fds[c->fderr].fd = c->fderr;
-        fds[c->fderr].events = POLLIN;
+        fds[c->fderr].events = c->flowcontrol ? POLLIN : 0;
     }
 
     if (c->exited && c->fdout == -1 && c->fderr == -1 && c->fdctl < 0) {

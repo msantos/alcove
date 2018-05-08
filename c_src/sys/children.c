@@ -1,4 +1,4 @@
-/* Copyright (c) 2014-2016, Michael Santos <michael.santos@gmail.com>
+/* Copyright (c) 2014-2018, Michael Santos <michael.santos@gmail.com>
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -82,13 +82,16 @@ cons_pid(alcove_state_t *ap, alcove_child_t *c, void *arg1, void *arg2)
     if (ei_encode_list_header(buf, index, 1) < 0)
         return -1;
 
-    if (ei_encode_tuple_header(buf, index, 6) < 0)
+    if (ei_encode_tuple_header(buf, index, 7) < 0)
         return -1;
 
     if (ei_encode_atom(buf, index, "alcove_pid") < 0)
         return -1;
 
     if (ei_encode_long(buf, index, c->pid) < 0)
+        return -1;
+
+    if (ei_encode_long(buf, index, c->flowcontrol) < 0)
         return -1;
 
     if (ei_encode_long(buf, index, c->fdctl) < 0)

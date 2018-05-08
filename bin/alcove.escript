@@ -176,7 +176,9 @@ static_exports() ->
      {stdout,2}, {stdout,3},
      {stderr,2}, {stderr,3},
      {eof,2}, {eof,3},
-     {event,2}, {event,3}].
+     {event,2}, {event,3},
+
+     {setopt,4}, {setopt,5}].
 
 static() ->
     [ static({Fun, Arity}) || {Fun, Arity} <- static_exports() ].
@@ -349,6 +351,17 @@ static({event,3}) ->
 "
 event(Drv, Pids, Timeout) ->
     alcove_drv:event(Drv, Pids, Timeout).
+";
+
+static({setopt,4}) ->
+"
+setopt(Drv, Pids, Key, Val) ->
+    alcove:setopt2(Drv, Pids, Key, Val).
+";
+static({setopt,5}) ->
+"
+setopt(Drv, Pids, Key, Val1, Val2) ->
+    alcove:setopt3(Drv, Pids, Key, Val1, Val2).
 ".
 
 includes(Header) ->

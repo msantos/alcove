@@ -128,7 +128,8 @@ enum {
     alcove_opt_stderr_closed = 1 << 2, /* Report child stderr closed */
     alcove_opt_exit_status = 1 << 3,   /* Report child exit status */
     alcove_opt_termsig = 1 << 4,       /* Report child termination signal */
-    alcove_opt_signaloneof = 1 << 5    /* Signal child processes on EOF */
+    alcove_opt_signaloneof = 1 << 5,   /* Signal child processes on EOF */
+    alcove_opt_flowcontrol = 1 << 6    /* Enable flow control */
 };
 
 enum {
@@ -142,6 +143,7 @@ enum {
 
 typedef struct {
     pid_t pid;
+    int flowcontrol;
     int exited;
     int fdctl;
     int fdin;

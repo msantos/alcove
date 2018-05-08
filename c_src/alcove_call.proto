@@ -72,7 +72,8 @@ setgid/1
 setgroups/1
 sethostname/1
 setns/2
-setopt/2
+setopt2/2
+setopt3/3
 setpgid/2
 setpriority/3
 setproctitle/1
