@@ -15,9 +15,6 @@
 #include "alcove.h"
 #include "alcove_call.h"
 
-static int set_flowcontrol_pid(alcove_state_t *ap, alcove_child_t *c,
-    void *arg1, void *arg2);
-
 /* Set port options */
     ssize_t
 alcove_sys_setopt2(alcove_state_t *ap, const char *arg, size_t len,
@@ -64,48 +61,4 @@ alcove_sys_setopt2(alcove_state_t *ap, const char *arg, size_t len,
     }
 
     return alcove_mk_atom(reply, rlen, "true");
-}
-
-    ssize_t
-alcove_sys_setopt3(alcove_state_t *ap, const char *arg, size_t len,
-        char *reply, size_t rlen)
-{
-    int index = 0;
-    char opt[MAXATOMLEN] = {0};
-    u_int32_t val1 = 0;
-    u_int32_t val2 = 0;
-
-    /* opt */
-    if (alcove_decode_atom(arg, len, &index, opt) < 0)
-        return -1;
-
-    /* val1 */
-    if (alcove_decode_uint(arg, len, &index, &val1) < 0)
-        return -1;
-
-    /* val2 */
-    if (alcove_decode_uint(arg, len, &index, &val2) < 0)
-        return -1;
-
-    if (strcmp(opt, "flowcontrol") == 0) {
-        val2 = val2 >= INT32_MAX ? -1 : val2;
-        (void)pid_foreach(ap, val1, &val2, NULL, pid_equal, set_flowcontrol_pid);
-    }
-    else {
-        return alcove_mk_atom(reply, rlen, "false");
-    }
-
-    return alcove_mk_atom(reply, rlen, "true");
-}
-
-    static int
-set_flowcontrol_pid(alcove_state_t *ap, alcove_child_t *c, void *arg1, void *arg2)
-{
-    int32_t *count = arg1;
-
-    UNUSED(arg2);
-
-    c->flowcontrol = *count;
-
-    return 0;
 }
