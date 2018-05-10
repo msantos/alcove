@@ -750,8 +750,9 @@ signal_pid(alcove_state_t *ap, alcove_child_t *c, void *arg1, void *arg2)
     UNUSED(arg2);
 
     if (c->fdctl == ALCOVE_CHILD_EXEC) {
-      (void)kill(c->pid, ap->signaloneof);
-      (void)kill(c->pid, SIGCONT);
+      if (kill(c->pid, c->signaloneof) == 0) {
+        (void)kill(c->pid, SIGCONT);
+      }
     }
 
     return 1;

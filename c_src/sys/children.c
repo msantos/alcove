@@ -82,7 +82,7 @@ cons_pid(alcove_state_t *ap, alcove_child_t *c, void *arg1, void *arg2)
     if (ei_encode_list_header(buf, index, 1) < 0)
         return -1;
 
-    if (ei_encode_tuple_header(buf, index, 7) < 0)
+    if (ei_encode_tuple_header(buf, index, 8) < 0)
         return -1;
 
     if (ei_encode_atom(buf, index, "alcove_pid") < 0)
@@ -92,6 +92,9 @@ cons_pid(alcove_state_t *ap, alcove_child_t *c, void *arg1, void *arg2)
         return -1;
 
     if (ei_encode_long(buf, index, c->flowcontrol) < 0)
+        return -1;
+
+    if (ei_encode_long(buf, index, c->signaloneof) < 0)
         return -1;
 
     if (ei_encode_long(buf, index, c->fdctl) < 0)

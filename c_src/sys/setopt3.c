@@ -17,6 +17,8 @@
 
 static int set_flowcontrol_pid(alcove_state_t *ap, alcove_child_t *c,
     void *arg1, void *arg2);
+static int set_signaloneof_pid(alcove_state_t *ap, alcove_child_t *c,
+    void *arg1, void *arg2);
 
 /* Set port options */
     ssize_t
@@ -44,6 +46,10 @@ alcove_sys_setopt3(alcove_state_t *ap, const char *arg, size_t len,
         val2 = val2 >= INT32_MAX ? -1 : val2;
         (void)pid_foreach(ap, val1, &val2, NULL, pid_equal, set_flowcontrol_pid);
     }
+    else if (strcmp(opt, "signaloneof") == 0) {
+        val2 = MIN(val2,UINT8_MAX);
+        (void)pid_foreach(ap, val1, &val2, NULL, pid_equal, set_signaloneof_pid);
+    }
     else {
         return alcove_mk_atom(reply, rlen, "false");
     }
@@ -59,6 +65,18 @@ set_flowcontrol_pid(alcove_state_t *ap, alcove_child_t *c, void *arg1, void *arg
     UNUSED(arg2);
 
     c->flowcontrol = *count;
+
+    return 0;
+}
+
+    static int
+set_signaloneof_pid(alcove_state_t *ap, alcove_child_t *c, void *arg1, void *arg2)
+{
+    int *sig = arg1;
+
+    UNUSED(arg2);
+
+    c->signaloneof = *sig;
 
     return 0;
 }

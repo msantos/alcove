@@ -18,6 +18,7 @@
 -record(alcove_pid, {
         pid = 0 :: alcove:pid_t(),
         flowcontrol = -1 :: alcove:int32_t(),
+        signaloneof = 15 :: alcove:int32_t(),
         fdctl = -1 :: alcove:fd(),
         stdin = -1 :: alcove:fd(),
         stdout = -1 :: alcove:fd(),

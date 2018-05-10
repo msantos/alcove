@@ -181,6 +181,7 @@ stdio_pid(alcove_state_t *ap, alcove_child_t *c, void *arg1, void *arg2)
     c->fdout = fd->out[PIPE_READ];
     c->fderr = fd->err[PIPE_READ];
     c->flowcontrol = ap->opt & alcove_opt_flowcontrol ? 0 : -1;
+    c->signaloneof = ap->signaloneof;
 
     return 0;
 }

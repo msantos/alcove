@@ -144,6 +144,7 @@ enum {
 typedef struct {
     pid_t pid;
     int flowcontrol;
+    int signaloneof;
     int exited;
     int fdctl;
     int fdin;
