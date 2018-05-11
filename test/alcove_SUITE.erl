@@ -217,8 +217,6 @@ init_per_testcase(_Test, Config) ->
 
 end_per_testcase(connect, Config) ->
     Drv = ?config(drv, Config),
-    [ _ = alcove:kill(Drv, [], Pid#alcove_pid.pid, 9)
-      || Pid <- alcove:children(Drv, []) ],
     alcove_drv:stop(Drv);
 end_per_testcase(_Test, Config) ->
     Drv = ?config(drv, Config),
