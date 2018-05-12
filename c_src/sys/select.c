@@ -66,8 +66,8 @@ alcove_sys_select(alcove_state_t *ap, const char *arg, size_t len,
         return -1;
 
     switch (type) {
-        case ERL_BINARY_EXT:
-            if (arity > 0)
+        case ERL_ATOM_EXT:
+            if (alcove_decode_null(arg, len, &index) < 0)
                 return -1;
 
             timeout = NULL;

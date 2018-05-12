@@ -880,7 +880,7 @@ atom is used as the argument and is not found on the platform.
     select(Drv, ForkChain, Readfds, Writefds, Exceptfds, Timeout) -> {ok, Readfds, Writefds, Exceptfds} | {error, posix()}
 
         Types   Readfds = Writefds = Exceptfds = [] | [integer()]
-                Timeout = <<>> | #alcove_timeval{}
+                Timeout = null | #alcove_timeval{}
 
         select(2) : poll a list of file descriptor for events
 
@@ -889,7 +889,8 @@ atom is used as the argument and is not found on the platform.
 
         The Timeout value may be:
 
-            * an empty binary (<<>>) signifying no value (block forever)
+            * the atom 'null' (or 'NULL') causes select to block
+              indefinitely (no timeout)
 
             * an alcove_timeval record with these fields:
 
