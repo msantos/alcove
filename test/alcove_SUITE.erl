@@ -49,6 +49,7 @@
         fcntl/1,
         fexecve/1,
         file_constant/1,
+        flowcontrol/1,
         fork/1,
         forkchain/1,
         forkstress/1,
@@ -80,13 +81,13 @@
         setuid/1,
         signal/1,
         signal_constant/1,
+        signaloneof/1,
         socket/1,
         stderr/1,
         stdout/1,
         stream/1,
         symlink/1,
         syscall_constant/1,
-        signaloneof/1,
         tmpfs/1,
         unshare/1,
         version/1,
@@ -149,7 +150,8 @@ all() ->
         symlink,
         execvp_mid_chain,
         pipe_buf,
-        signaloneof
+        signaloneof,
+        flowcontrol
     ].
 
 groups() ->
@@ -1156,6 +1158,47 @@ signaloneof(Config) ->
 %    {error, esrch} = alcove:kill(Drv, [], F2, 0),
 
     ok.
+
+flowcontrol(Config) ->
+    Drv = ?config(drv, Config),
+    Child = ?config(child, Config),
+
+    true = alcove:setopt(Drv, [], flowcontrol, Child, 0),
+
+    Pid0 = lists:keyfind(Child, #alcove_pid.pid, alcove:children(Drv, [])),
+    0 = Pid0#alcove_pid.flowcontrol,
+
+    ok = alcove:execvp(Drv, [Child], "yes", ["yes-flowcontrol"]),
+
+    % no stdout until explicitly polled
+    ok = flowcontrol_wait(Drv, [Child], 3000, 0),
+
+    true = alcove:setopt(Drv, [], flowcontrol, Child, 2),
+
+    ok = flowcontrol_wait(Drv, [Child], 3000, 2),
+
+    % flowcontrol reset to 0
+    Pid1 = lists:keyfind(Child, #alcove_pid.pid, alcove:children(Drv, [])),
+    0 = Pid1#alcove_pid.flowcontrol,
+
+    ok.
+
+flowcontrol_wait(Drv, Chain, Timeout, 0) ->
+    receive
+      {alcove_stdout, Drv, Chain, _} = Failed ->
+        Failed
+    after
+      Timeout ->
+        ok
+    end;
+flowcontrol_wait(Drv, Chain, Timeout, N) ->
+    receive
+      {alcove_stdout, Drv, Chain, _} ->
+        flowcontrol_wait(Drv, Chain, Timeout, N-1)
+    after
+      Timeout ->
+        timeout
+    end.
 
 %%
 %% Portability
