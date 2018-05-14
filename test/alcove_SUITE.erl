@@ -1163,23 +1163,20 @@ flowcontrol(Config) ->
     Drv = ?config(drv, Config),
     Child = ?config(child, Config),
 
-    true = alcove:setopt(Drv, [], flowcontrol, Child, 0),
-
-    Pid0 = lists:keyfind(Child, #alcove_pid.pid, alcove:children(Drv, [])),
-    0 = Pid0#alcove_pid.flowcontrol,
+    true = alcove:setcpid(Drv, [], Child, flowcontrol, 0),
+    0 = alcove:getcpid(Drv, [], Child, flowcontrol),
 
     ok = alcove:execvp(Drv, [Child], "yes", ["yes-flowcontrol"]),
 
     % no stdout until explicitly polled
     ok = flowcontrol_wait(Drv, [Child], 3000, 0),
 
-    true = alcove:setopt(Drv, [], flowcontrol, Child, 2),
+    true = alcove:setcpid(Drv, [], Child, flowcontrol, 2),
 
     ok = flowcontrol_wait(Drv, [Child], 3000, 2),
 
     % flowcontrol reset to 0
-    Pid1 = lists:keyfind(Child, #alcove_pid.pid, alcove:children(Drv, [])),
-    0 = Pid1#alcove_pid.flowcontrol,
+    0 = alcove:getcpid(Drv, [], Child, flowcontrol),
 
     ok.
 

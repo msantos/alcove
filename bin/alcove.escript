@@ -178,7 +178,7 @@ static_exports() ->
      {eof,2}, {eof,3},
      {event,2}, {event,3},
 
-     {setopt,4}, {setopt,5}].
+     {getcpid,4}].
 
 static() ->
     [ static({Fun, Arity}) || {Fun, Arity} <- static_exports() ].
@@ -353,15 +353,25 @@ event(Drv, Pids, Timeout) ->
     alcove_drv:event(Drv, Pids, Timeout).
 ";
 
-static({setopt,4}) ->
+static({getcpid,4}) ->
 "
-setopt(Drv, Pids, Key, Val) ->
-    alcove:setopt2(Drv, Pids, Key, Val).
-";
-static({setopt,5}) ->
-"
-setopt(Drv, Pids, Key, Val1, Val2) ->
-    alcove:setopt3(Drv, Pids, Key, Val1, Val2).
+getcpid(Drv, Pids, Pid, Key) ->
+    N = indexof(Key, record_info(fields, alcove_pid)),
+    case lists:keyfind(Pid, #alcove_pid.pid, alcove:children(Drv, Pids)) of
+        false ->
+            false;
+        Child when is_integer(N) ->
+            element(N, Child)
+    end.
+
+indexof(El, List) ->
+    indexof(El, List, 2).
+indexof(_El, [], _N) ->
+    false;
+indexof(El, [El|_], N) ->
+    N;
+indexof(El, [_|Tail], N) ->
+    indexof(El, Tail, N+1).
 ".
 
 includes(Header) ->
@@ -434,8 +444,16 @@ specs() ->
     | 'ewouldblock'
     | 'exdev' | 'exfull'.
 
+-type alcove_pid_field() :: pid
+    | flowcontrol
+    | signaloneof
+    | fdctl
+    | stdin
+    | stdout
+    | stderr.
+
 -type alcove_pid() :: #alcove_pid{}.
--type alcove_rlimit() :: #alcove_pid{}.
+-type alcove_rlimit() :: #alcove_rlimit{}.
 -type alcove_timeval() :: #alcove_timeval{}.
 
 -export_type([
@@ -456,6 +474,7 @@ specs() ->
 
         posix/0,
 
+        alcove_pid_field/0,
         alcove_pid/0,
         alcove_rlimit/0,
         alcove_timeval/0
@@ -545,6 +564,8 @@ specs() ->
 
 -spec fork(alcove_drv:ref(),[pid_t()]) -> {'ok', pid_t()} | {'error', posix()}.
 -spec fork(alcove_drv:ref(),[pid_t()],timeout()) -> {'ok', pid_t()} | {'error', posix()}.
+
+-spec getcpid(alcove_drv:ref(),[pid_t()],pid_t(),alcove_pid_field()) -> 'false' | non_neg_integer().
 
 -spec getcwd(alcove_drv:ref(),[pid_t()]) -> {'ok', binary()} | {'error', posix()}.
 -spec getcwd(alcove_drv:ref(),[pid_t()],timeout()) -> {'ok', binary()} | {'error', posix()}.
@@ -681,6 +702,9 @@ specs() ->
 
 -spec setenv(alcove_drv:ref(),[pid_t()],iodata(),iodata(),int32_t()) -> 'ok' | {'error', posix()}.
 -spec setenv(alcove_drv:ref(),[pid_t()],iodata(),iodata(),int32_t(),timeout()) -> 'ok' | {'error', posix()}.
+
+-spec setcpid(alcove_drv:ref(),[pid_t()],pid_t(),alcove_pid_field(),uint32_t()) -> boolean().
+-spec setcpid(alcove_drv:ref(),[pid_t()],pid_t(),alcove_pid_field(),uint32_t(),timeout()) -> boolean().
 
 -spec setgid(alcove_drv:ref(),[pid_t()],gid_t()) -> 'ok' | {'error', posix()}.
 -spec setgid(alcove_drv:ref(),[pid_t()],gid_t(),timeout()) -> 'ok' | {'error', posix()}.

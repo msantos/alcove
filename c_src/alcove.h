@@ -210,6 +210,8 @@ int alcove_decode_cstruct(const char *, size_t, int *, char *, size_t *,
         alcove_alloc_t **, ssize_t *);
 int alcove_decode_argv(const char *, size_t, int *, char ***);
 void alcove_free_argv(char **);
+int alcove_decode_null(const char *buf, size_t len, int *index);
+
 
 int alcove_encode_version(char *, size_t, int *);
 int alcove_encode_list_header(char *, size_t, int *, int);

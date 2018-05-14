@@ -15,68 +15,50 @@
 #include "alcove.h"
 #include "alcove_call.h"
 
-static int set_flowcontrol_pid(alcove_state_t *ap, alcove_child_t *c,
-    void *arg1, void *arg2);
-static int set_signaloneof_pid(alcove_state_t *ap, alcove_child_t *c,
-    void *arg1, void *arg2);
-
 /* Set port options */
     ssize_t
-alcove_sys_setopt3(alcove_state_t *ap, const char *arg, size_t len,
+alcove_sys_setopt(alcove_state_t *ap, const char *arg, size_t len,
         char *reply, size_t rlen)
 {
     int index = 0;
     char opt[MAXATOMLEN] = {0};
-    u_int32_t val1 = 0;
-    u_int32_t val2 = 0;
+    u_int32_t val = 0;
 
     /* opt */
     if (alcove_decode_atom(arg, len, &index, opt) < 0)
         return -1;
 
-    /* val1 */
-    if (alcove_decode_uint(arg, len, &index, &val1) < 0)
+    /* val */
+    if (alcove_decode_uint(arg, len, &index, &val) < 0)
         return -1;
 
-    /* val2 */
-    if (alcove_decode_uint(arg, len, &index, &val2) < 0)
-        return -1;
-
-    if (strcmp(opt, "flowcontrol") == 0) {
-        val2 = val2 >= INT32_MAX ? -1 : val2;
-        (void)pid_foreach(ap, val1, &val2, NULL, pid_equal, set_flowcontrol_pid);
+    if (strcmp(opt, "exit_status") == 0) {
+        ALCOVE_SETOPT(ap, alcove_opt_exit_status, val);
+    }
+    else if (strcmp(opt, "flowcontrol") == 0) {
+        ALCOVE_SETOPT(ap, alcove_opt_flowcontrol, val);
+    }
+    else if (strcmp(opt, "maxforkdepth") == 0) {
+        ap->maxforkdepth = MIN(val,UINT8_MAX);
+    }
+    else if (strcmp(opt, "termsig") == 0) {
+        ALCOVE_SETOPT(ap, alcove_opt_termsig, val);
     }
     else if (strcmp(opt, "signaloneof") == 0) {
-        val2 = MIN(val2,UINT8_MAX);
-        (void)pid_foreach(ap, val1, &val2, NULL, pid_equal, set_signaloneof_pid);
+        ap->signaloneof = MIN(val,UINT8_MAX);
+    }
+    else if (strcmp(opt, "stdin_closed") == 0) {
+        ALCOVE_SETOPT(ap, alcove_opt_stdin_closed, val);
+    }
+    else if (strcmp(opt, "stdout_closed") == 0) {
+        ALCOVE_SETOPT(ap, alcove_opt_stdout_closed, val);
+    }
+    else if (strcmp(opt, "stderr_closed") == 0) {
+        ALCOVE_SETOPT(ap, alcove_opt_stderr_closed, val);
     }
     else {
         return alcove_mk_atom(reply, rlen, "false");
     }
 
     return alcove_mk_atom(reply, rlen, "true");
-}
-
-    static int
-set_flowcontrol_pid(alcove_state_t *ap, alcove_child_t *c, void *arg1, void *arg2)
-{
-    int32_t *count = arg1;
-
-    UNUSED(arg2);
-
-    c->flowcontrol = *count;
-
-    return 0;
-}
-
-    static int
-set_signaloneof_pid(alcove_state_t *ap, alcove_child_t *c, void *arg1, void *arg2)
-{
-    int *sig = arg1;
-
-    UNUSED(arg2);
-
-    c->signaloneof = *sig;
-
-    return 0;
 }

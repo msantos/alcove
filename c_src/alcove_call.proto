@@ -67,13 +67,13 @@ rmdir/1
 seccomp/3
 seccomp_constant/1
 select/4
+setcpid/3
 setenv/3
 setgid/1
 setgroups/1
 sethostname/1
 setns/2
-setopt2/2
-setopt3/3
+setopt/2
 setpgid/2
 setpriority/3
 setproctitle/1
