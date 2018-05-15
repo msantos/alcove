@@ -21,7 +21,7 @@ static int cons_pid(alcove_state_t *ap, alcove_child_t *c,
         void *arg1, void *arg2);
 
     ssize_t
-alcove_sys_children(alcove_state_t *ap, const char *arg, size_t len,
+alcove_sys_cpid(alcove_state_t *ap, const char *arg, size_t len,
         char *reply, size_t rlen)
 {
     int rindex = 0;

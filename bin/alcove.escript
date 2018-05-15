@@ -326,7 +326,7 @@ eof(_Drv, [], _Stdio) ->
 eof(Drv, Pids0, Stdio) ->
     [Pid|Rest] = lists:reverse(Pids0),
     Pids = lists:reverse(Rest),
-    Proc = children(Drv, Pids),
+    Proc = cpid(Drv, Pids),
     case lists:keyfind(Pid, 2, Proc) of
         false ->
             {error,esrch};
@@ -357,7 +357,7 @@ static({getcpid,4}) ->
 "
 getcpid(Drv, Pids, Pid, Key) ->
     N = indexof(Key, record_info(fields, alcove_pid)),
-    case lists:keyfind(Pid, #alcove_pid.pid, alcove:children(Drv, Pids)) of
+    case lists:keyfind(Pid, #alcove_pid.pid, alcove:cpid(Drv, Pids)) of
         false ->
             false;
         Child when is_integer(N) ->
@@ -506,8 +506,8 @@ specs() ->
 -spec chdir(alcove_drv:ref(),[pid_t()],iodata()) -> 'ok' | {'error', posix()}.
 -spec chdir(alcove_drv:ref(),[pid_t()],iodata(),timeout()) -> 'ok' | {'error', posix()}.
 
--spec children(alcove_drv:ref(),[pid_t()]) -> [alcove_pid()].
--spec children(alcove_drv:ref(),[pid_t()],timeout()) -> [alcove_pid()].
+-spec cpid(alcove_drv:ref(),[pid_t()]) -> [alcove_pid()].
+-spec cpid(alcove_drv:ref(),[pid_t()],timeout()) -> [alcove_pid()].
 
 -spec chmod(alcove_drv:ref(),[pid_t()],iodata(),mode_t()) -> 'ok' | {'error', posix()}.
 -spec chmod(alcove_drv:ref(),[pid_t()],iodata(),mode_t(),timeout()) -> 'ok' | {'error', posix()}.

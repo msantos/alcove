@@ -7,7 +7,6 @@ cap_getmode/0
 cap_ioctls_limit/2
 cap_rights_limit/2
 chdir/1
-children/0
 chmod/2
 chown/3
 chroot/1
@@ -16,6 +15,7 @@ clone/1
 clone_constant/1
 close/1
 connect/2
+cpid/0
 environ/0
 errno_id/1
 execve/3

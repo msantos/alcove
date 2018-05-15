@@ -388,6 +388,8 @@ Functions marked as operating system specific will return
 
     alcove_pid() =
         #alcove_pid{pid = alcove:pid_t(),
+                    flowcontrol = alcove:uint32_t(),
+                    signaloneof = alcove:uint32_t(),
                     fdctl = alcove::fd(),
                     stdin = alcove::fd(),
                     stdout = alcove::fd(),
@@ -406,7 +408,7 @@ atom is used as the argument and is not found on the platform.
 
         chdir(2) : change process current working directory.
 
-    children(Drv, ForkChain) -> [Child]
+    cpid(Drv, ForkChain) -> [Child]
 
         Types   Child = #alcove_pid{}
 

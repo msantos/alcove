@@ -33,7 +33,7 @@
         cap_ioctls_limit/1,
         cap_rights_limit/1,
         chdir/1,
-        children/1,
+        cpid/1,
         chmod/1,
         chroot/1,
         clone_constant/1,
@@ -110,7 +110,7 @@ all() ->
         rlimit_constant,
         signal_constant,
         errno_id,
-        children,
+        cpid,
         getpid,
         setopt,
         event,
@@ -352,14 +352,14 @@ errno_id(Config) ->
 
     ok.
 
-children(Config) ->
+cpid(Config) ->
     Drv = ?config(drv, Config),
 
     {ok, Child} = alcove:fork(Drv, []),
     {ok, Grandchild} = alcove:fork(Drv, [Child]),
-    [#alcove_pid{}] = alcove:children(Drv, [Child]),
+    [#alcove_pid{}] = alcove:cpid(Drv, [Child]),
     ok = alcove:execvp(Drv, [Child,Grandchild], "/bin/cat", ["/bin/cat"]),
-    [#alcove_pid{fdctl = -2}] = alcove:children(Drv, [Child]),
+    [#alcove_pid{fdctl = -2}] = alcove:cpid(Drv, [Child]),
     ok = alcove:eof(Drv, [Child]).
 
 getpid(Config) ->
@@ -1143,7 +1143,7 @@ signaloneof(Config) ->
 
     % Force the child to exit by closing stdin
     [ ok = alcove:close(Drv, [], Pid#alcove_pid.stdin)
-      || Pid <- alcove:children(Drv, []) ],
+      || Pid <- alcove:cpid(Drv, []) ],
 
     ok = receive
            {alcove_event, Drv, [Child], {exit_status, _}} ->
