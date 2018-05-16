@@ -501,6 +501,28 @@ atom is used as the argument and is not found on the platform.
 
         fork(2) : create a new process
 
+    getcpid(Drv, ForkChain, Child, Opt, Val) -> boolean()
+
+        Types   Opt = flowcontrol | signaloneof
+                      | pid
+                      | fdctl
+                      | stdin
+                      | stdout
+                      | stderr
+                Child = pid_t()
+                Val = uint32_t()
+
+        Retrieves attributes set by the alcove control process for a
+        child process.
+
+            * flowcontrol: number of messages allowed from process
+
+                -1 : flowcontrol disabled
+                0 : stdout/stderr for process is not read
+                0+ : read this many messages from the process
+
+            * signaloneof: signal sent to child process on shutdown
+
     getcwd(Drv, ForkChain) -> {ok, binary()} | {error, posix()}
 
         getcwd(3) : return the current working directory
@@ -551,6 +573,15 @@ atom is used as the argument and is not found on the platform.
 
                 If a child process exits because of a signal, notify
                 the controlling Erlang process.
+
+            flowcontrol : 0 | 0+ : -1
+
+                Enable flow control for a child process.
+
+            signaloneof : 0-255 : 15
+
+                Send a signal to a child process on shutdown (stdin of
+                the alcove control process is closed).
 
     getpgrp(Drv, ForkChain) -> integer()
 
@@ -898,6 +929,32 @@ atom is used as the argument and is not found on the platform.
 
                 sec : number of seconds to wait
                 usec : number of microseconds to wait
+
+    setcpid(Drv, ForkChain, Child, Opt, Val) -> boolean()
+
+        Types   Opt = flowcontrol | signaloneof
+                Child = pid_t()
+                Val = uint32_t()
+
+        Set options for child process of alcove control process:
+
+            * flowcontrol: enable rate limiting of the stdout and stderr
+              of a child process. stdin is not rate limited
+              (default: -1 (disabled))
+
+                0 : stdout/stderr for process is not read
+                1-2147483646 : read this many messages from the process
+                >= 2147483647 : disable flow control
+
+              NOTE: the limit applies to stdout and stderr. If the limit
+              is set to 1, it is possible to get:
+
+                * 1 message from stdout
+                * 1 message from stderr
+                * 1 message from stdout and stderr
+
+            * signaloneof: the alcove control process sends this signal
+              to the child process on shutdown (default: 15 (SIGTERM))
 
     setenv(Drv, ForkChain, Name, Value, Overwrite) -> ok | {error, posix()}
 
