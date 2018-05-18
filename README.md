@@ -501,7 +501,7 @@ atom is used as the argument and is not found on the platform.
 
         fork(2) : create a new process
 
-    getcpid(Drv, ForkChain, Child, Opt, Val) -> boolean()
+    getcpid(Drv, ForkChain, Child, Opt) -> boolean()
 
         Types   Opt = flowcontrol | signaloneof
                       | pid

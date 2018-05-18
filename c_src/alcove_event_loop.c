@@ -534,12 +534,14 @@ set_pid(alcove_state_t *ap, alcove_child_t *c, void *arg1, void *arg2)
 
     if (c->fdout > -1) {
         fds[c->fdout].fd = c->fdout;
-        fds[c->fdout].events = c->flowcontrol ? POLLIN : 0;
+        fds[c->fdout].events =
+          (c->fdctl == ALCOVE_CHILD_EXEC && c->flowcontrol == 0) ? 0 : POLLIN;
     }
 
     if (c->fderr > -1) {
         fds[c->fderr].fd = c->fderr;
-        fds[c->fderr].events = c->flowcontrol ? POLLIN : 0;
+        fds[c->fderr].events =
+          (c->fdctl == ALCOVE_CHILD_EXEC && c->flowcontrol == 0) ? 0 : POLLIN;
     }
 
     if (c->exited && c->fdout == -1 && c->fderr == -1 && c->fdctl < 0) {

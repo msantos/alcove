@@ -1166,6 +1166,9 @@ flowcontrol(Config) ->
     true = alcove:setcpid(Drv, [], Child, flowcontrol, 0),
     0 = alcove:getcpid(Drv, [], Child, flowcontrol),
 
+    % make a call to check control processes are not flow controlled
+    _ = alcove:cpid(Drv, [Child]),
+
     ok = alcove:execvp(Drv, [Child], "yes", ["yes-flowcontrol"]),
 
     % no stdout until explicitly polled
