@@ -118,18 +118,26 @@ int main(int argc, char *argv[]) {
     Config
 end,
 
-RunTests = try alcove_drv:progname() of
-    Progname ->
-        case file:read_file_info(Progname) of
-            {ok, _} -> false;
-            _ -> true
+RunTests = fun() ->
+    case code:lib_dir(alcove, ebin) of
+      {error, bad_name} ->
+        true;
+      Lib ->
+        _ = code:del_path(Lib),
+        try alcove_drv:progname() of
+          Progname ->
+            case file:read_file_info(Progname) of
+              {ok, _} -> false;
+              _ -> true
+            end
+        catch
+            _:_ ->
+              true
         end
-    catch
-        _:_ ->
-            true
-    end,
+    end
+end,
 
-case RunTests of
+case RunTests() of
     true ->
         lists:foldl(fun(Fun, Cfg) ->
                 Fun(Cfg)
