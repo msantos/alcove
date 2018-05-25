@@ -574,14 +574,20 @@ atom is used as the argument and is not found on the platform.
                 If a child process exits because of a signal, notify
                 the controlling Erlang process.
 
-            flowcontrol : 0 | 0+ : -1
+            flowcontrol : 1 | 0 : 0
 
-                Enable flow control for a child process.
+                Sets whether flow control is enabled/disabled by default
+                for a newly forked process forked. Flow control is
+                applied after the child process calls exec().
+
+                See setcpid/5.
 
             signaloneof : 0-255 : 15
 
                 Send a signal to a child process on shutdown (stdin of
                 the alcove control process is closed).
+
+                See setcpid/5.
 
     getpgrp(Drv, ForkChain) -> integer()
 
