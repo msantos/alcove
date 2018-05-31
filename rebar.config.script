@@ -123,6 +123,7 @@ RunTests = fun() ->
       {error, bad_name} ->
         true;
       Lib ->
+        Path = code:get_path(),
         _ = code:del_path(Lib),
         try alcove_drv:progname() of
           Progname ->
@@ -133,6 +134,8 @@ RunTests = fun() ->
         catch
             _:_ ->
               true
+        after
+            code:set_path(Path)
         end
     end
 end,
