@@ -17,8 +17,6 @@ cat<< EOF
  */
 EOF
 
-PROTO=$1
-
 cat<< 'EOF'
 
 /* calls */
@@ -30,11 +28,9 @@ typedef struct {
 const alcove_call_t calls[] = {
 EOF
 
-while read line; do
-    IFS=/
-    set -- $line
-    printf "    {alcove_sys_%s, %s},\n" $1 $2
-done < $PROTO
+while IFS=/ read call arity; do
+    printf "    {alcove_sys_%s, %s},\n" "$call" "$arity"
+done < "$1"
 
 cat<< 'EOF'
 };

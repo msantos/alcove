@@ -17,13 +17,8 @@ cat<< EOF
  */
 EOF
 
-PROTO=$1
-
-OIFS=$IFS
-while read line; do
-    IFS=/
-    set -- $line
+while IFS=/ read call arity; do
     cat << EOF
-ssize_t alcove_sys_$1(alcove_state_t *, const char *, size_t, char *, size_t);
+ssize_t alcove_sys_${call}(alcove_state_t *, const char *, size_t, char *, size_t);
 EOF
-done < $PROTO
+done < "$1"
