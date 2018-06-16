@@ -37,6 +37,7 @@
 
 #include "erl_errno.h"
 #include "alcove_version.h"
+#include "alcove_nr.h"
 
 #if defined(__sun) && defined(__SVR4)
 #define u_int8_t        uint8_t
@@ -161,6 +162,7 @@ typedef struct {
     u_int16_t depth;
     int signaloneof;
     alcove_child_t *child;
+    uint8_t filter[ALCOVE_MAX_NR];
 } alcove_state_t;
 
 typedef struct {

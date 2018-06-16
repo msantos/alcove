@@ -49,6 +49,7 @@
         fcntl/1,
         fexecve/1,
         file_constant/1,
+        filter/1,
         flowcontrol/1,
         fork/1,
         forkchain/1,
@@ -151,7 +152,8 @@ all() ->
         execvp_mid_chain,
         pipe_buf,
         signaloneof,
-        flowcontrol
+        flowcontrol,
+        filter
     ].
 
 groups() ->
@@ -1199,6 +1201,30 @@ flowcontrol_wait(Drv, Chain, Timeout, N) ->
       Timeout ->
         timeout
     end.
+
+filter(Config) ->
+    Drv = ?config(drv, Config),
+
+    {ok, Task1} = alcove:fork(Drv, []),
+
+    ok = alcove:filter(Drv, [], alcove_proto:call(fork)),
+    ok = alcove:filter(Drv, [Task1], alcove_proto:call(getpid)),
+
+    {ok, _} = alcove:fork(Drv, [Task1]),
+    {'EXIT',{undef,_}} = (catch alcove:fork(Drv, [])),
+
+    {'EXIT',{undef,_}} = (catch alcove:getpid(Drv, [Task1])),
+    _ = alcove:getpid(Drv, []),
+
+    Calls = length(alcove_proto:calls()),
+    NR = ((Calls div 8) + (Calls rem 8)) * 8,
+
+    ok = alcove:filter(Drv, [Task1], NR-1),
+    {'EXIT',{badarg,_}} = (catch alcove:filter(Drv, [Task1], NR)),
+    {'EXIT',{badarg,_}} = (catch alcove:filter(Drv, [Task1], NR+1)),
+    {'EXIT',{badarg,_}} = (catch alcove:filter(Drv, [Task1], 16#fffffffe)),
+
+    ok.
 
 %%
 %% Portability

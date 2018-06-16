@@ -1,4 +1,4 @@
-/* Copyright (c) 2014, Michael Santos <michael.santos@gmail.com>
+/* Copyright (c) 2014-2018, Michael Santos <michael.santos@gmail.com>
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -28,8 +28,17 @@ alcove_call(alcove_state_t *ap, u_int32_t call,
     const alcove_call_t *fun = NULL;
     ssize_t written = 0;
 
+    uint8_t j;
+    uint8_t k;
+
     if (call >= sizeof(calls)/sizeof(calls[0]))
         goto BADARG;
+
+    j = call / 8;
+    k = call % 8;
+
+    if (ap->filter[j] & (1 << k))
+      goto UNDEF;
 
     fun = &calls[call];
 
@@ -58,4 +67,7 @@ alcove_call(alcove_state_t *ap, u_int32_t call,
 
 BADARG:
     return alcove_mk_atom(reply, rlen, "badarg");
+
+UNDEF:
+    return alcove_mk_atom(reply, rlen, "undef");
 }
