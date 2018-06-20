@@ -1220,9 +1220,9 @@ filter(Config) ->
     NR = ((Calls div 8) + (Calls rem 8)) * 8,
 
     ok = alcove:filter(Drv, [Task1], NR-1),
-    {'EXIT',{badarg,_}} = (catch alcove:filter(Drv, [Task1], NR)),
-    {'EXIT',{badarg,_}} = (catch alcove:filter(Drv, [Task1], NR+1)),
-    {'EXIT',{badarg,_}} = (catch alcove:filter(Drv, [Task1], 16#fffffffe)),
+    {error,einval} = (catch alcove:filter(Drv, [Task1], NR)),
+    {error,einval} = (catch alcove:filter(Drv, [Task1], NR+1)),
+    {error,einval} = (catch alcove:filter(Drv, [Task1], 16#fffffffe)),
 
     ok.
 

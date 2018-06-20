@@ -33,7 +33,7 @@ alcove_sys_filter(alcove_state_t *ap, const char *arg, size_t len,
     k = nr % 8;
 
     if (j >= ALCOVE_MAX_NR)
-      return -1;
+      return alcove_mk_errno(reply, rlen, EINVAL);
 
     ap->filter[j] |= (1 << k);
 
