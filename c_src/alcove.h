@@ -162,7 +162,7 @@ typedef struct {
     u_int16_t depth;
     int signaloneof;
     alcove_child_t *child;
-    uint8_t filter[ALCOVE_MAX_NR];
+    uint8_t filter[ALCOVE_NR_SIZE];
 } alcove_state_t;
 
 typedef struct {

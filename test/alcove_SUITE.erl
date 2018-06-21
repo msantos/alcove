@@ -1216,13 +1216,12 @@ filter(Config) ->
     {'EXIT',{undef,_}} = (catch alcove:getpid(Drv, [Task1])),
     _ = alcove:getpid(Drv, []),
 
-    Calls = length(alcove_proto:calls()),
-    NR = ((Calls div 8) + (Calls rem 8)) * 8,
+    NR = length(alcove_proto:calls()),
 
     ok = alcove:filter(Drv, [Task1], NR-1),
-    {error,einval} = (catch alcove:filter(Drv, [Task1], NR)),
-    {error,einval} = (catch alcove:filter(Drv, [Task1], NR+1)),
-    {error,einval} = (catch alcove:filter(Drv, [Task1], 16#fffffffe)),
+    {error,einval} = alcove:filter(Drv, [Task1], NR),
+    {error,einval} = alcove:filter(Drv, [Task1], NR+1),
+    {error,einval} = alcove:filter(Drv, [Task1], 16#fffffffe),
 
     ok.
 
