@@ -497,6 +497,30 @@ atom is used as the argument and is not found on the platform.
 
         Constants for open(2).
 
+    filter(Drv, ForkChain, Call) -> ok | {error, einval}.
+
+        Types   Call = integer()
+
+    filter/3 restricts call available to an alcove control process. The
+    control process will continue to proxy data as well as monitor and
+    reap subprocesses.
+
+    Invoking a filtered call will crash the process with 'undef'.
+
+    If the filter/1 call is filtered, subsequent calls to filter/1
+    will fail.
+
+    Once a filter for a call is added, the call cannot be removed from
+    the filter set.
+
+    Filters are inherited by the child process from the parent.
+
+        {ok, Ctrl} = alcove_drv:start(),
+        {ok, Task} = alcove:fork(Ctrl, []),
+        
+        ok = alcove:filter(Ctrl, [Task], alcove_proto:call(fork)),
+        {'EXIT', {undef, _}} = alcove:fork(Ctrl, [Task]).
+
     fork(Drv, ForkChain) -> {ok, integer()} | {error, posix()}
 
         fork(2) : create a new process
