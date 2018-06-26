@@ -1090,9 +1090,9 @@ stderr(Config) ->
 
     case OS of
         N when N =:= linux; N =:= openbsd; N =:= freebsd; N =:= darwin ->
-            [<<"/bin/sh: ", _/binary>>] = Reply;
+            <<"/bin/sh: ", _/binary>> = iolist_to_binary(Reply);
         netbsd ->
-            [<<"nonexistent: not found\n">>] = Reply;
+            <<"nonexistent: not found\n">> = iolist_to_binary(Reply);
         _ ->
             {skip, "stderr test not supported on this platform"}
     end.
