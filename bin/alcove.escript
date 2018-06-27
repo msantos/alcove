@@ -259,9 +259,7 @@ stdin(Drv, Pids, Data) ->
         ok ->
             ok;
         {alcove_error, Error} ->
-            erlang:error(Error, [Drv, Pids, Data]);
-        {alcove_pipe, Error} ->
-            {error, Error}
+            erlang:error(Error, [Drv, Pids, Data])
     end.
 ";
 
