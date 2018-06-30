@@ -1129,19 +1129,22 @@ pipe_buf(Config) ->
 
 signaloneof(Config) ->
     Drv = ?config(drv, Config),
-    Child = ?config(child, Config),
+    {ok, Child} = alcove:fork(Drv, []),
 
     true = alcove:setopt(Drv, [Child], signaloneof, 15),
 
+    % Drv---Child-+-F0-+-F00-+-sleep (F000)
+    %             |-sleep (F1)
+    %             |-sleep (F2)
     {ok, F0} = alcove:fork(Drv, [Child]),
     {ok, F00} = alcove:fork(Drv, [Child, F0]),
     {ok, F000} = alcove:fork(Drv, [Child, F0, F00]),
-%    {ok, F1} = alcove:fork(Drv, [Child]),
-%    {ok, F2} = alcove:fork(Drv, [Child]),
+    {ok, F1} = alcove:fork(Drv, [Child]),
+    {ok, F2} = alcove:fork(Drv, [Child]),
 
     ok = alcove:execvp(Drv, [Child, F0, F00, F000], "sleep", ["sleep-signaloneof1", "60"]),
-%    ok = alcove:execvp(Drv, [Child, F1], "sleep", ["sleep-signaloneof2", "60"]),
-%    ok = alcove:execvp(Drv, [Child, F2], "sleep", ["sleep-signaloneof3", "60"]),
+    ok = alcove:execvp(Drv, [Child, F1], "sleep", ["sleep-signaloneof2", "60"]),
+    ok = alcove:execvp(Drv, [Child, F2], "sleep", ["sleep-signaloneof3", "60"]),
 
     % Force the child to exit by closing stdin
     [ ok = alcove:close(Drv, [], Pid#alcove_pid.stdin)
@@ -1155,9 +1158,12 @@ signaloneof(Config) ->
              timeout
          end,
 
+    % XXX allow time for processes to exit
+    timer:sleep(1000),
+
     {error, esrch} = alcove:kill(Drv, [], F000, 0),
-%    {error, esrch} = alcove:kill(Drv, [], F1, 0),
-%    {error, esrch} = alcove:kill(Drv, [], F2, 0),
+    {error, esrch} = alcove:kill(Drv, [], F1, 0),
+    {error, esrch} = alcove:kill(Drv, [], F2, 0),
 
     ok.
 
