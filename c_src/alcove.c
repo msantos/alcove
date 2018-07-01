@@ -51,6 +51,7 @@ main(int argc, char *argv[])
     ap->maxfd = maxfd.rlim_cur;
     ap->fdsetsize = ALCOVE_MAXCHILD(ap->maxfd);
     ap->maxforkdepth = MAXFORKDEPTH;
+    ap->flowcontrol = -1;
     ap->signaloneof = SIGTERM;
 
     while ( (ch = getopt(argc, argv, "c:d:h")) != -1) {

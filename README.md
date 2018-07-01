@@ -597,11 +597,11 @@ atom is used as the argument and is not found on the platform.
                 If a child process exits because of a signal, notify
                 the controlling Erlang process.
 
-            flowcontrol : 1 | 0 : 0
+            flowcontrol : int32_t() : -1 (disabled)
 
-                Sets whether flow control is enabled/disabled by default
-                for a newly forked process forked. Flow control is
-                applied after the child process calls exec().
+                Sets the default flow control behaviour for a newly
+                forked process. Flow control is applied after the child
+                process calls exec().
 
                 See setcpid/5.
 

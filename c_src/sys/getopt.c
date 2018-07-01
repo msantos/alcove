@@ -32,7 +32,7 @@ alcove_sys_getopt(alcove_state_t *ap, const char *arg, size_t len,
         val = ap->opt & alcove_opt_exit_status ? 1 : 0;
     }
     if (strcmp(opt, "flowcontrol") == 0) {
-        val = ap->opt & alcove_opt_flowcontrol ? 1 : 0;
+        val = ap->flowcontrol;
     }
     else if (strcmp(opt, "maxchild") == 0) {
         val = ap->fdsetsize;

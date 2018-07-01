@@ -36,7 +36,7 @@ alcove_sys_setopt(alcove_state_t *ap, const char *arg, size_t len,
         ALCOVE_SETOPT(ap, alcove_opt_exit_status, val);
     }
     else if (strcmp(opt, "flowcontrol") == 0) {
-        ALCOVE_SETOPT(ap, alcove_opt_flowcontrol, val);
+        ap->flowcontrol = val >= INT32_MAX ? -1 : val;
     }
     else if (strcmp(opt, "maxforkdepth") == 0) {
         ap->maxforkdepth = MIN(val,UINT8_MAX);
