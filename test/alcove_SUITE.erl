@@ -1487,7 +1487,7 @@ pledge(Config) ->
     ok = alcove:execvp(Drv, [Fork2], "cat", ["shouldrun"]),
 
     alcove:stdin(Drv, [Fork2], "test\n"),
-    <<"test\n">> = alcove:stdout(Drv, [Fork2], 5000),
+    [<<"test\n">>] = alcove:stdout(Drv, [Fork2], 5000),
     false = alcove:event(Drv, [Fork2], 2000),
 
     %{'EXIT',{{termsig,sigabrt},_}} = (catch alcove:execvp(Drv, [Fork3], "cat", ["shouldfail"])),
