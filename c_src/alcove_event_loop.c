@@ -308,6 +308,16 @@ alcove_child_stdio(int fdin, u_int16_t depth, alcove_child_t *c,
     u_int16_t hdrlen = 0;
     size_t read_len = sizeof(hdrlen);
 
+    /* XXX One message may be sent from a flowcontrolled process when it calls
+     * XXX exec() because stdio for the process is added to the poll
+     * XXX set before exec() is called.
+     * XXX
+     * XXX The return value (-2) is ignored.
+     */
+    if ((c->fdctl == ALCOVE_CHILD_EXEC) && (c->flowcontrol == 0)) {
+        return -2;
+    }
+
     /* If the child has called exec(), treat the data as a stream.
      *
      * Otherwise, read in the length header and do an exact read.
