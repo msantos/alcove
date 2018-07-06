@@ -28,7 +28,7 @@ alcove_sys_setcpid(alcove_state_t *ap, const char *arg, size_t len,
     int index = 0;
     char opt[MAXATOMLEN] = {0};
     u_int32_t pid = 0;
-    u_int32_t val = 0;
+    int32_t val = 0;
 
     /* pid */
     if (alcove_decode_uint(arg, len, &index, &pid) < 0)
@@ -39,14 +39,19 @@ alcove_sys_setcpid(alcove_state_t *ap, const char *arg, size_t len,
         return -1;
 
     /* val */
-    if (alcove_decode_uint(arg, len, &index, &val) < 0)
+    if (alcove_decode_int(arg, len, &index, &val) < 0)
         return -1;
 
     if (strcmp(opt, "flowcontrol") == 0) {
-        val = val >= INT32_MAX ? -1 : val;
+        val = val < 0 ? -1 : val;
         (void)pid_foreach(ap, pid, &val, NULL, pid_equal, set_flowcontrol_pid);
+        return alcove_mk_atom(reply, rlen, "true");
     }
-    else if (strcmp(opt, "signaloneof") == 0) {
+
+    if (val < 0)
+      return -1;
+
+    if (strcmp(opt, "signaloneof") == 0) {
         val = MIN(val,UINT8_MAX);
         (void)pid_foreach(ap, pid, &val, NULL, pid_equal, set_signaloneof_pid);
     }

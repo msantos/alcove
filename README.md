@@ -388,8 +388,8 @@ Functions marked as operating system specific will return
 
     alcove_pid() =
         #alcove_pid{pid = alcove:pid_t(),
-                    flowcontrol = alcove:uint32_t(),
-                    signaloneof = alcove:uint32_t(),
+                    flowcontrol = alcove:int32_t(),
+                    signaloneof = alcove:int32_t(),
                     fdctl = alcove::fd(),
                     stdin = alcove::fd(),
                     stdout = alcove::fd(),
@@ -542,7 +542,7 @@ atom is used as the argument and is not found on the platform.
 
                 -1 : flowcontrol disabled
                 0 : stdout/stderr for process is not read
-                0+ : read this many messages from the process
+                1+ : read this many messages from the process
 
             * signaloneof: signal sent to child process on shutdown
 
@@ -973,7 +973,7 @@ atom is used as the argument and is not found on the platform.
 
                 0 : stdout/stderr for process is not read
                 1-2147483646 : read this many messages from the process
-                >= 2147483647 : disable flow control
+                -1 : disable flow control
 
               NOTE: the limit applies to stdout and stderr. If the limit
               is set to 1, it is possible to get:

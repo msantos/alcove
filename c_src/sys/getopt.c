@@ -15,6 +15,8 @@
 #include "alcove.h"
 #include "alcove_call.h"
 
+#define ALCOVE_GETOPT_NOTFOUND  -2
+
 /* Get port options */
     ssize_t
 alcove_sys_getopt(alcove_state_t *ap, const char *arg, size_t len,
@@ -22,7 +24,7 @@ alcove_sys_getopt(alcove_state_t *ap, const char *arg, size_t len,
 {
     int index = 0;
     char opt[MAXATOMLEN] = {0};
-    int val = -1;
+    int val = ALCOVE_GETOPT_NOTFOUND;
 
     /* opt */
     if (alcove_decode_atom(arg, len, &index, opt) < 0)
@@ -56,7 +58,7 @@ alcove_sys_getopt(alcove_state_t *ap, const char *arg, size_t len,
         val = ap->opt & alcove_opt_stderr_closed ? 1 : 0;
     }
 
-    return (val == -1)
+    return (val == ALCOVE_GETOPT_NOTFOUND)
         ? alcove_mk_atom(reply, rlen, "false")
-        : alcove_mk_ulong(reply, rlen, val);
+        : alcove_mk_long(reply, rlen, val);
 }
