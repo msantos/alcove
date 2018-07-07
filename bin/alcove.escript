@@ -563,7 +563,7 @@ specs() ->
 -spec fork(alcove_drv:ref(),[pid_t()]) -> {'ok', pid_t()} | {'error', posix()}.
 -spec fork(alcove_drv:ref(),[pid_t()],timeout()) -> {'ok', pid_t()} | {'error', posix()}.
 
--spec getcpid(alcove_drv:ref(),[pid_t()],pid_t(),alcove_pid_field()) -> 'false' | non_neg_integer().
+-spec getcpid(alcove_drv:ref(),[pid_t()],pid_t(),alcove_pid_field()) -> 'false' | int32_t().
 
 -spec getcwd(alcove_drv:ref(),[pid_t()]) -> {'ok', binary()} | {'error', posix()}.
 -spec getcwd(alcove_drv:ref(),[pid_t()],timeout()) -> {'ok', binary()} | {'error', posix()}.
@@ -580,8 +580,8 @@ specs() ->
 -spec gethostname(alcove_drv:ref(),[pid_t()]) -> {'ok', binary()} | {'error', posix()}.
 -spec gethostname(alcove_drv:ref(),[pid_t()],timeout()) -> {'ok', binary()} | {'error', posix()}.
 
--spec getopt(alcove_drv:ref(),[pid_t()],atom()) -> 'false' | non_neg_integer().
--spec getopt(alcove_drv:ref(),[pid_t()],atom(),timeout()) -> 'false' | non_neg_integer().
+-spec getopt(alcove_drv:ref(),[pid_t()],atom()) -> 'false' | int32_t().
+-spec getopt(alcove_drv:ref(),[pid_t()],atom(),timeout()) -> 'false' | int32_t().
 
 -spec getpgrp(alcove_drv:ref(),[pid_t()]) -> pid_t().
 -spec getpgrp(alcove_drv:ref(),[pid_t()],timeout()) -> pid_t().
@@ -701,8 +701,8 @@ specs() ->
 -spec setenv(alcove_drv:ref(),[pid_t()],iodata(),iodata(),int32_t()) -> 'ok' | {'error', posix()}.
 -spec setenv(alcove_drv:ref(),[pid_t()],iodata(),iodata(),int32_t(),timeout()) -> 'ok' | {'error', posix()}.
 
--spec setcpid(alcove_drv:ref(),[pid_t()],pid_t(),alcove_pid_field(),uint32_t()) -> boolean().
--spec setcpid(alcove_drv:ref(),[pid_t()],pid_t(),alcove_pid_field(),uint32_t(),timeout()) -> boolean().
+-spec setcpid(alcove_drv:ref(),[pid_t()],pid_t(),alcove_pid_field(),int32_t()) -> boolean().
+-spec setcpid(alcove_drv:ref(),[pid_t()],pid_t(),alcove_pid_field(),int32_t(),timeout()) -> boolean().
 
 -spec setgid(alcove_drv:ref(),[pid_t()],gid_t()) -> 'ok' | {'error', posix()}.
 -spec setgid(alcove_drv:ref(),[pid_t()],gid_t(),timeout()) -> 'ok' | {'error', posix()}.
@@ -716,8 +716,8 @@ specs() ->
 -spec setns(alcove_drv:ref(),[pid_t()],iodata(),constant()) -> 'ok' | {'error', posix()}.
 -spec setns(alcove_drv:ref(),[pid_t()],iodata(),constant(),timeout()) -> 'ok' | {'error', posix()}.
 
--spec setopt(alcove_drv:ref(),[pid_t()],atom(),non_neg_integer()) -> boolean().
--spec setopt(alcove_drv:ref(),[pid_t()],atom(),non_neg_integer(),timeout()) -> boolean().
+-spec setopt(alcove_drv:ref(),[pid_t()],atom(),int32_t()) -> boolean().
+-spec setopt(alcove_drv:ref(),[pid_t()],atom(),int32_t(),timeout()) -> boolean().
 
 -spec setpgid(alcove_drv:ref(),[pid_t()],pid_t(),pid_t()) -> 'ok' | {'error', posix()}.
 -spec setpgid(alcove_drv:ref(),[pid_t()],pid_t(),pid_t(),timeout()) -> 'ok' | {'error', posix()}.
