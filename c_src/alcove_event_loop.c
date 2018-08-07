@@ -753,7 +753,7 @@ alcove_signal_event(alcove_state_t *ap, siginfo_t *info) {
         return -1;
 
     return 0;
-};
+}
 
     static int
 signal_pid(alcove_state_t *ap, alcove_child_t *c, void *arg1, void *arg2)
