@@ -89,6 +89,7 @@ socket/3
 symlink/2
 syscall_constant/1
 umount/1
+umount2/2
 unlink/1
 unsetenv/1
 unshare/1

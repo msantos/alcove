@@ -151,6 +151,9 @@ static const alcove_constant_t alcove_mount_constants[] = {
 #ifdef MNT_EXPIRE
     ALCOVE_CONSTANT(MNT_EXPIRE),
 #endif
+#ifdef UMOUNT_NOFOLLOW
+    ALCOVE_CONSTANT(UMOUNT_NOFOLLOW),
+#endif
 
 #ifdef MNT_NOATIME
     {"noatime", MNT_NOATIME},
