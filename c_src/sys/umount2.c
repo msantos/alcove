@@ -25,6 +25,13 @@
 alcove_sys_umount2(alcove_state_t *ap, const char *arg, size_t len,
         char *reply, size_t rlen)
 {
+#if defined(__sunos__)
+    UNUSED(ap);
+    UNUSED(arg);
+    UNUSED(len);
+
+    return alcove_mk_atom(reply, rlen, "undef");
+#else
     int index = 0;
 
     char source[PATH_MAX] = {0};
@@ -65,4 +72,5 @@ alcove_sys_umount2(alcove_state_t *ap, const char *arg, size_t len,
     return (rv < 0)
         ? alcove_mk_errno(reply, rlen, errno)
         : alcove_mk_atom(reply, rlen, "ok");
+#endif
 }
