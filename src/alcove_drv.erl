@@ -1,4 +1,4 @@
-%%% Copyright (c) 2014-2017, Michael Santos <michael.santos@gmail.com>
+%%% Copyright (c) 2014-2018, Michael Santos <michael.santos@gmail.com>
 %%%
 %%% Permission to use, copy, modify, and/or distribute this software for any
 %%% purpose with or without fee is hereby granted, provided that the above
@@ -139,7 +139,7 @@ init([Owner, Options]) ->
     % Control fifo for the port
     Ctldir = proplists:get_value(ctldir, Options, basedir(?MODULE)),
     Fifo = lists:concat([
-            Ctldir,
+            maybe_string(Ctldir),
             "/fdctl.",
             erlang:phash2([os:getpid(), self()])
         ]),
@@ -304,8 +304,8 @@ reply(Drv, Pids, Type, Timeout) ->
 %%--------------------------------------------------------------------
 -spec getopts(proplists:proplist()) -> list(string() | [string()]).
 getopts(Options) when is_list(Options) ->
-    Exec = proplists:get_value(exec, Options, ""),
-    Progname = proplists:get_value(progname, Options, progname()),
+    Exec = maybe_string(proplists:get_value(exec, Options, "")),
+    Progname = maybe_string(proplists:get_value(progname, Options, progname())),
 
     Options1 = lists:map(fun
                     (N) when is_atom(N) ->
@@ -326,6 +326,9 @@ switch(Switch, Arg) when is_binary(Arg) ->
     switch(Switch, binary_to_list(Arg));
 switch(Switch, Arg) ->
     [lists:concat(["-", Switch]), Arg].
+
+maybe_string(N) when is_list(N) -> N;
+maybe_string(N) when is_binary(N) -> binary_to_list(N).
 
 find_executable(Exe) ->
     case os:find_executable(Exe) of

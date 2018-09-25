@@ -368,6 +368,13 @@ alcove_drv
 
             Sets the path to the alcove executable.
 
+        {ctldir, Path}
+
+            Default: priv
+
+            Sets the path to the alcove control directory. The directory
+            must be writable by the alcove user.
+
     For the remaining options, see alcove:getopt/2,3.
 
 alcove
