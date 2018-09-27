@@ -500,6 +500,27 @@ atom is used as the argument and is not found on the platform.
 
         fcntl(2) : perform operations on a file descriptor
 
+    fexecve(Drv, ForkChain, FD, Argv, Env) -> ok | {error, posix()}
+
+        Types   FD = int32_t()
+        Types   Argv = [iodata()]
+                Env = [iodata()]
+
+        fexecve(2) : replace the process image, specifying the
+        environment for the new process image, using a previously opened
+        file descriptor.  The file descriptor can be set to close after
+        exec() by passing the O_CLOEXEC flag to open:
+
+            {ok, FD} = prx:open(Task, "/bin/ls", [o_rdonly,o_cloexec]),
+            ok = prx:fexecve(Task, FD, ["-al"], ["FOO=123"]).
+
+        Linux and FreeBSD only. Linux requires an environment be set unlike
+        with execve(2). The environment can be empty:
+
+            % Environment required on Linux
+            ok = prx:fexecve(Task, FD, ["-al"], [""]),
+            [<<>>] = prx:environ(Task).
+
     file_constant(Drv, ForkChain, atom()) -> integer() | unknown
 
         Constants for open(2).
