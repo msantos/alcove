@@ -16,7 +16,7 @@
 
 #include <sys/stat.h>
 
-static int alcove_signal_init();
+static int alcove_signal_init(int boot);
 static int alcove_rlimit_init();
 static int alcove_fd_init(char *fifo);
 static int alcove_fdmove(int fd, int dst);
@@ -78,9 +78,10 @@ main(int argc, char *argv[])
     if (ap->child == NULL)
         exit(ENOMEM);
 
+    if (alcove_signal_init(boot) < 0)
+        exit(errno);
+
     if (boot) {
-        if (alcove_signal_init() < 0)
-            exit(errno);
 
         if (alcove_rlimit_init() < 0)
             exit(errno);
@@ -96,7 +97,7 @@ main(int argc, char *argv[])
 }
 
     static int
-alcove_signal_init()
+alcove_signal_init(int boot)
 {
     struct sigaction act = {0};
     int sig = 0;
@@ -104,12 +105,14 @@ alcove_signal_init()
     act.sa_handler = SIG_DFL;
     (void)sigfillset(&act.sa_mask);
 
-    for (sig = 1; sig < NSIG; sig++) {
-        if (sigaction(sig, &act, NULL) < 0) {
-            if (errno == EINVAL)
-                continue;
+    if (boot) {
+        for (sig = 1; sig < NSIG; sig++) {
+            if (sigaction(sig, &act, NULL) < 0) {
+                if (errno == EINVAL)
+                    continue;
 
-            return -1;
+                return -1;
+            }
         }
     }
 

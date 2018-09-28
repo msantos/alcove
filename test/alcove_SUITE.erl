@@ -48,6 +48,7 @@
         execvp_with_signal/1,
         fcntl/1,
         fexecve/1,
+        fexecve_sigchld/1,
         file_constant/1,
         filter/1,
         flowcontrol/1,
@@ -161,6 +162,7 @@ groups() ->
         {linux, [sequence], [
                 setgroups,
                 fexecve,
+                fexecve_sigchld,
                 clone_constant,
                 prctl_constant,
                 ptrace_constant,
@@ -173,6 +175,7 @@ groups() ->
         {freebsd, [sequence], [
                 setgroups,
                 fexecve,
+                fexecve_sigchld,
                 jail,
                 cap_enter,
                 cap_rights_limit,
@@ -1252,6 +1255,19 @@ fexecve(Config) ->
     ok = alcove:fexecve(Drv, [Child], FD, [""], ["FOO=bar", "BAR=1234567"]),
     [<<"FOO=bar\nBAR=1234567\n">>] = alcove:stdout(Drv, [Child], 5000).
 
+fexecve_sigchld(_Config) ->
+  {ok, Drv} = alcove_drv:start_link(),
+
+  % Re-exec the alcove process
+  ok = fexecve_process_image(Drv, []),
+
+  {ok, Proc0} = alcove:fork(Drv, []),
+  {ok, Proc1} = alcove:fork(Drv, [Proc0]),
+  ok = alcove:execvp(Drv, [Proc0, Proc1], "cat", ["cat"]),
+  ok = alcove:exit(Drv, [Proc0], 0),
+
+  [] = alcove:cpid(Drv, []).
+
 %%
 %% Linux
 %%
@@ -1550,3 +1566,40 @@ stream_count(Drv, Chain, N) ->
         1000 ->
             {error, N}
     end.
+
+%
+% re-exec the alcove program
+%
+fexecve_process_image(Drv, Chain) ->
+  Progname = alcove_drv:progname(),
+  {ok, FD} = alcove:open(Drv, Chain, Progname, [o_rdonly, o_cloexec], 0),
+  Argv = alcove_drv:getopts([
+                             {progname, Progname},
+                             {depth, length(Chain)}
+                            ]),
+  Env = alcove:environ(Drv, Chain),
+
+  ok = setflag(Drv, Chain, [3,4,5,FD], fd_cloexec, unset),
+  Reply = alcove:fexecve(Drv, Chain, FD, Argv, Env),
+  ok = setflag(Drv, Chain, [3,4,5,FD], fd_cloexec, set),
+  Reply.
+
+setflag(_Drv, _Chain, [], _Flag, _Status) ->
+    ok;
+setflag(Drv, Chain, [FD|FDSet], Flag, Status) ->
+    Constant = alcove:fcntl_constant(Drv, Chain, Flag),
+    case alcove:fcntl(Drv, Chain, FD, f_getfd, 0) of
+        {ok, Flags} ->
+            case alcove:fcntl(Drv, Chain, FD, f_setfd,
+                              fdstatus(Flags, Constant, Status)) of
+                {ok, _NewFlags} ->
+                    setflag(Drv, Chain, FDSet, Flag, Status);
+                Error1 ->
+                    Error1
+            end;
+        Error ->
+            Error
+    end.
+
+fdstatus(Flags, Constant, set) -> Flags bor Constant;
+fdstatus(Flags, Constant, unset) -> Flags band (bnot Constant).
