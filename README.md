@@ -511,15 +511,15 @@ atom is used as the argument and is not found on the platform.
         file descriptor.  The file descriptor can be set to close after
         exec() by passing the O_CLOEXEC flag to open:
 
-            {ok, FD} = prx:open(Task, "/bin/ls", [o_rdonly,o_cloexec]),
-            ok = prx:fexecve(Task, FD, ["-al"], ["FOO=123"]).
+            {ok, Proc} = alcove:fork(Drv, []),
+            {ok, FD} = alcove:open(Drv, [Proc], "/bin/ls", [o_rdonly,o_cloexec]),
+            ok = alcove:fexecve(Drv, [Proc], FD, ["-al"], ["FOO=123"]).
 
-        Linux and FreeBSD only. Linux requires an environment be set unlike
+        Linux and FreeBSD only. Linux requires an environment to be set unlike
         with execve(2). The environment can be empty:
 
             % Environment required on Linux
-            ok = prx:fexecve(Task, FD, ["-al"], [""]),
-            [<<>>] = prx:environ(Task).
+            ok = alcove:fexecve(Drv, [Proc], FD, ["-al"], [""]).
 
     file_constant(Drv, ForkChain, atom()) -> integer() | unknown
 
