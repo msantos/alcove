@@ -1502,7 +1502,7 @@ pledge(Config) ->
     alcove:getuid(Drv, [Fork0]),
     alcove:getuid(Drv, [Fork1]),
 
-    {'EXIT',{{exit_status,_},_}} = (catch alcove:fork(Drv, [Fork0])),
+    {'EXIT',{{termsig,sigabrt},_}} = (catch alcove:fork(Drv, [Fork0])),
     {ok, _} = alcove:fork(Drv, [Fork1]),
     {'EXIT',{{termsig,sigabrt},_}} = (catch alcove:open(Drv, [Fork1], "/etc/passwd", [o_rdonly], 0)),
 
