@@ -93,6 +93,7 @@ umount2/2
 unlink/1
 unsetenv/1
 unshare/1
+unveil/2
 version/0
 waitpid/2
 write/2
