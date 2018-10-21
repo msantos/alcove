@@ -2,6 +2,7 @@
 _build
 c_src/alcove_call.h
 c_src/alcove_calls.h
+c_src/alcove_nr.h
 c_src/alcove_version.h
 deps/
 .depsolver_plt
