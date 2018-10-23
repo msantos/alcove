@@ -314,7 +314,7 @@ alcove_child_stdio(int fdin, u_int16_t depth, alcove_child_t *c,
      * XXX
      * XXX The return value (-2) is ignored.
      */
-    if ((c->fdctl == ALCOVE_CHILD_EXEC) && (c->flowcontrol == 0)) {
+    if ((c->fdctl == ALCOVE_CHILD_EXEC) && (c->flowcontrol == 0) && !c->exited) {
         return -2;
     }
 
@@ -487,6 +487,8 @@ exited_pid(alcove_state_t *ap, alcove_child_t *c, void *arg1, void *arg2)
 
     UNUSED(arg2);
 
+    c->exited = 1;
+
     /* Flush any pending reads and ensure messages are received in order */
     if (c->fdctl > -1) (void)read_child_fdctl(ap, c);
     if (c->fdout > -1) (void)read_child_stdout(ap, c);
@@ -498,7 +500,6 @@ exited_pid(alcove_state_t *ap, alcove_child_t *c, void *arg1, void *arg2)
             return -1;
     }
 
-    c->exited = 1;
     (void)close(c->fdin);
     c->fdin = -1;
 
