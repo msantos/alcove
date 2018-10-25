@@ -92,6 +92,7 @@
         syscall_constant/1,
         tmpfs/1,
         unshare/1,
+        unveil/1,
         version/1,
 
         no_os_specific_tests/1
@@ -182,7 +183,7 @@ groups() ->
                 cap_fcntls_limit,
                 cap_ioctls_limit
             ]},
-        {openbsd, [], [setgroups, pledge]},
+        {openbsd, [], [setgroups, pledge, unveil]},
         {darwin, [], [no_os_specific_tests]},
         {netbsd, [], [setgroups]},
         {solaris, [], [setgroups]}
@@ -1517,6 +1518,36 @@ pledge(Config) ->
     ok = (catch alcove:execvp(Drv, [Fork3], "cat", ["shouldfail"])),
 
     {termsig,sigabrt} = alcove:event(Drv, [Fork3], 2000),
+
+    ok.
+
+unveil(Config) ->
+    Drv = ?config(drv, Config),
+
+    {ok, Proc} = alcove:fork(Drv, []),
+
+    ok = alcove:unveil(Drv, [Proc], "/etc", "r"),
+    ok = alcove:unveil(Drv, [Proc], "/bin", "rx"),
+    ok = alcove:unveil(Drv, [Proc], "/sbin", "r"),
+    ok = alcove:unveil(Drv, [Proc], null, null),
+
+    {ok, SubProc} = alcove:fork(Drv, [Proc]),
+
+    % /usr/bin: not unveiled
+    {error, enoent} = alcove:open(Drv, [Proc, SubProc], "/usr/bin/vi", [o_rdonly], 0),
+
+    % /etc: unveiled
+    {ok, FD1} = alcove:open(Drv, [Proc, SubProc], "/etc/passwd", [o_rdonly], 0),
+    {ok, _} = alcove:read(Drv, [Proc, SubProc], FD1, 1024),
+
+    % /sbin: unveiled: read only
+    {ok, FD2} = alcove:open(Drv, [Proc, SubProc], "/sbin/mkfifo", [o_rdonly], 0),
+    {ok, _} = alcove:read(Drv, [Proc, SubProc], FD2, 1024),
+
+    {error, enoent} = alcove:execvp(Drv, [Proc, SubProc], "/sbin/mkfifo", ["mkfifo", "-h"]),
+
+    % /bin: unveiled: read + execute
+    ok = alcove:execvp(Drv, [Proc, SubProc], "/bin/ls", ["ls", "-h"]),
 
     ok.
 
