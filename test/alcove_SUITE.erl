@@ -52,6 +52,7 @@
         file_constant/1,
         filter/1,
         flowcontrol/1,
+        flowcontrol_fork_exec_exit/1,
         fork/1,
         forkchain/1,
         forkstress/1,
@@ -155,6 +156,7 @@ all() ->
         pipe_buf,
         signaloneof,
         flowcontrol,
+        flowcontrol_fork_exec_exit,
         filter
     ].
 
@@ -1219,6 +1221,37 @@ flowcontrol_wait(Drv, Chain, Timeout, N) ->
         timeout
     end.
 
+flowcontrol_fork_exec_exit(Config) ->
+    Drv = ?config(drv, Config),
+    Child = ?config(child, Config),
+
+    % enable default flowcontrol
+    true = alcove:setopt(Drv, [Child], flowcontrol, 1),
+
+    {ok, Proc0} = alcove:fork(Drv, [Child]),
+    ok = alcove:execvp(Drv, [Child, Proc0], "echo", ["echo", "test"]),
+
+    ok = receive
+           {alcove_event, Drv, [Child, Proc0], {exit_status,0}} ->
+             ok
+         after
+           5000 -> {error, timeout}
+         end,
+
+    {ok, Proc1} = alcove:fork(Drv, [Child]),
+    ok = alcove:execvp(Drv, [Child, Proc1], "echo", ["echo", "test"]),
+
+    ok = receive
+           {alcove_event, Drv, [Child, Proc1], {exit_status,0}} ->
+             ok
+         after
+           5000 -> {error, timeout}
+         end,
+
+    [] = alcove:cpid(Drv, [Child]),
+
+    ok.
+
 filter(Config) ->
     Drv = ?config(drv, Config),
 
@@ -1266,6 +1299,14 @@ fexecve_sigchld(_Config) ->
   {ok, Proc1} = alcove:fork(Drv, [Proc0]),
   ok = alcove:execvp(Drv, [Proc0, Proc1], "cat", ["cat"]),
   ok = alcove:exit(Drv, [Proc0], 0),
+
+  ok = receive
+         {alcove_event, Drv, [Proc0], {exit_status, _}} ->
+           ok
+       after
+         5000 ->
+           timeout
+       end,
 
   [] = alcove:cpid(Drv, []).
 
