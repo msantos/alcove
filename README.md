@@ -1206,6 +1206,15 @@ atom is used as the argument and is not found on the platform.
 
             % The port is now running in a namespace without network access.
 
+    unveil(Drv, ForkChain, Path, Permissions) -> ok | {error, posix()}
+
+        Types  Path = iodata() | null
+               Permissions = iodata() | null
+
+        OpenBSD only.
+
+        unveil(2) : restrict filesystem view
+
     version(Drv, ForkChain) -> binary()
 
         Retrieves the alcove version.
