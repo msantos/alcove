@@ -35,7 +35,9 @@ main([ModuleName, Proto]) ->
                     erl_syntax:arity_qualifier(erl_syntax:atom(calls), erl_syntax:integer(0))
                 ])]),
 
-    Body = erl_syntax:list([ erl_syntax:atom(N) || {N,_} <- proto(Proto) ]),
+    Calls = proto(Proto),
+
+    Body = erl_syntax:list([ erl_syntax:atom(N) || {N,_} <- Calls ]),
     Clause = erl_syntax:clause([], [], [Body]),
     Fun = [erl_syntax:function(erl_syntax:atom("calls"), [Clause])],
 
@@ -62,7 +64,7 @@ main([ModuleName, Proto]) ->
         Code0,
         [
             {"%%__STATIC__%%", static()},
-            {"%%__SPECS__%%", specs()}
+            {"%%__SPECS__%%", specs(Calls)}
         ]),
 
     io:format("~s~n", [Code]).
@@ -112,8 +114,15 @@ includes(Header) ->
     [ erl_syntax:attribute(erl_syntax:atom(include), [erl_syntax:string(N)]) || N <- Header ].
 
 % FIXME hack for hard coding typespecs
-specs() ->
-"".
+specs([{Call, _}|Calls]) ->
+    lists:flatten(["-export_type([call/0]).",
+                   "
+
+",
+                   "-type call() :: ",
+                   Call,
+                   [ [" | ", N] || {N, _} <- Calls ],
+                   "."]).
 
 license() ->
     {{Year,_,_},{_,_,_}} = calendar:universal_time(),
