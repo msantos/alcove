@@ -114,7 +114,8 @@ includes(Header) ->
     [ erl_syntax:attribute(erl_syntax:atom(include), [erl_syntax:string(N)]) || N <- Header ].
 
 % FIXME hack for hard coding typespecs
-specs([{Call, _}|Calls]) ->
+specs([{Call, _}|Calls] = X) ->
+    Max = integer_to_list(length(X)),
     lists:flatten(["-export_type([call/0]).",
                    "
 
@@ -122,7 +123,18 @@ specs([{Call, _}|Calls]) ->
                    "-type call() :: ",
                    Call,
                    [ [" | ", N] || {N, _} <- Calls ],
-                   "."]).
+                   "."
+                   "
+
+",
+                   "-spec call(call()) -> 0..", Max, ".",
+                   "
+",
+                   "-spec will_return(call()) -> boolean().",
+                   "
+",
+                   "-spec calls() -> [call(),...]."
+                  ]).
 
 license() ->
     {{Year,_,_},{_,_,_}} = calendar:universal_time(),
