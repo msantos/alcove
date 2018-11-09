@@ -560,6 +560,9 @@ specs() ->
 -spec file_constant(alcove_drv:ref(),[pid_t()],atom()) -> non_neg_integer() | 'unknown'.
 -spec file_constant(alcove_drv:ref(),[pid_t()],atom(),timeout()) -> non_neg_integer() | 'unknown'.
 
+-spec filter(alcove_drv:ref(),[pid_t()],alcove_proto:call()) -> ok | {'error', 'einval'}.
+-spec filter(alcove_drv:ref(),[pid_t()],alcove_proto:call(),timeout()) -> ok | {'error', 'einval'}.
+
 -spec fork(alcove_drv:ref(),[pid_t()]) -> {'ok', pid_t()} | {'error', posix()}.
 -spec fork(alcove_drv:ref(),[pid_t()],timeout()) -> {'ok', pid_t()} | {'error', posix()}.
 
