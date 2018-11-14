@@ -775,6 +775,9 @@ specs() ->
 -spec umount(alcove_drv:ref(),[pid_t()],iodata()) -> 'ok' | {error, posix()}.
 -spec umount(alcove_drv:ref(),[pid_t()],iodata(),timeout()) -> 'ok' | {error, posix()}.
 
+-spec umount2(alcove_drv:ref(),[pid_t()],iodata(),int32_t() | [constant()]) -> 'ok' | {error, posix()}.
+-spec umount2(alcove_drv:ref(),[pid_t()],iodata(),int32_t() | [constant()],timeout()) -> 'ok' | {error, posix()}.
+
 -spec unsetenv(alcove_drv:ref(),[pid_t()],iodata()) -> 'ok' | {error, posix()}.
 -spec unsetenv(alcove_drv:ref(),[pid_t()],iodata(),timeout()) -> 'ok' | {error, posix()}.
 
