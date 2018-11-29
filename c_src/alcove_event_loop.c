@@ -445,7 +445,7 @@ alcove_read(int fd, void *buf, ssize_t len)
     ssize_t got = 0;
 
     do {
-        if ((i = read(fd, buf + got, len - got)) <= 0)
+        if ((i = read(fd, (char *)buf + got, len - got)) <= 0)
             return i;
         got += i;
     } while (got < len);
