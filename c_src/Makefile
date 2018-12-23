@@ -16,23 +16,35 @@ C_SRC_OUTPUT ?= $(CURDIR)/../priv/$(PROJECT)
 UNAME_SYS := $(shell uname -s)
 ifeq ($(UNAME_SYS), Darwin)
 	CC ?= cc
-	LDFLAGS ?= -Wno-missing-braces
-	CFLAGS ?= -D_FORTIFY_SOURCE=2 -O2 -fstack-protector-strong -Wformat -Werror=format-security -fno-strict-aliasing
+	LDFLAGS ?= -Wno-missing-braces -Wl,-z,noexecstack
+	CFLAGS ?= -D_FORTIFY_SOURCE=2 -O2 -fstack-protector-strong \
+					 	-Wformat -Werror=format-security \
+					 	-pie -fPIE \
+					 	-fno-strict-aliasing
 else ifeq ($(UNAME_SYS), FreeBSD)
 	CC ?= cc
-	LDFLAGS ?= -Wno-missing-braces -Wl,-Bsymbolic-functions -Wl,-z,relro,-z,now
-	CFLAGS ?= -D_FORTIFY_SOURCE=2 -O2 -fstack-protector-strong -Wformat -Werror=format-security -fno-strict-aliasing \
+	LDFLAGS ?= -Wno-missing-braces -Wl,-Bsymbolic-functions -Wl,-z,relro,-z,now -Wl,-z,noexecstack
+	CFLAGS ?= -D_FORTIFY_SOURCE=2 -O2 -fstack-protector-strong \
+					 	-Wformat -Werror=format-security \
+					 	-pie -fPIE \
+					 	-fno-strict-aliasing \
 	          -DHAVE_STDINT_H -DHAVE_REALLOCARRAY -DHAVE_SETPROCTITLE
 else ifeq ($(UNAME_SYS), OpenBSD)
 	CC ?= cc
-	LDFLAGS ?= -Wno-missing-braces -Wl,-z,relro,-z,now
-	CFLAGS ?= -D_FORTIFY_SOURCE=2 -O2 -fstack-protector-strong -Wformat -Werror=format-security -fno-strict-aliasing \
+	LDFLAGS ?= -Wno-missing-braces -Wl,-z,relro,-z,now -Wl,-z,noexecstack
+	CFLAGS ?= -D_FORTIFY_SOURCE=2 -O2 -fstack-protector-strong \
+					 	-Wformat -Werror=format-security \
+					 	-pie -fPIE \
+					 	-fno-strict-aliasing \
 	          -DHAVE_REALLOCARRAY -DHAVE_RECALLOCARRAY -DHAVE_SETPROCTITLE
 else ifeq ($(UNAME_SYS), Linux)
 	CC ?= cc
-	LDFLAGS ?= -Wl,-Bsymbolic-functions -Wl,-z,relro,-z,now
-	CFLAGS ?= -D_FORTIFY_SOURCE=2 -O2 -fstack-protector-strong -Wformat -Werror=format-security -fno-strict-aliasing
-	CFLAGS += -DHAVE_STDINT_H
+	LDFLAGS ?= -Wl,-Bsymbolic-functions -Wl,-z,relro,-z,now -Wl,-z,noexecstack
+	CFLAGS ?= -D_FORTIFY_SOURCE=2 -O2 -fstack-protector-strong \
+					 	-Wformat -Werror=format-security \
+					 	-pie -fPIE \
+					 	-fno-strict-aliasing \
+					 	-DHAVE_STDINT_H
 else ifeq ($(UNAME_SYS), SunOS)
 	LDFLAGS += -lsocket -lnsl
 	CFLAGS += -std=c99 -D_POSIX_C_SOURCE=200112L -D__EXTENSIONS__=1 -fno-strict-aliasing
