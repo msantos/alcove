@@ -489,7 +489,7 @@ mount(Config) ->
                     ms_rdonly,
                     ms_noexec
                 ], "", ""),
-            ok = alcove:umount2(Drv, [Child], "/mnt", [mnt_force, mnt_detach]);
+            ok = alcove:umount2(Drv, [Child], "/mnt", [mnt_detach]);
 
         false ->
             {skip, "mount namespaces not supported"}
