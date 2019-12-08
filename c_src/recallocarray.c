@@ -28,6 +28,7 @@
 #include <unistd.h>
 
 #include "explicit_bzero.h"
+#include "recallocarray.h"
 
 /*
  * This is sqrt(SIZE_MAX+1), as s1*s2 <= SIZE_MAX

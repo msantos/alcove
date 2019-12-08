@@ -39,6 +39,10 @@
 #include "alcove_version.h"
 #include "alcove_nr.h"
 
+#include "reallocarray.h"
+#include "recallocarray.h"
+#include "setproctitle.h"
+
 #if defined(__sun) && defined(__SVR4)
 #define u_int8_t        uint8_t
 #define u_int16_t       uint16_t
@@ -244,16 +248,3 @@ ssize_t alcove_call(alcove_state_t *ap, u_int32_t call,
         const char *arg, size_t len, char *reply, size_t rlen);
 
 char *erl_errno_id(int error);
-
-#ifndef HAVE_REALLOCARRAY
-void *reallocarray(void *optr, size_t nmemb, size_t size);
-#endif
-
-#ifndef HAVE_RECALLOCARRAY
-void *recallocarray(void *ptr, size_t oldnmemb, size_t newnmemb, size_t size);
-#endif
-
-#ifndef HAVE_SETPROCTITLE
-void spt_init(int argc, char *argv[]);
-void setproctitle(const char *fmt, ...);
-#endif

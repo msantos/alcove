@@ -7,6 +7,8 @@
 
 #include <string.h>
 
+#include "explicit_bzero.h"
+
 /*
  * explicit_bzero - don't let the compiler optimize away bzero
  */
