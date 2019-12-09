@@ -17,7 +17,7 @@
 #include <sys/stat.h>
 
 static int alcove_signal_init(int boot);
-static int alcove_rlimit_init();
+static int alcove_rlimit_init(void);
 static int alcove_fd_init(char *fifo);
 static int alcove_fdmove(int fd, int dst);
 
@@ -126,7 +126,7 @@ alcove_signal_init(int boot)
 }
 
     static int
-alcove_rlimit_init()
+alcove_rlimit_init(void)
 {
     struct rlimit stack_size = {0};
 

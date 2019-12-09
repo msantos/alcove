@@ -49,4 +49,5 @@
 #  endif
 #endif
 
+char *erl_errno_id(int error);
 #endif

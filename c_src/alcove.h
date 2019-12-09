@@ -246,5 +246,3 @@ ssize_t alcove_mk_ulong(char *, size_t, unsigned long);
 
 ssize_t alcove_call(alcove_state_t *ap, u_int32_t call,
         const char *arg, size_t len, char *reply, size_t rlen);
-
-char *erl_errno_id(int error);
