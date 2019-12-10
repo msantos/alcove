@@ -17,6 +17,7 @@
 
 #if defined(__FreeBSD__)
 #include <sys/capsicum.h>
+
 #include "alcove_cap_constants.h"
 
 static int alcove_decode_cap_rights_list(const char *buf, size_t len,

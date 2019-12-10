@@ -14,6 +14,7 @@
  */
 #include "alcove.h"
 #include "alcove_call.h"
+
 #include "alcove_ioctl_constants.h"
 
 typedef struct {

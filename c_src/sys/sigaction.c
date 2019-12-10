@@ -14,6 +14,7 @@
  */
 #include "alcove.h"
 #include "alcove_call.h"
+
 #include "alcove_signal_constants.h"
 
 static int atom_to_sighandler(struct sigaction *act, int signum,

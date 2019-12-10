@@ -14,7 +14,9 @@
  */
 #include "alcove.h"
 #include "alcove_call.h"
+
 #include <sys/mount.h>
+
 #include "alcove_mount_constants.h"
 
 #define MAYBE_NULL(_len, _buf) ((_len) == 0 ? NULL : (_buf))

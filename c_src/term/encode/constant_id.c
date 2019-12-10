@@ -13,6 +13,7 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 #include "alcove.h"
+
 #include <ctype.h>
 
 static int alcove_encode_atom_to_lower(char *buf, size_t len, int *index,

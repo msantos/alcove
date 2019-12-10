@@ -14,9 +14,11 @@
  */
 #include "alcove.h"
 #include "alcove_call.h"
+
 #include "alcove_file_constants.h"
 
 #include <sys/stat.h>
+
 #include <fcntl.h>
 
 /*
