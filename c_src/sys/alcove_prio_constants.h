@@ -23,5 +23,4 @@ static const alcove_constant_t alcove_prio_constants[] = {
     ALCOVE_CONSTANT(PRIO_USER),
 #endif
 
-    {NULL, 0}
-};
+    {NULL, 0}};

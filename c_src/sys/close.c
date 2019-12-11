@@ -19,20 +19,17 @@
  * close(2)
  *
  */
-    ssize_t
-alcove_sys_close(alcove_state_t *ap, const char *arg, size_t len,
-        char *reply, size_t rlen)
-{
-    int index = 0;
-    int fd = 0;
+ssize_t alcove_sys_close(alcove_state_t *ap, const char *arg, size_t len,
+                         char *reply, size_t rlen) {
+  int index = 0;
+  int fd = 0;
 
-    UNUSED(ap);
+  UNUSED(ap);
 
-    /* fd */
-    if (alcove_decode_int(arg, len, &index, &fd) < 0)
-        return -1;
+  /* fd */
+  if (alcove_decode_int(arg, len, &index, &fd) < 0)
+    return -1;
 
-    return (close(fd) < 0)
-        ? alcove_mk_errno(reply, rlen, errno)
-        : alcove_mk_atom(reply, rlen, "ok");
+  return (close(fd) < 0) ? alcove_mk_errno(reply, rlen, errno)
+                         : alcove_mk_atom(reply, rlen, "ok");
 }

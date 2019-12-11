@@ -21,36 +21,33 @@
  * kill(2)
  *
  */
-    ssize_t
-alcove_sys_kill(alcove_state_t *ap, const char *arg, size_t len,
-        char *reply, size_t rlen)
-{
-    int index = 0;
+ssize_t alcove_sys_kill(alcove_state_t *ap, const char *arg, size_t len,
+                        char *reply, size_t rlen) {
+  int index = 0;
 
-    pid_t pid = 0;
-    int signum = 0;
-    int rv = 0;
+  pid_t pid = 0;
+  int signum = 0;
+  int rv = 0;
 
-    UNUSED(ap);
+  UNUSED(ap);
 
-    /* pid */
-    if (alcove_decode_int(arg, len, &index, &pid) < 0)
-        return -1;
+  /* pid */
+  if (alcove_decode_int(arg, len, &index, &pid) < 0)
+    return -1;
 
-    /* signal */
-    switch (alcove_decode_constant(arg, len, &index, &signum,
-                alcove_signal_constants)) {
-        case 0:
-            break;
-        case 1:
-            return alcove_mk_error(reply, rlen, "enotsup");
-        default:
-            return -1;
-    }
+  /* signal */
+  switch (alcove_decode_constant(arg, len, &index, &signum,
+                                 alcove_signal_constants)) {
+  case 0:
+    break;
+  case 1:
+    return alcove_mk_error(reply, rlen, "enotsup");
+  default:
+    return -1;
+  }
 
-    rv = kill(pid, signum);
+  rv = kill(pid, signum);
 
-    return (rv < 0)
-        ? alcove_mk_errno(reply, rlen, errno)
-        : alcove_mk_atom(reply, rlen, "ok");
+  return (rv < 0) ? alcove_mk_errno(reply, rlen, errno)
+                  : alcove_mk_atom(reply, rlen, "ok");
 }

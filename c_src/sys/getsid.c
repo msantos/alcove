@@ -18,29 +18,26 @@
 /*
  * getsid(2)
  */
-    ssize_t
-alcove_sys_getsid(alcove_state_t *ap, const char *arg, size_t len,
-        char *reply, size_t rlen)
-{
-    int index = 0;
-    int rindex = 0;
+ssize_t alcove_sys_getsid(alcove_state_t *ap, const char *arg, size_t len,
+                          char *reply, size_t rlen) {
+  int index = 0;
+  int rindex = 0;
 
-    pid_t pid = 0;
-    pid_t rv = 0;
+  pid_t pid = 0;
+  pid_t rv = 0;
 
-    UNUSED(ap);
+  UNUSED(ap);
 
-    /* pid */
-    if (alcove_decode_int(arg, len, &index, &pid) < 0)
-        return -1;
+  /* pid */
+  if (alcove_decode_int(arg, len, &index, &pid) < 0)
+    return -1;
 
-    rv = getsid(pid);
+  rv = getsid(pid);
 
-    if (rv < 0)
-        return alcove_mk_errno(reply, rlen, errno);
+  if (rv < 0)
+    return alcove_mk_errno(reply, rlen, errno);
 
-    ALCOVE_OK(reply, rlen, &rindex,
-        alcove_encode_long(reply, rlen, &rindex, rv));
+  ALCOVE_OK(reply, rlen, &rindex, alcove_encode_long(reply, rlen, &rindex, rv));
 
-    return rindex;
+  return rindex;
 }

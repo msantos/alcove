@@ -20,31 +20,29 @@
  * clone flags
  *
  */
-    ssize_t
-alcove_sys_clone_constant(alcove_state_t *ap, const char *arg, size_t len,
-        char *reply, size_t rlen)
-{
+ssize_t alcove_sys_clone_constant(alcove_state_t *ap, const char *arg,
+                                  size_t len, char *reply, size_t rlen) {
 #ifdef __linux__
-    int index = 0;
-    int rindex = 0;
+  int index = 0;
+  int rindex = 0;
 
-    char flag[MAXATOMLEN] = {0};
+  char flag[MAXATOMLEN] = {0};
 
-    UNUSED(ap);
+  UNUSED(ap);
 
-    /* flag */
-    if (alcove_decode_atom(arg, len, &index, flag) < 0)
-        return -1;
+  /* flag */
+  if (alcove_decode_atom(arg, len, &index, flag) < 0)
+    return -1;
 
-    ALCOVE_ERR(alcove_encode_version(reply, rlen, &rindex));
-    ALCOVE_ERR(alcove_encode_constant(reply, rlen, &rindex,
-                flag, alcove_clone_constants));
-    return rindex;
+  ALCOVE_ERR(alcove_encode_version(reply, rlen, &rindex));
+  ALCOVE_ERR(alcove_encode_constant(reply, rlen, &rindex, flag,
+                                    alcove_clone_constants));
+  return rindex;
 #else
-    UNUSED(ap);
-    UNUSED(arg);
-    UNUSED(len);
+  UNUSED(ap);
+  UNUSED(arg);
+  UNUSED(len);
 
-    return alcove_mk_atom(reply, rlen, "undef");
+  return alcove_mk_atom(reply, rlen, "undef");
 #endif
 }

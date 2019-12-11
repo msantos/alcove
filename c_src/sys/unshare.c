@@ -23,35 +23,32 @@
  * unshare(2)
  *
  */
-    ssize_t
-alcove_sys_unshare(alcove_state_t *ap, const char *arg, size_t len,
-        char *reply, size_t rlen)
-{
+ssize_t alcove_sys_unshare(alcove_state_t *ap, const char *arg, size_t len,
+                           char *reply, size_t rlen) {
 #ifdef __linux__
-    int index = 0;
-    int flags = 0;
+  int index = 0;
+  int flags = 0;
 
-    UNUSED(ap);
+  UNUSED(ap);
 
-    /* flags */
-    switch (alcove_decode_constant_list(arg, len, &index, &flags,
-                alcove_clone_constants)) {
-        case 0:
-            break;
-        case 1:
-            return alcove_mk_error(reply, rlen, "enotsup");
-        default:
-            return -1;
-    }
+  /* flags */
+  switch (alcove_decode_constant_list(arg, len, &index, &flags,
+                                      alcove_clone_constants)) {
+  case 0:
+    break;
+  case 1:
+    return alcove_mk_error(reply, rlen, "enotsup");
+  default:
+    return -1;
+  }
 
-    return (unshare(flags) < 0)
-        ? alcove_mk_errno(reply, rlen, errno)
-        : alcove_mk_atom(reply, rlen, "ok");
+  return (unshare(flags) < 0) ? alcove_mk_errno(reply, rlen, errno)
+                              : alcove_mk_atom(reply, rlen, "ok");
 #else
-    UNUSED(ap);
-    UNUSED(arg);
-    UNUSED(len);
+  UNUSED(ap);
+  UNUSED(arg);
+  UNUSED(len);
 
-    return alcove_mk_atom(reply, rlen, "undef");
+  return alcove_mk_atom(reply, rlen, "undef");
 #endif
 }

@@ -104,5 +104,4 @@ static const alcove_constant_t alcove_socket_constants[] = {
     ALCOVE_CONSTANT(SOCK_STREAM),
 #endif
 
-    {NULL, 0}
-};
+    {NULL, 0}};

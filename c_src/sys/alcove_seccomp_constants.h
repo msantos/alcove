@@ -23,5 +23,4 @@ static const alcove_constant_t alcove_seccomp_constants[] = {
     ALCOVE_CONSTANT(SECCOMP_FILTER_FLAG_TSYNC),
 #endif
 
-    {NULL, 0}
-};
+    {NULL, 0}};

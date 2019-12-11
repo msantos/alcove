@@ -147,5 +147,4 @@ static const alcove_constant_t alcove_ptrace_constants[] = {
     ALCOVE_CONSTANT(PTRACE_O_MASK),
 #endif
 
-    {NULL, 0}
-};
+    {NULL, 0}};

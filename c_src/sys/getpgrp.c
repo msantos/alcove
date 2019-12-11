@@ -18,13 +18,11 @@
 /*
  * getpgrp(2)
  */
-    ssize_t
-alcove_sys_getpgrp(alcove_state_t *ap, const char *arg, size_t len,
-        char *reply, size_t rlen)
-{
-    UNUSED(ap);
-    UNUSED(arg);
-    UNUSED(len);
+ssize_t alcove_sys_getpgrp(alcove_state_t *ap, const char *arg, size_t len,
+                           char *reply, size_t rlen) {
+  UNUSED(ap);
+  UNUSED(arg);
+  UNUSED(len);
 
-    return alcove_mk_long(reply, rlen, getpgrp());
+  return alcove_mk_long(reply, rlen, getpgrp());
 }

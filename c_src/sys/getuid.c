@@ -19,13 +19,11 @@
  * getuid(2)
  *
  */
-    ssize_t
-alcove_sys_getuid(alcove_state_t *ap, const char *arg, size_t len,
-        char *reply, size_t rlen)
-{
-    UNUSED(ap);
-    UNUSED(arg);
-    UNUSED(len);
+ssize_t alcove_sys_getuid(alcove_state_t *ap, const char *arg, size_t len,
+                          char *reply, size_t rlen) {
+  UNUSED(ap);
+  UNUSED(arg);
+  UNUSED(len);
 
-    return alcove_mk_ulong(reply, rlen, getuid());
+  return alcove_mk_ulong(reply, rlen, getuid());
 }

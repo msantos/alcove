@@ -18,39 +18,35 @@
 /*
  * getresgid(2)
  */
-    ssize_t
-alcove_sys_getresgid(alcove_state_t *ap, const char *arg, size_t len,
-        char *reply, size_t rlen)
-{
+ssize_t alcove_sys_getresgid(alcove_state_t *ap, const char *arg, size_t len,
+                             char *reply, size_t rlen) {
 #if defined(__sunos__) || defined(__APPLE__)
-    UNUSED(ap);
-    UNUSED(arg);
-    UNUSED(len);
+  UNUSED(ap);
+  UNUSED(arg);
+  UNUSED(len);
 
-    return alcove_mk_atom(reply, rlen, "undef");
+  return alcove_mk_atom(reply, rlen, "undef");
 #else
-    int rindex = 0;
-    gid_t gid = {0};
-    gid_t egid = {0};
-    gid_t sgid = {0};
-    int rv = 0;
+  int rindex = 0;
+  gid_t gid = {0};
+  gid_t egid = {0};
+  gid_t sgid = {0};
+  int rv = 0;
 
-    UNUSED(ap);
-    UNUSED(arg);
-    UNUSED(len);
+  UNUSED(ap);
+  UNUSED(arg);
+  UNUSED(len);
 
-    rv = getresgid(&gid, &egid, &sgid);
+  rv = getresgid(&gid, &egid, &sgid);
 
-    if (rv < 0)
-        return  alcove_mk_errno(reply, rlen, errno);
+  if (rv < 0)
+    return alcove_mk_errno(reply, rlen, errno);
 
-    ALCOVE_TUPLE4(reply, rlen, &rindex,
-            "ok",
-            alcove_encode_ulonglong(reply, rlen, &rindex, gid),
-            alcove_encode_ulonglong(reply, rlen, &rindex, egid),
-            alcove_encode_ulonglong(reply, rlen, &rindex, sgid)
-            );
+  ALCOVE_TUPLE4(reply, rlen, &rindex, "ok",
+                alcove_encode_ulonglong(reply, rlen, &rindex, gid),
+                alcove_encode_ulonglong(reply, rlen, &rindex, egid),
+                alcove_encode_ulonglong(reply, rlen, &rindex, sgid));
 
-    return rindex;
+  return rindex;
 #endif
 }

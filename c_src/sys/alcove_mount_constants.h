@@ -172,5 +172,4 @@ static const alcove_constant_t alcove_mount_constants[] = {
     ALCOVE_CONSTANT(MNT_NOSUID),
 #endif
 
-    {NULL, 0}
-};
+    {NULL, 0}};

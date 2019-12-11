@@ -255,5 +255,4 @@ static const alcove_constant_t alcove_prctl_constants[] = {
     ALCOVE_CONSTANT(SECCOMP_RET_DATA),
 #endif
 
-    {NULL, 0}
-};
+    {NULL, 0}};

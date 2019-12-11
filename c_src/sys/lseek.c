@@ -19,35 +19,32 @@
  * lseek(2)
  *
  */
-    ssize_t
-alcove_sys_lseek(alcove_state_t *ap, const char *arg, size_t len,
-        char *reply, size_t rlen)
-{
-    int index = 0;
+ssize_t alcove_sys_lseek(alcove_state_t *ap, const char *arg, size_t len,
+                         char *reply, size_t rlen) {
+  int index = 0;
 
-    int fd = 0;
-    off_t offset = 0;
-    int whence = 0;
+  int fd = 0;
+  off_t offset = 0;
+  int whence = 0;
 
-    long long val = 0;
+  long long val = 0;
 
-    UNUSED(ap);
+  UNUSED(ap);
 
-    /* fd */
-    if (alcove_decode_int(arg, len, &index, &fd) < 0)
-        return -1;
+  /* fd */
+  if (alcove_decode_int(arg, len, &index, &fd) < 0)
+    return -1;
 
-    /* offset */
-    if (alcove_decode_longlong(arg, len, &index, &val) < 0)
-        return -1;
+  /* offset */
+  if (alcove_decode_longlong(arg, len, &index, &val) < 0)
+    return -1;
 
-    offset = val;
+  offset = val;
 
-    /* whence */
-    if (alcove_decode_int(arg, len, &index, &whence) < 0)
-        return -1;
+  /* whence */
+  if (alcove_decode_int(arg, len, &index, &whence) < 0)
+    return -1;
 
-    return (lseek(fd, offset, whence) == -1)
-        ? alcove_mk_errno(reply, rlen, errno)
-        : alcove_mk_atom(reply, rlen, "ok");
+  return (lseek(fd, offset, whence) == -1) ? alcove_mk_errno(reply, rlen, errno)
+                                           : alcove_mk_atom(reply, rlen, "ok");
 }

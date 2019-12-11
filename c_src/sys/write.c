@@ -19,37 +19,34 @@
  * write(2)
  *
  */
-    ssize_t
-alcove_sys_write(alcove_state_t *ap, const char *arg, size_t len,
-        char *reply, size_t rlen)
-{
-    int index = 0;
-    int rindex = 0;
+ssize_t alcove_sys_write(alcove_state_t *ap, const char *arg, size_t len,
+                         char *reply, size_t rlen) {
+  int index = 0;
+  int rindex = 0;
 
-    int fd = -1;
-    char buf[MAXMSGLEN] = {0};
-    size_t buflen = sizeof(buf);
-    int rv = 0;
+  int fd = -1;
+  char buf[MAXMSGLEN] = {0};
+  size_t buflen = sizeof(buf);
+  int rv = 0;
 
-    UNUSED(ap);
+  UNUSED(ap);
 
-    /* fd */
-    if (alcove_decode_int(arg, len, &index, &fd) < 0)
-        return -1;
+  /* fd */
+  if (alcove_decode_int(arg, len, &index, &fd) < 0)
+    return -1;
 
-    /* buf */
-    if (alcove_decode_iolist(arg, len, &index, buf, &buflen) < 0)
-        return -1;
+  /* buf */
+  if (alcove_decode_iolist(arg, len, &index, buf, &buflen) < 0)
+    return -1;
 
-    rv = write(fd, buf, buflen);
+  rv = write(fd, buf, buflen);
 
-    if (rv < 0) {
-        rindex = alcove_mk_errno(reply, rlen, errno);
-    }
-    else {
-        ALCOVE_OK(reply, rlen, &rindex,
-            alcove_encode_longlong(reply, rlen, &rindex, rv));
-    }
+  if (rv < 0) {
+    rindex = alcove_mk_errno(reply, rlen, errno);
+  } else {
+    ALCOVE_OK(reply, rlen, &rindex,
+              alcove_encode_longlong(reply, rlen, &rindex, rv));
+  }
 
-    return rindex;
+  return rindex;
 }

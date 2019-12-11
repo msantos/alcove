@@ -23,16 +23,16 @@
 #include "alcove_ptrace_constants.h"
 
 typedef struct {
-    u_char type;
-    unsigned long arg;
-    char data[MAXMSGLEN];
-    size_t len;
+  u_char type;
+  unsigned long arg;
+  char data[MAXMSGLEN];
+  size_t len;
 } alcove_ptrace_arg_t;
 
 enum {
-    ALCOVE_PTRACEARG_INT,
-    ALCOVE_PTRACEARG_CSTRUCT,
-    ALCOVE_PTRACEARG_BINARY
+  ALCOVE_PTRACEARG_INT,
+  ALCOVE_PTRACEARG_CSTRUCT,
+  ALCOVE_PTRACEARG_BINARY
 };
 #endif
 
@@ -42,159 +42,153 @@ enum {
  * ptrace(2)
  *
  */
-    ssize_t
-alcove_sys_ptrace(alcove_state_t *ap, const char *arg, size_t len,
-        char *reply, size_t rlen)
-{
+ssize_t alcove_sys_ptrace(alcove_state_t *ap, const char *arg, size_t len,
+                          char *reply, size_t rlen) {
 #if defined(__linux__)
-    int index = 0;
-    int rindex = 0;
-    int type = 0;
-    int arity = 0;
+  int index = 0;
+  int rindex = 0;
+  int type = 0;
+  int arity = 0;
 
-    int request = 0;
-    pid_t pid = 0;
-    alcove_ptrace_arg_t addr = {0};
-    alcove_ptrace_arg_t data = {0};
-    alcove_alloc_t *elem = NULL;
-    ssize_t nelem = 0;
+  int request = 0;
+  pid_t pid = 0;
+  alcove_ptrace_arg_t addr = {0};
+  alcove_ptrace_arg_t data = {0};
+  alcove_alloc_t *elem = NULL;
+  ssize_t nelem = 0;
 
-    long rv = 0;
+  long rv = 0;
 
-    UNUSED(ap);
+  UNUSED(ap);
 
-    /* request */
-    switch (alcove_decode_constant(arg, len, &index, &request,
-                alcove_ptrace_constants)) {
-        case 0:
-            break;
-        case 1:
-            return alcove_mk_error(reply, rlen, "enotsup");
-        default:
-            return -1;
-    }
+  /* request */
+  switch (alcove_decode_constant(arg, len, &index, &request,
+                                 alcove_ptrace_constants)) {
+  case 0:
+    break;
+  case 1:
+    return alcove_mk_error(reply, rlen, "enotsup");
+  default:
+    return -1;
+  }
 
-    /* pid */
-    if (alcove_decode_int(arg, len, &index, &pid) < 0)
-        return -1;
+  /* pid */
+  if (alcove_decode_int(arg, len, &index, &pid) < 0)
+    return -1;
 
-    /* addr */
-    if (alcove_get_type(arg, len, &index, &type, &arity) < 0)
-        return -1;
+  /* addr */
+  if (alcove_get_type(arg, len, &index, &type, &arity) < 0)
+    return -1;
 
-    switch (type) {
-        case ERL_SMALL_INTEGER_EXT:
-        case ERL_INTEGER_EXT:
-            addr.type = ALCOVE_PTRACEARG_INT;
-            if (alcove_decode_ulong(arg, len, &index, &addr.arg) < 0)
-                return -1;
+  switch (type) {
+  case ERL_SMALL_INTEGER_EXT:
+  case ERL_INTEGER_EXT:
+    addr.type = ALCOVE_PTRACEARG_INT;
+    if (alcove_decode_ulong(arg, len, &index, &addr.arg) < 0)
+      return -1;
 
-            break;
+    break;
 
-        case ERL_LIST_EXT:
-            addr.type = ALCOVE_PTRACEARG_CSTRUCT;
-            addr.len = sizeof(addr.data);
-            if (alcove_decode_cstruct(arg, len, &index, addr.data,
-                &(addr.len), &elem, &nelem) < 0)
-                return -1;
+  case ERL_LIST_EXT:
+    addr.type = ALCOVE_PTRACEARG_CSTRUCT;
+    addr.len = sizeof(addr.data);
+    if (alcove_decode_cstruct(arg, len, &index, addr.data, &(addr.len), &elem,
+                              &nelem) < 0)
+      return -1;
 
-            break;
+    break;
 
-        case ERL_BINARY_EXT:
-            addr.type = ALCOVE_PTRACEARG_BINARY;
-            if (arity > sizeof(addr.data))
-                return -1;
-            if (alcove_decode_binary(arg, len, &index,
-                        addr.data, &addr.len) < 0)
-                return -1;
+  case ERL_BINARY_EXT:
+    addr.type = ALCOVE_PTRACEARG_BINARY;
+    if (arity > sizeof(addr.data))
+      return -1;
+    if (alcove_decode_binary(arg, len, &index, addr.data, &addr.len) < 0)
+      return -1;
 
-            break;
+    break;
 
-        default:
-            return -1;
-    }
+  default:
+    return -1;
+  }
 
-    /* data */
-    if (alcove_get_type(arg, len, &index, &type, &arity) < 0)
-        return -1;
+  /* data */
+  if (alcove_get_type(arg, len, &index, &type, &arity) < 0)
+    return -1;
 
-    switch (type) {
-        case ERL_SMALL_INTEGER_EXT:
-        case ERL_INTEGER_EXT:
-            data.type = ALCOVE_PTRACEARG_INT;
-            if (alcove_decode_ulong(arg, len, &index, &data.arg) < 0)
-                return -1;
+  switch (type) {
+  case ERL_SMALL_INTEGER_EXT:
+  case ERL_INTEGER_EXT:
+    data.type = ALCOVE_PTRACEARG_INT;
+    if (alcove_decode_ulong(arg, len, &index, &data.arg) < 0)
+      return -1;
 
-            break;
+    break;
 
-        case ERL_LIST_EXT:
-            data.type = ALCOVE_PTRACEARG_CSTRUCT;
-            data.len = sizeof(data.data);
-            if (alcove_decode_cstruct(arg, len, &index, data.data,
-                &(data.len), &elem, &nelem) < 0)
-                return -1;
+  case ERL_LIST_EXT:
+    data.type = ALCOVE_PTRACEARG_CSTRUCT;
+    data.len = sizeof(data.data);
+    if (alcove_decode_cstruct(arg, len, &index, data.data, &(data.len), &elem,
+                              &nelem) < 0)
+      return -1;
 
-            break;
+    break;
 
-        case ERL_BINARY_EXT:
-            data.type = ALCOVE_PTRACEARG_BINARY;
-            if (arity > sizeof(data.data))
-                return -1;
-            if (alcove_decode_binary(arg, len, &index,
-                        data.data, &data.len) < 0)
-                return -1;
+  case ERL_BINARY_EXT:
+    data.type = ALCOVE_PTRACEARG_BINARY;
+    if (arity > sizeof(data.data))
+      return -1;
+    if (alcove_decode_binary(arg, len, &index, data.data, &data.len) < 0)
+      return -1;
 
-            break;
+    break;
 
-        default:
-            return -1;
-    }
+  default:
+    return -1;
+  }
 
-    errno = 0;
-    rv = ptrace(request, pid, PRTRACEARG(addr), PRTRACEARG(data));
+  errno = 0;
+  rv = ptrace(request, pid, PRTRACEARG(addr), PRTRACEARG(data));
 
-    if (errno)
-        return alcove_mk_errno(reply, rlen, errno);
+  if (errno)
+    return alcove_mk_errno(reply, rlen, errno);
 
-    ALCOVE_ERR(alcove_encode_version(reply, rlen, &rindex));
-    ALCOVE_ERR(alcove_encode_tuple_header(reply, rlen, &rindex, 4));
-    ALCOVE_ERR(alcove_encode_atom(reply, rlen, &rindex, "ok"));
-    ALCOVE_ERR(alcove_encode_long(reply, rlen, &rindex, rv));
+  ALCOVE_ERR(alcove_encode_version(reply, rlen, &rindex));
+  ALCOVE_ERR(alcove_encode_tuple_header(reply, rlen, &rindex, 4));
+  ALCOVE_ERR(alcove_encode_atom(reply, rlen, &rindex, "ok"));
+  ALCOVE_ERR(alcove_encode_long(reply, rlen, &rindex, rv));
 
-    switch (addr.type) {
-        case ALCOVE_PTRACEARG_CSTRUCT:
-            ALCOVE_ERR(alcove_encode_cstruct(reply, rlen, &rindex,
-                        addr.data, addr.len, elem, nelem));
-            break;
-        case ALCOVE_PTRACEARG_INT: /* return an empty binary */
-        case ALCOVE_PTRACEARG_BINARY:
-            ALCOVE_ERR(alcove_encode_binary(reply, rlen, &rindex, addr.data,
-                        addr.len));
-            break;
-        default:
-            return -1;
-    }
+  switch (addr.type) {
+  case ALCOVE_PTRACEARG_CSTRUCT:
+    ALCOVE_ERR(alcove_encode_cstruct(reply, rlen, &rindex, addr.data, addr.len,
+                                     elem, nelem));
+    break;
+  case ALCOVE_PTRACEARG_INT: /* return an empty binary */
+  case ALCOVE_PTRACEARG_BINARY:
+    ALCOVE_ERR(alcove_encode_binary(reply, rlen, &rindex, addr.data, addr.len));
+    break;
+  default:
+    return -1;
+  }
 
-    switch (data.type) {
-        case ALCOVE_PTRACEARG_CSTRUCT:
-            ALCOVE_ERR(alcove_encode_cstruct(reply, rlen, &rindex,
-                        data.data, data.len, elem, nelem));
-            break;
-        case ALCOVE_PTRACEARG_INT: /* return an empty binary */
-        case ALCOVE_PTRACEARG_BINARY:
-            ALCOVE_ERR(alcove_encode_binary(reply, rlen, &rindex, data.data,
-                        data.len));
-            break;
-        default:
-            return -1;
-    }
+  switch (data.type) {
+  case ALCOVE_PTRACEARG_CSTRUCT:
+    ALCOVE_ERR(alcove_encode_cstruct(reply, rlen, &rindex, data.data, data.len,
+                                     elem, nelem));
+    break;
+  case ALCOVE_PTRACEARG_INT: /* return an empty binary */
+  case ALCOVE_PTRACEARG_BINARY:
+    ALCOVE_ERR(alcove_encode_binary(reply, rlen, &rindex, data.data, data.len));
+    break;
+  default:
+    return -1;
+  }
 
-    return rindex;
+  return rindex;
 #else
-    UNUSED(ap);
-    UNUSED(arg);
-    UNUSED(len);
+  UNUSED(ap);
+  UNUSED(arg);
+  UNUSED(len);
 
-    return alcove_mk_atom(reply, rlen, "undef");
+  return alcove_mk_atom(reply, rlen, "undef");
 #endif
 }

@@ -118,5 +118,4 @@ static const alcove_constant_t alcove_signal_constants[] = {
 #ifdef SIGSTKSZ
     ALCOVE_CONSTANT(SIGSTKSZ),
 #endif
-    {NULL, 0}
-};
+    {NULL, 0}};

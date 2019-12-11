@@ -19,25 +19,22 @@
  * unlink(2)
  *
  */
-    ssize_t
-alcove_sys_unlink(alcove_state_t *ap, const char *arg, size_t len,
-        char *reply, size_t rlen)
-{
-    int index = 0;
-    char pathname[PATH_MAX] = {0};
-    size_t pathlen = sizeof(pathname)-1;
-    int rv = 0;
+ssize_t alcove_sys_unlink(alcove_state_t *ap, const char *arg, size_t len,
+                          char *reply, size_t rlen) {
+  int index = 0;
+  char pathname[PATH_MAX] = {0};
+  size_t pathlen = sizeof(pathname) - 1;
+  int rv = 0;
 
-    UNUSED(ap);
+  UNUSED(ap);
 
-    /* pathname */
-    if (alcove_decode_iolist(arg, len, &index, pathname, &pathlen) < 0 ||
-            pathlen == 0)
-        return -1;
+  /* pathname */
+  if (alcove_decode_iolist(arg, len, &index, pathname, &pathlen) < 0 ||
+      pathlen == 0)
+    return -1;
 
-    rv = unlink(pathname);
+  rv = unlink(pathname);
 
-    return (rv < 0)
-        ? alcove_mk_errno(reply, rlen, errno)
-        : alcove_mk_atom(reply, rlen, "ok");
+  return (rv < 0) ? alcove_mk_errno(reply, rlen, errno)
+                  : alcove_mk_atom(reply, rlen, "ok");
 }

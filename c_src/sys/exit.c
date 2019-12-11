@@ -19,20 +19,18 @@
  * exit(3)
  *
  */
-    ssize_t
-alcove_sys_exit(alcove_state_t *ap, const char *arg, size_t len,
-        char *reply, size_t rlen)
-{
-    int index = 0;
-    int status = 0;
+ssize_t alcove_sys_exit(alcove_state_t *ap, const char *arg, size_t len,
+                        char *reply, size_t rlen) {
+  int index = 0;
+  int status = 0;
 
-    UNUSED(ap);
-    UNUSED(reply);
-    UNUSED(rlen);
+  UNUSED(ap);
+  UNUSED(reply);
+  UNUSED(rlen);
 
-    /* status */
-    if (alcove_decode_int(arg, len, &index, &status) < 0)
-        return -1;
+  /* status */
+  if (alcove_decode_int(arg, len, &index, &status) < 0)
+    return -1;
 
-    exit(status);
+  exit(status);
 }

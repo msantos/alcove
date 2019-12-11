@@ -21,28 +21,25 @@ extern char **environ;
  * clearenv(3)
  *
  */
-    ssize_t
-alcove_sys_clearenv(alcove_state_t *ap, const char *arg, size_t len,
-        char *reply, size_t rlen)
-{
+ssize_t alcove_sys_clearenv(alcove_state_t *ap, const char *arg, size_t len,
+                            char *reply, size_t rlen) {
 #ifdef __linux__
-    int rv = 0;
+  int rv = 0;
 
-    UNUSED(ap);
-    UNUSED(arg);
-    UNUSED(len);
+  UNUSED(ap);
+  UNUSED(arg);
+  UNUSED(len);
 
-    rv = clearenv();
+  rv = clearenv();
 
-    return (rv < 0)
-        ? alcove_mk_errno(reply, rlen, errno)
-        : alcove_mk_atom(reply, rlen, "ok");
+  return (rv < 0) ? alcove_mk_errno(reply, rlen, errno)
+                  : alcove_mk_atom(reply, rlen, "ok");
 #else
-    UNUSED(ap);
-    UNUSED(arg);
-    UNUSED(len);
+  UNUSED(ap);
+  UNUSED(arg);
+  UNUSED(len);
 
-    environ = NULL;
-    return alcove_mk_atom(reply, rlen, "ok");
+  environ = NULL;
+  return alcove_mk_atom(reply, rlen, "ok");
 #endif
 }

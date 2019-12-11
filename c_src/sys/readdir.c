@@ -15,55 +15,53 @@
 #include "alcove.h"
 #include "alcove_call.h"
 
-#include <sys/stat.h>
 #include <dirent.h>
+#include <sys/stat.h>
 
 /*
  * readdir(3)
  *
  */
-    ssize_t
-alcove_sys_readdir(alcove_state_t *ap, const char *arg, size_t len,
-        char *reply, size_t rlen)
-{
-    int index = 0;
-    int rindex = 0;
+ssize_t alcove_sys_readdir(alcove_state_t *ap, const char *arg, size_t len,
+                           char *reply, size_t rlen) {
+  int index = 0;
+  int rindex = 0;
 
-    char name[PATH_MAX] = {0};
-    size_t namelen = sizeof(name)-1;
-    DIR *dirp = NULL;
-    struct dirent *dent = NULL;
+  char name[PATH_MAX] = {0};
+  size_t namelen = sizeof(name) - 1;
+  DIR *dirp = NULL;
+  struct dirent *dent = NULL;
 
-    UNUSED(ap);
+  UNUSED(ap);
 
-    /* name */
-    if (alcove_decode_iolist(arg, len, &index, name, &namelen) < 0 ||
-            namelen == 0)
-        return -1;
+  /* name */
+  if (alcove_decode_iolist(arg, len, &index, name, &namelen) < 0 ||
+      namelen == 0)
+    return -1;
 
-    dirp = opendir(name);
+  dirp = opendir(name);
 
-    if (dirp == NULL)
-        return alcove_mk_errno(reply, rlen, errno);
+  if (dirp == NULL)
+    return alcove_mk_errno(reply, rlen, errno);
 
-    ALCOVE_ERR(alcove_encode_version(reply, rlen, &rindex));
-    ALCOVE_ERR(alcove_encode_tuple_header(reply, rlen, &rindex, 2));
-    ALCOVE_ERR(alcove_encode_atom(reply, rlen, &rindex, "ok"));
+  ALCOVE_ERR(alcove_encode_version(reply, rlen, &rindex));
+  ALCOVE_ERR(alcove_encode_tuple_header(reply, rlen, &rindex, 2));
+  ALCOVE_ERR(alcove_encode_atom(reply, rlen, &rindex, "ok"));
 
-    errno = 0;
-    while ( (dent = readdir(dirp))) {
-        ALCOVE_ERR(alcove_encode_list_header(reply, rlen, &rindex, 1));
-        ALCOVE_ERR(alcove_encode_binary(reply, rlen, &rindex,
-                    dent->d_name, strlen(dent->d_name)));
-    }
+  errno = 0;
+  while ((dent = readdir(dirp))) {
+    ALCOVE_ERR(alcove_encode_list_header(reply, rlen, &rindex, 1));
+    ALCOVE_ERR(alcove_encode_binary(reply, rlen, &rindex, dent->d_name,
+                                    strlen(dent->d_name)));
+  }
 
-    if (errno != 0)
-        return alcove_mk_errno(reply, rlen, errno);
+  if (errno != 0)
+    return alcove_mk_errno(reply, rlen, errno);
 
-    if (closedir(dirp) < 0)
-        return alcove_mk_errno(reply, rlen, errno);
+  if (closedir(dirp) < 0)
+    return alcove_mk_errno(reply, rlen, errno);
 
-    ALCOVE_ERR(alcove_encode_empty_list(reply, rlen, &rindex));
+  ALCOVE_ERR(alcove_encode_empty_list(reply, rlen, &rindex));
 
-    return rindex;
+  return rindex;
 }

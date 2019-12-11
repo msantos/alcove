@@ -23,9 +23,9 @@
 
 #ifdef __linux__
 #ifdef HAVE_PRCTL_SECCOMP
-#include <linux/seccomp.h>
-#include <linux/filter.h>
 #include <linux/audit.h>
+#include <linux/filter.h>
+#include <linux/seccomp.h>
 #include <sys/ptrace.h>
 #endif
 #endif
@@ -33,8 +33,8 @@
 #include "alcove_seccomp_constants.h"
 
 typedef struct {
-    char data[MAXMSGLEN];
-    size_t len;
+  char data[MAXMSGLEN];
+  size_t len;
 } alcove_seccomp_arg_t;
 
 #ifdef __linux__
@@ -49,96 +49,90 @@ static int seccomp(unsigned int operation, unsigned int flags, void *args);
  */
 #ifdef __linux__
 #ifndef HAVE_SECCOMP
-  static int
-seccomp(unsigned int operation, unsigned int flags, void *args)
-{
+static int seccomp(unsigned int operation, unsigned int flags, void *args) {
 #ifdef __NR_seccomp
-    return syscall(__NR_seccomp, operation, flags, args);
+  return syscall(__NR_seccomp, operation, flags, args);
 #else
 #pragma message "No support for seccomp(2)"
-    errno = ENOSYS;
-    return -1;
+  errno = ENOSYS;
+  return -1;
 #endif
 }
 #endif
 #endif
 
-    ssize_t
-alcove_sys_seccomp(alcove_state_t *ap, const char *arg, size_t len,
-        char *reply, size_t rlen)
-{
+ssize_t alcove_sys_seccomp(alcove_state_t *ap, const char *arg, size_t len,
+                           char *reply, size_t rlen) {
 #ifdef __linux__
-    int index = 0;
-    int type = 0;
-    int arity = 0;
+  int index = 0;
+  int type = 0;
+  int arity = 0;
 
-    unsigned int operation = 0;
-    unsigned int flags = 0;
-    alcove_alloc_t *elem = NULL;
-    ssize_t nelem = 0;
+  unsigned int operation = 0;
+  unsigned int flags = 0;
+  alcove_alloc_t *elem = NULL;
+  ssize_t nelem = 0;
 
-    alcove_seccomp_arg_t args = {0};
+  alcove_seccomp_arg_t args = {0};
 
-    int rv = 0;
+  int rv = 0;
 
-    UNUSED(ap);
+  UNUSED(ap);
 
-    /* operation */
-    switch (alcove_decode_constant(arg, len, &index, (int *)&operation,
-                alcove_seccomp_constants)) {
-        case 0:
-            break;
-        case 1:
-            return alcove_mk_error(reply, rlen, "enotsup");
-        default:
-            return -1;
-    }
+  /* operation */
+  switch (alcove_decode_constant(arg, len, &index, (int *)&operation,
+                                 alcove_seccomp_constants)) {
+  case 0:
+    break;
+  case 1:
+    return alcove_mk_error(reply, rlen, "enotsup");
+  default:
+    return -1;
+  }
 
-    /* flags */
-    switch (alcove_decode_constant(arg, len, &index, (int *)&flags,
-                alcove_seccomp_constants)) {
-        case 0:
-            break;
-        case 1:
-            return alcove_mk_error(reply, rlen, "enotsup");
-        default:
-            return -1;
-    }
+  /* flags */
+  switch (alcove_decode_constant(arg, len, &index, (int *)&flags,
+                                 alcove_seccomp_constants)) {
+  case 0:
+    break;
+  case 1:
+    return alcove_mk_error(reply, rlen, "enotsup");
+  default:
+    return -1;
+  }
 
-    /* args */
-    if (alcove_get_type(arg, len, &index, &type, &arity) < 0)
-        return -1;
+  /* args */
+  if (alcove_get_type(arg, len, &index, &type, &arity) < 0)
+    return -1;
 
-    switch (type) {
-        case ERL_LIST_EXT:
-            args.len = sizeof(args.data);
-            if (alcove_decode_cstruct(arg, len, &index, args.data,
-                    &(args.len), &elem, &nelem) < 0)
-                return -1;
+  switch (type) {
+  case ERL_LIST_EXT:
+    args.len = sizeof(args.data);
+    if (alcove_decode_cstruct(arg, len, &index, args.data, &(args.len), &elem,
+                              &nelem) < 0)
+      return -1;
 
-            break;
+    break;
 
-        case ERL_NIL_EXT:
-            if (alcove_decode_list_header(arg, len, &index, &arity) < 0 ||
-                    arity != 0)
-                return -1;
+  case ERL_NIL_EXT:
+    if (alcove_decode_list_header(arg, len, &index, &arity) < 0 || arity != 0)
+      return -1;
 
-            break;
+    break;
 
-        default:
-            return -1;
-    }
+  default:
+    return -1;
+  }
 
-    rv = seccomp(operation, flags, args.len == 0 ? NULL : args.data);
+  rv = seccomp(operation, flags, args.len == 0 ? NULL : args.data);
 
-    return (rv < 0)
-        ? alcove_mk_errno(reply, rlen, errno)
-        : alcove_mk_atom(reply, rlen, "ok");
+  return (rv < 0) ? alcove_mk_errno(reply, rlen, errno)
+                  : alcove_mk_atom(reply, rlen, "ok");
 #else
-    UNUSED(ap);
-    UNUSED(arg);
-    UNUSED(len);
+  UNUSED(ap);
+  UNUSED(arg);
+  UNUSED(len);
 
-    return alcove_mk_atom(reply, rlen, "undef");
+  return alcove_mk_atom(reply, rlen, "undef");
 #endif
 }

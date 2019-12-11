@@ -39,57 +39,52 @@ static int setns(int fd, int nstype);
  */
 #ifdef __linux__
 #ifndef HAVE_SETNS
-    static int
-setns(int fd, int nstype)
-{
+static int setns(int fd, int nstype) {
 #ifdef __NR_setns
-    return syscall(__NR_setns, fd, nstype);
+  return syscall(__NR_setns, fd, nstype);
 #else
-    errno = ENOSYS;
-    return -1;
+  errno = ENOSYS;
+  return -1;
 #endif
 }
 #endif
 #endif
 
-    ssize_t
-alcove_sys_setns(alcove_state_t *ap, const char *arg, size_t len,
-        char *reply, size_t rlen)
-{
+ssize_t alcove_sys_setns(alcove_state_t *ap, const char *arg, size_t len,
+                         char *reply, size_t rlen) {
 #ifdef __linux__
-    int index = 0;
+  int index = 0;
 
-    int fd = -1;
-    int nstype = 0;
-    int rv = 0;
+  int fd = -1;
+  int nstype = 0;
+  int rv = 0;
 
-    UNUSED(ap);
+  UNUSED(ap);
 
-    /* file descriptor */
-    if (alcove_decode_int(arg, len, &index, &fd) < 0)
-        return -1;
+  /* file descriptor */
+  if (alcove_decode_int(arg, len, &index, &fd) < 0)
+    return -1;
 
-    /* nstype */
-    switch (alcove_decode_constant(arg, len, &index, &nstype,
-                alcove_clone_constants)) {
-        case 0:
-            break;
-        case 1:
-            return alcove_mk_error(reply, rlen, "enotsup");
-        default:
-            return -1;
-    }
+  /* nstype */
+  switch (alcove_decode_constant(arg, len, &index, &nstype,
+                                 alcove_clone_constants)) {
+  case 0:
+    break;
+  case 1:
+    return alcove_mk_error(reply, rlen, "enotsup");
+  default:
+    return -1;
+  }
 
-    rv = setns(fd, nstype);
+  rv = setns(fd, nstype);
 
-    return (rv < 0)
-        ? alcove_mk_errno(reply, rlen, errno)
-        : alcove_mk_atom(reply, rlen, "ok");
+  return (rv < 0) ? alcove_mk_errno(reply, rlen, errno)
+                  : alcove_mk_atom(reply, rlen, "ok");
 #else
-    UNUSED(ap);
-    UNUSED(arg);
-    UNUSED(len);
+  UNUSED(ap);
+  UNUSED(arg);
+  UNUSED(len);
 
-    return alcove_mk_atom(reply, rlen, "undef");
+  return alcove_mk_atom(reply, rlen, "undef");
 #endif
 }

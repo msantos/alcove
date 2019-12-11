@@ -16,9 +16,7 @@
 #include "alcove_call.h"
 #include "alcove_signal_constants.h"
 
-    ssize_t
-alcove_signal_name(char *buf, size_t len, int *index, int signum)
-{
-    return alcove_encode_constant_id(buf, len, index, signum,
-            alcove_signal_constants);
+ssize_t alcove_signal_name(char *buf, size_t len, int *index, int signum) {
+  return alcove_encode_constant_id(buf, len, index, signum,
+                                   alcove_signal_constants);
 }

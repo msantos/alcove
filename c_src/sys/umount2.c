@@ -23,56 +23,52 @@
  * umount2(2)
  *
  */
-    ssize_t
-alcove_sys_umount2(alcove_state_t *ap, const char *arg, size_t len,
-        char *reply, size_t rlen)
-{
+ssize_t alcove_sys_umount2(alcove_state_t *ap, const char *arg, size_t len,
+                           char *reply, size_t rlen) {
 #if defined(__sunos__)
-    UNUSED(ap);
-    UNUSED(arg);
-    UNUSED(len);
+  UNUSED(ap);
+  UNUSED(arg);
+  UNUSED(len);
 
-    return alcove_mk_atom(reply, rlen, "undef");
+  return alcove_mk_atom(reply, rlen, "undef");
 #else
-    int index = 0;
+  int index = 0;
 
-    char source[PATH_MAX] = {0};
-    size_t slen = sizeof(source)-1;
-		unsigned long flags = 0;
-    int val = 0;
+  char source[PATH_MAX] = {0};
+  size_t slen = sizeof(source) - 1;
+  unsigned long flags = 0;
+  int val = 0;
 
-    int rv = 0;
+  int rv = 0;
 
-    UNUSED(ap);
+  UNUSED(ap);
 
-    /* source */
-    if (alcove_decode_iolist(arg, len, &index, source, &slen) < 0 ||
-            slen == 0)
-        return -1;
+  /* source */
+  if (alcove_decode_iolist(arg, len, &index, source, &slen) < 0 || slen == 0)
+    return -1;
 
-    /* mountflags */
-    switch (alcove_decode_constant_list(arg, len, &index, &val,
-                alcove_mount_constants)) {
-        case 0:
-            if (val < 0)
-                return -1;
+  /* mountflags */
+  switch (alcove_decode_constant_list(arg, len, &index, &val,
+                                      alcove_mount_constants)) {
+  case 0:
+    if (val < 0)
+      return -1;
 
-            flags = val;
-            break;
-        case 1:
-            return alcove_mk_error(reply, rlen, "enotsup");
-        default:
-            return -1;
-    }
+    flags = val;
+    break;
+  case 1:
+    return alcove_mk_error(reply, rlen, "enotsup");
+  default:
+    return -1;
+  }
 
 #if defined(__linux__) || defined(__sunos__)
-    rv = umount2(source, flags);
+  rv = umount2(source, flags);
 #else
-    rv = unmount(source, flags);
+  rv = unmount(source, flags);
 #endif
 
-    return (rv < 0)
-        ? alcove_mk_errno(reply, rlen, errno)
-        : alcove_mk_atom(reply, rlen, "ok");
+  return (rv < 0) ? alcove_mk_errno(reply, rlen, errno)
+                  : alcove_mk_atom(reply, rlen, "ok");
 #endif
 }

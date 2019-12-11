@@ -1146,5 +1146,4 @@ const alcove_constant_t alcove_syscall_constants[] = {
     ALCOVE_CONSTANT(AUDIT_ARCH_X86_64),
 #endif
 
-    {NULL, 0}
-};
+    {NULL, 0}};

@@ -23,26 +23,24 @@
  * gethostname(2)
  *
  */
-    ssize_t
-alcove_sys_gethostname(alcove_state_t *ap, const char *arg, size_t len,
-        char *reply, size_t rlen)
-{
-    int rindex = 0;
+ssize_t alcove_sys_gethostname(alcove_state_t *ap, const char *arg, size_t len,
+                               char *reply, size_t rlen) {
+  int rindex = 0;
 
-    char name[HOST_NAME_MAX] = {0};
-    int rv = 0;
+  char name[HOST_NAME_MAX] = {0};
+  int rv = 0;
 
-    UNUSED(ap);
-    UNUSED(arg);
-    UNUSED(len);
+  UNUSED(ap);
+  UNUSED(arg);
+  UNUSED(len);
 
-    rv = gethostname(name, HOST_NAME_MAX-1);
+  rv = gethostname(name, HOST_NAME_MAX - 1);
 
-    if (rv < 0)
-       return alcove_mk_errno(reply, rlen, errno);
+  if (rv < 0)
+    return alcove_mk_errno(reply, rlen, errno);
 
-    ALCOVE_OK(reply, rlen, &rindex,
-        alcove_encode_binary(reply, rlen, &rindex, name, strlen(name)));
+  ALCOVE_OK(reply, rlen, &rindex,
+            alcove_encode_binary(reply, rlen, &rindex, name, strlen(name)));
 
-    return rindex;
+  return rindex;
 }

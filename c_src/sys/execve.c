@@ -19,39 +19,36 @@
  * execve(2)
  *
  */
-    ssize_t
-alcove_sys_execve(alcove_state_t *ap, const char *arg, size_t len,
-        char *reply, size_t rlen)
-{
-    int index = 0;
+ssize_t alcove_sys_execve(alcove_state_t *ap, const char *arg, size_t len,
+                          char *reply, size_t rlen) {
+  int index = 0;
 
-    char filename[PATH_MAX] = {0};
-    size_t flen = sizeof(filename)-1;
-    char **argv = NULL;
-    char **envp = NULL;
-    int errnum = 0;
+  char filename[PATH_MAX] = {0};
+  size_t flen = sizeof(filename) - 1;
+  char **argv = NULL;
+  char **envp = NULL;
+  int errnum = 0;
 
-    UNUSED(ap);
+  UNUSED(ap);
 
-    /* filename */
-    if (alcove_decode_iolist(arg, len, &index, filename, &flen) < 0 ||
-            flen == 0)
-        return -1;
+  /* filename */
+  if (alcove_decode_iolist(arg, len, &index, filename, &flen) < 0 || flen == 0)
+    return -1;
 
-    /* argv */
-    if (alcove_decode_argv(arg, len, &index, &argv) < 0)
-        return -1;
+  /* argv */
+  if (alcove_decode_argv(arg, len, &index, &argv) < 0)
+    return -1;
 
-    /* envp */
-    if (alcove_decode_argv(arg, len, &index, &envp) < 0)
-        return -1;
+  /* envp */
+  if (alcove_decode_argv(arg, len, &index, &envp) < 0)
+    return -1;
 
-    execve(filename, argv, envp);
+  execve(filename, argv, envp);
 
-    errnum = errno;
+  errnum = errno;
 
-    alcove_free_argv(argv);
-    alcove_free_argv(envp);
+  alcove_free_argv(argv);
+  alcove_free_argv(envp);
 
-    return alcove_mk_errno(reply, rlen, errnum);
+  return alcove_mk_errno(reply, rlen, errnum);
 }

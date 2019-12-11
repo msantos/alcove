@@ -19,45 +19,43 @@
  * fexecve(2)
  *
  */
-    ssize_t
-alcove_sys_fexecve(alcove_state_t *ap, const char *arg, size_t len,
-        char *reply, size_t rlen)
-{
+ssize_t alcove_sys_fexecve(alcove_state_t *ap, const char *arg, size_t len,
+                           char *reply, size_t rlen) {
 #if defined(HAVE_FEXECVE)
-    int index = 0;
+  int index = 0;
 
-    int fd = -1;
-    char **argv = NULL;
-    char **envp = NULL;
-    int errnum = 0;
+  int fd = -1;
+  char **argv = NULL;
+  char **envp = NULL;
+  int errnum = 0;
 
-    UNUSED(ap);
+  UNUSED(ap);
 
-    /* fd */
-    if (alcove_decode_int(arg, len, &index, &fd) < 0)
-        return -1;
+  /* fd */
+  if (alcove_decode_int(arg, len, &index, &fd) < 0)
+    return -1;
 
-    /* argv */
-    if (alcove_decode_argv(arg, len, &index, &argv) < 0)
-        return -1;
+  /* argv */
+  if (alcove_decode_argv(arg, len, &index, &argv) < 0)
+    return -1;
 
-    /* envp */
-    if (alcove_decode_argv(arg, len, &index, &envp) < 0)
-        return -1;
+  /* envp */
+  if (alcove_decode_argv(arg, len, &index, &envp) < 0)
+    return -1;
 
-    fexecve(fd, argv, envp);
+  fexecve(fd, argv, envp);
 
-    errnum = errno;
+  errnum = errno;
 
-    alcove_free_argv(argv);
-    alcove_free_argv(envp);
+  alcove_free_argv(argv);
+  alcove_free_argv(envp);
 
-    return alcove_mk_errno(reply, rlen, errnum);
+  return alcove_mk_errno(reply, rlen, errnum);
 #else
-    UNUSED(ap);
-    UNUSED(arg);
-    UNUSED(len);
+  UNUSED(ap);
+  UNUSED(arg);
+  UNUSED(len);
 
-    return alcove_mk_atom(reply, rlen, "undef");
+  return alcove_mk_atom(reply, rlen, "undef");
 #endif
 }

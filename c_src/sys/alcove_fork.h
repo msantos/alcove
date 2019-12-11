@@ -13,16 +13,16 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 typedef struct {
-    int ctl[2];
-    int in[2];
-    int out[2];
-    int err[2];
+  int ctl[2];
+  int in[2];
+  int out[2];
+  int err[2];
 } alcove_stdio_t;
 
 typedef struct {
-    alcove_state_t *ap;
-    alcove_stdio_t *fd;
-    sigset_t *sigset;
+  alcove_state_t *ap;
+  alcove_stdio_t *fd;
+  sigset_t *sigset;
 } alcove_arg_t;
 
 int alcove_stdio(alcove_stdio_t *fd);

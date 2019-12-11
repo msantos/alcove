@@ -18,41 +18,38 @@
 /*
  * setresuid(2)
  */
-    ssize_t
-alcove_sys_setresuid(alcove_state_t *ap, const char *arg, size_t len,
-        char *reply, size_t rlen)
-{
+ssize_t alcove_sys_setresuid(alcove_state_t *ap, const char *arg, size_t len,
+                             char *reply, size_t rlen) {
 #if defined(__sunos__) || defined(__APPLE__)
-    UNUSED(ap);
-    UNUSED(arg);
-    UNUSED(len);
+  UNUSED(ap);
+  UNUSED(arg);
+  UNUSED(len);
 
-    return alcove_mk_atom(reply, rlen, "undef");
+  return alcove_mk_atom(reply, rlen, "undef");
 #else
-    int index = 0;
-    uid_t uid = {0};
-    uid_t euid = {0};
-    uid_t suid = {0};
-    int rv = 0;
+  int index = 0;
+  uid_t uid = {0};
+  uid_t euid = {0};
+  uid_t suid = {0};
+  int rv = 0;
 
-    UNUSED(ap);
+  UNUSED(ap);
 
-    /* uid */
-    if (alcove_decode_uint(arg, len, &index, &uid) < 0)
-        return -1;
+  /* uid */
+  if (alcove_decode_uint(arg, len, &index, &uid) < 0)
+    return -1;
 
-    /* euid */
-    if (alcove_decode_uint(arg, len, &index, &euid) < 0)
-        return -1;
+  /* euid */
+  if (alcove_decode_uint(arg, len, &index, &euid) < 0)
+    return -1;
 
-    /* suid */
-    if (alcove_decode_uint(arg, len, &index, &suid) < 0)
-        return -1;
+  /* suid */
+  if (alcove_decode_uint(arg, len, &index, &suid) < 0)
+    return -1;
 
-    rv = setresuid(uid, euid, suid);
+  rv = setresuid(uid, euid, suid);
 
-    return (rv < 0)
-        ? alcove_mk_errno(reply, rlen, errno)
-        : alcove_mk_atom(reply, rlen, "ok");
+  return (rv < 0) ? alcove_mk_errno(reply, rlen, errno)
+                  : alcove_mk_atom(reply, rlen, "ok");
 #endif
 }

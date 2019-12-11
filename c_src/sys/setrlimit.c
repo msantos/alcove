@@ -25,77 +25,72 @@ static int rlimit_under_maxfd(long maxfd, unsigned long long fd);
  * setrlimit(2)
  *
  */
-    ssize_t
-alcove_sys_setrlimit(alcove_state_t *ap, const char *arg, size_t len,
-        char *reply, size_t rlen)
-{
-    int index = 0;
-    int arity = 0;
+ssize_t alcove_sys_setrlimit(alcove_state_t *ap, const char *arg, size_t len,
+                             char *reply, size_t rlen) {
+  int index = 0;
+  int arity = 0;
 
-    int resource = 0;
-    char atom[MAXATOMLEN] = {0};
-    unsigned long long cur = 0, max = 0;
-    struct rlimit rlim = {0};
-    int rv = 0;
+  int resource = 0;
+  char atom[MAXATOMLEN] = {0};
+  unsigned long long cur = 0, max = 0;
+  struct rlimit rlim = {0};
+  int rv = 0;
 
-    UNUSED(ap);
+  UNUSED(ap);
 
-    /* resource */
-    switch (alcove_decode_constant(arg, len, &index, &resource,
-                alcove_rlimit_constants)) {
-        case 0:
-            break;
-        case 1:
-            return alcove_mk_error(reply, rlen, "enotsup");
-        default:
-            return -1;
-    }
+  /* resource */
+  switch (alcove_decode_constant(arg, len, &index, &resource,
+                                 alcove_rlimit_constants)) {
+  case 0:
+    break;
+  case 1:
+    return alcove_mk_error(reply, rlen, "enotsup");
+  default:
+    return -1;
+  }
 
-    /* {alcove_rlimit, rlim_cur, rlim_max} */
-    if (alcove_decode_tuple_header(arg, len, &index, &arity) < 0 || arity != 3)
-        return -1;
+  /* {alcove_rlimit, rlim_cur, rlim_max} */
+  if (alcove_decode_tuple_header(arg, len, &index, &arity) < 0 || arity != 3)
+    return -1;
 
-    /* 'alcove_rlimit' */
-    if (alcove_decode_atom(arg, len, &index, atom) < 0 ||
-            strcmp(atom, "alcove_rlimit") != 0)
-        return -1;
+  /* 'alcove_rlimit' */
+  if (alcove_decode_atom(arg, len, &index, atom) < 0 ||
+      strcmp(atom, "alcove_rlimit") != 0)
+    return -1;
 
-    /* rlim_cur: soft limit */
-    if (alcove_decode_ulonglong(arg, len, &index, &cur) < 0)
-        return -1;
+  /* rlim_cur: soft limit */
+  if (alcove_decode_ulonglong(arg, len, &index, &cur) < 0)
+    return -1;
 
-    /* rlim_max: hard limit */
-    if (alcove_decode_ulonglong(arg, len, &index, &max) < 0)
-        return -1;
+  /* rlim_max: hard limit */
+  if (alcove_decode_ulonglong(arg, len, &index, &max) < 0)
+    return -1;
 
 #if defined(__linux__) || defined(__sunos__) || defined(__OpenBSD__)
-    if (resource == RLIMIT_NOFILE) {
-        if (rlimit_under_maxfd(ap->maxfd, cur) < 0)
-            return alcove_mk_errno(reply, rlen, EINVAL);
-    }
+  if (resource == RLIMIT_NOFILE) {
+    if (rlimit_under_maxfd(ap->maxfd, cur) < 0)
+      return alcove_mk_errno(reply, rlen, EINVAL);
+  }
 #endif
 
-    rlim.rlim_cur = cur;
-    rlim.rlim_max = max;
+  rlim.rlim_cur = cur;
+  rlim.rlim_max = max;
 
-    rv = setrlimit(resource, &rlim);
+  rv = setrlimit(resource, &rlim);
 
-    return (rv < 0)
-        ? alcove_mk_errno(reply, rlen, errno)
-        : alcove_mk_atom(reply, rlen, "ok");
+  return (rv < 0) ? alcove_mk_errno(reply, rlen, errno)
+                  : alcove_mk_atom(reply, rlen, "ok");
 }
 
 #if defined(__linux__) || defined(__sunos__) || defined(__OpenBSD__)
-    static int
-rlimit_under_maxfd(long maxfd, unsigned long long fd)
-{
-    int i;
+static int rlimit_under_maxfd(long maxfd, unsigned long long fd) {
+  int i;
 
-    for (i = fd+1; i < maxfd; i++) {
-        if (fcntl(fd, F_GETFD, 0) >= 0)
-            return -1;
-    }
+  for (i = fd + 1; i < maxfd; i++) {
+    if (fcntl(fd, F_GETFD, 0) >= 0)
+      return -1;
+  }
 
-    return 0;
+  return 0;
 }
 #endif

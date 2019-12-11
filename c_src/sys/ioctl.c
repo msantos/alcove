@@ -18,121 +18,114 @@
 #include "alcove_ioctl_constants.h"
 
 typedef struct {
-    u_char type;
-    int arg;
-    char data[MAXMSGLEN];
-    size_t len;
+  u_char type;
+  int arg;
+  char data[MAXMSGLEN];
+  size_t len;
 } alcove_ioctl_arg_t;
 
-enum {
-    ALCOVE_IOARG_INT,
-    ALCOVE_IOARG_CSTRUCT,
-    ALCOVE_IOARG_BINARY
-};
+enum { ALCOVE_IOARG_INT, ALCOVE_IOARG_CSTRUCT, ALCOVE_IOARG_BINARY };
 
 /*
  * ioctl(2)
  *
  */
-    ssize_t
-alcove_sys_ioctl(alcove_state_t *ap, const char *arg, size_t len,
-        char *reply, size_t rlen)
-{
-    int index = 0;
-    int rindex = 0;
-    int type = 0;
-    int arity = 0;
-    int d = 0;
-    unsigned long request = 0;
-    long long val = 0;
-    alcove_ioctl_arg_t argp = {0};
-    alcove_alloc_t *elem = NULL;
-    ssize_t nelem = 0;
+ssize_t alcove_sys_ioctl(alcove_state_t *ap, const char *arg, size_t len,
+                         char *reply, size_t rlen) {
+  int index = 0;
+  int rindex = 0;
+  int type = 0;
+  int arity = 0;
+  int d = 0;
+  unsigned long request = 0;
+  long long val = 0;
+  alcove_ioctl_arg_t argp = {0};
+  alcove_alloc_t *elem = NULL;
+  ssize_t nelem = 0;
 
-    int rv = 0;
+  int rv = 0;
 
-    UNUSED(ap);
+  UNUSED(ap);
 
-    /* file descriptor */
-    if (alcove_decode_int(arg, len, &index, &d) < 0)
-        return -1;
+  /* file descriptor */
+  if (alcove_decode_int(arg, len, &index, &d) < 0)
+    return -1;
 
-    /* request */
-    switch (alcove_decode_constant64(arg, len, &index, &val,
-                alcove_ioctl_constants)) {
-        case 0:
-            request = val;
-            break;
-        case 1:
-            return alcove_mk_error(reply, rlen, "enotsup");
-        default:
-            return -1;
-    }
+  /* request */
+  switch (alcove_decode_constant64(arg, len, &index, &val,
+                                   alcove_ioctl_constants)) {
+  case 0:
+    request = val;
+    break;
+  case 1:
+    return alcove_mk_error(reply, rlen, "enotsup");
+  default:
+    return -1;
+  }
 
-    /* argp */
-    if (alcove_get_type(arg, len, &index, &type, &arity) < 0)
-        return -1;
+  /* argp */
+  if (alcove_get_type(arg, len, &index, &type, &arity) < 0)
+    return -1;
 
-    switch (type) {
-        case ERL_SMALL_INTEGER_EXT:
-        case ERL_INTEGER_EXT:
-            argp.type = ALCOVE_IOARG_INT;
-            if (alcove_decode_int(arg, len, &index, &argp.arg) < 0)
-                return -1;
+  switch (type) {
+  case ERL_SMALL_INTEGER_EXT:
+  case ERL_INTEGER_EXT:
+    argp.type = ALCOVE_IOARG_INT;
+    if (alcove_decode_int(arg, len, &index, &argp.arg) < 0)
+      return -1;
 
-            break;
+    break;
 
-        case ERL_LIST_EXT:
-            argp.type = ALCOVE_IOARG_CSTRUCT;
-            argp.len = sizeof(argp.data);
-            if (alcove_decode_cstruct(arg, len, &index, argp.data,
-                &(argp.len), &elem, &nelem) < 0)
-                return -1;
+  case ERL_LIST_EXT:
+    argp.type = ALCOVE_IOARG_CSTRUCT;
+    argp.len = sizeof(argp.data);
+    if (alcove_decode_cstruct(arg, len, &index, argp.data, &(argp.len), &elem,
+                              &nelem) < 0)
+      return -1;
 
-            break;
+    break;
 
-        case ERL_BINARY_EXT:
-            argp.type = ALCOVE_IOARG_BINARY;
-            if (arity > sizeof(argp.data))
-                return -1;
-            if (alcove_decode_binary(arg, len, &index, argp.data, &argp.len) < 0)
-                return -1;
+  case ERL_BINARY_EXT:
+    argp.type = ALCOVE_IOARG_BINARY;
+    if (arity > sizeof(argp.data))
+      return -1;
+    if (alcove_decode_binary(arg, len, &index, argp.data, &argp.len) < 0)
+      return -1;
 
-            break;
+    break;
 
-        default:
-            return -1;
-    }
+  default:
+    return -1;
+  }
 
-    switch (argp.type) {
-        case ALCOVE_IOARG_INT:
-            rv = ioctl(d, request, argp.arg);
-            break;
-        default:
-            rv = ioctl(d, request, argp.data);
-    }
+  switch (argp.type) {
+  case ALCOVE_IOARG_INT:
+    rv = ioctl(d, request, argp.arg);
+    break;
+  default:
+    rv = ioctl(d, request, argp.data);
+  }
 
-    if (rv < 0)
-        return alcove_mk_errno(reply, rlen, errno);
+  if (rv < 0)
+    return alcove_mk_errno(reply, rlen, errno);
 
-    ALCOVE_ERR(alcove_encode_version(reply, rlen, &rindex));
-    ALCOVE_ERR(alcove_encode_tuple_header(reply, rlen, &rindex, 3));
-    ALCOVE_ERR(alcove_encode_atom(reply, rlen, &rindex, "ok"));
-    ALCOVE_ERR(alcove_encode_long(reply, rlen, &rindex, rv));
+  ALCOVE_ERR(alcove_encode_version(reply, rlen, &rindex));
+  ALCOVE_ERR(alcove_encode_tuple_header(reply, rlen, &rindex, 3));
+  ALCOVE_ERR(alcove_encode_atom(reply, rlen, &rindex, "ok"));
+  ALCOVE_ERR(alcove_encode_long(reply, rlen, &rindex, rv));
 
-    switch (argp.type) {
-        case ALCOVE_IOARG_CSTRUCT:
-            ALCOVE_ERR(alcove_encode_cstruct(reply, rlen, &rindex,
-                        argp.data, argp.len, elem, nelem));
-            break;
-        case ALCOVE_IOARG_INT: /* return an empty binary */
-        case ALCOVE_IOARG_BINARY:
-            ALCOVE_ERR(alcove_encode_binary(reply, rlen, &rindex, argp.data,
-                        argp.len));
-            break;
-        default:
-            return -1;
-    }
+  switch (argp.type) {
+  case ALCOVE_IOARG_CSTRUCT:
+    ALCOVE_ERR(alcove_encode_cstruct(reply, rlen, &rindex, argp.data, argp.len,
+                                     elem, nelem));
+    break;
+  case ALCOVE_IOARG_INT: /* return an empty binary */
+  case ALCOVE_IOARG_BINARY:
+    ALCOVE_ERR(alcove_encode_binary(reply, rlen, &rindex, argp.data, argp.len));
+    break;
+  default:
+    return -1;
+  }
 
-    return rindex;
+  return rindex;
 }

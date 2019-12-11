@@ -25,17 +25,13 @@
 #include "alcove_prctl_constants.h"
 
 typedef struct {
-    u_char type;
-    unsigned long arg;
-    char data[MAXMSGLEN];
-    size_t len;
+  u_char type;
+  unsigned long arg;
+  char data[MAXMSGLEN];
+  size_t len;
 } alcove_prctl_arg_t;
 
-enum {
-    ALCOVE_PRARG_UNSIGNED_LONG,
-    ALCOVE_PRARG_CSTRUCT,
-    ALCOVE_PRARG_BINARY
-};
+enum { ALCOVE_PRARG_UNSIGNED_LONG, ALCOVE_PRARG_CSTRUCT, ALCOVE_PRARG_BINARY };
 
 #define PRARG(x) (((x).type) ? (unsigned long)(x).data : (x).arg)
 
@@ -43,139 +39,133 @@ enum {
  * prctl(2)
  *
  */
-    ssize_t
-alcove_sys_prctl(alcove_state_t *ap, const char *arg, size_t len,
-        char *reply, size_t rlen)
-{
+ssize_t alcove_sys_prctl(alcove_state_t *ap, const char *arg, size_t len,
+                         char *reply, size_t rlen) {
 #ifdef __linux__
-    int index = 0;
-    int rindex = 0;
-    int type = 0;
-    int arity = 0;
+  int index = 0;
+  int rindex = 0;
+  int type = 0;
+  int arity = 0;
 
-    int option = 0;
-    alcove_alloc_t *elem[4] = {0};
-    ssize_t nelem[4] = {0};
-    int i = 0;
+  int option = 0;
+  alcove_alloc_t *elem[4] = {0};
+  ssize_t nelem[4] = {0};
+  int i = 0;
 
-    alcove_prctl_arg_t prarg[4] = {0};
+  alcove_prctl_arg_t prarg[4] = {0};
 
-    int rv = 0;
+  int rv = 0;
 
-    UNUSED(ap);
+  UNUSED(ap);
 
-    /* option */
-    switch (alcove_decode_constant(arg, len, &index, &option,
-                alcove_prctl_constants)) {
-        case 0:
-            break;
-        case 1:
-            return alcove_mk_error(reply, rlen, "enotsup");
-        default:
-            return -1;
+  /* option */
+  switch (alcove_decode_constant(arg, len, &index, &option,
+                                 alcove_prctl_constants)) {
+  case 0:
+    break;
+  case 1:
+    return alcove_mk_error(reply, rlen, "enotsup");
+  default:
+    return -1;
+  }
+
+  /* arg2, arg3, arg4, arg5 */
+  for (i = 0; i < 4; i++) {
+    if (alcove_get_type(arg, len, &index, &type, &arity) < 0)
+      return -1;
+
+    switch (type) {
+    case ERL_SMALL_INTEGER_EXT:
+    case ERL_INTEGER_EXT:
+      if (alcove_decode_ulong(arg, len, &index, &prarg[i].arg) < 0)
+        return -1;
+
+      break;
+
+    case ERL_ATOM_EXT: {
+      char define[MAXATOMLEN] = {0};
+      long long val = 0;
+      unsigned long constant = 0;
+
+      if (alcove_decode_atom(arg, len, &index, define) < 0)
+        return -1;
+
+      if (alcove_lookup_constant(define, &val, alcove_prctl_constants) < 0)
+        return alcove_mk_error(reply, rlen, "enotsup");
+
+      if (val < 0 || val > INT32_MAX)
+        return -1;
+
+      constant = val;
+
+      prarg[i].arg = constant;
+    } break;
+
+    case ERL_LIST_EXT:
+      prarg[i].type = ALCOVE_PRARG_CSTRUCT;
+      prarg[i].len = sizeof(prarg[i].data);
+      if (alcove_decode_cstruct(arg, len, &index, prarg[i].data,
+                                &(prarg[i].len), &(elem[i]), &(nelem[i])) < 0)
+        return -1;
+
+      break;
+
+    case ERL_BINARY_EXT:
+      prarg[i].type = ALCOVE_PRARG_BINARY;
+      if (arity > sizeof(prarg[i].data))
+        return -1;
+      if (alcove_decode_binary(arg, len, &index, prarg[i].data,
+                               &(prarg[i].len)) < 0)
+        return -1;
+
+      break;
+
+    case ERL_NIL_EXT:
+      if (alcove_decode_list_header(arg, len, &index, &arity) < 0 || arity != 0)
+        return -1;
+
+      break;
+
+    default:
+      return -1;
     }
+  }
 
-    /* arg2, arg3, arg4, arg5 */
-    for (i = 0; i < 4; i++) {
-        if (alcove_get_type(arg, len, &index, &type, &arity) < 0)
-            return -1;
+  rv = prctl(option, PRARG(prarg[0]), PRARG(prarg[1]), PRARG(prarg[2]),
+             PRARG(prarg[3]));
 
-        switch (type) {
-            case ERL_SMALL_INTEGER_EXT:
-            case ERL_INTEGER_EXT:
-                if (alcove_decode_ulong(arg, len, &index, &prarg[i].arg) < 0)
-                    return -1;
+  if (rv < 0)
+    return alcove_mk_errno(reply, rlen, errno);
 
-                break;
+  ALCOVE_ERR(alcove_encode_version(reply, rlen, &rindex));
+  ALCOVE_ERR(alcove_encode_tuple_header(reply, rlen, &rindex, 6));
+  ALCOVE_ERR(alcove_encode_atom(reply, rlen, &rindex, "ok"));
+  ALCOVE_ERR(alcove_encode_long(reply, rlen, &rindex, rv));
 
-            case ERL_ATOM_EXT: {
-                char define[MAXATOMLEN] = {0};
-                long long val = 0;
-                unsigned long constant = 0;
-
-                if (alcove_decode_atom(arg, len, &index, define) < 0)
-                    return -1;
-
-                if (alcove_lookup_constant(define, &val,
-                            alcove_prctl_constants) < 0)
-                    return alcove_mk_error(reply, rlen, "enotsup");
-
-                if (val < 0 || val > INT32_MAX)
-                    return -1;
-
-                constant = val;
-
-                prarg[i].arg = constant;
-                }
-                break;
-
-            case ERL_LIST_EXT:
-                prarg[i].type = ALCOVE_PRARG_CSTRUCT;
-                prarg[i].len = sizeof(prarg[i].data);
-                if (alcove_decode_cstruct(arg, len, &index, prarg[i].data,
-                        &(prarg[i].len), &(elem[i]), &(nelem[i])) < 0)
-                    return -1;
-
-                break;
-
-            case ERL_BINARY_EXT:
-                prarg[i].type = ALCOVE_PRARG_BINARY;
-                if (arity > sizeof(prarg[i].data))
-                    return -1;
-                if (alcove_decode_binary(arg, len, &index,
-                            prarg[i].data, &(prarg[i].len)) < 0)
-                    return -1;
-
-                break;
-
-            case ERL_NIL_EXT:
-                if (alcove_decode_list_header(arg, len, &index, &arity) < 0 ||
-                        arity != 0)
-                    return -1;
-
-                break;
-
-            default:
-                return -1;
-        }
+  for (i = 0; i < 4; i++) {
+    switch (prarg[i].type) {
+    case ALCOVE_PRARG_UNSIGNED_LONG:
+      ALCOVE_ERR(alcove_encode_ulonglong(reply, rlen, &rindex, prarg[i].arg));
+      break;
+    case ALCOVE_PRARG_CSTRUCT:
+      ALCOVE_ERR(alcove_encode_cstruct(reply, rlen, &rindex, prarg[i].data,
+                                       prarg[i].len, elem[i], nelem[i]));
+      break;
+    case ALCOVE_PRARG_BINARY:
+      ALCOVE_ERR(alcove_encode_binary(reply, rlen, &rindex, prarg[i].data,
+                                      prarg[i].len));
+      break;
+    default:
+      return -1;
     }
+  }
 
-    rv = prctl(option, PRARG(prarg[0]), PRARG(prarg[1]),
-            PRARG(prarg[2]), PRARG(prarg[3]));
-
-    if (rv < 0)
-        return alcove_mk_errno(reply, rlen, errno);
-
-    ALCOVE_ERR(alcove_encode_version(reply, rlen, &rindex));
-    ALCOVE_ERR(alcove_encode_tuple_header(reply, rlen, &rindex, 6));
-    ALCOVE_ERR(alcove_encode_atom(reply, rlen, &rindex, "ok"));
-    ALCOVE_ERR(alcove_encode_long(reply, rlen, &rindex, rv));
-
-    for (i = 0; i < 4; i++) {
-        switch (prarg[i].type) {
-            case ALCOVE_PRARG_UNSIGNED_LONG:
-                ALCOVE_ERR(alcove_encode_ulonglong(reply, rlen, &rindex, prarg[i].arg));
-                break;
-            case ALCOVE_PRARG_CSTRUCT:
-                ALCOVE_ERR(alcove_encode_cstruct(reply, rlen, &rindex,
-                            prarg[i].data, prarg[i].len,
-                            elem[i], nelem[i]));
-                break;
-            case ALCOVE_PRARG_BINARY:
-                ALCOVE_ERR(alcove_encode_binary(reply, rlen, &rindex, prarg[i].data,
-                            prarg[i].len));
-                break;
-            default:
-                return -1;
-        }
-    }
-
-    return rindex;
+  return rindex;
 #else
-    UNUSED(ap);
-    UNUSED(arg);
-    UNUSED(len);
+  UNUSED(ap);
+  UNUSED(arg);
+  UNUSED(len);
 
-    return alcove_mk_atom(reply, rlen, "undef");
+  return alcove_mk_atom(reply, rlen, "undef");
 #endif
 }

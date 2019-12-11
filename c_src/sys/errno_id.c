@@ -16,18 +16,16 @@
 #include "alcove_call.h"
 
 /* Convert an errno integer to an atom */
-    ssize_t
-alcove_sys_errno_id(alcove_state_t *ap, const char *arg, size_t len,
-        char *reply, size_t rlen)
-{
-    int index = 0;
-    int errnum = 0;
+ssize_t alcove_sys_errno_id(alcove_state_t *ap, const char *arg, size_t len,
+                            char *reply, size_t rlen) {
+  int index = 0;
+  int errnum = 0;
 
-    UNUSED(ap);
+  UNUSED(ap);
 
-    /* errno */
-    if (alcove_decode_int(arg, len, &index, &errnum) < 0)
-        return -1;
+  /* errno */
+  if (alcove_decode_int(arg, len, &index, &errnum) < 0)
+    return -1;
 
-    return alcove_mk_atom(reply, rlen, erl_errno_id(errnum));
+  return alcove_mk_atom(reply, rlen, erl_errno_id(errnum));
 }

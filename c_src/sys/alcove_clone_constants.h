@@ -36,5 +36,4 @@ static const alcove_constant_t alcove_clone_constants[] = {
 #ifdef CLONE_NEWNET
     ALCOVE_CONSTANT(CLONE_NEWNET),
 #endif
-    {NULL, 0}
-};
+    {NULL, 0}};

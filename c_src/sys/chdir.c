@@ -19,26 +19,23 @@
  * chdir(2)
  *
  */
-    ssize_t
-alcove_sys_chdir(alcove_state_t *ap, const char *arg, size_t len,
-        char *reply, size_t rlen)
-{
-    int index = 0;
+ssize_t alcove_sys_chdir(alcove_state_t *ap, const char *arg, size_t len,
+                         char *reply, size_t rlen) {
+  int index = 0;
 
-    char path[PATH_MAX] = {0};
-    size_t pathlen = sizeof(path)-1;
-    int rv = 0;
+  char path[PATH_MAX] = {0};
+  size_t pathlen = sizeof(path) - 1;
+  int rv = 0;
 
-    UNUSED(ap);
+  UNUSED(ap);
 
-    /* path */
-    if (alcove_decode_iolist(arg, len, &index, path, &pathlen) < 0 ||
-            pathlen == 0)
-        return -1;
+  /* path */
+  if (alcove_decode_iolist(arg, len, &index, path, &pathlen) < 0 ||
+      pathlen == 0)
+    return -1;
 
-    rv = chdir(path);
+  rv = chdir(path);
 
-    return (rv < 0)
-        ? alcove_mk_errno(reply, rlen, errno)
-        : alcove_mk_atom(reply, rlen, "ok");
+  return (rv < 0) ? alcove_mk_errno(reply, rlen, errno)
+                  : alcove_mk_atom(reply, rlen, "ok");
 }

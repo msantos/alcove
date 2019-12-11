@@ -19,32 +19,29 @@
  * symlink(2)
  *
  */
-    ssize_t
-alcove_sys_symlink(alcove_state_t *ap, const char *arg, size_t len,
-        char *reply, size_t rlen)
-{
-    int index = 0;
-    char oldpath[PATH_MAX] = {0};
-    char newpath[PATH_MAX] = {0};
-    size_t oldpathlen = sizeof(oldpath)-1;
-    size_t newpathlen = sizeof(newpath)-1;
-    int rv = 0;
+ssize_t alcove_sys_symlink(alcove_state_t *ap, const char *arg, size_t len,
+                           char *reply, size_t rlen) {
+  int index = 0;
+  char oldpath[PATH_MAX] = {0};
+  char newpath[PATH_MAX] = {0};
+  size_t oldpathlen = sizeof(oldpath) - 1;
+  size_t newpathlen = sizeof(newpath) - 1;
+  int rv = 0;
 
-    UNUSED(ap);
+  UNUSED(ap);
 
-    /* oldpath */
-    if (alcove_decode_iolist(arg, len, &index, oldpath, &oldpathlen) < 0 ||
-            oldpathlen == 0)
-        return -1;
+  /* oldpath */
+  if (alcove_decode_iolist(arg, len, &index, oldpath, &oldpathlen) < 0 ||
+      oldpathlen == 0)
+    return -1;
 
-    /* newpath */
-    if (alcove_decode_iolist(arg, len, &index, newpath, &newpathlen) < 0 ||
-            newpathlen == 0)
-        return -1;
+  /* newpath */
+  if (alcove_decode_iolist(arg, len, &index, newpath, &newpathlen) < 0 ||
+      newpathlen == 0)
+    return -1;
 
-    rv = symlink(oldpath, newpath);
+  rv = symlink(oldpath, newpath);
 
-    return (rv < 0)
-        ? alcove_mk_errno(reply, rlen, errno)
-        : alcove_mk_atom(reply, rlen, "ok");
+  return (rv < 0) ? alcove_mk_errno(reply, rlen, errno)
+                  : alcove_mk_atom(reply, rlen, "ok");
 }

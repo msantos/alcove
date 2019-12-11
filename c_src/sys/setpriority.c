@@ -20,46 +20,44 @@
 /*
  * setpriority(2)
  */
-    ssize_t
-alcove_sys_setpriority(alcove_state_t *ap, const char *arg, size_t len,
-        char *reply, size_t rlen)
-{
-    int index = 0;
+ssize_t alcove_sys_setpriority(alcove_state_t *ap, const char *arg, size_t len,
+                               char *reply, size_t rlen) {
+  int index = 0;
 
-    int which = 0;
-    int who = 0;
-    int prio = 0;
+  int which = 0;
+  int who = 0;
+  int prio = 0;
 
-    UNUSED(ap);
+  UNUSED(ap);
 
-    /* which */
-    switch (alcove_decode_constant(arg, len, &index, &which,
-                alcove_prio_constants)) {
-        case 0:
-            break;
-        case 1:
-            return alcove_mk_error(reply, rlen, "enotsup");
-        default:
-            return -1;
-    }
+  /* which */
+  switch (
+      alcove_decode_constant(arg, len, &index, &which, alcove_prio_constants)) {
+  case 0:
+    break;
+  case 1:
+    return alcove_mk_error(reply, rlen, "enotsup");
+  default:
+    return -1;
+  }
 
-    /* who */
-    switch (alcove_decode_constant(arg, len, &index, &who,
-                alcove_prio_constants)) {
-        case 0:
-            break;
-        case 1:
-            return alcove_mk_error(reply, rlen, "enotsup");
-        default:
-            return -1;
-    }
+  /* who */
+  switch (
+      alcove_decode_constant(arg, len, &index, &who, alcove_prio_constants)) {
+  case 0:
+    break;
+  case 1:
+    return alcove_mk_error(reply, rlen, "enotsup");
+  default:
+    return -1;
+  }
 
-    /* priority */
-    if (alcove_decode_int(arg, len, &index, &prio) < 0)
-        return -1;
+  /* priority */
+  if (alcove_decode_int(arg, len, &index, &prio) < 0)
+    return -1;
 
-    if (setpriority(which, who, prio) < 0)
-        return alcove_mk_errno(reply, rlen, errno);
+  if (setpriority(which, who, prio) < 0)
+    return alcove_mk_errno(reply, rlen, errno);
 
-    return alcove_mk_atom(reply, rlen, "ok");
+  return alcove_mk_atom(reply, rlen, "ok");
 }

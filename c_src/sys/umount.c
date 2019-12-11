@@ -21,31 +21,27 @@
  * umount(2)
  *
  */
-    ssize_t
-alcove_sys_umount(alcove_state_t *ap, const char *arg, size_t len,
-        char *reply, size_t rlen)
-{
-    int index = 0;
+ssize_t alcove_sys_umount(alcove_state_t *ap, const char *arg, size_t len,
+                          char *reply, size_t rlen) {
+  int index = 0;
 
-    char source[PATH_MAX] = {0};
-    size_t slen = sizeof(source)-1;
+  char source[PATH_MAX] = {0};
+  size_t slen = sizeof(source) - 1;
 
-    int rv = 0;
+  int rv = 0;
 
-    UNUSED(ap);
+  UNUSED(ap);
 
-    /* source */
-    if (alcove_decode_iolist(arg, len, &index, source, &slen) < 0 ||
-            slen == 0)
-        return -1;
+  /* source */
+  if (alcove_decode_iolist(arg, len, &index, source, &slen) < 0 || slen == 0)
+    return -1;
 
 #if defined(__linux__) || defined(__sunos__)
-    rv = umount(source);
+  rv = umount(source);
 #else
-    rv = unmount(source, 0);
+  rv = unmount(source, 0);
 #endif
 
-    return (rv < 0)
-        ? alcove_mk_errno(reply, rlen, errno)
-        : alcove_mk_atom(reply, rlen, "ok");
+  return (rv < 0) ? alcove_mk_errno(reply, rlen, errno)
+                  : alcove_mk_atom(reply, rlen, "ok");
 }

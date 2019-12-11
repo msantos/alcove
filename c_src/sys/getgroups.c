@@ -19,49 +19,47 @@
  * getgroups(2)
  *
  */
-    ssize_t
-alcove_sys_getgroups(alcove_state_t *ap, const char *arg, size_t len,
-        char *reply, size_t rlen)
-{
-    int rindex = 0;
-    int size = 0;
-    int n = 0;
-    gid_t *list = NULL;
-    int errnum = 0;
+ssize_t alcove_sys_getgroups(alcove_state_t *ap, const char *arg, size_t len,
+                             char *reply, size_t rlen) {
+  int rindex = 0;
+  int size = 0;
+  int n = 0;
+  gid_t *list = NULL;
+  int errnum = 0;
 
-    UNUSED(ap);
-    UNUSED(arg);
-    UNUSED(len);
+  UNUSED(ap);
+  UNUSED(arg);
+  UNUSED(len);
 
-    size = getgroups(0, NULL);
-    if (size < 0)
-        return alcove_mk_errno(reply, rlen, errno);
+  size = getgroups(0, NULL);
+  if (size < 0)
+    return alcove_mk_errno(reply, rlen, errno);
 
-    list = calloc(size, sizeof(gid_t));
-    if (list == NULL)
-        return alcove_mk_errno(reply, rlen, errno);
+  list = calloc(size, sizeof(gid_t));
+  if (list == NULL)
+    return alcove_mk_errno(reply, rlen, errno);
 
-    n = getgroups(size, list);
+  n = getgroups(size, list);
 
-    if (n < 0) {
-        errnum = errno;
-        free(list);
-        return alcove_mk_errno(reply, rlen, errnum);
-    }
-
-    ALCOVE_ERR(alcove_encode_version(reply, rlen, &rindex));
-    ALCOVE_ERR(alcove_encode_tuple_header(reply, rlen, &rindex, 2));
-    ALCOVE_ERR(alcove_encode_atom(reply, rlen, &rindex, "ok"));
-
-    n--;
-    for ( ; n >= 0; n--) {
-        ALCOVE_ERR(alcove_encode_list_header(reply, rlen, &rindex, 1));
-        ALCOVE_ERR(alcove_encode_long(reply, rlen, &rindex, list[n]));
-    }
-
-    ALCOVE_ERR(alcove_encode_empty_list(reply, rlen, &rindex));
-
+  if (n < 0) {
+    errnum = errno;
     free(list);
+    return alcove_mk_errno(reply, rlen, errnum);
+  }
 
-    return rindex;
+  ALCOVE_ERR(alcove_encode_version(reply, rlen, &rindex));
+  ALCOVE_ERR(alcove_encode_tuple_header(reply, rlen, &rindex, 2));
+  ALCOVE_ERR(alcove_encode_atom(reply, rlen, &rindex, "ok"));
+
+  n--;
+  for (; n >= 0; n--) {
+    ALCOVE_ERR(alcove_encode_list_header(reply, rlen, &rindex, 1));
+    ALCOVE_ERR(alcove_encode_long(reply, rlen, &rindex, list[n]));
+  }
+
+  ALCOVE_ERR(alcove_encode_empty_list(reply, rlen, &rindex));
+
+  free(list);
+
+  return rindex;
 }

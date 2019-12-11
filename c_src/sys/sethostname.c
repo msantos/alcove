@@ -23,27 +23,23 @@
  * sethostname(2)
  *
  */
-    ssize_t
-alcove_sys_sethostname(alcove_state_t *ap, const char *arg, size_t len,
-        char *reply, size_t rlen)
-{
-    int index = 0;
+ssize_t alcove_sys_sethostname(alcove_state_t *ap, const char *arg, size_t len,
+                               char *reply, size_t rlen) {
+  int index = 0;
 
-    char name[HOST_NAME_MAX] = {0};
-    size_t nlen = sizeof(name)-1;
-    int rv = 0;
-    int errnum = 0;
+  char name[HOST_NAME_MAX] = {0};
+  size_t nlen = sizeof(name) - 1;
+  int rv = 0;
+  int errnum = 0;
 
-    UNUSED(ap);
+  UNUSED(ap);
 
-    /* hostname */
-    if (alcove_decode_iolist(arg, len, &index, name, &nlen) < 0 ||
-            nlen == 0)
-        return -1;
+  /* hostname */
+  if (alcove_decode_iolist(arg, len, &index, name, &nlen) < 0 || nlen == 0)
+    return -1;
 
-    rv = sethostname(name, strlen(name));
+  rv = sethostname(name, strlen(name));
 
-    return (rv < 0)
-        ? alcove_mk_errno(reply, rlen, errnum)
-        : alcove_mk_atom(reply, rlen, "ok");
+  return (rv < 0) ? alcove_mk_errno(reply, rlen, errnum)
+                  : alcove_mk_atom(reply, rlen, "ok");
 }

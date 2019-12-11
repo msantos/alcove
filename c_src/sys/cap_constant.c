@@ -16,40 +16,38 @@
 #include "alcove_call.h"
 
 #ifdef __FreeBSD__
-#include <sys/capsicum.h>
 #include "alcove_cap_constants.h"
+#include <sys/capsicum.h>
 #endif
 
 /*
  * cap_(rights|fcntl|ioctl)_limit flags
  *
  */
-    ssize_t
-alcove_sys_cap_constant(alcove_state_t *ap, const char *arg, size_t len,
-        char *reply, size_t rlen)
-{
+ssize_t alcove_sys_cap_constant(alcove_state_t *ap, const char *arg, size_t len,
+                                char *reply, size_t rlen) {
 #ifdef __FreeBSD__
-    int index = 0;
-    int rindex = 0;
+  int index = 0;
+  int rindex = 0;
 
-    char flag[MAXATOMLEN] = {0};
+  char flag[MAXATOMLEN] = {0};
 
-    UNUSED(ap);
+  UNUSED(ap);
 
-    /* flag */
-    if (alcove_decode_atom(arg, len, &index, flag) < 0)
-        return -1;
+  /* flag */
+  if (alcove_decode_atom(arg, len, &index, flag) < 0)
+    return -1;
 
-    ALCOVE_ERR(alcove_encode_version(reply, rlen, &rindex));
-    ALCOVE_ERR(alcove_encode_constant(reply, rlen, &rindex,
-                flag, alcove_cap_constants));
+  ALCOVE_ERR(alcove_encode_version(reply, rlen, &rindex));
+  ALCOVE_ERR(
+      alcove_encode_constant(reply, rlen, &rindex, flag, alcove_cap_constants));
 
-    return rindex;
+  return rindex;
 #else
-    UNUSED(ap);
-    UNUSED(arg);
-    UNUSED(len);
+  UNUSED(ap);
+  UNUSED(arg);
+  UNUSED(len);
 
-    return alcove_mk_atom(reply, rlen, "undef");
+  return alcove_mk_atom(reply, rlen, "undef");
 #endif
 }

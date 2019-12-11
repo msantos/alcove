@@ -19,33 +19,30 @@
  * execvp(3)
  *
  */
-    ssize_t
-alcove_sys_execvp(alcove_state_t *ap, const char *arg, size_t len,
-        char *reply, size_t rlen)
-{
-    int index = 0;
+ssize_t alcove_sys_execvp(alcove_state_t *ap, const char *arg, size_t len,
+                          char *reply, size_t rlen) {
+  int index = 0;
 
-    char progname[PATH_MAX] = {0};
-    size_t plen = sizeof(progname)-1;
-    char **argv = NULL;
-    int errnum = 0;
+  char progname[PATH_MAX] = {0};
+  size_t plen = sizeof(progname) - 1;
+  char **argv = NULL;
+  int errnum = 0;
 
-    UNUSED(ap);
+  UNUSED(ap);
 
-    /* progname */
-    if (alcove_decode_iolist(arg, len, &index, progname, &plen) < 0 ||
-            plen == 0)
-        return -1;
+  /* progname */
+  if (alcove_decode_iolist(arg, len, &index, progname, &plen) < 0 || plen == 0)
+    return -1;
 
-    /* argv */
-    if (alcove_decode_argv(arg, len, &index, &argv) < 0)
-        return -1;
+  /* argv */
+  if (alcove_decode_argv(arg, len, &index, &argv) < 0)
+    return -1;
 
-    execvp(progname, argv);
+  execvp(progname, argv);
 
-    errnum = errno;
+  errnum = errno;
 
-    alcove_free_argv(argv);
+  alcove_free_argv(argv);
 
-    return alcove_mk_errno(reply, rlen, errnum);
+  return alcove_mk_errno(reply, rlen, errnum);
 }

@@ -23,58 +23,51 @@
  * socket(2)
  *
  */
-    ssize_t
-alcove_sys_socket(alcove_state_t *ap, const char *arg, size_t len,
-        char *reply, size_t rlen)
-{
-    int index = 0;
-    int rindex = 0;
+ssize_t alcove_sys_socket(alcove_state_t *ap, const char *arg, size_t len,
+                          char *reply, size_t rlen) {
+  int index = 0;
+  int rindex = 0;
 
-    int domain = 0;
-    int type = 0;
-    int protocol = 0;
+  int domain = 0;
+  int type = 0;
+  int protocol = 0;
 
-    int fd = 0;
+  int fd = 0;
 
-    UNUSED(ap);
+  UNUSED(ap);
 
-    /* domain */
-    switch (alcove_decode_constant(arg, len, &index, &domain,
-                alcove_socket_constants)) {
-        case 0:
-            break;
-        case 1:
-            return alcove_mk_error(reply, rlen, "enotsup");
-        default:
-            return -1;
-    }
+  /* domain */
+  switch (alcove_decode_constant(arg, len, &index, &domain,
+                                 alcove_socket_constants)) {
+  case 0:
+    break;
+  case 1:
+    return alcove_mk_error(reply, rlen, "enotsup");
+  default:
+    return -1;
+  }
 
-    /* type */
-    switch (alcove_decode_constant(arg, len, &index, &type,
-                alcove_socket_constants)) {
-        case 0:
-            break;
-        case 1:
-            return alcove_mk_error(reply, rlen, "enotsup");
-        default:
-            return -1;
-    }
+  /* type */
+  switch (alcove_decode_constant(arg, len, &index, &type,
+                                 alcove_socket_constants)) {
+  case 0:
+    break;
+  case 1:
+    return alcove_mk_error(reply, rlen, "enotsup");
+  default:
+    return -1;
+  }
 
-    /* protocol */
-    if (alcove_decode_int(arg, len, &index, &protocol) < 0)
-        return -1;
+  /* protocol */
+  if (alcove_decode_int(arg, len, &index, &protocol) < 0)
+    return -1;
 
-    fd = socket(domain, type, protocol);
+  fd = socket(domain, type, protocol);
 
-    if (fd < 0)
-        return alcove_mk_errno(reply, rlen, errno);
+  if (fd < 0)
+    return alcove_mk_errno(reply, rlen, errno);
 
-    ALCOVE_OK(
-        reply,
-        rlen,
-        &rindex,
-        alcove_encode_long(reply, rlen, &rindex, fd)
-    );
+  ALCOVE_OK(reply, rlen, &rindex, alcove_encode_long(reply, rlen, &rindex, fd));
 
-    return rindex;
+  return rindex;
 }

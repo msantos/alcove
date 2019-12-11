@@ -19,23 +19,20 @@
  * setuid(2)
  *
  */
-    ssize_t
-alcove_sys_setuid(alcove_state_t *ap, const char *arg, size_t len,
-        char *reply, size_t rlen)
-{
-    int index = 0;
-    uid_t uid = {0};
-    int rv = 0;
+ssize_t alcove_sys_setuid(alcove_state_t *ap, const char *arg, size_t len,
+                          char *reply, size_t rlen) {
+  int index = 0;
+  uid_t uid = {0};
+  int rv = 0;
 
-    UNUSED(ap);
+  UNUSED(ap);
 
-    /* uid */
-    if (alcove_decode_uint(arg, len, &index, &uid) < 0)
-        return -1;
+  /* uid */
+  if (alcove_decode_uint(arg, len, &index, &uid) < 0)
+    return -1;
 
-    rv = setuid(uid);
+  rv = setuid(uid);
 
-    return (rv < 0)
-        ? alcove_mk_errno(reply, rlen, errno)
-        : alcove_mk_atom(reply, rlen, "ok");
+  return (rv < 0) ? alcove_mk_errno(reply, rlen, errno)
+                  : alcove_mk_atom(reply, rlen, "ok");
 }

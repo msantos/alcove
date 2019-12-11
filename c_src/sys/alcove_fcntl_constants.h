@@ -34,5 +34,4 @@ static const alcove_constant_t alcove_fcntl_constants[] = {
 #ifdef F_GETPIPE_SZ
     ALCOVE_CONSTANT(F_GETPIPE_SZ),
 #endif
-    {NULL, 0}
-};
+    {NULL, 0}};

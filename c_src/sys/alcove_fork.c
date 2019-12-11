@@ -23,181 +23,157 @@
 static int alcove_set_cloexec(int fd);
 static int alcove_close_pipe(int fd[2]);
 static int alcove_close_fd(int fd);
-static int stdio_pid(alcove_state_t *ap, alcove_child_t *c,
-        void *arg1, void *arg2);
-static int close_parent_fd(alcove_state_t *ap, alcove_child_t *c,
-        void *arg1, void *arg2);
+static int stdio_pid(alcove_state_t *ap, alcove_child_t *c, void *arg1,
+                     void *arg2);
+static int close_parent_fd(alcove_state_t *ap, alcove_child_t *c, void *arg1,
+                           void *arg2);
 
 /*
  * Utility functions
  */
-    int
-alcove_stdio(alcove_stdio_t *fd)
-{
-    if (socketpair(AF_UNIX, SOCK_STREAM, 0, fd->ctl) < 0)
-        return -1;
+int alcove_stdio(alcove_stdio_t *fd) {
+  if (socketpair(AF_UNIX, SOCK_STREAM, 0, fd->ctl) < 0)
+    return -1;
 
-    if ( (pipe(fd->in) < 0)
-            || (pipe(fd->out) < 0)
-            || (pipe(fd->err) < 0)) {
-        (void)alcove_close_pipe(fd->ctl);
-        (void)alcove_close_pipe(fd->in);
-        (void)alcove_close_pipe(fd->out);
-        (void)alcove_close_pipe(fd->err);
-        return -1;
-    }
+  if ((pipe(fd->in) < 0) || (pipe(fd->out) < 0) || (pipe(fd->err) < 0)) {
+    (void)alcove_close_pipe(fd->ctl);
+    (void)alcove_close_pipe(fd->in);
+    (void)alcove_close_pipe(fd->out);
+    (void)alcove_close_pipe(fd->err);
+    return -1;
+  }
 
+  return 0;
+}
+
+static int alcove_set_cloexec(int fd) { return alcove_setfd(fd, FD_CLOEXEC); }
+
+static int alcove_close_pipe(int fd[2]) {
+  if (alcove_close_fd(fd[0]) < 0)
+    return -1;
+
+  if (alcove_close_fd(fd[1]) < 0)
+    return -1;
+
+  return 0;
+}
+
+static int alcove_close_fd(int fd) {
+  if (fd >= 0)
+    return close(fd);
+
+  return 0;
+}
+
+int alcove_child_fun(void *arg) {
+  alcove_arg_t *child_arg = arg;
+  alcove_state_t *ap = child_arg->ap;
+  alcove_stdio_t *fd = child_arg->fd;
+  sigset_t *sigset = child_arg->sigset;
+  int sigpipe[2] = {0};
+
+  if (pipe(sigpipe) < 0)
+    return -1;
+
+  if ((dup2(sigpipe[PIPE_READ], ALCOVE_SIGREAD_FILENO) < 0) ||
+      (dup2(sigpipe[PIPE_WRITE], ALCOVE_SIGWRITE_FILENO) < 0))
+    return -1;
+
+  if ((alcove_setfd(ALCOVE_SIGREAD_FILENO, FD_CLOEXEC | O_NONBLOCK) < 0) ||
+      (alcove_setfd(ALCOVE_SIGWRITE_FILENO, FD_CLOEXEC | O_NONBLOCK) < 0))
+    return -1;
+
+  /* TODO ensure fd's do not overlap */
+  if ((dup2(fd->in[PIPE_READ], STDIN_FILENO) < 0) ||
+      (dup2(fd->out[PIPE_WRITE], STDOUT_FILENO) < 0) ||
+      (dup2(fd->err[PIPE_WRITE], STDERR_FILENO) < 0) ||
+      (dup2(fd->ctl[PIPE_READ], ALCOVE_FDCTL_FILENO) < 0))
+    return -1;
+
+  if ((alcove_close_pipe(fd->in) < 0) || (alcove_close_pipe(fd->out) < 0) ||
+      (alcove_close_pipe(fd->err) < 0) || (alcove_close_pipe(fd->ctl) < 0) ||
+      (alcove_close_pipe(sigpipe) < 0))
+    return -1;
+
+  if (alcove_set_cloexec(ALCOVE_FDCTL_FILENO) < 0)
+    return -1;
+
+  if (pid_foreach(ap, 0, NULL, NULL, pid_not_equal, close_parent_fd) < 0)
+    return -1;
+
+  ap->depth++;
+
+  if (sigprocmask(SIG_SETMASK, sigset, NULL) < 0)
+    return -1;
+
+  alcove_event_loop(ap);
+
+  return 0;
+}
+
+int alcove_parent_fd(alcove_state_t *ap, alcove_stdio_t *fd, pid_t pid) {
+  /* What to do if close(2) fails here?
+   *
+   * The options are ignore the failure, kill the child process and
+   * return errno or exit (the child will be forced to exit as well
+   * when stdin is closed).
+   */
+  if ((close(fd->ctl[PIPE_READ]) < 0) || (close(fd->in[PIPE_READ]) < 0) ||
+      (close(fd->out[PIPE_WRITE]) < 0) || (close(fd->err[PIPE_WRITE]) < 0))
+    abort();
+
+  if ((alcove_set_cloexec(fd->ctl[PIPE_WRITE]) < 0) ||
+      (alcove_set_cloexec(fd->in[PIPE_WRITE]) < 0) ||
+      (alcove_set_cloexec(fd->out[PIPE_READ]) < 0) ||
+      (alcove_set_cloexec(fd->err[PIPE_READ]) < 0))
+    abort();
+
+  if (fcntl(fd->in[PIPE_WRITE], F_SETFL, O_NONBLOCK) < 0)
+    abort();
+
+  return pid_foreach(ap, 0, fd, &pid, pid_equal, stdio_pid);
+}
+
+int avail_pid(alcove_state_t *ap, alcove_child_t *c, void *arg1, void *arg2) {
+  UNUSED(ap);
+  UNUSED(arg1);
+  UNUSED(arg2);
+
+  /* slot found */
+  if (c->pid == 0)
     return 0;
+
+  return 1;
 }
 
-    static int
-alcove_set_cloexec(int fd)
-{
-    return alcove_setfd(fd, FD_CLOEXEC);
+static int stdio_pid(alcove_state_t *ap, alcove_child_t *c, void *arg1,
+                     void *arg2) {
+  alcove_stdio_t *fd = arg1;
+  pid_t *pid = arg2;
+
+  UNUSED(ap);
+
+  c->pid = *pid;
+  c->fdctl = fd->ctl[PIPE_WRITE];
+  c->fdin = fd->in[PIPE_WRITE];
+  c->fdout = fd->out[PIPE_READ];
+  c->fderr = fd->err[PIPE_READ];
+  c->flowcontrol = ap->flowcontrol;
+  c->signaloneof = ap->signaloneof;
+
+  return 0;
 }
 
-    static int
-alcove_close_pipe(int fd[2])
-{
-    if (alcove_close_fd(fd[0]) < 0)
-        return -1;
+static int close_parent_fd(alcove_state_t *ap, alcove_child_t *c, void *arg1,
+                           void *arg2) {
+  UNUSED(ap);
+  UNUSED(arg1);
+  UNUSED(arg2);
 
-    if (alcove_close_fd(fd[1]) < 0)
-        return -1;
+  (void)alcove_close_fd(c->fdctl);
+  (void)alcove_close_fd(c->fdin);
+  (void)alcove_close_fd(c->fdout);
+  (void)alcove_close_fd(c->fderr);
 
-    return 0;
-}
-
-    static int
-alcove_close_fd(int fd)
-{
-    if (fd >= 0)
-        return close(fd);
-
-    return 0;
-}
-
-    int
-alcove_child_fun(void *arg)
-{
-    alcove_arg_t *child_arg = arg;
-    alcove_state_t *ap = child_arg->ap;
-    alcove_stdio_t *fd = child_arg->fd;
-    sigset_t *sigset = child_arg->sigset;
-    int sigpipe[2] = {0};
-
-    if (pipe(sigpipe) < 0)
-        return -1;
-
-    if ( (dup2(sigpipe[PIPE_READ], ALCOVE_SIGREAD_FILENO) < 0)
-            || (dup2(sigpipe[PIPE_WRITE], ALCOVE_SIGWRITE_FILENO) < 0))
-        return -1;
-
-    if ( (alcove_setfd(ALCOVE_SIGREAD_FILENO, FD_CLOEXEC|O_NONBLOCK) < 0)
-            || (alcove_setfd(ALCOVE_SIGWRITE_FILENO, FD_CLOEXEC|O_NONBLOCK) < 0))
-        return -1;
-
-    /* TODO ensure fd's do not overlap */
-    if ( (dup2(fd->in[PIPE_READ], STDIN_FILENO) < 0)
-            || (dup2(fd->out[PIPE_WRITE], STDOUT_FILENO) < 0)
-            || (dup2(fd->err[PIPE_WRITE], STDERR_FILENO) < 0)
-            || (dup2(fd->ctl[PIPE_READ], ALCOVE_FDCTL_FILENO) < 0))
-        return -1;
-
-    if ( (alcove_close_pipe(fd->in) < 0)
-            || (alcove_close_pipe(fd->out) < 0)
-            || (alcove_close_pipe(fd->err) < 0)
-            || (alcove_close_pipe(fd->ctl) < 0)
-            || (alcove_close_pipe(sigpipe) < 0))
-        return -1;
-
-    if (alcove_set_cloexec(ALCOVE_FDCTL_FILENO) < 0)
-        return -1;
-
-    if (pid_foreach(ap, 0, NULL, NULL, pid_not_equal, close_parent_fd) < 0)
-        return -1;
-
-    ap->depth++;
-
-    if (sigprocmask(SIG_SETMASK, sigset, NULL) < 0)
-        return -1;
-
-    alcove_event_loop(ap);
-
-    return 0;
-}
-
-    int
-alcove_parent_fd(alcove_state_t *ap, alcove_stdio_t *fd, pid_t pid)
-{
-    /* What to do if close(2) fails here?
-     *
-     * The options are ignore the failure, kill the child process and
-     * return errno or exit (the child will be forced to exit as well
-     * when stdin is closed).
-     */
-    if ( (close(fd->ctl[PIPE_READ]) < 0)
-            || (close(fd->in[PIPE_READ]) < 0)
-            || (close(fd->out[PIPE_WRITE]) < 0)
-            || (close(fd->err[PIPE_WRITE]) < 0))
-        abort();
-
-    if ( (alcove_set_cloexec(fd->ctl[PIPE_WRITE]) < 0)
-            || (alcove_set_cloexec(fd->in[PIPE_WRITE]) < 0)
-            || (alcove_set_cloexec(fd->out[PIPE_READ]) < 0)
-            || (alcove_set_cloexec(fd->err[PIPE_READ]) < 0))
-        abort();
-
-    if (fcntl(fd->in[PIPE_WRITE], F_SETFL, O_NONBLOCK) < 0)
-        abort();
-
-    return pid_foreach(ap, 0, fd, &pid, pid_equal, stdio_pid);
-}
-
-    int
-avail_pid(alcove_state_t *ap, alcove_child_t *c, void *arg1, void *arg2)
-{
-    UNUSED(ap);
-    UNUSED(arg1);
-    UNUSED(arg2);
-
-    /* slot found */
-    if (c->pid == 0)
-        return 0;
-
-    return 1;
-}
-
-    static int
-stdio_pid(alcove_state_t *ap, alcove_child_t *c, void *arg1, void *arg2)
-{
-    alcove_stdio_t *fd = arg1;
-    pid_t *pid = arg2;
-
-    UNUSED(ap);
-
-    c->pid = *pid;
-    c->fdctl = fd->ctl[PIPE_WRITE];
-    c->fdin = fd->in[PIPE_WRITE];
-    c->fdout = fd->out[PIPE_READ];
-    c->fderr = fd->err[PIPE_READ];
-    c->flowcontrol = ap->flowcontrol;
-    c->signaloneof = ap->signaloneof;
-
-    return 0;
-}
-
-    static int
-close_parent_fd(alcove_state_t *ap, alcove_child_t *c, void *arg1, void *arg2)
-{
-    UNUSED(ap);
-    UNUSED(arg1);
-    UNUSED(arg2);
-
-    (void)alcove_close_fd(c->fdctl);
-    (void)alcove_close_fd(c->fdin);
-    (void)alcove_close_fd(c->fdout);
-    (void)alcove_close_fd(c->fderr);
-
-    return 1;
+  return 1;
 }

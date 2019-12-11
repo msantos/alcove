@@ -23,5 +23,4 @@ static const alcove_constant_t alcove_wait_constants[] = {
     ALCOVE_CONSTANT(WCONTINUED),
 #endif
 
-    {NULL, 0}
-};
+    {NULL, 0}};

@@ -23,39 +23,33 @@
  * cap_getmode(2)
  *
  */
-    ssize_t
-alcove_sys_cap_getmode(alcove_state_t *ap, const char *arg, size_t len,
-        char *reply, size_t rlen)
-{
+ssize_t alcove_sys_cap_getmode(alcove_state_t *ap, const char *arg, size_t len,
+                               char *reply, size_t rlen) {
 #if defined(__FreeBSD__)
-    int rindex = 0;
-    int rv = 0;
-    u_int mode = 0;
+  int rindex = 0;
+  int rv = 0;
+  u_int mode = 0;
 
-    UNUSED(ap);
-    UNUSED(arg);
-    UNUSED(len);
+  UNUSED(ap);
+  UNUSED(arg);
+  UNUSED(len);
 
-    rv = cap_getmode(&mode);
+  rv = cap_getmode(&mode);
 
-    if (rv < 0)
-        alcove_mk_errno(reply, rlen, errno);
+  if (rv < 0)
+    alcove_mk_errno(reply, rlen, errno);
 
-    ALCOVE_OK(
-        reply,
-        rlen,
-        &rindex,
-        alcove_encode_ulong(reply, rlen, &rindex, mode)
-    );
+  ALCOVE_OK(reply, rlen, &rindex,
+            alcove_encode_ulong(reply, rlen, &rindex, mode));
 
-    return rindex;
+  return rindex;
 #else
-    UNUSED(ap);
-    UNUSED(arg);
-    UNUSED(len);
-    UNUSED(reply);
-    UNUSED(rlen);
+  UNUSED(ap);
+  UNUSED(arg);
+  UNUSED(len);
+  UNUSED(reply);
+  UNUSED(rlen);
 
-    return alcove_mk_atom(reply, rlen, "undef");
+  return alcove_mk_atom(reply, rlen, "undef");
 #endif
 }

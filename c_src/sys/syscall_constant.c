@@ -16,9 +16,9 @@
 #include "alcove_call.h"
 
 #ifdef __linux__
-#include <linux/unistd.h>
 #include <elf.h>
 #include <linux/audit.h>
+#include <linux/unistd.h>
 
 #include "alcove_syscall_constants.h"
 #endif
@@ -27,31 +27,29 @@
  * syscalls
  *
  */
-    ssize_t
-alcove_sys_syscall_constant(alcove_state_t *ap, const char *arg, size_t len,
-        char *reply, size_t rlen)
-{
+ssize_t alcove_sys_syscall_constant(alcove_state_t *ap, const char *arg,
+                                    size_t len, char *reply, size_t rlen) {
 #ifdef __linux__
-    int index = 0;
-    int rindex = 0;
+  int index = 0;
+  int rindex = 0;
 
-    char name[MAXATOMLEN] = {0};
+  char name[MAXATOMLEN] = {0};
 
-    UNUSED(ap);
+  UNUSED(ap);
 
-    /* name */
-    if (alcove_decode_atom(arg, len, &index, name) < 0)
-        return -1;
+  /* name */
+  if (alcove_decode_atom(arg, len, &index, name) < 0)
+    return -1;
 
-    ALCOVE_ERR(alcove_encode_version(reply, rlen, &rindex));
-    ALCOVE_ERR(alcove_encode_constant(reply, rlen, &rindex,
-                name, alcove_syscall_constants));
-    return rindex;
+  ALCOVE_ERR(alcove_encode_version(reply, rlen, &rindex));
+  ALCOVE_ERR(alcove_encode_constant(reply, rlen, &rindex, name,
+                                    alcove_syscall_constants));
+  return rindex;
 #else
-    UNUSED(ap);
-    UNUSED(arg);
-    UNUSED(len);
+  UNUSED(ap);
+  UNUSED(arg);
+  UNUSED(len);
 
-    return alcove_mk_atom(reply, rlen, "undef");
+  return alcove_mk_atom(reply, rlen, "undef");
 #endif
 }

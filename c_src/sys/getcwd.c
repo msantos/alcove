@@ -19,22 +19,20 @@
  * getcwd(3)
  *
  */
-    ssize_t
-alcove_sys_getcwd(alcove_state_t *ap, const char *arg, size_t len,
-        char *reply, size_t rlen)
-{
-    int rindex = 0;
-    char buf[PATH_MAX] = {0};
+ssize_t alcove_sys_getcwd(alcove_state_t *ap, const char *arg, size_t len,
+                          char *reply, size_t rlen) {
+  int rindex = 0;
+  char buf[PATH_MAX] = {0};
 
-    UNUSED(ap);
-    UNUSED(arg);
-    UNUSED(len);
+  UNUSED(ap);
+  UNUSED(arg);
+  UNUSED(len);
 
-    if (getcwd(buf, sizeof(buf)) == NULL)
-        return alcove_mk_errno(reply, rlen, errno);
+  if (getcwd(buf, sizeof(buf)) == NULL)
+    return alcove_mk_errno(reply, rlen, errno);
 
-    ALCOVE_OK(reply, rlen, &rindex,
+  ALCOVE_OK(reply, rlen, &rindex,
             alcove_encode_binary(reply, rlen, &rindex, buf, strlen(buf)));
 
-    return rindex;
+  return rindex;
 }

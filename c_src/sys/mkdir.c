@@ -21,33 +21,30 @@
  * mkdir(2)
  *
  */
-    ssize_t
-alcove_sys_mkdir(alcove_state_t *ap, const char *arg, size_t len,
-        char *reply, size_t rlen)
-{
-    int index = 0;
-    char pathname[PATH_MAX] = {0};
-    size_t pathlen = sizeof(pathname)-1;
-    mode_t mode = {0};
-    u_int32_t val = 0;
-    int rv = 0;
+ssize_t alcove_sys_mkdir(alcove_state_t *ap, const char *arg, size_t len,
+                         char *reply, size_t rlen) {
+  int index = 0;
+  char pathname[PATH_MAX] = {0};
+  size_t pathlen = sizeof(pathname) - 1;
+  mode_t mode = {0};
+  u_int32_t val = 0;
+  int rv = 0;
 
-    UNUSED(ap);
+  UNUSED(ap);
 
-    /* pathname */
-    if (alcove_decode_iolist(arg, len, &index, pathname, &pathlen) < 0 ||
-            pathlen == 0)
-        return -1;
+  /* pathname */
+  if (alcove_decode_iolist(arg, len, &index, pathname, &pathlen) < 0 ||
+      pathlen == 0)
+    return -1;
 
-    /* mode */
-    if (alcove_decode_uint(arg, len, &index, &val) < 0)
-        return -1;
+  /* mode */
+  if (alcove_decode_uint(arg, len, &index, &val) < 0)
+    return -1;
 
-    mode = val;
+  mode = val;
 
-    rv = mkdir(pathname, mode);
+  rv = mkdir(pathname, mode);
 
-    return (rv < 0)
-        ? alcove_mk_errno(reply, rlen, errno)
-        : alcove_mk_atom(reply, rlen, "ok");
+  return (rv < 0) ? alcove_mk_errno(reply, rlen, errno)
+                  : alcove_mk_atom(reply, rlen, "ok");
 }

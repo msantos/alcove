@@ -19,39 +19,37 @@
  * read(2)
  *
  */
-    ssize_t
-alcove_sys_read(alcove_state_t *ap, const char *arg, size_t len,
-        char *reply, size_t rlen)
-{
-    int index = 0;
-    int rindex = 0;
+ssize_t alcove_sys_read(alcove_state_t *ap, const char *arg, size_t len,
+                        char *reply, size_t rlen) {
+  int index = 0;
+  int rindex = 0;
 
-    int fd = -1;
-    size_t count = 0;
-    unsigned long long val = 0;
-    char buf[MAXMSGLEN] = {0};
-    int rv = 0;
+  int fd = -1;
+  size_t count = 0;
+  unsigned long long val = 0;
+  char buf[MAXMSGLEN] = {0};
+  int rv = 0;
 
-    UNUSED(ap);
+  UNUSED(ap);
 
-    /* fd */
-    if (alcove_decode_int(arg, len, &index, &fd) < 0)
-        return -1;
+  /* fd */
+  if (alcove_decode_int(arg, len, &index, &fd) < 0)
+    return -1;
 
-    /* count */
-    if (alcove_decode_ulonglong(arg, len, &index, &val) < 0)
-        return -1;
+  /* count */
+  if (alcove_decode_ulonglong(arg, len, &index, &val) < 0)
+    return -1;
 
-    count = val;
+  count = val;
 
-    /* Silently truncate too large values of count */
-    rv = read(fd, buf, MIN(count,rlen));
+  /* Silently truncate too large values of count */
+  rv = read(fd, buf, MIN(count, rlen));
 
-    if (rv < 0)
-        return alcove_mk_errno(reply, rlen, errno);
+  if (rv < 0)
+    return alcove_mk_errno(reply, rlen, errno);
 
-    ALCOVE_OK(reply, rlen, &rindex,
-        alcove_encode_binary(reply, rlen, &rindex, buf, rv));
+  ALCOVE_OK(reply, rlen, &rindex,
+            alcove_encode_binary(reply, rlen, &rindex, buf, rv));
 
-    return rindex;
+  return rindex;
 }

@@ -470,5 +470,4 @@ static const alcove_constant_t alcove_ioctl_constants[] = {
     ALCOVE_CONSTANT(TUNSETVNETHDRSZ),
 #endif
 
-    {NULL, 0}
-};
+    {NULL, 0}};

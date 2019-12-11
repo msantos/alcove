@@ -19,23 +19,20 @@
  * setgid(2)
  *
  */
-    ssize_t
-alcove_sys_setgid(alcove_state_t *ap, const char *arg, size_t len,
-        char *reply, size_t rlen)
-{
-    int index = 0;
-    gid_t gid = {0};
-    int rv = 0;
+ssize_t alcove_sys_setgid(alcove_state_t *ap, const char *arg, size_t len,
+                          char *reply, size_t rlen) {
+  int index = 0;
+  gid_t gid = {0};
+  int rv = 0;
 
-    UNUSED(ap);
+  UNUSED(ap);
 
-    /* gid */
-    if (alcove_decode_uint(arg, len, &index, &gid) < 0)
-        return -1;
+  /* gid */
+  if (alcove_decode_uint(arg, len, &index, &gid) < 0)
+    return -1;
 
-    rv = setgid(gid);
+  rv = setgid(gid);
 
-    return (rv < 0)
-        ? alcove_mk_errno(reply, rlen, errno)
-        : alcove_mk_atom(reply, rlen, "ok");
+  return (rv < 0) ? alcove_mk_errno(reply, rlen, errno)
+                  : alcove_mk_atom(reply, rlen, "ok");
 }

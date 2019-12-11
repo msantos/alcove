@@ -21,24 +21,22 @@
  * signals
  *
  */
-    ssize_t
-alcove_sys_signal_constant(alcove_state_t *ap, const char *arg, size_t len,
-        char *reply, size_t rlen)
-{
-    int index = 0;
-    int rindex = 0;
+ssize_t alcove_sys_signal_constant(alcove_state_t *ap, const char *arg,
+                                   size_t len, char *reply, size_t rlen) {
+  int index = 0;
+  int rindex = 0;
 
-    char name[MAXATOMLEN] = {0};
+  char name[MAXATOMLEN] = {0};
 
-    UNUSED(ap);
+  UNUSED(ap);
 
-    /* constant */
-    if (alcove_decode_atom(arg, len, &index, name) < 0)
-        return -1;
+  /* constant */
+  if (alcove_decode_atom(arg, len, &index, name) < 0)
+    return -1;
 
-    ALCOVE_ERR(alcove_encode_version(reply, rlen, &rindex));
-    ALCOVE_ERR(alcove_encode_constant(reply, rlen, &rindex,
-                name, alcove_signal_constants));
+  ALCOVE_ERR(alcove_encode_version(reply, rlen, &rindex));
+  ALCOVE_ERR(alcove_encode_constant(reply, rlen, &rindex, name,
+                                    alcove_signal_constants));
 
-    return rindex;
+  return rindex;
 }

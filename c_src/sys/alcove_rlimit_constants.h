@@ -64,5 +64,4 @@ static const alcove_constant_t alcove_rlimit_constants[] = {
 #ifdef RLIMIT_NLIMITS
     ALCOVE_CONSTANT(RLIMIT_NLIMITS),
 #endif
-    {NULL, 0}
-};
+    {NULL, 0}};

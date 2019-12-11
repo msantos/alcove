@@ -21,23 +21,21 @@
  * file flags
  *
  */
-    ssize_t
-alcove_sys_file_constant(alcove_state_t *ap, const char *arg, size_t len,
-        char *reply, size_t rlen)
-{
-    int index = 0;
-    int rindex = 0;
+ssize_t alcove_sys_file_constant(alcove_state_t *ap, const char *arg,
+                                 size_t len, char *reply, size_t rlen) {
+  int index = 0;
+  int rindex = 0;
 
-    char flag[MAXATOMLEN] = {0};
+  char flag[MAXATOMLEN] = {0};
 
-    UNUSED(ap);
+  UNUSED(ap);
 
-    /* flag */
-    if (alcove_decode_atom(arg, len, &index, flag) < 0)
-        return -1;
+  /* flag */
+  if (alcove_decode_atom(arg, len, &index, flag) < 0)
+    return -1;
 
-    ALCOVE_ERR(alcove_encode_version(reply, rlen, &rindex));
-    ALCOVE_ERR(alcove_encode_constant(reply, rlen, &rindex,
-                flag, alcove_file_constants));
-    return rindex;
+  ALCOVE_ERR(alcove_encode_version(reply, rlen, &rindex));
+  ALCOVE_ERR(alcove_encode_constant(reply, rlen, &rindex, flag,
+                                    alcove_file_constants));
+  return rindex;
 }

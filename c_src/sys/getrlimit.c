@@ -21,42 +21,40 @@
  * getrlimit(2)
  *
  */
-    ssize_t
-alcove_sys_getrlimit(alcove_state_t *ap, const char *arg, size_t len,
-        char *reply, size_t rlen)
-{
-    int index = 0;
-    int rindex = 0;
+ssize_t alcove_sys_getrlimit(alcove_state_t *ap, const char *arg, size_t len,
+                             char *reply, size_t rlen) {
+  int index = 0;
+  int rindex = 0;
 
-    int resource = 0;
-    struct rlimit rlim = {0};
-    int rv = 0;
+  int resource = 0;
+  struct rlimit rlim = {0};
+  int rv = 0;
 
-    UNUSED(ap);
+  UNUSED(ap);
 
-    /* resource */
-    switch (alcove_decode_constant(arg, len, &index, &resource,
-                alcove_rlimit_constants)) {
-        case 0:
-            break;
-        case 1:
-            return alcove_mk_error(reply, rlen, "enotsup");
-        default:
-            return -1;
-    }
+  /* resource */
+  switch (alcove_decode_constant(arg, len, &index, &resource,
+                                 alcove_rlimit_constants)) {
+  case 0:
+    break;
+  case 1:
+    return alcove_mk_error(reply, rlen, "enotsup");
+  default:
+    return -1;
+  }
 
-    rv = getrlimit(resource, &rlim);
+  rv = getrlimit(resource, &rlim);
 
-    if (rv < 0)
-        return  alcove_mk_errno(reply, rlen, errno);
+  if (rv < 0)
+    return alcove_mk_errno(reply, rlen, errno);
 
-    ALCOVE_ERR(alcove_encode_version(reply, rlen, &rindex));
-    ALCOVE_ERR(alcove_encode_tuple_header(reply, rlen, &rindex, 2));
-    ALCOVE_ERR(alcove_encode_atom(reply, rlen, &rindex, "ok"));
-    ALCOVE_ERR(alcove_encode_tuple_header(reply, rlen, &rindex, 3));
-    ALCOVE_ERR(alcove_encode_atom(reply, rlen, &rindex, "alcove_rlimit"));
-    ALCOVE_ERR(alcove_encode_ulonglong(reply, rlen, &rindex, rlim.rlim_cur));
-    ALCOVE_ERR(alcove_encode_ulonglong(reply, rlen, &rindex, rlim.rlim_max));
+  ALCOVE_ERR(alcove_encode_version(reply, rlen, &rindex));
+  ALCOVE_ERR(alcove_encode_tuple_header(reply, rlen, &rindex, 2));
+  ALCOVE_ERR(alcove_encode_atom(reply, rlen, &rindex, "ok"));
+  ALCOVE_ERR(alcove_encode_tuple_header(reply, rlen, &rindex, 3));
+  ALCOVE_ERR(alcove_encode_atom(reply, rlen, &rindex, "alcove_rlimit"));
+  ALCOVE_ERR(alcove_encode_ulonglong(reply, rlen, &rindex, rlim.rlim_cur));
+  ALCOVE_ERR(alcove_encode_ulonglong(reply, rlen, &rindex, rlim.rlim_max));
 
-    return rindex;
+  return rindex;
 }

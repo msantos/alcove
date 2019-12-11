@@ -23,29 +23,26 @@
  * cap_enter(2)
  *
  */
-    ssize_t
-alcove_sys_cap_enter(alcove_state_t *ap, const char *arg, size_t len,
-        char *reply, size_t rlen)
-{
+ssize_t alcove_sys_cap_enter(alcove_state_t *ap, const char *arg, size_t len,
+                             char *reply, size_t rlen) {
 #if defined(__FreeBSD__)
-    int rv = 0;
+  int rv = 0;
 
-    UNUSED(ap);
-    UNUSED(arg);
-    UNUSED(len);
+  UNUSED(ap);
+  UNUSED(arg);
+  UNUSED(len);
 
-    rv = cap_enter();
+  rv = cap_enter();
 
-    return (rv < 0)
-        ? alcove_mk_errno(reply, rlen, errno)
-        : alcove_mk_atom(reply, rlen, "ok");
+  return (rv < 0) ? alcove_mk_errno(reply, rlen, errno)
+                  : alcove_mk_atom(reply, rlen, "ok");
 #else
-    UNUSED(ap);
-    UNUSED(arg);
-    UNUSED(len);
-    UNUSED(reply);
-    UNUSED(rlen);
+  UNUSED(ap);
+  UNUSED(arg);
+  UNUSED(len);
+  UNUSED(reply);
+  UNUSED(rlen);
 
-    return alcove_mk_atom(reply, rlen, "undef");
+  return alcove_mk_atom(reply, rlen, "undef");
 #endif
 }

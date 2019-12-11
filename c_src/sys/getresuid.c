@@ -18,39 +18,35 @@
 /*
  * getresuid(2)
  */
-    ssize_t
-alcove_sys_getresuid(alcove_state_t *ap, const char *arg, size_t len,
-        char *reply, size_t rlen)
-{
+ssize_t alcove_sys_getresuid(alcove_state_t *ap, const char *arg, size_t len,
+                             char *reply, size_t rlen) {
 #if defined(__sunos__) || defined(__APPLE__)
-    UNUSED(ap);
-    UNUSED(arg);
-    UNUSED(len);
+  UNUSED(ap);
+  UNUSED(arg);
+  UNUSED(len);
 
-    return alcove_mk_atom(reply, rlen, "undef");
+  return alcove_mk_atom(reply, rlen, "undef");
 #else
-    int rindex = 0;
-    uid_t uid = {0};
-    uid_t euid = {0};
-    uid_t suid = {0};
-    int rv = 0;
+  int rindex = 0;
+  uid_t uid = {0};
+  uid_t euid = {0};
+  uid_t suid = {0};
+  int rv = 0;
 
-    UNUSED(ap);
-    UNUSED(arg);
-    UNUSED(len);
+  UNUSED(ap);
+  UNUSED(arg);
+  UNUSED(len);
 
-    rv = getresuid(&uid, &euid, &suid);
+  rv = getresuid(&uid, &euid, &suid);
 
-    if (rv < 0)
-        return  alcove_mk_errno(reply, rlen, errno);
+  if (rv < 0)
+    return alcove_mk_errno(reply, rlen, errno);
 
-    ALCOVE_TUPLE4(reply, rlen, &rindex,
-            "ok",
-            alcove_encode_ulonglong(reply, rlen, &rindex, uid),
-            alcove_encode_ulonglong(reply, rlen, &rindex, euid),
-            alcove_encode_ulonglong(reply, rlen, &rindex, suid)
-    );
+  ALCOVE_TUPLE4(reply, rlen, &rindex, "ok",
+                alcove_encode_ulonglong(reply, rlen, &rindex, uid),
+                alcove_encode_ulonglong(reply, rlen, &rindex, euid),
+                alcove_encode_ulonglong(reply, rlen, &rindex, suid));
 
-    return rindex;
+  return rindex;
 #endif
 }

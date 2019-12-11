@@ -16,28 +16,24 @@
 #include "alcove_call.h"
 
 /* Probably only useful for testing */
-    ssize_t
-alcove_sys_alloc(alcove_state_t *ap, const char *arg, size_t len,
-        char *reply, size_t rlen)
-{
-    int index = 0;
-    int rindex = 0;
-    char buf[MAXMSGLEN] = {0};
-    size_t size = sizeof(buf);
-    alcove_alloc_t *elem = NULL;
-    ssize_t nelem = 0;
+ssize_t alcove_sys_alloc(alcove_state_t *ap, const char *arg, size_t len,
+                         char *reply, size_t rlen) {
+  int index = 0;
+  int rindex = 0;
+  char buf[MAXMSGLEN] = {0};
+  size_t size = sizeof(buf);
+  alcove_alloc_t *elem = NULL;
+  ssize_t nelem = 0;
 
-    UNUSED(ap);
+  UNUSED(ap);
 
-    if (alcove_decode_cstruct(arg, len, &index, buf, &size,
-                &elem, &nelem) < 0)
-        return -1;
+  if (alcove_decode_cstruct(arg, len, &index, buf, &size, &elem, &nelem) < 0)
+    return -1;
 
-    ALCOVE_TUPLE3(reply, rlen, &rindex,
-        "ok",
-        alcove_encode_binary(reply, rlen, &rindex, buf, size),
-        alcove_encode_cstruct(reply, rlen, &rindex, buf, size, elem, nelem)
-    );
+  ALCOVE_TUPLE3(
+      reply, rlen, &rindex, "ok",
+      alcove_encode_binary(reply, rlen, &rindex, buf, size),
+      alcove_encode_cstruct(reply, rlen, &rindex, buf, size, elem, nelem));
 
-    return rindex;
+  return rindex;
 }

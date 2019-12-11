@@ -19,36 +19,32 @@
  * chown(2)
  *
  */
-    ssize_t
-alcove_sys_chown(alcove_state_t *ap, const char *arg, size_t len,
-        char *reply, size_t rlen)
-{
-    int index = 0;
+ssize_t alcove_sys_chown(alcove_state_t *ap, const char *arg, size_t len,
+                         char *reply, size_t rlen) {
+  int index = 0;
 
-    char path[PATH_MAX] = {0};
-    size_t plen = sizeof(path)-1;
-    uid_t owner = {0};
-    gid_t group = {0};
-    int rv = 0;
+  char path[PATH_MAX] = {0};
+  size_t plen = sizeof(path) - 1;
+  uid_t owner = {0};
+  gid_t group = {0};
+  int rv = 0;
 
-    UNUSED(ap);
+  UNUSED(ap);
 
-    /* path */
-    if (alcove_decode_iolist(arg, len, &index, path, &plen) < 0 ||
-            plen == 0)
-        return -1;
+  /* path */
+  if (alcove_decode_iolist(arg, len, &index, path, &plen) < 0 || plen == 0)
+    return -1;
 
-    /* owner */
-    if (alcove_decode_uint(arg, len, &index, &owner) < 0)
-        return -1;
+  /* owner */
+  if (alcove_decode_uint(arg, len, &index, &owner) < 0)
+    return -1;
 
-    /* group */
-    if (alcove_decode_uint(arg, len, &index, &group) < 0)
-        return -1;
+  /* group */
+  if (alcove_decode_uint(arg, len, &index, &group) < 0)
+    return -1;
 
-    rv = chown(path, owner, group);
+  rv = chown(path, owner, group);
 
-    return (rv < 0)
-        ? alcove_mk_errno(reply, rlen, errno)
-        : alcove_mk_atom(reply, rlen, "ok");
+  return (rv < 0) ? alcove_mk_errno(reply, rlen, errno)
+                  : alcove_mk_atom(reply, rlen, "ok");
 }

@@ -15,99 +15,95 @@
 #include "alcove.h"
 #include "alcove_call.h"
 
-static int count_pid(alcove_state_t *ap, alcove_child_t *c,
-        void *arg1, void *arg2);
-static int cons_pid(alcove_state_t *ap, alcove_child_t *c,
-        void *arg1, void *arg2);
+static int count_pid(alcove_state_t *ap, alcove_child_t *c, void *arg1,
+                     void *arg2);
+static int cons_pid(alcove_state_t *ap, alcove_child_t *c, void *arg1,
+                    void *arg2);
 
-    ssize_t
-alcove_sys_cpid(alcove_state_t *ap, const char *arg, size_t len,
-        char *reply, size_t rlen)
-{
-    int rindex = 0;
-    size_t count = 0;
+ssize_t alcove_sys_cpid(alcove_state_t *ap, const char *arg, size_t len,
+                        char *reply, size_t rlen) {
+  int rindex = 0;
+  size_t count = 0;
 
-    UNUSED(arg);
-    UNUSED(len);
+  UNUSED(arg);
+  UNUSED(len);
 
-    /* Count the number of PIDs */
-    if (pid_foreach(ap, 0, &count, NULL, pid_not_equal, count_pid) < 0)
-        return -1;
+  /* Count the number of PIDs */
+  if (pid_foreach(ap, 0, &count, NULL, pid_not_equal, count_pid) < 0)
+    return -1;
 
-    /* Ensure the buffer is large enough to hold the PIDs
-     * version = 1 byte
-     *     list header = 5 bytes
-     *     tuple header = 5 bytes
-     *     atom = 1 byte
-     *     alcove_pid = 10 bytes
-     *     5 * int (7) = 35 bytes
-     * tail = 1 byte
-     *
-     * length = 1 + (count * 56) + 1
-     */
-    if (2 + count * 56 > rlen)
-        return -1;
+  /* Ensure the buffer is large enough to hold the PIDs
+   * version = 1 byte
+   *     list header = 5 bytes
+   *     tuple header = 5 bytes
+   *     atom = 1 byte
+   *     alcove_pid = 10 bytes
+   *     5 * int (7) = 35 bytes
+   * tail = 1 byte
+   *
+   * length = 1 + (count * 56) + 1
+   */
+  if (2 + count * 56 > rlen)
+    return -1;
 
-    ALCOVE_ERR(alcove_encode_version(reply, rlen, &rindex));
+  ALCOVE_ERR(alcove_encode_version(reply, rlen, &rindex));
 
-    if (pid_foreach(ap, 0, reply, &rindex, pid_not_equal, cons_pid) < 0)
-        return -1;
+  if (pid_foreach(ap, 0, reply, &rindex, pid_not_equal, cons_pid) < 0)
+    return -1;
 
-    ALCOVE_ERR(alcove_encode_empty_list(reply, rlen, &rindex));
+  ALCOVE_ERR(alcove_encode_empty_list(reply, rlen, &rindex));
 
-    return rindex;
+  return rindex;
 }
 
-    static int
-count_pid(alcove_state_t *ap, alcove_child_t *c, void *arg1, void *arg2)
-{
-    size_t *n = arg1;
+static int count_pid(alcove_state_t *ap, alcove_child_t *c, void *arg1,
+                     void *arg2) {
+  size_t *n = arg1;
 
-    UNUSED(ap);
-    UNUSED(c);
-    UNUSED(arg2);
+  UNUSED(ap);
+  UNUSED(c);
+  UNUSED(arg2);
 
-    *n += 1;
-    return 1;
+  *n += 1;
+  return 1;
 }
 
-    static int
-cons_pid(alcove_state_t *ap, alcove_child_t *c, void *arg1, void *arg2)
-{
-    char *buf = arg1;
-    int *index = arg2;
+static int cons_pid(alcove_state_t *ap, alcove_child_t *c, void *arg1,
+                    void *arg2) {
+  char *buf = arg1;
+  int *index = arg2;
 
-    UNUSED(ap);
+  UNUSED(ap);
 
-    if (ei_encode_list_header(buf, index, 1) < 0)
-        return -1;
+  if (ei_encode_list_header(buf, index, 1) < 0)
+    return -1;
 
-    if (ei_encode_tuple_header(buf, index, 8) < 0)
-        return -1;
+  if (ei_encode_tuple_header(buf, index, 8) < 0)
+    return -1;
 
-    if (ei_encode_atom(buf, index, "alcove_pid") < 0)
-        return -1;
+  if (ei_encode_atom(buf, index, "alcove_pid") < 0)
+    return -1;
 
-    if (ei_encode_long(buf, index, c->pid) < 0)
-        return -1;
+  if (ei_encode_long(buf, index, c->pid) < 0)
+    return -1;
 
-    if (ei_encode_long(buf, index, c->flowcontrol) < 0)
-        return -1;
+  if (ei_encode_long(buf, index, c->flowcontrol) < 0)
+    return -1;
 
-    if (ei_encode_long(buf, index, c->signaloneof) < 0)
-        return -1;
+  if (ei_encode_long(buf, index, c->signaloneof) < 0)
+    return -1;
 
-    if (ei_encode_long(buf, index, c->fdctl) < 0)
-        return -1;
+  if (ei_encode_long(buf, index, c->fdctl) < 0)
+    return -1;
 
-    if (ei_encode_long(buf, index, c->fdin) < 0)
-        return -1;
+  if (ei_encode_long(buf, index, c->fdin) < 0)
+    return -1;
 
-    if (ei_encode_long(buf, index, c->fdout) < 0)
-        return -1;
+  if (ei_encode_long(buf, index, c->fdout) < 0)
+    return -1;
 
-    if (ei_encode_long(buf, index, c->fderr) < 0)
-        return -1;
+  if (ei_encode_long(buf, index, c->fderr) < 0)
+    return -1;
 
-    return 1;
+  return 1;
 }

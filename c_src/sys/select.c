@@ -18,202 +18,191 @@
 #include <sys/select.h>
 
 static int alcove_list_to_fd_set(const char *arg, size_t len, int *index,
-        fd_set *fdset, int *nfds);
+                                 fd_set *fdset, int *nfds);
 static int alcove_fd_isset(char *buf, size_t len, int *index, fd_set *set);
 
 /*
  * select(2)
  *
  */
-    ssize_t
-alcove_sys_select(alcove_state_t *ap, const char *arg, size_t len,
-        char *reply, size_t rlen)
-{
-    int index = 0;
-    int rindex = 0;
-    int type = 0;
-    int arity = 0;
+ssize_t alcove_sys_select(alcove_state_t *ap, const char *arg, size_t len,
+                          char *reply, size_t rlen) {
+  int index = 0;
+  int rindex = 0;
+  int type = 0;
+  int arity = 0;
 
-    int nfds = 0;
-    fd_set readfds;
-    fd_set writefds;
-    fd_set exceptfds;
+  int nfds = 0;
+  fd_set readfds;
+  fd_set writefds;
+  fd_set exceptfds;
 
-    char buf[MAXATOMLEN] = {0};
-    struct timeval tv;
-    struct timeval *timeout = NULL;
+  char buf[MAXATOMLEN] = {0};
+  struct timeval tv;
+  struct timeval *timeout = NULL;
 
-    int rv = 0;
+  int rv = 0;
 
-    UNUSED(ap);
+  UNUSED(ap);
 
-    tv.tv_sec = 0;
-    tv.tv_usec = 0;
+  tv.tv_sec = 0;
+  tv.tv_usec = 0;
 
-    /* readfds */
-    if (alcove_list_to_fd_set(arg, len, &index, &readfds, &nfds) < 0)
-        return alcove_mk_errno(reply, rlen, EBADF);
+  /* readfds */
+  if (alcove_list_to_fd_set(arg, len, &index, &readfds, &nfds) < 0)
+    return alcove_mk_errno(reply, rlen, EBADF);
 
-    /* writefds */
-    if (alcove_list_to_fd_set(arg, len, &index, &writefds, &nfds) < 0)
-        return alcove_mk_errno(reply, rlen, EBADF);
+  /* writefds */
+  if (alcove_list_to_fd_set(arg, len, &index, &writefds, &nfds) < 0)
+    return alcove_mk_errno(reply, rlen, EBADF);
 
-    /* exceptfds */
-    if (alcove_list_to_fd_set(arg, len, &index, &exceptfds, &nfds) < 0)
-        return alcove_mk_errno(reply, rlen, EBADF);
+  /* exceptfds */
+  if (alcove_list_to_fd_set(arg, len, &index, &exceptfds, &nfds) < 0)
+    return alcove_mk_errno(reply, rlen, EBADF);
 
-    /* timeout */
-    if (alcove_get_type(arg, len, &index, &type, &arity) < 0)
-        return -1;
+  /* timeout */
+  if (alcove_get_type(arg, len, &index, &type, &arity) < 0)
+    return -1;
 
-    switch (type) {
-        case ERL_ATOM_EXT:
-            if (alcove_decode_null(arg, len, &index) < 0)
-                return -1;
+  switch (type) {
+  case ERL_ATOM_EXT:
+    if (alcove_decode_null(arg, len, &index) < 0)
+      return -1;
 
-            timeout = NULL;
-            break;
+    timeout = NULL;
+    break;
 
-        case ERL_SMALL_TUPLE_EXT:
-        case ERL_LARGE_TUPLE_EXT: {
-            long long tv_sec = 0;
-            long long tv_usec = 0;
+  case ERL_SMALL_TUPLE_EXT:
+  case ERL_LARGE_TUPLE_EXT: {
+    long long tv_sec = 0;
+    long long tv_usec = 0;
 
-            if (alcove_decode_tuple_header(arg, len, &index, &arity) < 0 || arity != 3)
-                return -1;
+    if (alcove_decode_tuple_header(arg, len, &index, &arity) < 0 || arity != 3)
+      return -1;
 
-            timeout = &tv;
+    timeout = &tv;
 
-            /* 'alcove_timeval' */
-            if (alcove_decode_atom(arg, len, &index, buf) < 0)
-                return -1;
+    /* 'alcove_timeval' */
+    if (alcove_decode_atom(arg, len, &index, buf) < 0)
+      return -1;
 
-            if (strcmp(buf, "alcove_timeval") != 0)
-                return -1;
+    if (strcmp(buf, "alcove_timeval") != 0)
+      return -1;
 
-            /* sec */
-            if (alcove_decode_longlong(arg, len, &index, &tv_sec) < 0)
-                return -1;
+    /* sec */
+    if (alcove_decode_longlong(arg, len, &index, &tv_sec) < 0)
+      return -1;
 
-            /* usec */
-            if (alcove_decode_longlong(arg, len, &index, &tv_usec) < 0)
-                return -1;
+    /* usec */
+    if (alcove_decode_longlong(arg, len, &index, &tv_usec) < 0)
+      return -1;
 
-            tv.tv_sec = tv_sec;
-            tv.tv_usec = tv_usec;
-            }
-            break;
+    tv.tv_sec = tv_sec;
+    tv.tv_usec = tv_usec;
+  } break;
 
-        default:
-            return -1;
-    }
+  default:
+    return -1;
+  }
 
-    rv = select(nfds+1, &readfds, &writefds, &exceptfds, timeout);
+  rv = select(nfds + 1, &readfds, &writefds, &exceptfds, timeout);
 
-    if (rv < 0)
-        return alcove_mk_errno(reply, rindex, errno);
+  if (rv < 0)
+    return alcove_mk_errno(reply, rindex, errno);
 
-    ALCOVE_TUPLE4(reply, rlen, &rindex,
-        "ok",
-        alcove_fd_isset(reply, rlen, &rindex, &readfds),
-        alcove_fd_isset(reply, rlen, &rindex, &writefds),
-        alcove_fd_isset(reply, rlen, &rindex, &exceptfds)
-    );
+  ALCOVE_TUPLE4(reply, rlen, &rindex, "ok",
+                alcove_fd_isset(reply, rlen, &rindex, &readfds),
+                alcove_fd_isset(reply, rlen, &rindex, &writefds),
+                alcove_fd_isset(reply, rlen, &rindex, &exceptfds));
 
-    return rindex;
+  return rindex;
 }
 
-    static int
-alcove_list_to_fd_set(const char *arg, size_t len, int *index,
-        fd_set *fdset, int *nfds)
-{
-    int type = 0;
-    int arity = 0;
+static int alcove_list_to_fd_set(const char *arg, size_t len, int *index,
+                                 fd_set *fdset, int *nfds) {
+  int type = 0;
+  int arity = 0;
 
-    int i = 0;
-    int fd = -1;
+  int i = 0;
+  int fd = -1;
 
-    if (alcove_get_type(arg, len, index, &type, &arity) < 0)
+  if (alcove_get_type(arg, len, index, &type, &arity) < 0)
+    return -1;
+
+  if (arity >= FD_SETSIZE)
+    return -1;
+
+  FD_ZERO(fdset);
+
+  switch (type) {
+  case ERL_STRING_EXT: {
+    char tmp[FD_SETSIZE] = {0};
+
+    if (alcove_decode_string(arg, len, index, tmp, sizeof(tmp)) < 0)
+      return -1;
+
+    for (i = 0; i < arity; i++) {
+      fd = tmp[i];
+
+      if (fd >= FD_SETSIZE || fcntl(fd, F_GETFD, 0) < 0)
         return -1;
 
-    if (arity >= FD_SETSIZE)
+      FD_SET(fd, fdset);
+      *nfds = MAX(fd, *nfds);
+    }
+  } break;
+
+  case ERL_LIST_EXT:
+    if (alcove_decode_list_header(arg, len, index, &arity) < 0)
+      return -1;
+
+    for (i = 0; i < arity; i++) {
+      if (alcove_decode_int(arg, len, index, &fd) < 0)
         return -1;
 
-    FD_ZERO(fdset);
+      if (fd >= FD_SETSIZE || fcntl(fd, F_GETFD, 0) < 0)
+        return -1;
 
-    switch (type) {
-        case ERL_STRING_EXT: {
-            char tmp[FD_SETSIZE] = {0};
-
-            if (alcove_decode_string(arg, len, index, tmp, sizeof(tmp)) < 0)
-                return -1;
-
-            for (i = 0; i < arity; i++) {
-                fd = tmp[i];
-
-                if (fd >= FD_SETSIZE || fcntl(fd, F_GETFD, 0) < 0)
-                    return -1;
-
-                FD_SET(fd, fdset);
-                *nfds = MAX(fd, *nfds);
-            }
-            }
-            break;
-
-        case ERL_LIST_EXT:
-            if (alcove_decode_list_header(arg, len, index, &arity) < 0)
-                return -1;
-
-            for (i = 0; i < arity; i++) {
-                if (alcove_decode_int(arg, len, index, &fd) < 0)
-                    return -1;
-
-                if (fd >= FD_SETSIZE || fcntl(fd, F_GETFD, 0) < 0)
-                    return -1;
-
-                FD_SET(fd, fdset);
-                *nfds = MAX(fd, *nfds);
-            }
-
-            if (alcove_decode_list_header(arg, len, index, &arity) < 0
-                    || arity != 0)
-                return -1;
-
-            break;
-
-        case ERL_NIL_EXT:
-            if (alcove_decode_list_header(arg, len, index, &arity) < 0 || arity != 0)
-                return -1;
-
-            break;
-
-        default:
-            return -1;
+      FD_SET(fd, fdset);
+      *nfds = MAX(fd, *nfds);
     }
 
-    return 0;
+    if (alcove_decode_list_header(arg, len, index, &arity) < 0 || arity != 0)
+      return -1;
+
+    break;
+
+  case ERL_NIL_EXT:
+    if (alcove_decode_list_header(arg, len, index, &arity) < 0 || arity != 0)
+      return -1;
+
+    break;
+
+  default:
+    return -1;
+  }
+
+  return 0;
 }
 
-    static int
-alcove_fd_isset(char *buf, size_t len, int *index, fd_set *set)
-{
-    int fd = 0;
+static int alcove_fd_isset(char *buf, size_t len, int *index, fd_set *set) {
+  int fd = 0;
 
-    if (set == NULL)
-        return 0;
+  if (set == NULL)
+    return 0;
 
-    for (fd = 0; fd < FD_SETSIZE; fd++) {
-        if (FD_ISSET(fd, set)) {
-            if (alcove_encode_list_header(buf, len, index, 1) < 0)
-                return -1;
-
-            if (alcove_encode_long(buf, len, index, fd) < 0)
-                return -1;
-        }
-    }
-
-    if (alcove_encode_empty_list(buf, len, index) < 0)
+  for (fd = 0; fd < FD_SETSIZE; fd++) {
+    if (FD_ISSET(fd, set)) {
+      if (alcove_encode_list_header(buf, len, index, 1) < 0)
         return -1;
 
-    return 0;
+      if (alcove_encode_long(buf, len, index, fd) < 0)
+        return -1;
+    }
+  }
+
+  if (alcove_encode_empty_list(buf, len, index) < 0)
+    return -1;
+
+  return 0;
 }

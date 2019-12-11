@@ -21,25 +21,24 @@ extern char **environ;
  * environ(7)
  *
  */
-    ssize_t
-alcove_sys_environ(alcove_state_t *ap, const char *arg, size_t len,
-        char *reply, size_t rlen)
-{
-    int rindex = 0;
-    char **envp = environ;
+ssize_t alcove_sys_environ(alcove_state_t *ap, const char *arg, size_t len,
+                           char *reply, size_t rlen) {
+  int rindex = 0;
+  char **envp = environ;
 
-    UNUSED(ap);
-    UNUSED(arg);
-    UNUSED(len);
+  UNUSED(ap);
+  UNUSED(arg);
+  UNUSED(len);
 
-    ALCOVE_ERR(alcove_encode_version(reply, rlen, &rindex));
+  ALCOVE_ERR(alcove_encode_version(reply, rlen, &rindex));
 
-    for ( ; envp && *envp; envp++) {
-        ALCOVE_ERR(alcove_encode_list_header(reply, rlen, &rindex, 1));
-        ALCOVE_ERR(alcove_encode_binary(reply, rlen, &rindex, *envp, strlen(*envp)));
-    }
+  for (; envp && *envp; envp++) {
+    ALCOVE_ERR(alcove_encode_list_header(reply, rlen, &rindex, 1));
+    ALCOVE_ERR(
+        alcove_encode_binary(reply, rlen, &rindex, *envp, strlen(*envp)));
+  }
 
-    ALCOVE_ERR(alcove_encode_empty_list(reply, rlen, &rindex));
+  ALCOVE_ERR(alcove_encode_empty_list(reply, rlen, &rindex));
 
-    return rindex;
+  return rindex;
 }

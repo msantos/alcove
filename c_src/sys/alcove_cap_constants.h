@@ -278,5 +278,4 @@ static const alcove_constant_t alcove_cap_constants[] = {
     ALCOVE_CONSTANT(CAP_IOCTLS_ALL),
 #endif
 
-    {NULL, 0}
-};
+    {NULL, 0}};

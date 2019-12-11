@@ -19,25 +19,22 @@
  * getenv(3)
  *
  */
-    ssize_t
-alcove_sys_getenv(alcove_state_t *ap, const char *arg, size_t len,
-        char *reply, size_t rlen)
-{
-    int index = 0;
-    char name[MAXMSGLEN] = {0};
-    size_t namelen = sizeof(name)-1;
-    char *value = NULL;
+ssize_t alcove_sys_getenv(alcove_state_t *ap, const char *arg, size_t len,
+                          char *reply, size_t rlen) {
+  int index = 0;
+  char name[MAXMSGLEN] = {0};
+  size_t namelen = sizeof(name) - 1;
+  char *value = NULL;
 
-    UNUSED(ap);
+  UNUSED(ap);
 
-    /* name */
-    if (alcove_decode_iolist(arg, len, &index, name, &namelen) < 0 ||
-            namelen == 0)
-        return -1;
+  /* name */
+  if (alcove_decode_iolist(arg, len, &index, name, &namelen) < 0 ||
+      namelen == 0)
+    return -1;
 
-    value = getenv(name);
+  value = getenv(name);
 
-    return value
-        ? alcove_mk_binary(reply, rlen, value, strlen(value))
-        : alcove_mk_atom(reply, rlen, "false");
+  return value ? alcove_mk_binary(reply, rlen, value, strlen(value))
+               : alcove_mk_atom(reply, rlen, "false");
 }

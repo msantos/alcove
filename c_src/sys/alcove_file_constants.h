@@ -76,5 +76,4 @@ static const alcove_constant_t alcove_file_constants[] = {
 #ifdef O_NDELAY
     ALCOVE_CONSTANT(O_NDELAY),
 #endif
-    {NULL, 0}
-};
+    {NULL, 0}};

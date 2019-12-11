@@ -18,27 +18,25 @@
 /*
  * setpgid(2)
  */
-    ssize_t
-alcove_sys_setpgid(alcove_state_t *ap, const char *arg, size_t len,
-        char *reply, size_t rlen)
-{
-    int index = 0;
+ssize_t alcove_sys_setpgid(alcove_state_t *ap, const char *arg, size_t len,
+                           char *reply, size_t rlen) {
+  int index = 0;
 
-    pid_t pid = 0;
-    pid_t pgid = 0;
+  pid_t pid = 0;
+  pid_t pgid = 0;
 
-    UNUSED(ap);
+  UNUSED(ap);
 
-    /* pid */
-    if (alcove_decode_int(arg, len, &index, &pid) < 0)
-        return -1;
+  /* pid */
+  if (alcove_decode_int(arg, len, &index, &pid) < 0)
+    return -1;
 
-    /* pgid */
-    if (alcove_decode_int(arg, len, &index, &pgid) < 0)
-        return -1;
+  /* pgid */
+  if (alcove_decode_int(arg, len, &index, &pgid) < 0)
+    return -1;
 
-    if (setpgid(pid, pgid) < 0)
-        return alcove_mk_errno(reply, rlen, errno);
+  if (setpgid(pid, pgid) < 0)
+    return alcove_mk_errno(reply, rlen, errno);
 
-    return alcove_mk_atom(reply, rlen, "ok");
+  return alcove_mk_atom(reply, rlen, "ok");
 }

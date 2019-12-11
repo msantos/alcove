@@ -25,61 +25,53 @@ static void alcove_free_cstruct(alcove_alloc_t *ptr, ssize_t nptr);
  * jail(2)
  *
  */
-    ssize_t
-alcove_sys_jail(alcove_state_t *ap, const char *arg, size_t len,
-        char *reply, size_t rlen)
-{
+ssize_t alcove_sys_jail(alcove_state_t *ap, const char *arg, size_t len,
+                        char *reply, size_t rlen) {
 #if defined(__FreeBSD__)
-    int index = 0;
-    int rindex = 0;
+  int index = 0;
+  int rindex = 0;
 
-    struct jail j = {0};
-    size_t jlen = sizeof(j);
+  struct jail j = {0};
+  size_t jlen = sizeof(j);
 
-    alcove_alloc_t *elem = NULL;
-    ssize_t nelem = 0;
+  alcove_alloc_t *elem = NULL;
+  ssize_t nelem = 0;
 
-    int jid = 0;
+  int jid = 0;
 
-    UNUSED(ap);
+  UNUSED(ap);
 
-    if (alcove_decode_cstruct(arg, len, &index, (char *)&j, &jlen,
-                &elem, &nelem) < 0)
-        return -1;
+  if (alcove_decode_cstruct(arg, len, &index, (char *)&j, &jlen, &elem,
+                            &nelem) < 0)
+    return -1;
 
-    jid = jail(&j);
+  jid = jail(&j);
 
-    alcove_free_cstruct(elem, nelem);
+  alcove_free_cstruct(elem, nelem);
 
-    if (jid < 0)
-        return alcove_mk_errno(reply, rlen, errno);
+  if (jid < 0)
+    return alcove_mk_errno(reply, rlen, errno);
 
-    ALCOVE_OK(
-            reply,
-            rlen,
-            &rindex,
-            alcove_encode_long(reply, rlen, &rindex, jid)
-            );
+  ALCOVE_OK(reply, rlen, &rindex,
+            alcove_encode_long(reply, rlen, &rindex, jid));
 
-    return rindex;
+  return rindex;
 #else
-    UNUSED(ap);
-    UNUSED(arg);
-    UNUSED(len);
+  UNUSED(ap);
+  UNUSED(arg);
+  UNUSED(len);
 
-    return alcove_mk_atom(reply, rlen, "undef");
+  return alcove_mk_atom(reply, rlen, "undef");
 #endif
 }
 
 #if defined(__FreeBSD__)
-    static void
-alcove_free_cstruct(alcove_alloc_t *ptr, ssize_t nptr)
-{
-    int i = 0;
+static void alcove_free_cstruct(alcove_alloc_t *ptr, ssize_t nptr) {
+  int i = 0;
 
-    for (i = 0; i < nptr; i++)
-        free(ptr[i].p);
+  for (i = 0; i < nptr; i++)
+    free(ptr[i].p);
 
-    free(ptr);
+  free(ptr);
 }
 #endif

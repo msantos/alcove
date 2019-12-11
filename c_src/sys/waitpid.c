@@ -19,108 +19,101 @@
 
 #include <sys/wait.h>
 
-static int remove_pid(alcove_state_t *ap, alcove_child_t *c,
-        void *arg1, void *arg2);
+static int remove_pid(alcove_state_t *ap, alcove_child_t *c, void *arg1,
+                      void *arg2);
 
 /*
  * waitpid(2)
  *
  */
-    ssize_t
-alcove_sys_waitpid(alcove_state_t *ap, const char *arg, size_t len,
-        char *reply, size_t rlen)
-{
-    int index = 0;
-    int rindex = 0;
+ssize_t alcove_sys_waitpid(alcove_state_t *ap, const char *arg, size_t len,
+                           char *reply, size_t rlen) {
+  int index = 0;
+  int rindex = 0;
 
-    pid_t pid = 0;
-    int status = 0;
-    int options = 0;
+  pid_t pid = 0;
+  int status = 0;
+  int options = 0;
 
-    pid_t rv = 0;
+  pid_t rv = 0;
 
-    UNUSED(ap);
+  UNUSED(ap);
 
-    /* pid */
-    if (alcove_decode_int(arg, len, &index, &pid) < 0)
-        return -1;
+  /* pid */
+  if (alcove_decode_int(arg, len, &index, &pid) < 0)
+    return -1;
 
-    /* options */
-    switch (alcove_decode_constant_list(arg, len, &index, &options,
-                alcove_wait_constants)) {
-        case 0:
-            break;
-        case 1:
-            return alcove_mk_error(reply, rlen, "enotsup");
-        default:
-            return -1;
+  /* options */
+  switch (alcove_decode_constant_list(arg, len, &index, &options,
+                                      alcove_wait_constants)) {
+  case 0:
+    break;
+  case 1:
+    return alcove_mk_error(reply, rlen, "enotsup");
+  default:
+    return -1;
+  }
+
+  rv = waitpid(pid, &status, options);
+
+  if (rv < 0)
+    return alcove_mk_errno(reply, rlen, errno);
+
+  if (WIFEXITED(status) || WIFSIGNALED(status)) {
+    if (pid_foreach(ap, rv, NULL, NULL, pid_equal, remove_pid) < 0)
+      return -1;
+  }
+
+  ALCOVE_ERR(alcove_encode_version(reply, rlen, &rindex));
+  ALCOVE_ERR(alcove_encode_tuple_header(reply, rlen, &rindex, 4));
+  ALCOVE_ERR(alcove_encode_atom(reply, rlen, &rindex, "ok"));
+  ALCOVE_ERR(alcove_encode_long(reply, rlen, &rindex, rv));
+  ALCOVE_ERR(alcove_encode_long(reply, rlen, &rindex, status));
+
+  if (rv) {
+    if (WIFEXITED(status)) {
+      ALCOVE_ERR(alcove_encode_list_header(reply, rlen, &rindex, 1));
+      ALCOVE_ERR(alcove_encode_tuple_header(reply, rlen, &rindex, 2));
+      ALCOVE_ERR(alcove_encode_atom(reply, rlen, &rindex, "exit_status"));
+      ALCOVE_ERR(alcove_encode_long(reply, rlen, &rindex, WEXITSTATUS(status)));
     }
 
-    rv = waitpid(pid, &status, options);
-
-    if (rv < 0)
-        return alcove_mk_errno(reply, rlen, errno);
-
-    if (WIFEXITED(status) || WIFSIGNALED(status)) {
-        if (pid_foreach(ap, rv, NULL, NULL, pid_equal, remove_pid) < 0)
-            return -1;
+    if (WIFSIGNALED(status)) {
+      ALCOVE_ERR(alcove_encode_list_header(reply, rlen, &rindex, 1));
+      ALCOVE_ERR(alcove_encode_tuple_header(reply, rlen, &rindex, 2));
+      ALCOVE_ERR(alcove_encode_atom(reply, rlen, &rindex, "termsig"));
+      ALCOVE_ERR(alcove_signal_name(reply, rlen, &rindex, WTERMSIG(status)));
     }
 
-    ALCOVE_ERR(alcove_encode_version(reply, rlen, &rindex));
-    ALCOVE_ERR(alcove_encode_tuple_header(reply, rlen, &rindex, 4));
-    ALCOVE_ERR(alcove_encode_atom(reply, rlen, &rindex, "ok"));
-    ALCOVE_ERR(alcove_encode_long(reply, rlen, &rindex, rv));
-    ALCOVE_ERR(alcove_encode_long(reply, rlen, &rindex, status));
-
-    if (rv) {
-        if (WIFEXITED(status)) {
-            ALCOVE_ERR(alcove_encode_list_header(reply, rlen, &rindex, 1));
-            ALCOVE_ERR(alcove_encode_tuple_header(reply, rlen, &rindex, 2));
-            ALCOVE_ERR(alcove_encode_atom(reply, rlen, &rindex,
-                        "exit_status"));
-            ALCOVE_ERR(alcove_encode_long(reply, rlen, &rindex,
-                        WEXITSTATUS(status)));
-        }
-
-        if (WIFSIGNALED(status)) {
-            ALCOVE_ERR(alcove_encode_list_header(reply, rlen, &rindex, 1));
-            ALCOVE_ERR(alcove_encode_tuple_header(reply, rlen, &rindex, 2));
-            ALCOVE_ERR(alcove_encode_atom(reply, rlen, &rindex, "termsig"));
-            ALCOVE_ERR(alcove_signal_name(reply, rlen, &rindex,
-                    WTERMSIG(status)));
-        }
-
-        if (WIFSTOPPED(status)) {
-            ALCOVE_ERR(alcove_encode_list_header(reply, rlen, &rindex, 1));
-            ALCOVE_ERR(alcove_encode_tuple_header(reply, rlen, &rindex, 2));
-            ALCOVE_ERR(alcove_encode_atom(reply, rlen, &rindex, "stopsig"));
-            ALCOVE_ERR(alcove_signal_name(reply, rlen, &rindex,
-                    WSTOPSIG(status)));
-        }
-
-        if (WIFCONTINUED(status)) {
-            ALCOVE_ERR(alcove_encode_list_header(reply, rlen, &rindex, 1));
-            ALCOVE_ERR(alcove_encode_atom(reply, rlen, &rindex, "continued"));
-        }
+    if (WIFSTOPPED(status)) {
+      ALCOVE_ERR(alcove_encode_list_header(reply, rlen, &rindex, 1));
+      ALCOVE_ERR(alcove_encode_tuple_header(reply, rlen, &rindex, 2));
+      ALCOVE_ERR(alcove_encode_atom(reply, rlen, &rindex, "stopsig"));
+      ALCOVE_ERR(alcove_signal_name(reply, rlen, &rindex, WSTOPSIG(status)));
     }
 
-    ALCOVE_ERR(alcove_encode_empty_list(reply, rlen, &rindex));
+    if (WIFCONTINUED(status)) {
+      ALCOVE_ERR(alcove_encode_list_header(reply, rlen, &rindex, 1));
+      ALCOVE_ERR(alcove_encode_atom(reply, rlen, &rindex, "continued"));
+    }
+  }
 
-    return rindex;
+  ALCOVE_ERR(alcove_encode_empty_list(reply, rlen, &rindex));
+
+  return rindex;
 }
 
-    static int
-remove_pid(alcove_state_t *ap, alcove_child_t *c, void *arg1, void *arg2)
-{
-    UNUSED(ap);
-    UNUSED(arg1);
-    UNUSED(arg2);
+static int remove_pid(alcove_state_t *ap, alcove_child_t *c, void *arg1,
+                      void *arg2) {
+  UNUSED(ap);
+  UNUSED(arg1);
+  UNUSED(arg2);
 
-    c->pid = 0;
-    c->fdctl = -1;
-    c->fdin = -1;
-    c->fdout = -1;
-    c->fderr = -1;
+  c->pid = 0;
+  c->fdctl = -1;
+  c->fdin = -1;
+  c->fdout = -1;
+  c->fderr = -1;
 
-    return 0;
+  return 0;
 }

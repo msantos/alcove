@@ -23,32 +23,29 @@
  * jail_attach(2)
  *
  */
-    ssize_t
-alcove_sys_jail_attach(alcove_state_t *ap, const char *arg, size_t len,
-        char *reply, size_t rlen)
-{
+ssize_t alcove_sys_jail_attach(alcove_state_t *ap, const char *arg, size_t len,
+                               char *reply, size_t rlen) {
 #if defined(__FreeBSD__)
-    int index = 0;
+  int index = 0;
 
-    int jid = 0;
-    int rv = 0;
+  int jid = 0;
+  int rv = 0;
 
-    UNUSED(ap);
+  UNUSED(ap);
 
-    /* jid */
-    if (alcove_decode_int(arg, len, &index, &jid) < 0)
-        return -1;
+  /* jid */
+  if (alcove_decode_int(arg, len, &index, &jid) < 0)
+    return -1;
 
-    rv = jail_attach(jid);
+  rv = jail_attach(jid);
 
-    return (rv < 0)
-        ? alcove_mk_errno(reply, rlen, errno)
-        : alcove_mk_atom(reply, rlen, "ok");
+  return (rv < 0) ? alcove_mk_errno(reply, rlen, errno)
+                  : alcove_mk_atom(reply, rlen, "ok");
 #else
-    UNUSED(ap);
-    UNUSED(arg);
-    UNUSED(len);
+  UNUSED(ap);
+  UNUSED(arg);
+  UNUSED(len);
 
-    return alcove_mk_atom(reply, rlen, "undef");
+  return alcove_mk_atom(reply, rlen, "undef");
 #endif
 }

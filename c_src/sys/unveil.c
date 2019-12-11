@@ -19,67 +19,64 @@
  * unveil(2)
  *
  */
-    ssize_t
-alcove_sys_unveil(alcove_state_t *ap, const char *arg, size_t len,
-        char *reply, size_t rlen)
-{
+ssize_t alcove_sys_unveil(alcove_state_t *ap, const char *arg, size_t len,
+                          char *reply, size_t rlen) {
 #if defined(__OpenBSD__)
-    int index = 0;
-    int type = 0;
-    int arity = 0;
+  int index = 0;
+  int type = 0;
+  int arity = 0;
 
-    char path[PATH_MAX] = {0};
-    size_t plen = sizeof(path)-1;
-    char permissions[PATH_MAX] = {0};
-    size_t elen = sizeof(permissions)-1;
-    int rv = 0;
+  char path[PATH_MAX] = {0};
+  size_t plen = sizeof(path) - 1;
+  char permissions[PATH_MAX] = {0};
+  size_t elen = sizeof(permissions) - 1;
+  int rv = 0;
 
-    UNUSED(ap);
+  UNUSED(ap);
 
-    /* path */
-    if (alcove_get_type(arg, len, &index, &type, &arity) < 0)
-        return -1;
+  /* path */
+  if (alcove_get_type(arg, len, &index, &type, &arity) < 0)
+    return -1;
 
-    switch (type) {
-        case ERL_ATOM_EXT:
-            if (alcove_decode_null(arg, len, &index) < 0)
-                return -1;
+  switch (type) {
+  case ERL_ATOM_EXT:
+    if (alcove_decode_null(arg, len, &index) < 0)
+      return -1;
 
-            plen = -1;
-            break;
+    plen = -1;
+    break;
 
-        default:
-           if (alcove_decode_iolist(arg, len, &index, path, &plen) < 0)
-               return -1;
-    }
+  default:
+    if (alcove_decode_iolist(arg, len, &index, path, &plen) < 0)
+      return -1;
+  }
 
-    /* permissions */
-    if (alcove_get_type(arg, len, &index, &type, &arity) < 0)
-        return -1;
+  /* permissions */
+  if (alcove_get_type(arg, len, &index, &type, &arity) < 0)
+    return -1;
 
-    switch (type) {
-        case ERL_ATOM_EXT:
-            if (alcove_decode_null(arg, len, &index) < 0)
-                return -1;
+  switch (type) {
+  case ERL_ATOM_EXT:
+    if (alcove_decode_null(arg, len, &index) < 0)
+      return -1;
 
-            elen = -1;
-            break;
+    elen = -1;
+    break;
 
-        default:
-           if (alcove_decode_iolist(arg, len, &index, permissions, &elen) < 0)
-               return -1;
-    }
+  default:
+    if (alcove_decode_iolist(arg, len, &index, permissions, &elen) < 0)
+      return -1;
+  }
 
-    rv = unveil(plen == -1 ? NULL : path, elen == -1 ? NULL : permissions);
+  rv = unveil(plen == -1 ? NULL : path, elen == -1 ? NULL : permissions);
 
-    return (rv < 0)
-        ? alcove_mk_errno(reply, rlen, errno)
-        : alcove_mk_atom(reply, rlen, "ok");
+  return (rv < 0) ? alcove_mk_errno(reply, rlen, errno)
+                  : alcove_mk_atom(reply, rlen, "ok");
 #else
-    UNUSED(ap);
-    UNUSED(arg);
-    UNUSED(len);
+  UNUSED(ap);
+  UNUSED(arg);
+  UNUSED(len);
 
-    return alcove_mk_atom(reply, rlen, "undef");
+  return alcove_mk_atom(reply, rlen, "undef");
 #endif
 }
