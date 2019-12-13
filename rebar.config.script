@@ -7,8 +7,10 @@ Compile = fun(Name0, Prog) ->
       false -> " > /dev/null 2>&1";
       _ -> ""
     end,
-    Cmd = erlang:open_port({spawn, ["${CC-cc} -Werror -o /dev/null ", Name, IO]},
-            [stream, exit_status]),
+    Cmd = erlang:open_port(
+      {spawn, ["${CC-cc} -Werror ${ALCOVE_LDFLAGS-} -o /dev/null ", Name, IO]},
+      [stream, exit_status]
+    ),
     Status = receive
         {Cmd, {exit_status, 0}} ->
             true;
