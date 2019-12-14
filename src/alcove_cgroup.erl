@@ -106,7 +106,7 @@ get(Drv, Pids, MntOpt, Namespace, Key) ->
 -spec write(alcove_drv:ref(),[alcove:pid_t()],file:name_all(),iodata()) ->
     {'error',file:posix()} | 'ok'.
 write(Drv, Pids, File, Bytes) ->
-    Reply = case alcove:open(Drv, Pids, File, [o_wronly], 0) of
+    case alcove:open(Drv, Pids, File, [o_wronly], 0) of
         {ok, FH} ->
             Size = iolist_size(Bytes),
             N = alcove:write(Drv, Pids, FH, Bytes),
@@ -120,21 +120,19 @@ write(Drv, Pids, File, Bytes) ->
             end;
         Error ->
             Error
-    end,
-    Reply.
+    end.
 
 -spec read(alcove_drv:ref(),[alcove:pid_t()],file:name_all()) ->
     {'error',file:posix()} | {'ok',binary()}.
 read(Drv, Pids, File) ->
-    Reply = case alcove:open(Drv, Pids, File, [o_rdonly], 0) of
+    case alcove:open(Drv, Pids, File, [o_rdonly], 0) of
         {ok, FH} ->
             N = readbuf(Drv, Pids, FH),
             _ = alcove:close(Drv, Pids, FH),
             N;
         Error ->
             Error
-    end,
-    Reply.
+    end.
 
 fold(Drv, MntOpt, Namespace, Fun, AccIn) ->
     fold(Drv, [], MntOpt, Namespace, Fun, AccIn).
