@@ -1,4 +1,4 @@
-/* Copyright (c) 2014, Michael Santos <michael.santos@gmail.com>
+/* Copyright (c) 2014-2020, Michael Santos <michael.santos@gmail.com>
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -19,11 +19,11 @@
 ssize_t alcove_sys_alloc(alcove_state_t *ap, const char *arg, size_t len,
                          char *reply, size_t rlen) {
   int index = 0;
-  int rindex = 0;
+  int rindex;
   char buf[MAXMSGLEN] = {0};
   size_t size = sizeof(buf);
-  alcove_alloc_t *elem = NULL;
-  ssize_t nelem = 0;
+  alcove_alloc_t *elem;
+  ssize_t nelem;
 
   UNUSED(ap);
 
