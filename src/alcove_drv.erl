@@ -303,18 +303,18 @@ reply(Drv, Pids, Type, Timeout) ->
 %%% Port executable
 %%--------------------------------------------------------------------
 -spec getopts(proplists:proplist()) -> list(string() | [string()]).
-getopts(Options) when is_list(Options) ->
-    Exec = maybe_string(proplists:get_value(exec, Options, "")),
-    Progname = maybe_string(proplists:get_value(progname, Options, progname())),
+getopts(Options0) when is_list(Options0) ->
+    Exec = maybe_string(proplists:get_value(exec, Options0, "")),
+    Progname = maybe_string(proplists:get_value(progname, Options0, progname())),
 
-    Options1 = lists:map(fun
+    Options = lists:map(fun
                     (N) when is_atom(N) ->
                         {N, true};
                     ({_,_} = N) ->
                         N
-                end, Options),
+                end, Options0),
 
-    Switches = lists:append([ optarg(N) || N <- Options1 ]),
+    Switches = lists:append([ optarg(N) || N <- Options ]),
     [Cmd|Argv] = [ N || N <- string:tokens(Exec, " ") ++ [Progname|Switches], N /= ""],
     [find_executable(Cmd)|Argv].
 
