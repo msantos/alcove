@@ -14,8 +14,6 @@
  */
 #include "alcove.h"
 
-    ssize_t
-alcove_mk_errno(char *buf, size_t len, int errnum)
-{
-    return alcove_mk_error(buf, len, erl_errno_id(errnum));
+ssize_t alcove_mk_errno(char *buf, size_t len, int errnum) {
+  return alcove_mk_error(buf, len, erl_errno_id(errnum));
 }

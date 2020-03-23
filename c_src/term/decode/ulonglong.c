@@ -14,14 +14,13 @@
  */
 #include "alcove.h"
 
-    int
-alcove_decode_ulonglong(const char *buf, size_t len, int *index, unsigned long long *p)
-{
-    int type = 0;
-    int arity = 0;
+int alcove_decode_ulonglong(const char *buf, size_t len, int *index,
+                            unsigned long long *p) {
+  int type = 0;
+  int arity = 0;
 
-    if (alcove_get_type(buf, len, index, &type, &arity) < 0)
-        return -1;
+  if (alcove_get_type(buf, len, index, &type, &arity) < 0)
+    return -1;
 
-    return ei_decode_ulonglong(buf, index, p);
+  return ei_decode_ulonglong(buf, index, p);
 }

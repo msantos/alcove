@@ -14,14 +14,12 @@
  */
 #include "alcove.h"
 
-    int
-alcove_setfd(int fd, int flag)
-{
-    int flags = 0;
+int alcove_setfd(int fd, int flag) {
+  int flags = 0;
 
-    flags = fcntl(fd, F_GETFD, 0);
-    if (flags < 0)
-        return -1;
+  flags = fcntl(fd, F_GETFD, 0);
+  if (flags < 0)
+    return -1;
 
-    return fcntl(fd, F_SETFD, flags | flag);
+  return fcntl(fd, F_SETFD, flags | flag);
 }

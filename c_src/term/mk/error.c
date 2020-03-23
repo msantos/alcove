@@ -14,22 +14,20 @@
  */
 #include "alcove.h"
 
-    ssize_t
-alcove_mk_error(char *buf, size_t len, const char *reason)
-{
-    int index = 0;
+ssize_t alcove_mk_error(char *buf, size_t len, const char *reason) {
+  int index = 0;
 
-    if (alcove_encode_version(buf, len, &index) < 0)
-        return -1;
+  if (alcove_encode_version(buf, len, &index) < 0)
+    return -1;
 
-    if (alcove_encode_tuple_header(buf, len, &index, 2) < 0)
-        return -1;
+  if (alcove_encode_tuple_header(buf, len, &index, 2) < 0)
+    return -1;
 
-    if (alcove_encode_atom(buf, len, &index, "error") < 0)
-        return -1;
+  if (alcove_encode_atom(buf, len, &index, "error") < 0)
+    return -1;
 
-    if (alcove_encode_atom(buf, len, &index, reason) < 0)
-        return -1;
+  if (alcove_encode_atom(buf, len, &index, reason) < 0)
+    return -1;
 
-    return index;
+  return index;
 }

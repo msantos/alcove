@@ -14,19 +14,17 @@
  */
 #include "alcove.h"
 
-    int
-alcove_encode_ulong(char *buf, size_t len, int *index, unsigned long x)
-{
-    int n = *index;
+int alcove_encode_ulong(char *buf, size_t len, int *index, unsigned long x) {
+  int n = *index;
 
-    if (*index < 0 || *index >= len)
-        return -1;
+  if (*index < 0 || *index >= len)
+    return -1;
 
-    if (ei_encode_ulong(NULL, &n, x) < 0)
-        return -1;
+  if (ei_encode_ulong(NULL, &n, x) < 0)
+    return -1;
 
-    if (n > len)
-        return -1;
+  if (n > len)
+    return -1;
 
-    return ei_encode_ulong(buf, index, x);
+  return ei_encode_ulong(buf, index, x);
 }

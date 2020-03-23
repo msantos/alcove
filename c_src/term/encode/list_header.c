@@ -14,19 +14,17 @@
  */
 #include "alcove.h"
 
-    int
-alcove_encode_list_header(char *buf, size_t len, int *index, int arity)
-{
-    int n = *index;
+int alcove_encode_list_header(char *buf, size_t len, int *index, int arity) {
+  int n = *index;
 
-    if (*index < 0 || *index >= len)
-        return -1;
+  if (*index < 0 || *index >= len)
+    return -1;
 
-    if (ei_encode_list_header(NULL, &n, arity) < 0)
-        return -1;
+  if (ei_encode_list_header(NULL, &n, arity) < 0)
+    return -1;
 
-    if (n > len)
-        return -1;
+  if (n > len)
+    return -1;
 
-    return ei_encode_list_header(buf, index, arity);
+  return ei_encode_list_header(buf, index, arity);
 }

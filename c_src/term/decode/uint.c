@@ -14,15 +14,13 @@
  */
 #include "alcove.h"
 
-    int
-alcove_decode_uint(const char *buf, size_t len, int *index, u_int32_t *n)
-{
-    unsigned long val = 0;
+int alcove_decode_uint(const char *buf, size_t len, int *index, u_int32_t *n) {
+  unsigned long val = 0;
 
-    if (alcove_decode_ulong(buf, len, index, &val) < 0 || val > UINT32_MAX)
-        return -1;
+  if (alcove_decode_ulong(buf, len, index, &val) < 0 || val > UINT32_MAX)
+    return -1;
 
-    *n = val;
+  *n = val;
 
-    return 0;
+  return 0;
 }

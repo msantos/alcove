@@ -14,44 +14,42 @@
  */
 #include "alcove.h"
 
-    int
-alcove_decode_constant(const char *buf, size_t len, int *index, int *val,
-        const alcove_constant_t *constants)
-{
-    int type = 0;
-    int arity = 0;
+int alcove_decode_constant(const char *buf, size_t len, int *index, int *val,
+                           const alcove_constant_t *constants) {
+  int type = 0;
+  int arity = 0;
 
-    char define[MAXATOMLEN] = {0};
+  char define[MAXATOMLEN] = {0};
 
-    long long constant = 0;
+  long long constant = 0;
 
-    if (alcove_get_type(buf, len, index, &type, &arity) < 0)
-        return -1;
+  if (alcove_get_type(buf, len, index, &type, &arity) < 0)
+    return -1;
 
-    switch (type) {
-        case ERL_ATOM_EXT:
-            if (alcove_decode_atom(buf, len, index, define) < 0)
-                return -1;
+  switch (type) {
+  case ERL_ATOM_EXT:
+    if (alcove_decode_atom(buf, len, index, define) < 0)
+      return -1;
 
-            if (alcove_lookup_constant(define, &constant, constants) < 0)
-                return 1;
+    if (alcove_lookup_constant(define, &constant, constants) < 0)
+      return 1;
 
-            if (constant < INT32_MIN || constant > INT32_MAX)
-                return -1;
+    if (constant < INT32_MIN || constant > INT32_MAX)
+      return -1;
 
-            *val = constant;
+    *val = constant;
 
-            break;
+    break;
 
-        case ERL_SMALL_INTEGER_EXT:
-        case ERL_INTEGER_EXT:
-            if (alcove_decode_int(buf, len, index, val) < 0)
-                return -1;
-            break;
+  case ERL_SMALL_INTEGER_EXT:
+  case ERL_INTEGER_EXT:
+    if (alcove_decode_int(buf, len, index, val) < 0)
+      return -1;
+    break;
 
-        default:
-            return -1;
-    }
+  default:
+    return -1;
+  }
 
-    return 0;
+  return 0;
 }

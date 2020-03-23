@@ -14,11 +14,10 @@
  */
 #include "alcove.h"
 
-    void
-alcove_sig_info(int sig, siginfo_t *info, void *context)
-{
-    UNUSED(context);
+void alcove_sig_info(int sig, siginfo_t *info, void *context) {
+  UNUSED(context);
 
-    if (write(ALCOVE_SIGWRITE_FILENO, info, sizeof(siginfo_t)) != sizeof(siginfo_t))
-        (void)close(ALCOVE_SIGWRITE_FILENO);
+  if (write(ALCOVE_SIGWRITE_FILENO, info, sizeof(siginfo_t)) !=
+      sizeof(siginfo_t))
+    (void)close(ALCOVE_SIGWRITE_FILENO);
 }

@@ -14,14 +14,12 @@
  */
 #include "alcove.h"
 
-    int
-alcove_encode_constant(char *buf, size_t len, int *index, char *name,
-        const alcove_constant_t *constants)
-{
-    long long val = 0;
+int alcove_encode_constant(char *buf, size_t len, int *index, char *name,
+                           const alcove_constant_t *constants) {
+  long long val = 0;
 
-    if (alcove_lookup_constant(name, &val, constants) < 0)
-        return alcove_encode_atom(buf, len, index, "unknown");
+  if (alcove_lookup_constant(name, &val, constants) < 0)
+    return alcove_encode_atom(buf, len, index, "unknown");
 
-    return alcove_encode_ulonglong(buf, len, index, val);
+  return alcove_encode_ulonglong(buf, len, index, val);
 }

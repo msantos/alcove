@@ -14,16 +14,14 @@
  */
 #include "alcove.h"
 
-    ssize_t
-alcove_mk_ulong(char *buf, size_t len, unsigned long n)
-{
-    int index = 0;
+ssize_t alcove_mk_ulong(char *buf, size_t len, unsigned long n) {
+  int index = 0;
 
-    if (alcove_encode_version(buf, len, &index) < 0)
-        return -1;
+  if (alcove_encode_version(buf, len, &index) < 0)
+    return -1;
 
-    if (alcove_encode_ulong(buf, len, &index, n) < 0)
-        return -1;
+  if (alcove_encode_ulong(buf, len, &index, n) < 0)
+    return -1;
 
-    return index;
+  return index;
 }

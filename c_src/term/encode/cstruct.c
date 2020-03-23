@@ -14,49 +14,46 @@
  */
 #include "alcove.h"
 
-    int
-alcove_encode_cstruct(char *reply, size_t rlen, int *rindex,
-        const char *buf, size_t len,
-        alcove_alloc_t *ptr, ssize_t nptr)
-{
-    int i = 0;
-    size_t offset = 0;
+int alcove_encode_cstruct(char *reply, size_t rlen, int *rindex,
+                          const char *buf, size_t len, alcove_alloc_t *ptr,
+                          ssize_t nptr) {
+  int i = 0;
+  size_t offset = 0;
 
-    if (alcove_encode_list_header(reply, rlen, rindex, nptr) < 0)
+  if (alcove_encode_list_header(reply, rlen, rindex, nptr) < 0)
+    return -1;
+
+  for (; i < nptr; i++) {
+    if (ptr[i].p) {
+      if (offset + sizeof(void *) > len)
         return -1;
 
-    for ( ; i < nptr; i++) {
-        if (ptr[i].p) {
-            if (offset + sizeof(void *) > len)
-                return -1;
+      /* Allocated buffer */
+      if (alcove_encode_tuple_header(reply, rlen, rindex, 2) < 0)
+        return -1;
+      if (alcove_encode_atom(reply, rlen, rindex, "ptr") < 0)
+        return -1;
+      if (alcove_encode_binary(reply, rlen, rindex, ptr[i].p, ptr[i].len) < 0)
+        return -1;
+      free(ptr[i].p);
+      offset += sizeof(void *);
+    } else {
+      if (offset + ptr[i].len > len)
+        return -1;
 
-            /* Allocated buffer */
-            if (alcove_encode_tuple_header(reply, rlen, rindex, 2) < 0)
-                return -1;
-            if (alcove_encode_atom(reply, rlen, rindex, "ptr") < 0)
-                return -1;
-            if (alcove_encode_binary(reply, rlen, rindex, ptr[i].p,
-                        ptr[i].len) < 0)
-                return -1;
-            free(ptr[i].p);
-            offset += sizeof(void *);
-        }
-        else {
-            if (offset + ptr[i].len > len)
-                return -1;
-
-            /* Static binary */
-            if (alcove_encode_binary(reply, rlen, rindex, buf+offset, ptr[i].len) < 0)
-                return -1;
-            offset += ptr[i].len;
-        }
+      /* Static binary */
+      if (alcove_encode_binary(reply, rlen, rindex, buf + offset, ptr[i].len) <
+          0)
+        return -1;
+      offset += ptr[i].len;
     }
+  }
 
-    if (alcove_encode_empty_list(reply, rlen, rindex) < 0)
-        return -1;
+  if (alcove_encode_empty_list(reply, rlen, rindex) < 0)
+    return -1;
 
-    free(ptr);
-    ptr = NULL;
+  free(ptr);
+  ptr = NULL;
 
-    return 0;
+  return 0;
 }

@@ -14,20 +14,19 @@
  */
 #include "alcove.h"
 
-    int
-alcove_decode_binary(const char *buf, size_t len, int *index, void *p, size_t *plen)
-{
-    int type = 0;
-    int arity = 0;
-    long val = 0;
+int alcove_decode_binary(const char *buf, size_t len, int *index, void *p,
+                         size_t *plen) {
+  int type = 0;
+  int arity = 0;
+  long val = 0;
 
-    if (alcove_get_type(buf, len, index, &type, &arity) < 0)
-        return -1;
+  if (alcove_get_type(buf, len, index, &type, &arity) < 0)
+    return -1;
 
-    if (ei_decode_binary(buf, index, p, &val) < 0 || val < 0)
-        return -1;
+  if (ei_decode_binary(buf, index, p, &val) < 0 || val < 0)
+    return -1;
 
-    *plen = val;
+  *plen = val;
 
-    return 0;
+  return 0;
 }

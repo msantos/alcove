@@ -14,14 +14,13 @@
  */
 #include "alcove.h"
 
-    int
-alcove_decode_list_header(const char *buf, size_t len, int *index, int *size)
-{
-    int type = 0;
-    int arity = 0;
+int alcove_decode_list_header(const char *buf, size_t len, int *index,
+                              int *size) {
+  int type = 0;
+  int arity = 0;
 
-    if (alcove_get_type(buf, len, index, &type, &arity) < 0)
-        return -1;
+  if (alcove_get_type(buf, len, index, &type, &arity) < 0)
+    return -1;
 
-    return ei_decode_list_header(buf, index, size);
+  return ei_decode_list_header(buf, index, size);
 }

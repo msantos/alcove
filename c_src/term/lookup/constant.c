@@ -14,18 +14,16 @@
  */
 #include "alcove.h"
 
-    int
-alcove_lookup_constant(char *name, long long *val,
-        const alcove_constant_t *constants)
-{
-    const alcove_constant_t *dp = NULL;
+int alcove_lookup_constant(char *name, long long *val,
+                           const alcove_constant_t *constants) {
+  const alcove_constant_t *dp = NULL;
 
-    for (dp = constants; dp->name != NULL; dp++) {
-        if (!strcasecmp(name, dp->name)) {
-            *val = dp->val;
-            return 0;
-        }
+  for (dp = constants; dp->name != NULL; dp++) {
+    if (!strcasecmp(name, dp->name)) {
+      *val = dp->val;
+      return 0;
     }
+  }
 
-    return -1;
+  return -1;
 }

@@ -15,83 +15,77 @@
 #include "alcove.h"
 
 static char *alcove_x_decode_iolist_to_string(const char *buf, size_t len,
-        int *index);
+                                              int *index);
 
-    int
-alcove_decode_argv(const char *arg, size_t len, int *index,
-        char ***argv)
-{
-    int arity = 0;
-    int empty = 0;
+int alcove_decode_argv(const char *arg, size_t len, int *index, char ***argv) {
+  int arity = 0;
+  int empty = 0;
 
-    int i = 0;
-    long maxarg = sysconf(_SC_ARG_MAX);
+  int i = 0;
+  long maxarg = sysconf(_SC_ARG_MAX);
 
-    if (alcove_decode_list_header(arg, len, index, &arity) < 0)
-        return -1;
+  if (alcove_decode_list_header(arg, len, index, &arity) < 0)
+    return -1;
 
-    if (arity == 0) {
-        *argv = NULL;
-        return 0;
-    }
-
-    if (arity >= maxarg)
-        return -1;
-
-    /* NULL terminate */
-    *argv = calloc(arity + 1, sizeof(char *));
-
-    if (*argv == NULL)
-        exit(errno);
-
-    for (i = 0; i < arity; i++) {
-        (*argv)[i] = alcove_x_decode_iolist_to_string(arg, len, index);
-        if (!(*argv)[i])
-            goto BADARG;
-    }
-
-    /* list tail */
-    if (arity > 0 && (alcove_decode_list_header(arg, len, index, &empty) < 0
-                || empty != 0))
-        goto BADARG;
-
+  if (arity == 0) {
+    *argv = NULL;
     return 0;
+  }
+
+  if (arity >= maxarg)
+    return -1;
+
+  /* NULL terminate */
+  *argv = calloc(arity + 1, sizeof(char *));
+
+  if (*argv == NULL)
+    exit(errno);
+
+  for (i = 0; i < arity; i++) {
+    (*argv)[i] = alcove_x_decode_iolist_to_string(arg, len, index);
+    if (!(*argv)[i])
+      goto BADARG;
+  }
+
+  /* list tail */
+  if (arity > 0 &&
+      (alcove_decode_list_header(arg, len, index, &empty) < 0 || empty != 0))
+    goto BADARG;
+
+  return 0;
 
 BADARG:
-    alcove_free_argv(*argv);
-    return -1;
+  alcove_free_argv(*argv);
+  return -1;
 }
 
-    static char *
-alcove_x_decode_iolist_to_string(const char *buf, size_t len, int *index)
-{
-    char tmp[MAXMSGLEN] = {0};
-    size_t tmplen = sizeof(tmp) - 1;
-    char *res = NULL;
+static char *alcove_x_decode_iolist_to_string(const char *buf, size_t len,
+                                              int *index) {
+  char tmp[MAXMSGLEN] = {0};
+  size_t tmplen = sizeof(tmp) - 1;
+  char *res = NULL;
 
-    if (alcove_decode_iolist(buf, len, index, tmp, &tmplen) < 0)
-        return NULL;
+  if (alcove_decode_iolist(buf, len, index, tmp, &tmplen) < 0)
+    return NULL;
 
-    res = strdup(tmp);
-    if (res == NULL)
-        exit(errno);
+  res = strdup(tmp);
+  if (res == NULL)
+    exit(errno);
 
-    return res;
+  return res;
 }
 
-    void
-alcove_free_argv(char **argv)
-{
-    int i = 0;
+void alcove_free_argv(char **argv) {
+  int i = 0;
 
-    if (argv == NULL)
-        return;
+  if (argv == NULL)
+    return;
 
-    for (i = 0; argv[i]; i++) {
-        free(argv[i]);
-        argv[i] = NULL;
-    }
+  for (i = 0; argv[i]; i++) {
+    free(argv[i]);
+    argv[i] = NULL;
+  }
 
-    free(argv);
-    argv = NULL;
+  free(argv);
+  argv = NULL;
 }

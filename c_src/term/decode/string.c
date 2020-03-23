@@ -14,16 +14,15 @@
  */
 #include "alcove.h"
 
-    int
-alcove_decode_string(const char *buf, size_t len, int *index, char *p, size_t plen)
-{
-    int type = 0;
-    int arity = 0;
+int alcove_decode_string(const char *buf, size_t len, int *index, char *p,
+                         size_t plen) {
+  int type = 0;
+  int arity = 0;
 
-    /* arity is the number of bytes in the string but the actual number of
-     * bytes that will be written is arity + 1 (terminating NULL) */
-    if (alcove_get_type(buf, len, index, &type, &arity) < 0 || arity >= plen)
-        return -1;
+  /* arity is the number of bytes in the string but the actual number of
+   * bytes that will be written is arity + 1 (terminating NULL) */
+  if (alcove_get_type(buf, len, index, &type, &arity) < 0 || arity >= plen)
+    return -1;
 
-    return ei_decode_string(buf, index, p);
+  return ei_decode_string(buf, index, p);
 }

@@ -14,15 +14,13 @@
  */
 #include "alcove.h"
 
-    int
-alcove_decode_atom(const char *buf, size_t len, int *index, char *p)
-{
-    int type = 0;
-    int arity = 0;
+int alcove_decode_atom(const char *buf, size_t len, int *index, char *p) {
+  int type = 0;
+  int arity = 0;
 
-    if (alcove_get_type(buf, len, index, &type, &arity) < 0)
-        return -1;
+  if (alcove_get_type(buf, len, index, &type, &arity) < 0)
+    return -1;
 
-    /* ei_decode_atom will return an error if p >= MAXATOMLEN */
-    return ei_decode_atom(buf, index, p);
+  /* ei_decode_atom will return an error if p >= MAXATOMLEN */
+  return ei_decode_atom(buf, index, p);
 }

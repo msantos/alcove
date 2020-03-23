@@ -14,19 +14,18 @@
  */
 #include "alcove.h"
 
-    int
-alcove_encode_ulonglong(char *buf, size_t len, int *index, unsigned long long x)
-{
-    int n = *index;
+int alcove_encode_ulonglong(char *buf, size_t len, int *index,
+                            unsigned long long x) {
+  int n = *index;
 
-    if (*index < 0 || *index >= len)
-        return -1;
+  if (*index < 0 || *index >= len)
+    return -1;
 
-    if (ei_encode_ulonglong(NULL, &n, x) < 0)
-        return -1;
+  if (ei_encode_ulonglong(NULL, &n, x) < 0)
+    return -1;
 
-    if (n > len)
-        return -1;
+  if (n > len)
+    return -1;
 
-    return ei_encode_ulonglong(buf, index, x);
+  return ei_encode_ulonglong(buf, index, x);
 }

@@ -14,19 +14,17 @@
  */
 #include "alcove.h"
 
-    int
-alcove_encode_atom(char *buf, size_t len, int *index, const char *p)
-{
-    int n = *index;
+int alcove_encode_atom(char *buf, size_t len, int *index, const char *p) {
+  int n = *index;
 
-    if (*index < 0 || *index >= len)
-        return -1;
+  if (*index < 0 || *index >= len)
+    return -1;
 
-    if (ei_encode_atom(NULL, &n, p) < 0)
-        return -1;
+  if (ei_encode_atom(NULL, &n, p) < 0)
+    return -1;
 
-    if (n > len)
-        return -1;
+  if (n > len)
+    return -1;
 
-    return ei_encode_atom(buf, index, p);
+  return ei_encode_atom(buf, index, p);
 }

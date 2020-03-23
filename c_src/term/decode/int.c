@@ -14,16 +14,14 @@
  */
 #include "alcove.h"
 
-    int
-alcove_decode_int(const char *buf, size_t len, int *index, int *n)
-{
-    long val = 0;
+int alcove_decode_int(const char *buf, size_t len, int *index, int *n) {
+  long val = 0;
 
-    if (alcove_decode_long(buf, len, index, &val) < 0 || val < INT32_MIN
-            || val > INT32_MAX)
-        return -1;
+  if (alcove_decode_long(buf, len, index, &val) < 0 || val < INT32_MIN ||
+      val > INT32_MAX)
+    return -1;
 
-    *n = val;
+  *n = val;
 
-    return 0;
+  return 0;
 }

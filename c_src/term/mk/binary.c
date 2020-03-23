@@ -14,16 +14,14 @@
  */
 #include "alcove.h"
 
-    ssize_t
-alcove_mk_binary(char *buf, size_t len, const void *p, size_t plen)
-{
-    int index = 0;
+ssize_t alcove_mk_binary(char *buf, size_t len, const void *p, size_t plen) {
+  int index = 0;
 
-    if (alcove_encode_version(buf, len, &index) < 0)
-        return -1;
+  if (alcove_encode_version(buf, len, &index) < 0)
+    return -1;
 
-    if (alcove_encode_binary(buf, len, &index, p, plen) < 0)
-        return -1;
+  if (alcove_encode_binary(buf, len, &index, p, plen) < 0)
+    return -1;
 
-    return index;
+  return index;
 }

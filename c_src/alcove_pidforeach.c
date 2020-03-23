@@ -14,35 +14,26 @@
  */
 #include "alcove.h"
 
-    int
-pid_foreach(alcove_state_t *ap, pid_t pid, void *arg1, void *arg2,
-        int (*comp)(pid_t, pid_t),
-        int (*fp)(alcove_state_t *ap, alcove_child_t *, void *, void *))
-{
-    int i = 0;
-    int rv = 0;
+int pid_foreach(alcove_state_t *ap, pid_t pid, void *arg1, void *arg2,
+                int (*comp)(pid_t, pid_t),
+                int (*fp)(alcove_state_t *ap, alcove_child_t *, void *,
+                          void *)) {
+  int i = 0;
+  int rv = 0;
 
-    for (i = 0; i < ap->fdsetsize; i++) {
-        if ((*comp)(ap->child[i].pid, pid) == 0)
-            continue;
+  for (i = 0; i < ap->fdsetsize; i++) {
+    if ((*comp)(ap->child[i].pid, pid) == 0)
+      continue;
 
-        rv = (*fp)(ap, &(ap->child[i]), arg1, arg2);
+    rv = (*fp)(ap, &(ap->child[i]), arg1, arg2);
 
-        if (rv <= 0)
-            return rv;
-    }
+    if (rv <= 0)
+      return rv;
+  }
 
-    return 1;
+  return 1;
 }
 
-    int
-pid_equal(pid_t p1, pid_t p2)
-{
-    return p1 == p2;
-}
+int pid_equal(pid_t p1, pid_t p2) { return p1 == p2; }
 
-    int
-pid_not_equal(pid_t p1, pid_t p2)
-{
-    return p1 != p2;
-}
+int pid_not_equal(pid_t p1, pid_t p2) { return p1 != p2; }

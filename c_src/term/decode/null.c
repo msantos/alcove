@@ -14,18 +14,16 @@
  */
 #include "alcove.h"
 
-    int
-alcove_decode_null(const char *buf, size_t len, int *index)
-{
-    int type = 0;
-    int arity = 0;
-    char p[MAXATOMLEN] = {0};
+int alcove_decode_null(const char *buf, size_t len, int *index) {
+  int type = 0;
+  int arity = 0;
+  char p[MAXATOMLEN] = {0};
 
-    if (alcove_get_type(buf, len, index, &type, &arity) < 0)
-        return -1;
+  if (alcove_get_type(buf, len, index, &type, &arity) < 0)
+    return -1;
 
-    if (ei_decode_atom(buf, index, p) < 0)
-        return -1;
+  if (ei_decode_atom(buf, index, p) < 0)
+    return -1;
 
-    return (strcasecmp(p, "null") == 0) ? 0 : -1;
+  return (strcasecmp(p, "null") == 0) ? 0 : -1;
 }
