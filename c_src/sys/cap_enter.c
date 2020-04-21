@@ -26,7 +26,7 @@
 ssize_t alcove_sys_cap_enter(alcove_state_t *ap, const char *arg, size_t len,
                              char *reply, size_t rlen) {
 #if defined(__FreeBSD__)
-  int rv = 0;
+  int rv;
 
   UNUSED(ap);
   UNUSED(arg);
