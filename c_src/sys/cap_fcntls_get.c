@@ -29,10 +29,10 @@ ssize_t alcove_sys_cap_fcntls_get(alcove_state_t *ap, const char *arg,
 #if defined(__FreeBSD__)
   int index = 0;
   int rindex = 0;
-  int rv = 0;
+  int rv;
 
-  int fd = -1;
-  uint32_t rights = 0;
+  int fd;
+  uint32_t rights;
 
   UNUSED(ap);
 
