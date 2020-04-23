@@ -28,11 +28,11 @@ ssize_t alcove_sys_cap_fcntls_limit(alcove_state_t *ap, const char *arg,
                                     size_t len, char *reply, size_t rlen) {
 #if defined(__FreeBSD__)
   int index = 0;
-  int rv = 0;
+  int rv;
 
-  int fd = -1;
-  int32_t val = 0;
-  uint32_t rights = 0;
+  int fd;
+  int32_t val;
+  uint32_t rights;
 
   UNUSED(ap);
 
