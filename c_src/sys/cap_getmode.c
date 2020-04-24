@@ -27,8 +27,8 @@ ssize_t alcove_sys_cap_getmode(alcove_state_t *ap, const char *arg, size_t len,
                                char *reply, size_t rlen) {
 #if defined(__FreeBSD__)
   int rindex = 0;
-  int rv = 0;
-  u_int mode = 0;
+  int rv;
+  u_int mode;
 
   UNUSED(ap);
   UNUSED(arg);
