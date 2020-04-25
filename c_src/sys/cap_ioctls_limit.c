@@ -34,9 +34,9 @@ ssize_t alcove_sys_cap_ioctls_limit(alcove_state_t *ap, const char *arg,
                                     size_t len, char *reply, size_t rlen) {
 #if defined(__FreeBSD__)
   int index = 0;
-  int rv = 0;
+  int rv;
 
-  int fd = -1;
+  int fd;
   unsigned long cmds[256] = {0};
   size_t ncmds = sizeof(cmds);
 
