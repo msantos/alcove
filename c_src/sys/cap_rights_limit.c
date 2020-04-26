@@ -33,9 +33,9 @@ ssize_t alcove_sys_cap_rights_limit(alcove_state_t *ap, const char *arg,
                                     size_t len, char *reply, size_t rlen) {
 #if defined(__FreeBSD__)
   int index = 0;
-  int rv = 0;
+  int rv;
 
-  int fd = -1;
+  int fd;
   cap_rights_t rights;
 
   UNUSED(ap);
@@ -74,8 +74,8 @@ ssize_t alcove_sys_cap_rights_limit(alcove_state_t *ap, const char *arg,
 static int alcove_decode_cap_rights_list(const char *buf, size_t len,
                                          int *index, cap_rights_t *rights,
                                          const alcove_constant_t *constants) {
-  int type = 0;
-  int arity = 0;
+  int type;
+  int arity;
 
   if (alcove_get_type(buf, len, index, &type, &arity) < 0)
     return -1;
@@ -112,11 +112,11 @@ static int alcove_decode_cap_rights_list(const char *buf, size_t len,
   } break;
 
   case ERL_LIST_EXT: {
-    int i = 0;
-    int length = 0;
-    uint64_t constant = 0;
-    long long val = 0;
-    int rv = 0;
+    int i;
+    int length;
+    uint64_t constant;
+    long long val;
+    int rv;
 
     if (ei_decode_list_header(buf, index, &length) < 0)
       return -1;
