@@ -75,8 +75,8 @@ static int alcove_decode_cap_ioctls_list(const char *buf, size_t len,
                                          int *index, unsigned long *cmds,
                                          size_t *ncmds,
                                          const alcove_constant_t *constants) {
-  int type = 0;
-  int arity = 0;
+  int type;
+  int arity;
   size_t n = 0;
 
   if (alcove_get_type(buf, len, index, &type, &arity) < 0)
@@ -116,10 +116,10 @@ static int alcove_decode_cap_ioctls_list(const char *buf, size_t len,
   } break;
 
   case ERL_LIST_EXT: {
-    int i = 0;
-    int length = 0;
-    long long constant = 0;
-    int rv = 0;
+    int i;
+    int length;
+    long long constant;
+    int rv;
 
     if (ei_decode_list_header(buf, index, &length) < 0)
       return -1;
