@@ -1,4 +1,4 @@
-/* Copyright (c) 2015, Michael Santos <michael.santos@gmail.com>
+/* Copyright (c) 2015-2020, Michael Santos <michael.santos@gmail.com>
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -16,8 +16,9 @@
 #include "alcove_call.h"
 
 #ifdef __FreeBSD__
-#include "alcove_cap_constants.h"
 #include <sys/capsicum.h>
+
+#include "alcove_cap_constants.h"
 #endif
 
 /*
