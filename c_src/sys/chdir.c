@@ -25,7 +25,7 @@ ssize_t alcove_sys_chdir(alcove_state_t *ap, const char *arg, size_t len,
 
   char path[PATH_MAX] = {0};
   size_t pathlen = sizeof(path) - 1;
-  int rv = 0;
+  int rv;
 
   UNUSED(ap);
 
