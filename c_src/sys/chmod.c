@@ -26,9 +26,9 @@ ssize_t alcove_sys_chmod(alcove_state_t *ap, const char *arg, size_t len,
 
   char path[PATH_MAX] = {0};
   size_t plen = sizeof(path) - 1;
-  mode_t mode = {0};
-  u_int32_t val = 0;
-  int rv = 0;
+  mode_t mode;
+  u_int32_t val;
+  int rv;
 
   UNUSED(ap);
 
