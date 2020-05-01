@@ -25,9 +25,9 @@ ssize_t alcove_sys_chown(alcove_state_t *ap, const char *arg, size_t len,
 
   char path[PATH_MAX] = {0};
   size_t plen = sizeof(path) - 1;
-  uid_t owner = {0};
-  gid_t group = {0};
-  int rv = 0;
+  uid_t owner;
+  gid_t group;
+  int rv;
 
   UNUSED(ap);
 
