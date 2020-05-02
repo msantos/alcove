@@ -24,7 +24,7 @@ ssize_t alcove_sys_chroot(alcove_state_t *ap, const char *arg, size_t len,
   int index = 0;
   char path[PATH_MAX] = {0};
   size_t pathlen = sizeof(path) - 1;
-  int rv = 0;
+  int rv;
 
   UNUSED(ap);
 
