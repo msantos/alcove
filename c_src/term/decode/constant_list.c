@@ -1,4 +1,4 @@
-/* Copyright (c) 2014, Michael Santos <michael.santos@gmail.com>
+/* Copyright (c) 2014-2020, Michael Santos <michael.santos@gmail.com>
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -18,6 +18,8 @@ int alcove_decode_constant_list(const char *buf, size_t len, int *index,
                                 int *val, const alcove_constant_t *constants) {
   int type = 0;
   int arity = 0;
+
+  *val = 0;
 
   if (alcove_get_type(buf, len, index, &type, &arity) < 0)
     return -1;
@@ -48,7 +50,9 @@ int alcove_decode_constant_list(const char *buf, size_t len, int *index,
     for (; *p; p++)
       *val |= *p;
 
-  } break;
+  }
+
+  break;
 
   case ERL_LIST_EXT: {
     int i = 0;
@@ -72,7 +76,9 @@ int alcove_decode_constant_list(const char *buf, size_t len, int *index,
     if (alcove_decode_list_header(buf, len, index, &length) < 0 || length != 0)
       return -1;
 
-  } break;
+  }
+
+  break;
 
   default:
     return -1;
