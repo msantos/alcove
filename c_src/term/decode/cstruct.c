@@ -1,4 +1,4 @@
-/* Copyright (c) 2014-2017, Michael Santos <michael.santos@gmail.com>
+/* Copyright (c) 2014-2020, Michael Santos <michael.santos@gmail.com>
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -113,6 +113,7 @@ int alcove_decode_cstruct(const char *arg, size_t len, int *index, char *res,
       default:
         return -1;
       }
+
       break;
 
     default:
@@ -169,7 +170,9 @@ int alcove_decode_cstruct(const char *arg, size_t len, int *index, char *res,
         (void)memcpy(res, &p, sizeof(void *));
         res += sizeof(void *);
         (*ptr)[i].p = p;
-      } break;
+      }
+
+      break;
 
       case ERL_BINARY_EXT: {
         char *p = NULL;
@@ -185,7 +188,9 @@ int alcove_decode_cstruct(const char *arg, size_t len, int *index, char *res,
         (void)memcpy(res, &p, sizeof(void *));
         res += sizeof(void *);
         (*ptr)[i].p = p;
-      } break;
+      }
+
+      break;
       }
     }
   }

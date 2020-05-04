@@ -1,4 +1,4 @@
-/* Copyright (c) 2016-2017, Michael Santos <michael.santos@gmail.com>
+/* Copyright (c) 2016-2020, Michael Santos <michael.santos@gmail.com>
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -99,7 +99,9 @@ static int alcove_decode_cap_ioctls_list(const char *buf, size_t len,
       return -1;
 
     cmds[n++] = val;
-  } break;
+  }
+
+  break;
 
   case ERL_STRING_EXT: {
     char tmp[MAXMSGLEN] = {0};
@@ -113,7 +115,9 @@ static int alcove_decode_cap_ioctls_list(const char *buf, size_t len,
 
     for (; *p; p++)
       cmds[n++] = *p;
-  } break;
+  }
+
+  break;
 
   case ERL_LIST_EXT: {
     int i;
@@ -140,7 +144,9 @@ static int alcove_decode_cap_ioctls_list(const char *buf, size_t len,
     if (alcove_decode_list_header(buf, len, index, &length) < 0 || length != 0)
       return -1;
 
-  } break;
+  }
+
+  break;
 
   default:
     return -1;

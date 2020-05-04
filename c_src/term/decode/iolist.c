@@ -1,4 +1,4 @@
-/* Copyright (c) 2014, Michael Santos <michael.santos@gmail.com>
+/* Copyright (c) 2014-2020, Michael Santos <michael.santos@gmail.com>
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -82,7 +82,9 @@ static int alcove_decode_iolist_internal(const char *buf, size_t len,
       return -1;
 
     *rindex += length;
-  } break;
+  }
+
+  break;
 
   case ERL_SMALL_INTEGER_EXT: {
     unsigned long p = 0;
@@ -95,7 +97,9 @@ static int alcove_decode_iolist_internal(const char *buf, size_t len,
 
     res[*rindex] = p;
     *rindex += 1;
-  } break;
+  }
+
+  break;
 
   case ERL_NIL_EXT:
     if (ei_decode_list_header(buf, index, &arity) < 0)
@@ -121,7 +125,9 @@ static int alcove_decode_iolist_internal(const char *buf, size_t len,
     if (alcove_decode_list_header(buf, len, index, &length) < 0 || length != 0)
       return -1;
 
-  } break;
+  }
+
+  break;
 
   default:
     return -1;

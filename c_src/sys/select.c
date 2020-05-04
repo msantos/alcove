@@ -1,4 +1,4 @@
-/* Copyright (c) 2014-2017, Michael Santos <michael.santos@gmail.com>
+/* Copyright (c) 2014-2020, Michael Santos <michael.santos@gmail.com>
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -99,7 +99,9 @@ ssize_t alcove_sys_select(alcove_state_t *ap, const char *arg, size_t len,
 
     tv.tv_sec = tv_sec;
     tv.tv_usec = tv_usec;
-  } break;
+  }
+
+  break;
 
   default:
     return -1;
@@ -150,7 +152,9 @@ static int alcove_list_to_fd_set(const char *arg, size_t len, int *index,
       FD_SET(fd, fdset);
       *nfds = MAX(fd, *nfds);
     }
-  } break;
+  }
+
+  break;
 
   case ERL_LIST_EXT:
     if (alcove_decode_list_header(arg, len, index, &arity) < 0)

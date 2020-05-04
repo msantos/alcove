@@ -1,4 +1,4 @@
-/* Copyright (c) 2014-2017, Michael Santos <michael.santos@gmail.com>
+/* Copyright (c) 2014-2020, Michael Santos <michael.santos@gmail.com>
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -99,7 +99,9 @@ ssize_t alcove_sys_prctl(alcove_state_t *ap, const char *arg, size_t len,
       constant = val;
 
       prarg[i].arg = constant;
-    } break;
+    }
+
+    break;
 
     case ERL_LIST_EXT:
       prarg[i].type = ALCOVE_PRARG_CSTRUCT;
