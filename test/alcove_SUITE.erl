@@ -1585,7 +1585,7 @@ unveil(Config) ->
     {ok, FD2} = alcove:open(Drv, [Proc, SubProc], "/sbin/mkfifo", [o_rdonly], 0),
     {ok, _} = alcove:read(Drv, [Proc, SubProc], FD2, 1024),
 
-    {error, enoent} = alcove:execvp(Drv, [Proc, SubProc], "/sbin/mkfifo", ["mkfifo", "-h"]),
+    {error,eacces} = alcove:execvp(Drv, [Proc, SubProc], "/sbin/mkfifo", ["mkfifo", "-h"]),
 
     % /bin: unveiled: read + execute
     ok = alcove:execvp(Drv, [Proc, SubProc], "/bin/ls", ["ls", "-h"]),
