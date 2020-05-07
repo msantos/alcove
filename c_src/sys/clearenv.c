@@ -24,7 +24,7 @@ extern char **environ;
 ssize_t alcove_sys_clearenv(alcove_state_t *ap, const char *arg, size_t len,
                             char *reply, size_t rlen) {
 #ifdef __linux__
-  int rv = 0;
+  int rv;
 
   UNUSED(ap);
   UNUSED(arg);
