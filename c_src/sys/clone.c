@@ -1,4 +1,4 @@
-/* Copyright (c) 2014-2017, Michael Santos <michael.santos@gmail.com>
+/* Copyright (c) 2014-2020, Michael Santos <michael.santos@gmail.com>
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -36,10 +36,10 @@ ssize_t alcove_sys_clone(alcove_state_t *ap, const char *arg, size_t len,
   alcove_arg_t child_arg = {0};
   alcove_stdio_t fd = {0};
   struct rlimit stack_size = {0};
-  char *child_stack = NULL;
+  char *child_stack;
   int flags = 0;
-  pid_t pid = 0;
-  int errnum = 0;
+  pid_t pid;
+  int errnum;
   sigset_t oldset;
   sigset_t set;
 
