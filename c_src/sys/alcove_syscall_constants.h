@@ -1064,6 +1064,9 @@ const alcove_constant_t alcove_syscall_constants[] = {
     ALCOVE_CONSTANT(SYS_process_vm_writev),
 #endif
 
+#ifdef AUDIT_ARCH_AARCH64
+    ALCOVE_CONSTANT(AUDIT_ARCH_AARCH64),
+#endif
 #ifdef AUDIT_ARCH_ALPHA
     ALCOVE_CONSTANT(AUDIT_ARCH_ALPHA),
 #endif

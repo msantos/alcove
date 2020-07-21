@@ -189,6 +189,7 @@ static({audit_arch,0}) ->
         {{\"armv6l\",\"linux\",4}, audit_arch_arm},
         {{\"armv7l\",\"linux\",4}, audit_arch_arm},
         {{\"i386\",\"linux\",4}, audit_arch_i386},
+        {{\"aarch64\",\"linux\",8}, audit_arch_aarch64},
         {{\"x86_64\",\"linux\",8}, audit_arch_x86_64}
     ],
     [Arch,_,OS|_] = string:tokens(
