@@ -136,13 +136,11 @@ static int alcove_rlimit_init(void) {
    *
    */
 
-  if (stack_size.rlim_cur == RLIM_INFINITY) {
-    stack_size.rlim_cur = 8 * 1024 * 1024;
-    if (setrlimit(RLIMIT_STACK, &stack_size) < 0)
-      return -1;
-  }
+  if (stack_size.rlim_cur != RLIM_INFINITY)
+    return 0;
 
-  return 0;
+  stack_size.rlim_cur = 8 * 1024 * 1024;
+  return setrlimit(RLIMIT_STACK, &stack_size);
 }
 
 static int alcove_fd_init(char *fifo) {
