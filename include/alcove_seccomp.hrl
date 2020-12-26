@@ -78,27 +78,36 @@
 %% NOTE: the man page says k is a u_long,
 %% the header says u_int32_t.
 -record(alcove_insn, {
-        code = 0 :: 0..65535,
-        jt = 0 :: 0..255,
-        jf = 0 :: 0..255,
-        k = 0 :: non_neg_integer()
-    }).
+    code = 0 :: 0..65535,
+    jt = 0 :: 0..255,
+    jf = 0 :: 0..255,
+    k = 0 :: non_neg_integer()
+}).
 
 -define(BPF_STMT(Code, K), alcove_seccomp:stmt((Code), (K))).
 -define(BPF_JUMP(Code, K, JT, JF),
-    alcove_seccomp:jump((Code), (K), (JT), (JF))).
-
+    alcove_seccomp:jump((Code), (K), (JT), (JF))
+).
 
 % Valid values for seccomp.mode and prctl(PR_SET_SECCOMP, <mode>)
--define(SECCOMP_MODE_DISABLED, 0).  % seccomp is not in use.
--define(SECCOMP_MODE_STRICT, 1).    % uses hard-coded filter.
--define(SECCOMP_MODE_FILTER, 2).    % uses user-supplied filter.
 
--define(SECCOMP_RET_KILL, 16#00000000).     % kill the task immediately
--define(SECCOMP_RET_TRAP, 16#00030000).     % disallow and force a SIGSYS
--define(SECCOMP_RET_ERRNO,  16#00050000).   % returns an errno
--define(SECCOMP_RET_TRACE, 16#7ff00000).    % pass to a tracer or disallow
--define(SECCOMP_RET_ALLOW, 16#7fff0000).    % allow
+% seccomp is not in use.
+-define(SECCOMP_MODE_DISABLED, 0).
+% uses hard-coded filter.
+-define(SECCOMP_MODE_STRICT, 1).
+% uses user-supplied filter.
+-define(SECCOMP_MODE_FILTER, 2).
+
+% kill the task immediately
+-define(SECCOMP_RET_KILL, 16#00000000).
+% disallow and force a SIGSYS
+-define(SECCOMP_RET_TRAP, 16#00030000).
+% returns an errno
+-define(SECCOMP_RET_ERRNO, 16#00050000).
+% pass to a tracer or disallow
+-define(SECCOMP_RET_TRACE, 16#7ff00000).
+% allow
+-define(SECCOMP_RET_ALLOW, 16#7fff0000).
 
 % Masks for the return value sections.
 -define(SECCOMP_RET_ACTION, 16#7fff0000).
@@ -113,24 +122,26 @@
 %        regardless of the architecture.
 
 -record(alcove_seccomp_data, {
-        nr = 0 :: integer(),
-        arch = 0 :: non_neg_integer(),
-        instruction_pointer = 0 :: non_neg_integer(),
-        args = [0,0,0,0,0,0] :: [non_neg_integer()]
-    }).
+    nr = 0 :: integer(),
+    arch = 0 :: non_neg_integer(),
+    instruction_pointer = 0 :: non_neg_integer(),
+    args = [0, 0, 0, 0, 0, 0] :: [non_neg_integer()]
+}).
 
 -define(OFFSET_SYSCALL_NR, 0).
 -define(OFFSET_ARCH_NR, 4).
 
 -define(VALIDATE_ARCHITECTURE(Arch_nr), [
-        ?BPF_STMT(?BPF_LD+?BPF_W+?BPF_ABS, ?OFFSET_ARCH_NR),
-        ?BPF_JUMP(?BPF_JMP+?BPF_JEQ+?BPF_K, (Arch_nr), 1, 0),
-        ?BPF_STMT(?BPF_RET+?BPF_K, ?SECCOMP_RET_KILL)
-    ]).
+    ?BPF_STMT(?BPF_LD + ?BPF_W + ?BPF_ABS, ?OFFSET_ARCH_NR),
+    ?BPF_JUMP(?BPF_JMP + ?BPF_JEQ + ?BPF_K, (Arch_nr), 1, 0),
+    ?BPF_STMT(?BPF_RET + ?BPF_K, ?SECCOMP_RET_KILL)
+]).
 
 -define(EXAMINE_SYSCALL,
-    ?BPF_STMT(?BPF_LD+?BPF_W+?BPF_ABS, ?OFFSET_SYSCALL_NR)).
+    ?BPF_STMT(?BPF_LD + ?BPF_W + ?BPF_ABS, ?OFFSET_SYSCALL_NR)
+).
 
--define(ALLOW_SYSCALL(Syscall),
-    [?BPF_JUMP(?BPF_JMP+?BPF_JEQ+?BPF_K, (Syscall), 0, 1),
-        ?BPF_STMT(?BPF_RET+?BPF_K, ?SECCOMP_RET_ALLOW)]).
+-define(ALLOW_SYSCALL(Syscall), [
+    ?BPF_JUMP(?BPF_JMP + ?BPF_JEQ + ?BPF_K, (Syscall), 0, 1),
+    ?BPF_STMT(?BPF_RET + ?BPF_K, ?SECCOMP_RET_ALLOW)
+]).

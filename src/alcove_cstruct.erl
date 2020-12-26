@@ -15,25 +15,29 @@
 -include("alcove.hrl").
 
 -export([
-        jail/1
-    ]).
+    jail/1
+]).
 
--spec jail(#alcove_jail{}) -> [binary()|{ptr, binary()}].
+-spec jail(#alcove_jail{}) -> [binary() | {ptr, binary()}].
 jail(#alcove_jail{
-        version = 2,
-        path = Path,
-        hostname = Hostname,
-        jailname = Jailname,
-        ip4 = IPv4,
-        ip6 = IPv6
-    }) ->
-    [<<2:4/native-unsigned-integer-unit:8>>,
-     <<0:(alcove:wordalign(4) * 8)>>,
-     {ptr, <<(iolist_to_binary(Path))/binary, 0>>},
-     {ptr, <<(iolist_to_binary(Hostname))/binary, 0>>},
-     {ptr, <<(iolist_to_binary(Jailname))/binary, 0>>},
-     <<(length(IPv4)):4/native-unsigned-integer-unit:8,
-       (length(IPv6)):4/native-unsigned-integer-unit:8>>,
-     {ptr, << <<IP1,IP2,IP3,IP4>> || {IP1,IP2,IP3,IP4} <- IPv4 >>},
-     {ptr, << <<IP1:16,IP2:16,IP3:16,IP4:16,IP5:16,IP6:16,IP7:16,IP8:16>>
-              || {IP1,IP2,IP3,IP4,IP5,IP6,IP7,IP8} <- IPv6 >>}].
+    version = 2,
+    path = Path,
+    hostname = Hostname,
+    jailname = Jailname,
+    ip4 = IPv4,
+    ip6 = IPv6
+}) ->
+    [
+        <<2:4/native-unsigned-integer-unit:8>>,
+        <<0:(alcove:wordalign(4) * 8)>>,
+        {ptr, <<(iolist_to_binary(Path))/binary, 0>>},
+        {ptr, <<(iolist_to_binary(Hostname))/binary, 0>>},
+        {ptr, <<(iolist_to_binary(Jailname))/binary, 0>>},
+        <<(length(IPv4)):4/native-unsigned-integer-unit:8,
+            (length(IPv6)):4/native-unsigned-integer-unit:8>>,
+        {ptr, <<<<IP1, IP2, IP3, IP4>> || {IP1, IP2, IP3, IP4} <- IPv4>>},
+        {ptr, <<
+            <<IP1:16, IP2:16, IP3:16, IP4:16, IP5:16, IP6:16, IP7:16, IP8:16>>
+            || {IP1, IP2, IP3, IP4, IP5, IP6, IP7, IP8} <- IPv6
+        >>}
+    ].

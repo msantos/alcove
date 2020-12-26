@@ -1,12 +1,25 @@
-{application,alcove,
-             [{description,"Unix process containers and sandboxes"},
-              {vsn,"0.30.0"},
-              {registered,[]},
-              {applications,[kernel,stdlib,sasl]},
-              {env,[]},
-              {licenses,["ISC"]},
-              {maintainers,["Michael Santos"]},
-              {links,[{"Github","https://github.com/msantos/alcove"}]},
-              {files,["bin","src","c_src","include","rebar.config.script",
-                      "priv","rebar.config","rebar.lock","README*","readme*",
-                      "LICENSE*","license*","NOTICE"]}]}.
+{application, alcove, [
+    {description, "Unix process containers and sandboxes"},
+    {vsn, "0.30.0"},
+    {registered, []},
+    {applications, [kernel, stdlib, sasl]},
+    {env, []},
+    {licenses, ["ISC"]},
+    {maintainers, ["Michael Santos"]},
+    {links, [{"Github", "https://github.com/msantos/alcove"}]},
+    {files, [
+        "bin",
+        "src",
+        "c_src",
+        "include",
+        "rebar.config.script",
+        "priv",
+        "rebar.config",
+        "rebar.lock",
+        "README*",
+        "readme*",
+        "LICENSE*",
+        "license*",
+        "NOTICE"
+    ]}
+]}.

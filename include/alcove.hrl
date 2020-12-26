@@ -11,36 +11,36 @@
 % ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 % OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 -record(alcove_rlimit, {
-        cur = 0 :: alcove:uint64_t(),
-        max = 0 :: alcove:uint64_t()
-    }).
+    cur = 0 :: alcove:uint64_t(),
+    max = 0 :: alcove:uint64_t()
+}).
 
 -record(alcove_pid, {
-        pid = 0 :: alcove:pid_t(),
-        flowcontrol = -1 :: alcove:int32_t(),
-        signaloneof = 15 :: alcove:int32_t(),
-        fdctl = -1 :: alcove:fd(),
-        stdin = -1 :: alcove:fd(),
-        stdout = -1 :: alcove:fd(),
-        stderr = -1 :: alcove:fd()
-    }).
+    pid = 0 :: alcove:pid_t(),
+    flowcontrol = -1 :: alcove:int32_t(),
+    signaloneof = 15 :: alcove:int32_t(),
+    fdctl = -1 :: alcove:fd(),
+    stdin = -1 :: alcove:fd(),
+    stdout = -1 :: alcove:fd(),
+    stderr = -1 :: alcove:fd()
+}).
 
 -record(alcove_timeval, {
-        sec = 0 :: non_neg_integer(),
-        usec = 0 :: non_neg_integer()
-    }).
+    sec = 0 :: non_neg_integer(),
+    usec = 0 :: non_neg_integer()
+}).
 
 -record(alcove_jail, {
-        version = 2 :: alcove:uint32_t(),
-        path = <<>> :: iodata(),
-        hostname = <<>> :: iodata(),
-        jailname = <<>> :: iodata(),
-        ip4 = [] :: [inet:ip4_address()],
-        ip6 = [] :: [inet:ip6_address()]
-    }).
+    version = 2 :: alcove:uint32_t(),
+    path = <<>> :: iodata(),
+    hostname = <<>> :: iodata(),
+    jailname = <<>> :: iodata(),
+    ip4 = [] :: [inet:ip4_address()],
+    ip6 = [] :: [inet:ip6_address()]
+}).
 
--define(UINT16(N), (N):2/unsigned-integer-unit:8).
--define(UINT32(N), (N):4/unsigned-integer-unit:8).
+-define(UINT16(N), (N):2 / unsigned - integer - unit:8).
+-define(UINT32(N), (N):4 / unsigned - integer - unit:8).
 
 -define(ALCOVE_MSG_STDIN, 0).
 -define(ALCOVE_MSG_STDOUT, 1).

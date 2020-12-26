@@ -13,30 +13,27 @@
 %%% OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 %-module(alcove_seccomp).
 -module(alcove_seccomp).
+
 -include_lib("alcove/include/alcove_seccomp.hrl").
 
 -export([
-        insn/1,
-        stmt/2,
-        jump/4,
-        offset/1
-    ]).
+    insn/1,
+    stmt/2,
+    jump/4,
+    offset/1
+]).
 
 %%-------------------------------------------------------------------------
 %%% BPF filtering
 %%-------------------------------------------------------------------------
 insn(#alcove_insn{
-        code = Code,
-        jt = JT,
-        jf = JF,
-        k = K
-    }) ->
-    <<Code:2/native-unsigned-integer-unit:8,
-    JT:8, JF:8,
-    K:4/native-unsigned-integer-unit:8>>;
-insn(<<Code:2/native-unsigned-integer-unit:8,
-    JT:8, JF:8,
-    K:4/native-unsigned-integer-unit:8>>) ->
+    code = Code,
+    jt = JT,
+    jf = JF,
+    k = K
+}) ->
+    <<Code:2/native-unsigned-integer-unit:8, JT:8, JF:8, K:4/native-unsigned-integer-unit:8>>;
+insn(<<Code:2/native-unsigned-integer-unit:8, JT:8, JF:8, K:4/native-unsigned-integer-unit:8>>) ->
     #alcove_insn{
         code = Code,
         jt = JT,
@@ -50,8 +47,7 @@ stmt(Code, K) when is_integer(Code), is_integer(K) ->
         k = K
     }).
 
-jump(Code, K, JT, JF) when is_integer(Code), is_integer(K),
-    is_integer(JT), is_integer(JF) ->
+jump(Code, K, JT, JF) when is_integer(Code), is_integer(K), is_integer(JT), is_integer(JF) ->
     insn(#alcove_insn{
         code = Code,
         jt = JT,
@@ -62,7 +58,6 @@ jump(Code, K, JT, JF) when is_integer(Code), is_integer(K),
 offset(word) -> ?BPF_W;
 offset(halfword) -> ?BPF_H;
 offset(byte) -> ?BPF_B;
-
 offset(?BPF_W) -> word;
 offset(?BPF_H) -> halfword;
 offset(?BPF_B) -> byte.

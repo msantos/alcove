@@ -12,6 +12,7 @@
 %%% ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 %%% OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 -module(alcove_cgroup).
+
 -include_lib("alcove/include/alcove.hrl").
 
 -export([supported/2]).
@@ -20,19 +21,21 @@
 -export([get/5, set/6]).
 -export([is_file/3, is_dir/3]).
 -export([mounts/1, mounts/2]).
--export([join/2,relpath/1,expand/1]).
+-export([join/2, relpath/1, expand/1]).
 
--spec supported(alcove_drv:ref(),[alcove:pid_t()]) -> boolean().
+-spec supported(alcove_drv:ref(), [alcove:pid_t()]) -> boolean().
 supported(Drv, Pids) ->
     foreach([
         % running on linux?
-        fun() -> {unix,linux} =:= os:type() end,
+        fun() -> {unix, linux} =:= os:type() end,
         % cgroups supported?
         fun() -> is_file(Drv, Pids, "/proc/cgroups") end,
         % cgroups mounted?
         fun() ->
-            Exists = [ alcove_cgroup:is_dir(Drv, Pids, Cgroup)
-                || Cgroup <- proplists:get_keys(cgroup(Drv, Pids)) ],
+            Exists = [
+                alcove_cgroup:is_dir(Drv, Pids, Cgroup)
+                || Cgroup <- proplists:get_keys(cgroup(Drv, Pids))
+            ],
             [] =/= Exists andalso true =/= lists:member(false, Exists)
         end
     ]).
@@ -46,65 +49,77 @@ supported(Drv, Pids) ->
 %%  * the process may be running in a chroot or a different mount namespace
 %%
 
--spec create(alcove_drv:ref(),[alcove:pid_t()]) -> 'ok'.
+-spec create(alcove_drv:ref(), [alcove:pid_t()]) -> 'ok'.
 create(Drv, Pids) ->
     create(Drv, Pids, [<<"alcove">>]).
 
--spec create(alcove_drv:ref(),[alcove:pid_t()],[file:name_all()]) -> 'ok'.
+-spec create(alcove_drv:ref(), [alcove:pid_t()], [file:name_all()]) -> 'ok'.
 create(Drv, Pids, Namespaces) ->
-    _ = [ create_1(Drv, Pids, Namespace) || Namespace <- expand(Namespaces) ],
+    _ = [create_1(Drv, Pids, Namespace) || Namespace <- expand(Namespaces)],
     ok.
 
 create_1(Drv, Pids, Namespace) ->
     Fun = fun(Cgroup, _Acc) ->
-            Path = join(Cgroup, Namespace),
-            case alcove:mkdir(Drv, Pids, Path, 8#755) of
-                ok -> ok;
-                {error,eexist} -> ok;
-                Error -> Error
-            end
+        Path = join(Cgroup, Namespace),
+        case alcove:mkdir(Drv, Pids, Path, 8#755) of
+            ok -> ok;
+            {error, eexist} -> ok;
+            Error -> Error
+        end
     end,
     fold(Drv, <<>>, [], Fun, []).
 
--spec destroy(alcove_drv:ref(),[alcove:pid_t()]) -> [ok | {error, file:posix()}].
+-spec destroy(alcove_drv:ref(), [alcove:pid_t()]) -> [ok | {error, file:posix()}].
 destroy(Drv, Pids) ->
     destroy(Drv, Pids, [<<"alcove">>]).
 
--spec destroy(alcove_drv:ref(),[alcove:pid_t()],[file:name_all()]) -> [ok | {error, file:posix()}].
+-spec destroy(alcove_drv:ref(), [alcove:pid_t()], [file:name_all()]) ->
+    [ok | {error, file:posix()}].
 destroy(Drv, Pids, Namespace) ->
     Fun = fun(Cgroup, _Acc) ->
-            Path = join(Cgroup, Namespace),
-            case alcove:rmdir(Drv, Pids, Path) of
-                ok -> ok;
-                {error,enoent} -> ok;
-                Error -> Error
-            end
+        Path = join(Cgroup, Namespace),
+        case alcove:rmdir(Drv, Pids, Path) of
+            ok -> ok;
+            {error, enoent} -> ok;
+            Error -> Error
+        end
     end,
     fold(Drv, <<>>, [], Fun, []).
 
--spec set(alcove_drv:ref(),[alcove:pid_t()],binary(),
-    [binary()],string() | binary(),string() | binary()) -> ok | {error, file:posix()}.
+-spec set(
+    alcove_drv:ref(),
+    [alcove:pid_t()],
+    binary(),
+    [binary()],
+    string() | binary(),
+    string() | binary()
+) -> ok | {error, file:posix()}.
 set(Drv, Pids, MntOpt, Namespace, Key, Value) ->
     Fun = fun(Cgroup, _Acc) ->
-            File = join(Cgroup, [Key]),
-            write(Drv, Pids, File, Value)
+        File = join(Cgroup, [Key]),
+        write(Drv, Pids, File, Value)
     end,
     case fold(Drv, MntOpt, Namespace, Fun, []) of
-        [] -> {error,enoent};
+        [] -> {error, enoent};
         N -> N
     end.
 
--spec get(alcove_drv:ref(),[alcove:pid_t()],
-    binary(),[binary()],string() | binary()) -> {ok,binary()}.
+-spec get(
+    alcove_drv:ref(),
+    [alcove:pid_t()],
+    binary(),
+    [binary()],
+    string() | binary()
+) -> {ok, binary()}.
 get(Drv, Pids, MntOpt, Namespace, Key) ->
     Fun = fun(Cgroup, _Acc) ->
-            File = join(Cgroup, [Key]),
-            read(Drv, Pids, File)
+        File = join(Cgroup, [Key]),
+        read(Drv, Pids, File)
     end,
     fold(Drv, MntOpt, Namespace, Fun, []).
 
--spec write(alcove_drv:ref(),[alcove:pid_t()],file:name_all(),iodata()) ->
-    {'error',file:posix()} | 'ok'.
+-spec write(alcove_drv:ref(), [alcove:pid_t()], file:name_all(), iodata()) ->
+    {'error', file:posix()} | 'ok'.
 write(Drv, Pids, File, Bytes) ->
     case alcove:open(Drv, Pids, File, [o_wronly], 0) of
         {ok, FH} ->
@@ -122,8 +137,8 @@ write(Drv, Pids, File, Bytes) ->
             Error
     end.
 
--spec read(alcove_drv:ref(),[alcove:pid_t()],file:name_all()) ->
-    {'error',file:posix()} | {'ok',binary()}.
+-spec read(alcove_drv:ref(), [alcove:pid_t()], file:name_all()) ->
+    {'error', file:posix()} | {'ok', binary()}.
 read(Drv, Pids, File) ->
     case alcove:open(Drv, Pids, File, [o_rdonly], 0) of
         {ok, FH} ->
@@ -138,15 +153,20 @@ fold(Drv, MntOpt, Namespace, Fun, AccIn) ->
     fold(Drv, [], MntOpt, Namespace, Fun, AccIn).
 
 fold(Drv, Pids, MntOpt, Namespace, Fun, AccIn) ->
-    Cgroups = lists:foldl(fun({Cgroup, Opt}, Acc) ->
-                Path = join(Cgroup, Namespace),
-                IsCgroup = (MntOpt =:= <<>> orelse lists:member(MntOpt,Opt))
-                    andalso is_dir(Drv, Pids, Path),
-                case IsCgroup of
-                    true -> [Path|Acc];
-                    false -> Acc
-                end
-        end, [], cgroup(Drv, Pids)),
+    Cgroups = lists:foldl(
+        fun({Cgroup, Opt}, Acc) ->
+            Path = join(Cgroup, Namespace),
+            IsCgroup =
+                (MntOpt =:= <<>> orelse lists:member(MntOpt, Opt)) andalso
+                    is_dir(Drv, Pids, Path),
+            case IsCgroup of
+                true -> [Path | Acc];
+                false -> Acc
+            end
+        end,
+        [],
+        cgroup(Drv, Pids)
+    ),
 
     lists:foldl(Fun, AccIn, Cgroups).
 
@@ -157,38 +177,46 @@ fold_files(Drv, Pids, MntOpt, Namespace, RegExp, CallerFun, AccIn) ->
     {ok, MP} = re:compile(RegExp),
 
     Fun = fun(Dir, Acc) ->
-            {ok, Fs} = alcove:readdir(Drv, Pids, Dir),
-            Filtered = lists:filter(fun(File) ->
-                        case re:run(File, MP) of
-                            nomatch ->
-                                false;
-                            {match, _} ->
-                                true
-                        end
-                end, Fs),
-            lists:foldl(CallerFun, Acc, Filtered)
-        end,
+        {ok, Fs} = alcove:readdir(Drv, Pids, Dir),
+        Filtered = lists:filter(
+            fun(File) ->
+                case re:run(File, MP) of
+                    nomatch ->
+                        false;
+                    {match, _} ->
+                        true
+                end
+            end,
+            Fs
+        ),
+        lists:foldl(CallerFun, Acc, Filtered)
+    end,
 
     fold(Drv, Pids, MntOpt, Namespace, Fun, AccIn).
 
 cgroup(Drv) ->
     cgroup(Drv, []).
+
 cgroup(Drv, Pids) ->
     {ok, Entries} = mounts(Drv, Pids),
-    [ {Dir, binary:split(MntOpts, [<<",">>], [global])} ||
-        {<<"cgroup">>, Dir, <<"cgroup">>, MntOpts, _Freq, _Passno} <- Entries ].
+    [
+        {Dir, binary:split(MntOpts, [<<",">>], [global])}
+        || {<<"cgroup">>, Dir, <<"cgroup">>, MntOpts, _Freq, _Passno} <- Entries
+    ].
 
 mounts(Drv) ->
     mounts(Drv, []).
+
 mounts(Drv, Pids) ->
     case alcove:open(Drv, Pids, "/proc/mounts", [o_rdonly], 0) of
         {ok, FD} ->
-            Reply = case readbuf(Drv, Pids, FD) of
-                {ok, Buf} ->
-                    {ok, fsentry(Buf)};
-                Error ->
-                    Error
-            end,
+            Reply =
+                case readbuf(Drv, Pids, FD) of
+                    {ok, Buf} ->
+                        {ok, fsentry(Buf)};
+                    Error ->
+                        Error
+                end,
             _ = alcove:close(Drv, Pids, FD),
             Reply;
         _ ->
@@ -197,25 +225,30 @@ mounts(Drv, Pids) ->
 
 readbuf(Drv, Pids, FD) ->
     readbuf(Drv, Pids, FD, []).
+
 readbuf(Drv, Pids, FD, Acc) ->
     case alcove:read(Drv, Pids, FD, 1024) of
         {ok, <<>>} ->
             {ok, list_to_binary(lists:reverse(Acc))};
         {ok, Buf} ->
-            readbuf(Drv, Pids, FD, [Buf|Acc]);
+            readbuf(Drv, Pids, FD, [Buf | Acc]);
         Error ->
             Error
     end.
 
 fsentry(Buf) ->
-    Entries = binary:split(Buf, [<<"\n">>], [global,trim]),
-    [ list_to_tuple(binary:split(Entry, [<<"\s">>], [global])) ||
-        Entry <- Entries ].
+    Entries = binary:split(Buf, [<<"\n">>], [global, trim]),
+    [
+        list_to_tuple(binary:split(Entry, [<<"\s">>], [global]))
+        || Entry <- Entries
+    ].
 
 is_dir(Drv, Pids, Path) ->
     case alcove:open(Drv, Pids, Path, [o_wronly], 0) of
-        {error,eisdir} -> true;
-        {error,_} -> false;
+        {error, eisdir} ->
+            true;
+        {error, _} ->
+            false;
         {ok, FH} ->
             _ = alcove:close(Drv, Pids, FH),
             false
@@ -231,20 +264,24 @@ is_file(Drv, Pids, File) ->
     end.
 
 join(Cgroup, Path) ->
-    filename:join([Cgroup|relpath(Path)]).
+    filename:join([Cgroup | relpath(Path)]).
 
 relpath(Path) ->
-    lists:flatmap(fun(N) -> case filename:split(maybe_binary(N)) of
-                        [Root|Rest] when Root =:= "/"; Root =:= <<"/">> ->
-                            Rest;
-                        Rest ->
-                            Rest
-                    end
-          end, Path).
+    lists:flatmap(
+        fun(N) ->
+            case filename:split(maybe_binary(N)) of
+                [Root | Rest] when Root =:= "/"; Root =:= <<"/">> ->
+                    Rest;
+                Rest ->
+                    Rest
+            end
+        end,
+        Path
+    ).
 
 foreach([]) ->
     true;
-foreach([Fun|Funs]) ->
+foreach([Fun | Funs]) ->
     case Fun() of
         true -> foreach(Funs);
         false -> false
@@ -253,7 +290,7 @@ foreach([Fun|Funs]) ->
 % [<<"a">>, <<"b">>, <<"c">>] ->
 %  [[<<"a">>], [<<"a">>,<<"b">>], [<<"a">>,<<"b">>,<<"c">>]]
 expand(Path) ->
-    [ element(1, lists:split(X, Path)) || X <- lists:seq(1, length(Path)) ].
+    [element(1, lists:split(X, Path)) || X <- lists:seq(1, length(Path))].
 
 maybe_binary(N) when is_binary(N) -> N;
 maybe_binary(N) when is_list(N) -> list_to_binary(N).

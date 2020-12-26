@@ -12,7 +12,9 @@
 %%% ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 %%% OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 -module(alcove_drv).
+
 -behaviour(gen_server).
+
 -include_lib("alcove/include/alcove.hrl").
 
 %% API
@@ -23,41 +25,48 @@
 -export([raw/1, getopts/1, progname/0, port/1]).
 
 %% gen_server callbacks
--export([init/1, handle_call/3, handle_cast/2, handle_info/2,
-         terminate/2, code_change/3]).
+-export([
+    init/1,
+    handle_call/3,
+    handle_cast/2,
+    handle_info/2,
+    terminate/2,
+    code_change/3
+]).
 
 -type ref() :: pid().
+
 -export_type([ref/0]).
 
 -record(state, {
-          owner :: pid(),
-          raw = false,
-          port :: port(),
-          fdctl :: port(),
-          buf = <<>> :: binary()
-         }).
+    owner :: pid(),
+    raw = false,
+    port :: port(),
+    fdctl :: port(),
+    buf = <<>> :: binary()
+}).
 
--spec start() -> 'ignore' | {'error',_} | {'ok',pid()}.
+-spec start() -> 'ignore' | {'error', _} | {'ok', pid()}.
 start() ->
     start(self(), []).
 
--spec start(proplists:proplist()) -> 'ignore' | {'error',_} | {'ok',pid()}.
+-spec start(proplists:proplist()) -> 'ignore' | {'error', _} | {'ok', pid()}.
 start(Options) ->
     start(self(), Options).
 
--spec start(pid(), proplists:proplist()) -> 'ignore' | {'error',_} | {'ok',pid()}.
+-spec start(pid(), proplists:proplist()) -> 'ignore' | {'error', _} | {'ok', pid()}.
 start(Owner, Options) ->
     gen_server:start(?MODULE, [Owner, Options], []).
 
--spec start_link() -> 'ignore' | {'error',_} | {'ok',pid()}.
+-spec start_link() -> 'ignore' | {'error', _} | {'ok', pid()}.
 start_link() ->
     start_link(self(), []).
 
--spec start_link(proplists:proplist()) -> 'ignore' | {'error',_} | {'ok',pid()}.
+-spec start_link(proplists:proplist()) -> 'ignore' | {'error', _} | {'ok', pid()}.
 start_link(Options) ->
     start_link(self(), Options).
 
--spec start_link(pid(), proplists:proplist()) -> 'ignore' | {'error',_} | {'ok',pid()}.
+-spec start_link(pid(), proplists:proplist()) -> 'ignore' | {'error', _} | {'ok', pid()}.
 start_link(Owner, Options) ->
     gen_server:start_link(?MODULE, [Owner, Options], []).
 
@@ -66,10 +75,13 @@ stop(Drv) ->
     catch gen_server:call(Drv, stop),
     ok.
 
--spec call(ref(),[alcove:pid_t()],atom(),list(),timeout()) -> term().
-call(Drv, Pids, Command, Argv, Timeout)
-    when is_list(Pids), is_atom(Command), is_list(Argv),
-         (is_integer(Timeout) orelse Timeout =:= infinity) ->
+-spec call(ref(), [alcove:pid_t()], atom(), list(), timeout()) -> term().
+call(Drv, Pids, Command, Argv, Timeout) when
+    is_list(Pids),
+    is_atom(Command),
+    is_list(Argv),
+    (is_integer(Timeout) orelse Timeout =:= infinity)
+->
     Data = alcove_codec:call(Command, Pids, Argv),
     case sync_send(Drv, Data) of
         ok ->
@@ -78,7 +90,7 @@ call(Drv, Pids, Command, Argv, Timeout)
             Error
     end.
 
--spec sync_send(ref(),iodata()) -> ok | {alcove_error, badarg}.
+-spec sync_send(ref(), iodata()) -> ok | {alcove_error, badarg}.
 sync_send(Drv, Data) ->
     case iolist_size(Data) =< 16#ffff of
         true ->
@@ -87,7 +99,7 @@ sync_send(Drv, Data) ->
             {alcove_error, badarg}
     end.
 
--spec send(ref(),iodata()) -> ok | {alcove_error, badarg}.
+-spec send(ref(), iodata()) -> ok | {alcove_error, badarg}.
 send(Drv, Data) ->
     case iolist_size(Data) =< 16#ffff of
         true ->
@@ -96,19 +108,21 @@ send(Drv, Data) ->
             {alcove_error, badarg}
     end.
 
--spec stdin(ref(),[alcove:pid_t()],iodata()) -> 'ok' | {alcove_error, 'badarg'}.
+-spec stdin(ref(), [alcove:pid_t()], iodata()) -> 'ok' | {alcove_error, 'badarg'}.
 stdin(Drv, Pids, Data) ->
     send(Drv, alcove_codec:stdin(Pids, Data)).
 
--spec stdout(ref(),[alcove:pid_t()],timeout()) -> 'false' | binary() | {alcove_error, any()} | {alcove_pipe, integer()}.
+-spec stdout(ref(), [alcove:pid_t()], timeout()) ->
+    'false' | binary() | {alcove_error, any()} | {alcove_pipe, integer()}.
 stdout(Drv, Pids, Timeout) ->
     reply(Drv, Pids, alcove_stdout, Timeout).
 
--spec stderr(ref(),[alcove:pid_t()],timeout()) -> 'false' | binary() | {alcove_error, any()} | {alcove_pipe, integer()}.
+-spec stderr(ref(), [alcove:pid_t()], timeout()) ->
+    'false' | binary() | {alcove_error, any()} | {alcove_pipe, integer()}.
 stderr(Drv, Pids, Timeout) ->
     reply(Drv, Pids, alcove_stderr, Timeout).
 
--spec event(ref(),[alcove:pid_t()],timeout()) -> term().
+-spec event(ref(), [alcove:pid_t()], timeout()) -> term().
 event(Drv, Pids, Timeout) ->
     reply(Drv, Pids, alcove_event, Timeout).
 
@@ -139,23 +153,29 @@ init([Owner, Options]) ->
     % Control fifo for the port
     Ctldir = proplists:get_value(ctldir, Options, basedir(?MODULE)),
     Fifo = lists:concat([
-            maybe_string(Ctldir),
-            "/fdctl.",
-            erlang:phash2([os:getpid(), self()])
-        ]),
+        maybe_string(Ctldir),
+        "/fdctl.",
+        erlang:phash2([os:getpid(), self()])
+    ]),
 
-    [Cmd|Argv] = getopts([{fdctl, Fifo}|Options]),
-    PortOpt = lists:filter(fun
+    [Cmd | Argv] = getopts([{fdctl, Fifo} | Options]),
+    PortOpt = lists:filter(
+        fun
             (stderr_to_stdout) -> true;
-            ({env,_}) -> true;
+            ({env, _}) -> true;
             (_) -> false
-        end, Options),
+        end,
+        Options
+    ),
 
-    Port = erlang:open_port({spawn_executable, Cmd}, [
+    Port = erlang:open_port(
+        {spawn_executable, Cmd},
+        [
             {args, Argv},
             stream,
             binary
-        ] ++ PortOpt),
+        ] ++ PortOpt
+    ),
 
     % Block until the port has fully initialized
     receive
@@ -168,34 +188,29 @@ init([Owner, Options]) ->
             % the port because the port may be running as a different user.
             ok = call_unlink(Port, Fifo),
             {ok, #state{
-                    port = Port,
-                    fdctl = Fdctl,
-                    owner = Owner
-                }};
+                port = Port,
+                fdctl = Fdctl,
+                owner = Owner
+            }};
         {'EXIT', Port, normal} ->
             {stop, {error, port_init_failed}};
         {'EXIT', Port, Reason} ->
             {stop, {error, Reason}}
     end.
 
-handle_call({send, Buf}, {Owner,_Tag}, #state{port = Port, owner = Owner} = State) ->
+handle_call({send, Buf}, {Owner, _Tag}, #state{port = Port, owner = Owner} = State) ->
     true = erlang:port_command(Port, Buf),
     {reply, ok, State};
-
-handle_call(raw, {Owner,_Tag}, #state{owner = Owner} = State) ->
+handle_call(raw, {Owner, _Tag}, #state{owner = Owner} = State) ->
     {reply, ok, State#state{raw = true}};
-
-handle_call(port, {Owner,_Tag}, #state{owner = Owner, port = Port} = State) ->
+handle_call(port, {Owner, _Tag}, #state{owner = Owner, port = Port} = State) ->
     {reply, Port, State};
-
 handle_call(stop, _From, State) ->
     {stop, normal, ok, State};
-
-handle_call(_, {Owner,_Tag}, #state{owner = Owner} = State) ->
-    {reply, {error,enotsup}, State};
-
+handle_call(_, {Owner, _Tag}, #state{owner = Owner} = State) ->
+    {reply, {error, enotsup}, State};
 handle_call(_, _, State) ->
-    {reply, {error,not_owner}, State}.
+    {reply, {error, not_owner}, State}.
 
 handle_cast({send, Buf}, #state{port = Port} = State) ->
     erlang:port_command(Port, Buf),
@@ -219,24 +234,24 @@ code_change(_OldVsn, State, _Extra) ->
 %
 % Several writes from the child process may be coalesced into 1 read by
 % the parent.
-handle_info({Port, {data, Data}}, #state{raw = true, port = Port, buf = Buf, owner = Owner} = State) ->
+handle_info(
+    {Port, {data, Data}},
+    #state{raw = true, port = Port, buf = Buf, owner = Owner} = State
+) ->
     Owner ! {alcove_stdout, self(), [], <<Buf/binary, Data/binary>>},
     {noreply, State};
 handle_info({Port, {data, Data}}, #state{port = Port, buf = Buf, owner = Owner} = State) ->
     {Msgs, Rest} = alcove_codec:stream(<<Buf/binary, Data/binary>>),
-    Terms = [ alcove_codec:decode(Msg) || Msg <- Msgs ],
-    _ = [ Owner ! {Tag, self(), Pids, Term} || {Tag, Pids, Term} <- Terms ],
+    Terms = [alcove_codec:decode(Msg) || Msg <- Msgs],
+    _ = [Owner ! {Tag, self(), Pids, Term} || {Tag, Pids, Term} <- Terms],
     {noreply, State#state{buf = Rest}};
-
 handle_info({'EXIT', Port, Reason}, #state{port = Port} = State) ->
     {stop, {shutdown, Reason}, State};
-
 % The write end of the fdctl fifo has been closed: either the port has
 % exit'ed or called exec().
 handle_info({'EXIT', Fdctl, _Reason}, #state{fdctl = Fdctl, owner = Owner} = State) ->
     Owner ! {alcove_ctl, self(), [], fdctl_closed},
     {noreply, State#state{raw = true}};
-
 % WTF
 handle_info(Info, State) ->
     error_logger:error_report([{wtf, Info}]),
@@ -257,9 +272,7 @@ call_reply(Drv, Pids, false, Timeout) ->
             {alcove_error, Error};
         {alcove_call, Drv, Pids, Event} ->
             Event
-    after
-        Timeout ->
-            {alcove_error, timeout}
+    after Timeout -> {alcove_error, timeout}
     end;
 call_reply(Drv, Pids, true, Timeout) ->
     receive
@@ -267,9 +280,9 @@ call_reply(Drv, Pids, true, Timeout) ->
             call_reply(Drv, Pids, true, Timeout);
         {alcove_ctl, Drv, Pids, Error} ->
             {alcove_error, Error};
-        {alcove_event, Drv, Pids, {termsig,_} = Event} ->
+        {alcove_event, Drv, Pids, {termsig, _} = Event} ->
             {alcove_error, Event};
-        {alcove_event, Drv, Pids, {exit_status,_} = Event} ->
+        {alcove_event, Drv, Pids, {exit_status, _} = Event} ->
             {alcove_error, Event};
         {alcove_call, Drv, Pids, Error} when Error =:= badarg; Error =:= undef ->
             {alcove_error, Error};
@@ -277,9 +290,7 @@ call_reply(Drv, Pids, true, Timeout) ->
             {alcove_error, {eagain, Bytes}};
         {alcove_call, Drv, Pids, Event} ->
             Event
-    after
-        Timeout ->
-            {alcove_error, timeout}
+    after Timeout -> {alcove_error, timeout}
     end.
 
 reply(Drv, Pids, Type, Timeout) ->
@@ -294,9 +305,7 @@ reply(Drv, Pids, Type, Timeout) ->
             {alcove_pipe, {eagain, Bytes}};
         {Type, Drv, Pids, Event} ->
             Event
-    after
-        Timeout ->
-            false
+    after Timeout -> false
     end.
 
 %%--------------------------------------------------------------------
@@ -307,20 +316,23 @@ getopts(Options0) when is_list(Options0) ->
     Exec = maybe_string(proplists:get_value(exec, Options0, "")),
     Progname = maybe_string(proplists:get_value(progname, Options0, progname())),
 
-    Options = lists:map(fun
-                    (N) when is_atom(N) ->
-                        {N, true};
-                    ({_,_} = N) ->
-                        N
-                end, Options0),
+    Options = lists:map(
+        fun
+            (N) when is_atom(N) ->
+                {N, true};
+            ({_, _} = N) ->
+                N
+        end,
+        Options0
+    ),
 
-    Switches = lists:append([ optarg(N) || N <- Options ]),
-    [Cmd|Argv] = [ N || N <- string:tokens(Exec, " ") ++ [Progname|Switches], N /= ""],
-    [find_executable(Cmd)|Argv].
+    Switches = lists:append([optarg(N) || N <- Options]),
+    [Cmd | Argv] = [N || N <- string:tokens(Exec, " ") ++ [Progname | Switches], N /= ""],
+    [find_executable(Cmd) | Argv].
 
-optarg({fdctl, Arg})            -> switch("c", Arg);
-optarg({depth, Arg})            -> switch("d", integer_to_list(Arg));
-optarg(_)                       -> "".
+optarg({fdctl, Arg}) -> switch("c", Arg);
+optarg({depth, Arg}) -> switch("d", integer_to_list(Arg));
+optarg(_) -> "".
 
 switch(Switch, Arg) when is_binary(Arg) ->
     switch(Switch, binary_to_list(Arg));
@@ -348,7 +360,7 @@ basedir(Module) ->
             ]);
         Dir ->
             Dir
-        end.
+    end.
 
 -spec progname() -> string().
 progname() ->
@@ -359,14 +371,15 @@ progname() ->
 call_unlink(Port, File) ->
     Encode = alcove_codec:call(unlink, [], [File]),
     erlang:port_command(Port, Encode),
-    Reply = receive
-        {Port, {data,Data}} ->
-            alcove_codec:decode(Data);
-        {'EXIT', Port, normal} ->
-            {error, port_init_failed};
-        {'EXIT', Port, Reason} ->
-            {error, Reason}
-    end,
+    Reply =
+        receive
+            {Port, {data, Data}} ->
+                alcove_codec:decode(Data);
+            {'EXIT', Port, normal} ->
+                {error, port_init_failed};
+            {'EXIT', Port, Reason} ->
+                {error, Reason}
+        end,
     case Reply of
         {alcove_call, [], ok} ->
             ok;

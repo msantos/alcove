@@ -18,21 +18,22 @@
 -include_lib("alcove/include/alcove_seccomp.hrl").
 
 -export([
-        all/0,
-        init_per_suite/1,
-        end_per_suite/1,
-        init_per_testcase/2,
-        end_per_testcase/2
-    ]).
--export([
-        kill_prctl/1,
-        allow_prctl/1,
-        trap_prctl/1,
+    all/0,
+    init_per_suite/1,
+    end_per_suite/1,
+    init_per_testcase/2,
+    end_per_testcase/2
+]).
 
-        kill_seccomp/1,
-        allow_seccomp/1,
-        trap_seccomp/1
-    ]).
+-export([
+    kill_prctl/1,
+    allow_prctl/1,
+    trap_prctl/1,
+
+    kill_seccomp/1,
+    allow_seccomp/1,
+    trap_seccomp/1
+]).
 
 all() ->
     case os:type() of
@@ -52,16 +53,16 @@ all() ->
 
 init_per_suite(Config) ->
     {ok, Drv} = start_link([]),
-    Result = try alcove:prctl_constant(Drv, [], seccomp_mode_filter) of
-        unknown ->
-            {skip, "seccomp not supported"};
-
-        N when is_integer(N) ->
-            Config
-    catch
-        error:undef ->
-            {skip, "seccomp not supported"}
-    end,
+    Result =
+        try alcove:prctl_constant(Drv, [], seccomp_mode_filter) of
+            unknown ->
+                {skip, "seccomp not supported"};
+            N when is_integer(N) ->
+                Config
+        catch
+            error:undef ->
+                {skip, "seccomp not supported"}
+        end,
     alcove_drv:stop(Drv),
     Result.
 
@@ -69,18 +70,19 @@ end_per_suite(_Config) ->
     ok.
 
 init_per_testcase(_Test, Config) ->
-    Exec = case os:getenv("ALCOVE_TEST_EXEC") of
-        false -> "sudo";
-        Env -> Env
-    end,
+    Exec =
+        case os:getenv("ALCOVE_TEST_EXEC") of
+            false -> "sudo";
+            Env -> Env
+        end,
 
     {ok, Drv} = start_link([
-            {exec, Exec},
-            {maxchild, 8},
-            termsig
-        ]),
+        {exec, Exec},
+        {maxchild, 8},
+        termsig
+    ]),
 
-    [{drv, Drv}|Config].
+    [{drv, Drv} | Config].
 
 end_per_testcase(_Test, Config) ->
     Drv = ?config(drv, Config),
@@ -90,22 +92,22 @@ end_per_testcase(_Test, Config) ->
 %% Tests
 %%
 kill_prctl(Config) ->
-  kill(Config, prctl).
+    kill(Config, prctl).
 
 allow_prctl(Config) ->
-  allow(Config, prctl).
+    allow(Config, prctl).
 
 trap_prctl(Config) ->
-  trap(Config, prctl).
+    trap(Config, prctl).
 
 kill_seccomp(Config) ->
-  kill(Config, seccomp).
+    kill(Config, seccomp).
 
 allow_seccomp(Config) ->
-  allow(Config, seccomp).
+    allow(Config, seccomp).
 
 trap_seccomp(Config) ->
-  trap(Config, seccomp).
+    trap(Config, seccomp).
 
 % Seccomp filter terminates the process wiith SIGSYS if the system call
 % is not allowed.
@@ -113,11 +115,11 @@ kill(Config, Syscall) ->
     Drv = ?config(drv, Config),
 
     {ok, Pid} = alcove:fork(Drv, []),
-    enforce(Drv, [Pid], ?BPF_STMT(?BPF_RET+?BPF_K, ?SECCOMP_RET_KILL), Syscall),
+    enforce(Drv, [Pid], ?BPF_STMT(?BPF_RET + ?BPF_K, ?SECCOMP_RET_KILL), Syscall),
     % Allowed: cached by process
     Pid = alcove:getpid(Drv, [Pid]),
     % Not allowed: SIGSYS
-    {'EXIT',{{termsig,sigsys},_}} = (catch alcove:getcwd(Drv, [Pid])),
+    {'EXIT', {{termsig, sigsys}, _}} = (catch alcove:getcwd(Drv, [Pid])),
 
     {error, esrch} = alcove:kill(Drv, [], Pid, 0).
 
@@ -127,7 +129,7 @@ allow(Config, Syscall) ->
     Drv = ?config(drv, Config),
 
     {ok, Pid} = alcove:fork(Drv, []),
-    enforce(Drv, [Pid], ?BPF_STMT(?BPF_RET+?BPF_K, ?SECCOMP_RET_ALLOW), Syscall),
+    enforce(Drv, [Pid], ?BPF_STMT(?BPF_RET + ?BPF_K, ?SECCOMP_RET_ALLOW), Syscall),
     Pid = alcove:getpid(Drv, [Pid]),
     {ok, _} = alcove:getcwd(Drv, [Pid]),
     ok = alcove:kill(Drv, [], Pid, 0),
@@ -139,33 +141,32 @@ trap(Config, Syscall) ->
     Drv = ?config(drv, Config),
 
     {ok, Pid} = alcove:fork(Drv, []),
-    {ok,_} = alcove:sigaction(Drv, [Pid], sigsys, sig_info),
+    {ok, _} = alcove:sigaction(Drv, [Pid], sigsys, sig_info),
 
     ok = alcove:chdir(Drv, [Pid], "/tmp"),
 
-    enforce(Drv, [Pid], ?BPF_STMT(?BPF_RET+?BPF_K, ?SECCOMP_RET_TRAP), Syscall),
+    enforce(Drv, [Pid], ?BPF_STMT(?BPF_RET + ?BPF_K, ?SECCOMP_RET_TRAP), Syscall),
 
     % Allowed: cached by process
     Pid = alcove:getpid(Drv, [Pid]),
     % Not allowed: SIGSYS
-    true = case alcove:getcwd(Drv, [Pid]) of
-        {error,unknown} -> true;
-        {ok,<<>>} -> true;
-        {ok,<<"/">>} -> true;
-        Cwd -> {false, Cwd}
-    end,
+    true =
+        case alcove:getcwd(Drv, [Pid]) of
+            {error, unknown} -> true;
+            {ok, <<>>} -> true;
+            {ok, <<"/">>} -> true;
+            Cwd -> {false, Cwd}
+        end,
 
-    {signal, sigsys, _} = receive
-        {alcove_event,Drv,[Pid],Event} ->
-            Event
-    after
-        2000 ->
-            timeout
-    end,
+    {signal, sigsys, _} =
+        receive
+            {alcove_event, Drv, [Pid], Event} ->
+                Event
+        after 2000 -> timeout
+        end,
 
     ok = alcove:kill(Drv, [], Pid, 0),
     alcove:exit(Drv, [Pid], 0).
-
 
 allow_syscall(Drv, Syscall) ->
     try alcove:define(Drv, [], Syscall) of
@@ -197,9 +198,9 @@ filter(Drv) ->
 enforce(Drv, Pids, Filter0, Syscall) ->
     Filter = filter(Drv) ++ [Filter0],
 
-    {ok,_,_,_,_,_} = alcove:prctl(Drv, Pids, pr_set_no_new_privs, 1, 0, 0, 0),
+    {ok, _, _, _, _, _} = alcove:prctl(Drv, Pids, pr_set_no_new_privs, 1, 0, 0, 0),
 
-    Pad = (erlang:system_info({wordsize,external}) - 2) * 8,
+    Pad = (erlang:system_info({wordsize, external}) - 2) * 8,
 
     Prog = [
         <<(iolist_size(Filter) div 8):2/native-unsigned-integer-unit:8>>,
@@ -208,20 +209,27 @@ enforce(Drv, Pids, Filter0, Syscall) ->
     ],
 
     case Syscall of
-      prctl ->
-        {ok,_,_,_,_,_} = alcove:prctl(Drv, Pids, pr_set_seccomp,
-                                      seccomp_mode_filter, Prog, 0, 0);
-
-      seccomp ->
-        ok = alcove:seccomp(Drv, Pids, seccomp_set_mode_filter, 0, Prog)
+        prctl ->
+            {ok, _, _, _, _, _} = alcove:prctl(
+                Drv,
+                Pids,
+                pr_set_seccomp,
+                seccomp_mode_filter,
+                Prog,
+                0,
+                0
+            );
+        seccomp ->
+            ok = alcove:seccomp(Drv, Pids, seccomp_set_mode_filter, 0, Prog)
     end,
 
     ok.
 
 start_link(Opt) ->
-    Ctldir = case os:getenv("ALCOVE_TEST_CTLDIR") of
-               false -> [];
-               Dir -> [{ctldir, Dir}]
-             end,
+    Ctldir =
+        case os:getenv("ALCOVE_TEST_CTLDIR") of
+            false -> [];
+            Dir -> [{ctldir, Dir}]
+        end,
 
     alcove_drv:start_link(Opt ++ Ctldir).
