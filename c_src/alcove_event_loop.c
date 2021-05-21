@@ -1,4 +1,4 @@
-/* Copyright (c) 2015-2018, Michael Santos <michael.santos@gmail.com>
+/* Copyright (c) 2015-2021, Michael Santos <michael.santos@gmail.com>
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -90,7 +90,7 @@ void alcove_event_loop(alcove_state_t *ap) {
 
   (void)memset(ap->child, 0, sizeof(alcove_child_t) * ap->fdsetsize);
 
-  fds = calloc(sizeof(struct pollfd), ap->maxfd);
+  fds = calloc(ap->maxfd, sizeof(struct pollfd));
   if (fds == NULL)
     exit(errno);
 
@@ -102,16 +102,17 @@ void alcove_event_loop(alcove_state_t *ap) {
       exit(errno);
 
     if (ap->maxfd != maxfd.rlim_cur) {
+      u_int16_t fdsetsize = ap->fdsetsize;
       ap->maxfd = maxfd.rlim_cur;
-      fds = reallocarray(fds, sizeof(struct pollfd), ap->maxfd);
+      fds = reallocarray(fds, ap->maxfd, sizeof(struct pollfd));
       if (fds == NULL)
         exit(errno);
       (void)memset(fds, 0, sizeof(struct pollfd) * ap->maxfd);
 
       ap->fdsetsize = ALCOVE_MAXCHILD(ap->maxfd);
 
-      ap->child = recallocarray(ap->child, sizeof(alcove_child_t),
-                                sizeof(alcove_child_t), ap->fdsetsize);
+      ap->child = recallocarray(ap->child, fdsetsize, ap->fdsetsize,
+                                sizeof(alcove_child_t));
       if (ap->child == NULL)
         exit(errno);
     }
