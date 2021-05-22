@@ -1,4 +1,4 @@
-/* Copyright (c) 2014, Michael Santos <michael.santos@gmail.com>
+/* Copyright (c) 2014-2021, Michael Santos <michael.santos@gmail.com>
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -27,19 +27,13 @@
 
 #include "alcove_clone_constants.h"
 
-#ifdef __linux__
-#ifndef HAVE_SETNS
-static int setns(int fd, int nstype);
-#endif
-#endif
-
 /*
  * setns(2)
  *
  */
 #ifdef __linux__
 #ifndef HAVE_SETNS
-static int setns(int fd, int nstype) {
+int setns(int fd, int nstype) {
 #ifdef __NR_setns
   return syscall(__NR_setns, fd, nstype);
 #else
