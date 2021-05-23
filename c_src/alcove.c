@@ -1,4 +1,4 @@
-/* Copyright (c) 2014-2020, Michael Santos <michael.santos@gmail.com>
+/* Copyright (c) 2014-2021, Michael Santos <michael.santos@gmail.com>
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -19,7 +19,7 @@
 static int alcove_signal_init(int boot);
 static int alcove_rlimit_init(void);
 static int alcove_fd_init(char *fifo);
-static int alcove_fdmove(int fd, int dst);
+static int alcove_fdmove(int fd, int dupfd);
 
 static void usage(void);
 
@@ -220,7 +220,7 @@ static int alcove_fd_init(char *fifo) {
   return 0;
 }
 
-static int alcove_fdmove(int fd, int dst) {
+static int alcove_fdmove(int fd, int dupfd) {
   int flags = 0;
 
   flags = fcntl(fd, F_GETFD);
@@ -228,7 +228,7 @@ static int alcove_fdmove(int fd, int dst) {
   if (flags < 0)
     return 0;
 
-  if (fcntl(fd, F_DUPFD, dst) < 0)
+  if (fcntl(fd, F_DUPFD, dupfd) < 0)
     return -1;
 
   /* According to fcntl(2) on FreeBSD, the close-on-exec flag is reset
@@ -242,7 +242,7 @@ static int alcove_fdmove(int fd, int dst) {
    * Restore the flag if it was set:
    *
    */
-  return fcntl(dst, F_SETFD, flags);
+  return fcntl(dupfd, F_SETFD, flags);
 }
 
 static void usage() {
