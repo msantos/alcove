@@ -25,7 +25,7 @@ typedef struct {
     u_int8_t narg;
 } alcove_call_t;
 
-const alcove_call_t calls[] = {
+static const alcove_call_t calls[] = {
 EOF
 
 while IFS=/ read call arity; do
