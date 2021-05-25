@@ -1,6 +1,6 @@
 {application, alcove, [
     {description, "Unix process containers and sandboxes"},
-    {vsn, "0.30.0"},
+    {vsn, "0.31.0"},
     {registered, []},
     {applications, [kernel, stdlib, sasl]},
     {env, []},
