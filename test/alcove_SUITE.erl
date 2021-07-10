@@ -755,7 +755,7 @@ signal(Config) ->
     % Linux: cannot be PID 1 in a namespace. PID 1 can't be killed.
     {ok, Child} = alcove:fork(Drv, []),
 
-    {ok, sig_dfl} = alcove:sigaction(Drv, [Child], sigterm, sig_ign),
+    {ok, sig_info} = alcove:sigaction(Drv, [Child], sigterm, sig_ign),
     {ok, sig_ign} = alcove:sigaction(Drv, [Child], sigterm, <<>>),
     ok = alcove:kill(Drv, [], Child, sigterm),
     Pid0 = alcove:getpid(Drv, [Child]),

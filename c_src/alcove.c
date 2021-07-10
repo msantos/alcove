@@ -81,7 +81,6 @@ int main(int argc, char *argv[]) {
     exit(errno);
 
   if (boot) {
-
     if (alcove_rlimit_init() < 0)
       exit(errno);
 
@@ -99,7 +98,8 @@ static int alcove_signal_init(int boot) {
   struct sigaction act = {0};
   int sig = 0;
 
-  act.sa_handler = SIG_DFL;
+  act.sa_flags |= SA_SIGINFO;
+  act.sa_sigaction = alcove_sig_info;
   (void)sigfillset(&act.sa_mask);
 
   if (boot) {
@@ -112,9 +112,6 @@ static int alcove_signal_init(int boot) {
       }
     }
   }
-
-  act.sa_flags |= SA_SIGINFO;
-  act.sa_sigaction = alcove_sig_info;
 
   if (sigaction(SIGCHLD, &act, NULL) < 0)
     return -1;
