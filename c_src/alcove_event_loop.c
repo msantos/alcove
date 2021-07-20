@@ -299,6 +299,9 @@ static ssize_t alcove_child_stdio(int fdin, u_int16_t depth, alcove_child_t *c,
   u_int16_t hdrlen = 0;
   size_t read_len = sizeof(hdrlen);
 
+  int flags;
+  int oerrno;
+
   /* XXX One message may be sent from a flowcontrolled process when it calls
    * XXX exec() because stdio for the process is added to the poll
    * XXX set before exec() is called.
@@ -316,13 +319,24 @@ static ssize_t alcove_child_stdio(int fdin, u_int16_t depth, alcove_child_t *c,
   if ((c->fdctl == ALCOVE_CHILD_EXEC) || (type == ALCOVE_MSG_STDERR))
     read_len = ALCOVE_MSGLEN(depth, sizeof(buf));
 
+  flags = fcntl(fdin, F_GETFL);
+  if (flags < 0)
+    return -1;
+
+  if (fcntl(fdin, F_SETFL, flags | O_NONBLOCK) < 0)
+    return -1;
+
   n = read(fdin, buf, read_len);
+  oerrno = errno;
+
+  if (fcntl(fdin, F_SETFL, flags) < 0)
+    return -1;
 
   switch (n) {
   case 0:
     return 0;
   case -1:
-    return (errno == EINTR || errno == EAGAIN) ? 0 : -1;
+    return (oerrno == EINTR || oerrno == EAGAIN) ? 0 : -1;
   default:
     break;
   }

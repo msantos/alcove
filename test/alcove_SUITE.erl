@@ -34,11 +34,11 @@
     cap_ioctls_limit/1,
     cap_rights_limit/1,
     chdir/1,
-    cpid/1,
     chmod/1,
     chroot/1,
     clone_constant/1,
     connect/1,
+    cpid/1,
     env/1,
     eof/1,
     errno_id/1,
@@ -72,6 +72,7 @@
     prctl/1,
     prctl_constant/1,
     priority/1,
+    process_tree_leader_exits/1,
     ptrace/1,
     ptrace_constant/1,
     rlimit_constant/1,
@@ -108,6 +109,7 @@ all() ->
     {unix, OS} = os:type(),
     [
         {group, OS},
+        process_tree_leader_exits,
         version,
         iodata,
         file_constant,
@@ -1770,6 +1772,17 @@ unveil(Config) ->
     % /bin: unveiled: read + execute
     ok = alcove:execvp(Drv, [Proc, SubProc], "/bin/ls", ["ls", "-h"]),
 
+    ok.
+
+process_tree_leader_exits(Config) ->
+    Drv = ?config(drv, Config),
+    {ok, Child} = alcove:fork(Drv, []),
+    Pid = alcove:getpid(Drv, [Child]),
+    ok = alcove:execvp(Drv, [Child], "/bin/sh", ["sh", "-c", "sleep 300"]),
+    ok = alcove:kill(Drv, [], Pid, 15),
+    _ = alcove:getpid(Drv, []),
+    _ = alcove:getpid(Drv, []),
+    _ = alcove:getpid(Drv, []),
     ok.
 
 %%
