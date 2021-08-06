@@ -59,6 +59,7 @@ pivot_root/2
 pledge/2
 prctl/5
 prctl_constant/1
+procctl/4
 ptrace/4
 ptrace_constant/1
 read/2

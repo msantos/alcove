@@ -1,4 +1,4 @@
-/* Copyright (c) 2016, Michael Santos <michael.santos@gmail.com>
+/* Copyright (c) 2016-2021, Michael Santos <michael.santos@gmail.com>
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -12,6 +12,8 @@
  * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
+#include <sys/wait.h>
+
 static const alcove_constant_t alcove_wait_constants[] = {
 #ifdef WNOHANG
     ALCOVE_CONSTANT(WNOHANG),
@@ -21,6 +23,11 @@ static const alcove_constant_t alcove_wait_constants[] = {
 #endif
 #ifdef WCONTINUED
     ALCOVE_CONSTANT(WCONTINUED),
+#endif
+
+#ifdef __FreeBSD__
+    ALCOVE_CONSTANT(P_PID),
+    ALCOVE_CONSTANT(P_PGID),
 #endif
 
     {NULL, 0}};
