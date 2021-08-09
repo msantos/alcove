@@ -37,10 +37,10 @@ ssize_t alcove_sys_procctl(alcove_state_t *ap, const char *arg, size_t len,
   idtype_t idtype;
   id_t id;
   int cmd;
-  char data[MAXMSGLEN];
+  char data[MAXMSGLEN] = {0};
   size_t datalen = sizeof(data);
-  alcove_alloc_t *elem;
-  ssize_t nelem;
+  alcove_alloc_t *elem = NULL;
+  ssize_t nelem = 0;
 
   int rv = 0;
 
