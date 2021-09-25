@@ -1,4 +1,4 @@
-/* Copyright (c) 2017, Michael Santos <michael.santos@gmail.com>
+/* Copyright (c) 2017-2021, Michael Santos <michael.santos@gmail.com>
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -53,7 +53,6 @@ static int seccomp(unsigned int operation, unsigned int flags, void *args) {
 #ifdef __NR_seccomp
   return syscall(__NR_seccomp, operation, flags, args);
 #else
-#pragma message "No support for seccomp(2)"
   errno = ENOSYS;
   return -1;
 #endif
