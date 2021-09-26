@@ -1,4 +1,4 @@
-/* Copyright (c) 2017, Michael Santos <michael.santos@gmail.com>
+/* Copyright (c) 2017-2021, Michael Santos <michael.santos@gmail.com>
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -25,6 +25,8 @@
 ssize_t alcove_sys_connect(alcove_state_t *ap, const char *arg, size_t len,
                            char *reply, size_t rlen) {
   int index = 0;
+  int type = 0;
+  int arity = 0;
 
   int fd = 0;
   struct sockaddr_storage sa = {0};
@@ -41,11 +43,25 @@ ssize_t alcove_sys_connect(alcove_state_t *ap, const char *arg, size_t len,
     return -1;
 
   /* struct sockaddr */
-  if (alcove_decode_cstruct(arg, len, &index, (char *)&sa, &salen, &elem,
-                            &nelem) < 0)
+  if (alcove_get_type(arg, len, &index, &type, &arity) < 0)
     return -1;
 
-  rv = connect(fd, (salen == 0 ? NULL : (struct sockaddr *)&sa), salen);
+  switch (type) {
+  case ERL_NIL_EXT:
+    salen = 0;
+    break;
+
+  case ERL_LIST_EXT:
+    if (alcove_decode_cstruct(arg, len, &index, (char *)&sa, &salen, &elem,
+                              &nelem) < 0)
+      return -1;
+    break;
+
+  default:
+    return -1;
+  }
+
+  rv = connect(fd, salen == 0 ? NULL : (struct sockaddr *)&sa, salen);
 
   return (rv < 0) ? alcove_mk_errno(reply, rlen, errno)
                   : alcove_mk_atom(reply, rlen, "ok");
