@@ -1,4 +1,4 @@
-/* Copyright (c) 2014-2020, Michael Santos <michael.santos@gmail.com>
+/* Copyright (c) 2014-2021, Michael Santos <michael.santos@gmail.com>
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -65,6 +65,10 @@ ssize_t alcove_sys_select(alcove_state_t *ap, const char *arg, size_t len,
     return -1;
 
   switch (type) {
+  case ERL_NIL_EXT:
+    timeout = NULL;
+    break;
+
   case ERL_ATOM_EXT:
     if (alcove_decode_null(arg, len, &index) < 0)
       return -1;

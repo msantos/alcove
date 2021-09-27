@@ -698,9 +698,9 @@ specs() ->
 -spec seccomp_constant(alcove_drv:ref(),[pid_t()],atom(),timeout()) -> 'unknown' | non_neg_integer().
 
 -spec select(alcove_drv:ref(),[pid_t()],fd_set(),fd_set(),fd_set(),
-    <<>> | alcove_timeval()) -> {ok, fd_set(), fd_set(), fd_set()} | {'error', posix()}.
+    [] | 'null' | alcove_timeval()) -> {ok, fd_set(), fd_set(), fd_set()} | {'error', posix()}.
 -spec select(alcove_drv:ref(),[pid_t()],fd_set(),fd_set(),fd_set(),
-    <<>> | alcove_timeval(),timeout()) -> {ok, fd_set(), fd_set(), fd_set()} | {'error', posix()}.
+    [] | 'null' | alcove_timeval(),timeout()) -> {ok, fd_set(), fd_set(), fd_set()} | {'error', posix()}.
 
 -spec setenv(alcove_drv:ref(),[pid_t()],iodata(),iodata(),int32_t()) -> 'ok' | {'error', posix()}.
 -spec setenv(alcove_drv:ref(),[pid_t()],iodata(),iodata(),int32_t(),timeout()) -> 'ok' | {'error', posix()}.

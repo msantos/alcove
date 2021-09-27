@@ -1058,7 +1058,7 @@ select(Config) ->
     OS = ?config(os, Config),
 
     {ok, FD} = alcove:open(Drv, [], "/dev/null", [o_rdwr], 0),
-    Reply = alcove:select(Drv, [], [FD], [FD], [FD], null),
+    Reply = alcove:select(Drv, [], [FD], [FD], [FD], []),
     Reply = alcove:select(Drv, [], [FD], [FD], [FD], #alcove_timeval{sec = 1, usec = 1}),
 
     Reply =
@@ -1109,7 +1109,7 @@ connect(Config) ->
 
     % nc -> alcove process
     ok = alcove:stdin(Drv, [NC], <<"nc->alcove\n">>),
-    {ok, [Socket], [], []} = alcove:select(Drv, [Process], [Socket], [], [Socket], null),
+    {ok, [Socket], [], []} = alcove:select(Drv, [Process], [Socket], [], [Socket], []),
     {ok, <<"nc->alcove\n">>} = alcove:read(Drv, [Process], Socket, 11),
 
     ok.
