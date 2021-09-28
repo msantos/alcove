@@ -1,4 +1,4 @@
-/* Copyright (c) 2014-2017, Michael Santos <michael.santos@gmail.com>
+/* Copyright (c) 2014-2021, Michael Santos <michael.santos@gmail.com>
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -54,6 +54,9 @@ ssize_t alcove_sys_sigaction(alcove_state_t *ap, const char *arg, size_t len,
     return -1;
 
   switch (type) {
+  case ERL_NIL_EXT:
+    break;
+
   case ERL_BINARY_EXT:
     if (arity > 0)
       return -1;

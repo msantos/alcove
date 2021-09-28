@@ -1147,7 +1147,7 @@ atom is used as the argument and is not found on the platform.
     sigaction(Drv, ForkChain, Signum, Handler) -> {ok, OldHandler} | {error, posix()}
 
         Types   Signum = constant()
-                Handler = sig_dfl | sig_ign | sig_info | <<>>
+                Handler = sig_dfl | sig_ign | sig_info | [] | <<>>
                 OldHandler = sig_dfl | sig_ign | sig_info
 
         sigaction(2) : set process behaviour for signals
@@ -1162,7 +1162,7 @@ atom is used as the argument and is not found on the platform.
                        'Info' is a binary containing the siginfo_t
                        structure. See sigaction(2) for details.
 
-            <<>> : returns the current handler for the signal
+            [] : returns the current handler for the signal (<<>> also works)
 
         Multiple caught signals of the same type may be reported as one event.
 

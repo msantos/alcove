@@ -1,4 +1,4 @@
-%%% Copyright (c) 2014-2018, Michael Santos <michael.santos@gmail.com>
+%%% Copyright (c) 2014-2021, Michael Santos <michael.santos@gmail.com>
 %%%
 %%% Permission to use, copy, modify, and/or distribute this software for any
 %%% purpose with or without fee is hereby granted, provided that the above
@@ -758,13 +758,13 @@ signal(Config) ->
     {ok, Child} = alcove:fork(Drv, []),
 
     {ok, sig_info} = alcove:sigaction(Drv, [Child], sigterm, sig_ign),
-    {ok, sig_ign} = alcove:sigaction(Drv, [Child], sigterm, <<>>),
+    {ok, sig_ign} = alcove:sigaction(Drv, [Child], sigterm, []),
     ok = alcove:kill(Drv, [], Child, sigterm),
     Pid0 = alcove:getpid(Drv, [Child]),
     true = is_integer(Pid0),
 
     {ok, sig_ign} = alcove:sigaction(Drv, [Child], sigterm, sig_dfl),
-    {ok, sig_dfl} = alcove:sigaction(Drv, [Child], sigterm, <<>>),
+    {ok, sig_dfl} = alcove:sigaction(Drv, [Child], sigterm, []),
     ok = alcove:kill(Drv, [], Child, sigterm),
     {termsig, sigterm} = alcove:event(Drv, [Child], 5000),
     alcove:kill(Drv, [], Child, 0),
@@ -1311,7 +1311,7 @@ signaloneof(Config) ->
     % Force the child to exit by closing stdin
     [
         ok = alcove:close(Drv, [], Pid#alcove_pid.stdin)
-        || Pid <- alcove:cpid(Drv, [])
+     || Pid <- alcove:cpid(Drv, [])
     ],
 
     ok =

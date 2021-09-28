@@ -747,8 +747,8 @@ specs() ->
 -spec setuid(alcove_drv:ref(),[pid_t()],uid_t()) -> 'ok' | {'error', posix()}.
 -spec setuid(alcove_drv:ref(),[pid_t()],uid_t(),timeout()) -> 'ok' | {'error', posix()}.
 
--spec sigaction(alcove_drv:ref(),[pid_t()],constant(),atom()) -> {'ok',atom()} | {'error', posix()}.
--spec sigaction(alcove_drv:ref(),[pid_t()],constant(),atom(),timeout()) -> {'ok',atom()} | {'error', posix()}.
+-spec sigaction(alcove_drv:ref(),[pid_t()],constant() | [] | <<>>,atom()) -> {'ok',atom()} | {'error', posix()}.
+-spec sigaction(alcove_drv:ref(),[pid_t()],constant() | [] | <<>>,atom(),timeout()) -> {'ok',atom()} | {'error', posix()}.
 
 -spec signal_constant(alcove_drv:ref(),[pid_t()],atom()) -> 'unknown' | non_neg_integer().
 -spec signal_constant(alcove_drv:ref(),[pid_t()],atom(),timeout()) -> 'unknown' | non_neg_integer().
