@@ -561,7 +561,7 @@ tmpfs(Config) ->
                 "tmpfs",
                 [noexec],
                 <<"size=16M", 0>>,
-                <<>>
+                []
             ),
             ok = alcove:umount(Drv, [Child], Dir),
             ok = alcove:rmdir(Drv, [Child], Dir);
@@ -575,7 +575,7 @@ tmpfs(Config) ->
                 Dir,
                 "tmpfs",
                 [ms_optionstr],
-                <<>>,
+                [],
                 <<"size=16m", 0:4096>>
             ),
             ok = alcove:umount(Drv, [Child], Dir),

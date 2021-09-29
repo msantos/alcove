@@ -816,7 +816,7 @@ atom is used as the argument and is not found on the platform.
             * flags
             * data
 
-        An empty binary may be used to specify NULL.
+        An empty list may be used to specify NULL.
 
         For example, filesystems mounted in a Linux mount namespace may
         be visible in the global mount namespace. To avoid this, first
@@ -824,7 +824,7 @@ atom is used as the argument and is not found on the platform.
         MS_REC|MS_PRIVATE flags:
 
             {ok, Task} = prx:clone(Parent, [clone_newns]),
-            ok = prx:mount(Task, "none", "/", <<>>, [ms_rec, ms_private], <<>>).
+            ok = prx:mount(Task, "none", "/", [], [ms_rec, ms_private], []).
 
         On BSD systems, the Source argument is ignored and passed to
         the system mount call as:
@@ -970,7 +970,7 @@ atom is used as the argument and is not found on the platform.
     select(Drv, ForkChain, Readfds, Writefds, Exceptfds, Timeout) -> {ok, Readfds, Writefds, Exceptfds} | {error, posix()}
 
         Types   Readfds = Writefds = Exceptfds = [] | [integer()]
-                Timeout = [] | null | #alcove_timeval{}
+                Timeout = [] | #alcove_timeval{}
 
         select(2) : poll a list of file descriptor for events
 
@@ -980,8 +980,7 @@ atom is used as the argument and is not found on the platform.
         The Timeout value may be:
 
             * passing an empty list ([]) causes select to block
-              indefinitely (no timeout). Alternatively, the atom 'null'
-              (or 'NULL') may be used.
+              indefinitely (no timeout)
 
             * an alcove_timeval record with these fields:
 
@@ -1147,7 +1146,7 @@ atom is used as the argument and is not found on the platform.
     sigaction(Drv, ForkChain, Signum, Handler) -> {ok, OldHandler} | {error, posix()}
 
         Types   Signum = constant()
-                Handler = sig_dfl | sig_ign | sig_info | [] | <<>>
+                Handler = sig_dfl | sig_ign | sig_info | []
                 OldHandler = sig_dfl | sig_ign | sig_info
 
         sigaction(2) : set process behaviour for signals
@@ -1162,7 +1161,7 @@ atom is used as the argument and is not found on the platform.
                        'Info' is a binary containing the siginfo_t
                        structure. See sigaction(2) for details.
 
-            [] : returns the current handler for the signal (<<>> also works)
+            [] : returns the current handler for the signal
 
         Multiple caught signals of the same type may be reported as one event.
 

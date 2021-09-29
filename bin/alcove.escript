@@ -529,6 +529,9 @@ specs() ->
 -spec close(alcove_drv:ref(),[pid_t()],fd()) -> 'ok' | {'error', posix()}.
 -spec close(alcove_drv:ref(),[pid_t()],fd(),timeout()) -> 'ok' | {'error', posix()}.
 
+-spec connect(alcove_drv:ref(),[pid_t()],fd(), [] | cstruct()) -> 'ok' | {'error', posix()}.
+-spec connect(alcove_drv:ref(),[pid_t()],fd(), [] | cstruct(),timeout()) -> 'ok' | {'error', posix()}.
+
 -spec define(alcove_drv:ref(),[pid_t()],atom() | [atom()]) -> integer().
 
 -spec environ(alcove_drv:ref(),[pid_t()]) -> [binary()].
@@ -668,6 +671,11 @@ specs() ->
 
 -spec prctl_constant(alcove_drv:ref(),[pid_t()],atom()) -> 'unknown' | non_neg_integer().
 -spec prctl_constant(alcove_drv:ref(),[pid_t()],atom(),timeout()) -> 'unknown' | non_neg_integer().
+
+-spec procctl(alcove_drv:ref(),[pid_t()],constant(),pid_t(),constant(),[] | cstruct())
+    -> {'ok',binary(),cstruct()} | {'error', posix()}.
+-spec procctl(alcove_drv:ref(),[pid_t()],constant(),pid_t(),constant(),[] | cstruct(),timeout())
+    -> {'ok',binary(),cstruct()} | {'error', posix()}.
 
 -spec ptrace(alcove_drv:ref(),[pid_t()],constant(),pid_t(),ptr_arg(),ptr_arg())
     -> {'ok', integer(), ptr_val(), ptr_val()} | {'error', posix()}.
