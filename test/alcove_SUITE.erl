@@ -1403,8 +1403,8 @@ filter(Config) ->
 
     {ok, Task1} = alcove:fork(Drv, []),
 
-    ok = alcove:filter(Drv, [], alcove_proto:call(fork)),
-    ok = alcove:filter(Drv, [Task1], alcove_proto:call(getpid)),
+    ok = alcove:filter(Drv, [], [alcove_proto:call(fork)]),
+    ok = alcove:filter(Drv, [Task1], [alcove_proto:call(getpid)]),
 
     {ok, _} = alcove:fork(Drv, [Task1]),
     {'EXIT', {undef, _}} = (catch alcove:fork(Drv, [])),
@@ -1414,10 +1414,10 @@ filter(Config) ->
 
     NR = length(alcove_proto:calls()),
 
-    ok = alcove:filter(Drv, [Task1], NR - 1),
-    {error, einval} = alcove:filter(Drv, [Task1], NR),
-    {error, einval} = alcove:filter(Drv, [Task1], NR + 1),
-    {error, einval} = alcove:filter(Drv, [Task1], 16#fffffffe),
+    ok = alcove:filter(Drv, [Task1], [NR - 1]),
+    {error, einval} = alcove:filter(Drv, [Task1], [NR]),
+    {error, einval} = alcove:filter(Drv, [Task1], [NR + 1]),
+    {error, einval} = alcove:filter(Drv, [Task1], [16#fffffffe]),
 
     ok.
 

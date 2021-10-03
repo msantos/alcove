@@ -525,7 +525,7 @@ atom is used as the argument and is not found on the platform.
 
         Constants for open(2).
 
-    filter(Drv, ForkChain, Call) -> ok | {error, einval}.
+    filter(Drv, ForkChain, [Call]) -> ok | {error, einval}.
 
         Types   Call = integer()
 
