@@ -525,6 +525,19 @@ atom is used as the argument and is not found on the platform.
 
         Constants for open(2).
 
+    filter(Calls) -> [NR].
+
+        Types   Calls = [Call] | {deny, [Call]} | {allow, [Call]}
+                Call = alcove_proto:call()
+                NR = uint8_t()
+
+    Generate a list of calls to filter for filter/3,4. By default, calls
+    are blocked. To restrict the alcove control process to a subset of
+    calls, use the `allow` tuple:
+
+          # alcove process restricted to fork, clone, getpid
+          alcove:filter({allow, [fork, clone, getpid]})
+
     filter(Drv, ForkChain, [Call]) -> ok | {error, einval}.
 
         Types   Call = integer()
@@ -544,8 +557,9 @@ atom is used as the argument and is not found on the platform.
 
         {ok, Ctrl} = alcove_drv:start(),
         {ok, Task} = alcove:fork(Ctrl, []),
-        
-        ok = alcove:filter(Ctrl, [], alcove_proto:call(fork)),
+
+        Calls = alcove:filter([fork]),
+        ok = alcove:filter(Ctrl, [], Calls),
         {'EXIT', {undef, _}} = (catch alcove:fork(Ctrl, [])).
 
     fork(Drv, ForkChain) -> {ok, integer()} | {error, posix()}

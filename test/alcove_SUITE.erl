@@ -1419,6 +1419,14 @@ filter(Config) ->
     {error, einval} = alcove:filter(Drv, [Task1], [NR + 1]),
     {error, einval} = alcove:filter(Drv, [Task1], [16#fffffffe]),
 
+    Calls = alcove:filter([fork, clone, getpid]),
+    3 = length(Calls),
+    Calls = alcove:filter({deny, [fork, clone, getpid]}),
+
+    Allowed = alcove:filter({allow, [fork, clone, getpid]}),
+    Sorted = lists:sort(Calls),
+    Sorted = lists:sort([ alcove_proto:call(N) || N <- alcove_proto:calls() ] -- Allowed),
+
     ok.
 
 %%
