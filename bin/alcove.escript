@@ -468,6 +468,10 @@ specs() ->
 -type alcove_rlimit() :: #alcove_rlimit{}.
 -type alcove_timeval() :: #alcove_timeval{}.
 
+-type filter() :: alcove_proto:calls() | []
+  | {'deny', alcove_proto:calls() | []}
+  | {'allow', alcove_proto:calls() | []}.
+
 -export_type([
         uint8_t/0, uint16_t/0, uint32_t/0, uint64_t/0,
         int8_t/0, int16_t/0, int32_t/0, int64_t/0,
@@ -485,6 +489,8 @@ specs() ->
         constant/0,
 
         posix/0,
+
+        filter/0,
 
         alcove_pid_field/0,
         alcove_pid/0,
@@ -577,7 +583,7 @@ specs() ->
 -spec file_constant(alcove_drv:ref(),[pid_t()],atom()) -> non_neg_integer() | 'unknown'.
 -spec file_constant(alcove_drv:ref(),[pid_t()],atom(),timeout()) -> non_neg_integer() | 'unknown'.
 
--spec filter([alcove_proto:call()]) -> [uint8_t()].
+-spec filter(filter()) -> [uint8_t()].
 
 -spec filter(alcove_drv:ref(),[pid_t()],[alcove_proto:call()]) -> ok | {'error', 'einval' | 'enomem'}.
 -spec filter(alcove_drv:ref(),[pid_t()],[alcove_proto:call()],timeout()) -> ok | {'error', 'einval' | 'enomem'}.
