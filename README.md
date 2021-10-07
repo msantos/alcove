@@ -11,6 +11,24 @@ Unix process that communicates with the Erlang VM using
 stdin/stdout). [prx](https://github.com/msantos/prx) is a higher level
 library that maps the alcove Unix processes to Erlang processes.
 
+Build
+=====
+
+      rebar3 compile
+
+      # to run tests (see "Setting Up Privileges")
+      rebar3 do clean, compile, ct
+
+      # Linux: statically link using musl
+      sudo apt install musl-dev musl-tools
+
+      # clone the kernel headers somewhere
+      cd /path/to/dir
+      git clone https://github.com/sabotage-linux/kernel-headers.git
+
+      # then compile
+      MUSL_INCLUDE=/path/to/dir ./musl-wrapper rebar3 do clean, compile
+
 Overview
 ========
 
@@ -1321,8 +1339,3 @@ works with two system processes:
 
     * a child process gets a file descriptor for the GPIO, then drops
       privileges
-
-Tests
-=====
-
-    $ rebar3 ct
