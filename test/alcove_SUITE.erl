@@ -965,8 +965,12 @@ priority(Config) ->
     ok = alcove:setuid(Drv, [Fork0, Fork1], 65534),
     {error, eacces} = alcove:setpriority(Drv, [Fork0, Fork1], prio_process, 0, 1),
 
-    ok = alcove:setpriority(Drv, [Fork0, Fork2], prio_process, 0, -1),
-    {ok, -1} = alcove:getpriority(Drv, [Fork0, Fork2], prio_process, 0),
+    case alcove:setpriority(Drv, [Fork0, Fork2], prio_process, 0, -1) of
+        {error, eacces} ->
+            ok;
+        ok ->
+            {ok, -1} = alcove:getpriority(Drv, [Fork0, Fork2], prio_process, 0)
+    end,
 
     {ok, Fork3} = alcove:setsid(Drv, [Fork0, Fork3]),
     {ok, 0} = alcove:getpriority(Drv, [Fork0, Fork3], prio_pgrp, 0),
@@ -1425,7 +1429,7 @@ filter(Config) ->
 
     Allowed = alcove:filter({allow, [fork, clone, getpid]}),
     Sorted = lists:sort(Calls),
-    Sorted = lists:sort([ alcove_proto:call(N) || N <- alcove_proto:calls() ] -- Allowed),
+    Sorted = lists:sort([alcove_proto:call(N) || N <- alcove_proto:calls()] -- Allowed),
 
     ok.
 
