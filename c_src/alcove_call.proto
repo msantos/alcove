@@ -25,7 +25,7 @@ fcntl/3
 fcntl_constant/1
 fexecve/3
 file_constant/1
-filter/1
+filter/2
 fork/0
 getcwd/0
 getenv/1

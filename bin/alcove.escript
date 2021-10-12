@@ -177,7 +177,9 @@ static_exports() ->
      {stderr,2}, {stderr,3},
      {eof,2}, {eof,3},
      {event,2}, {event,3},
+
      {filter, 1},
+     {filter, 3},
 
      {getcpid,4}].
 
@@ -363,6 +365,12 @@ filter({allow, Calls}) when is_list(Calls) ->
 filter({deny, Calls}) when is_list(Calls) ->
     [ alcove_proto:call(Call) || Call <-
       sets:to_list(sets:from_list(Calls)) ].
+";
+
+static({filter,3}) ->
+"
+filter(Drv, Pids, Calls) ->
+    filter(Drv, Pids, Calls, Calls).
 ";
 
 static({getcpid,4}) ->
@@ -585,8 +593,9 @@ specs() ->
 
 -spec filter(filter()) -> [uint8_t()].
 
--spec filter(alcove_drv:ref(),[pid_t()],[alcove_proto:call()]) -> ok | {'error', 'einval' | 'enomem'}.
--spec filter(alcove_drv:ref(),[pid_t()],[alcove_proto:call()],timeout()) -> ok | {'error', 'einval' | 'enomem'}.
+-spec filter(alcove_drv:ref(),[pid_t()],[alcove_proto:call()]) -> ok | {'error', 'einval'}.
+-spec filter(alcove_drv:ref(),[pid_t()],[alcove_proto:call()],[alcove_proto:call()]) -> ok | {'error', 'einval'}.
+-spec filter(alcove_drv:ref(),[pid_t()],[alcove_proto:call()],[alcove_proto:call()],timeout()) -> ok | {'error', 'einval'}.
 
 -spec fork(alcove_drv:ref(),[pid_t()]) -> {'ok', pid_t()} | {'error', posix()}.
 -spec fork(alcove_drv:ref(),[pid_t()],timeout()) -> {'ok', pid_t()} | {'error', posix()}.

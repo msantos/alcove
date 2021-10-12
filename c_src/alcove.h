@@ -175,6 +175,7 @@ typedef struct {
   int signaloneof;
   alcove_child_t *child;
   uint8_t filter[ALCOVE_NR_SIZE];
+  uint8_t filter1[ALCOVE_NR_SIZE];
 } alcove_state_t;
 
 typedef struct {

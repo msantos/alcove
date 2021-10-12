@@ -88,6 +88,7 @@ void alcove_event_init(alcove_state_t *ap) {
 void alcove_event_loop(alcove_state_t *ap) {
   struct pollfd *fds = NULL;
 
+  (void)memcpy(ap->filter, ap->filter1, ALCOVE_NR_SIZE);
   (void)memset(ap->child, 0, sizeof(alcove_child_t) * ap->fdsetsize);
 
   fds = calloc(ap->maxfd, sizeof(struct pollfd));

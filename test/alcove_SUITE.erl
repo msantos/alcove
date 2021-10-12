@@ -52,6 +52,7 @@
     fexecve_sigchld/1,
     file_constant/1,
     filter/1,
+    filter1/1,
     flowcontrol/1,
     flowcontrol_fork_exec_exit/1,
     fork/1,
@@ -160,7 +161,8 @@ all() ->
         signaloneof,
         flowcontrol,
         flowcontrol_fork_exec_exit,
-        filter
+        filter,
+        filter1
     ].
 
 groups() ->
@@ -1430,6 +1432,27 @@ filter(Config) ->
     Allowed = alcove:filter({allow, [fork, clone, getpid]}),
     Sorted = lists:sort(Calls),
     Sorted = lists:sort([alcove_proto:call(N) || N <- alcove_proto:calls()] -- Allowed),
+
+    ok.
+
+filter1(Config) ->
+    Drv = ?config(drv, Config),
+
+    Calls = alcove:filter({allow, [fork, clone, getpid]}),
+    Calls1 = alcove:filter({deny, [fork, clone, getpid]}),
+    Calls2 = alcove:filter({allow, []}),
+
+    ok = alcove:filter(Drv, [], Calls, Calls1),
+
+    {ok, Task1} = alcove:fork(Drv, []),
+
+    _ = alcove:getpid(Drv, []),
+    {ok, _} = alcove:getcwd(Drv, [Task1]),
+    {'EXIT', {undef, _}} = (catch alcove:getpid(Drv, [Task1])),
+    {'EXIT', {undef, _}} = (catch alcove:getcwd(Drv, [])),
+
+    ok = alcove:filter(Drv, [Task1], Calls2),
+    {'EXIT', {undef, _}} = (catch alcove:getcwd(Drv, [Task1])),
 
     ok.
 

@@ -543,7 +543,7 @@ atom is used as the argument and is not found on the platform.
 
         Constants for open(2).
 
-    filter(Calls) -> [NR].
+    filter(Calls) -> [NR]
 
         Types   Calls = [Call] | {deny, [Call]} | {allow, [Call]}
                 Call = alcove_proto:call()
@@ -557,28 +557,49 @@ atom is used as the argument and is not found on the platform.
           alcove:filter({allow, [fork, clone, getpid]})
 
     filter(Drv, ForkChain, [Call]) -> ok | {error, einval}.
+    filter(Drv, ForkChain, [Call], [Call]) -> ok | {error, einval}.
 
-        Types   Call = integer()
+        Types   Call = uint8_t()
 
-    filter/3 restricts calls available to an alcove control
-    process. Restricted control processes will continue to proxy data
-    as well as monitor and reap subprocesses.
+    filter/3,4 restrict calls available to an alcove control
+    process. Restricted control processes continue to proxy data and
+    monitor and reap subprocesses.
 
     Invoking a filtered call will crash the process with 'undef'.
 
-    If the filter/1 call is filtered, subsequent calls to filter/1
+    If the filter call is filtered, subsequent calls to filter/3,4
     will fail.
 
-    Once added, the call cannot be removed from the filter set.
+    Once added, the call cannot be removed from the filter set. Passing
+    an empty list ([]) specifies the current filter set should not
+    be modified.
 
-    Filters are inherited by the child process from the parent.
+    Filters are inherited by the child process from the parent. filter/3
+    specifies the subprocess should use the same filter as the parent:
 
         {ok, Ctrl} = alcove_drv:start(),
         {ok, Task} = alcove:fork(Ctrl, []),
 
         Calls = alcove:filter([fork]),
+        % equivalent to: alcove:filter(Ctrl, [], Calls, Calls)
         ok = alcove:filter(Ctrl, [], Calls),
         {'EXIT', {undef, _}} = (catch alcove:fork(Ctrl, [])).
+
+    filter/4 sets a different filter for subprocesses:
+
+        ForkOnly = alcove:filter({allow, [fork]}),
+
+        % Process restricted to fork
+        % No filter enforced for subprocesses
+        ok = alcove:filter(Ctrl, [], ForkOnly, []),
+        {ok, Task1} = alcove:fork(Ctrl, []),
+        _ = alcove:getpid(Ctrl, [Task1]),
+
+        GetpidOnly = alcove:filter({allow, [getpid]}),
+        % []: no change to filter
+        ok = alcove:filter(Ctrl, [], [], GetpidOnly),
+        {ok, Task2} = alcove:fork(Ctrl, []),
+        _ = alcove:getpid(Ctrl, [Task2]).
 
     fork(Drv, ForkChain) -> {ok, integer()} | {error, posix()}
 
