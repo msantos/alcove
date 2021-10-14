@@ -1748,15 +1748,14 @@ pledge(Config) ->
     {ok, Fork2} = alcove:fork(Drv, []),
     {ok, Fork3} = alcove:fork(Drv, []),
 
-    % NULL does modify the pledge list
-    ok = alcove:pledge(Drv, [Fork0], null, ""),
-    ok = alcove:pledge(Drv, [Fork0], 'NULL', ""),
+    % [] is equivalent to NULL does not modify the pledge list
+    ok = alcove:pledge(Drv, [Fork0], [], <<>>),
 
-    ok = alcove:pledge(Drv, [Fork0], "stdio", ""),
-    ok = alcove:pledge(Drv, [Fork1], "stdio proc exec", ""),
+    ok = alcove:pledge(Drv, [Fork0], <<"stdio">>, <<>>),
+    ok = alcove:pledge(Drv, [Fork1], <<"stdio proc exec">>, <<>>),
 
-    ok = alcove:pledge(Drv, [Fork2], "stdio exec", null),
-    ok = alcove:pledge(Drv, [Fork3], "stdio exec", ""),
+    ok = alcove:pledge(Drv, [Fork2], <<"stdio exec">>, []),
+    ok = alcove:pledge(Drv, [Fork3], <<"stdio exec">>, <<>>),
 
     alcove:getuid(Drv, [Fork0]),
     alcove:getuid(Drv, [Fork1]),

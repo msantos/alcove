@@ -913,12 +913,21 @@ atom is used as the argument and is not found on the platform.
 
     pledge(Drv, ForkChain, Promises, ExecPromises) -> ok | {error, posix()}
 
-        Types  Promises = iodata() | null
-               ExecPromises = iodata() | null
+        Types  Promises = iodata()
+               ExecPromises = iodata()
 
         OpenBSD only.
 
         pledge(2) : restrict system operations
+
+        An empty list ([]) specifies promises should not be
+        changed. Warning: an empty string ("") is equivalent to an
+        empty list.
+
+        To specify no capabilities, use an emtpy binary: <<>>> or <<"">>
+
+            % no change to restrictions afer exec()
+            alcove:pledge(Drv, [Task], <<"stdio proc exec">>, [])
 
     prctl(Drv, ForkChain, Option, Arg2, Arg3, Arg4, Arg5) ->
         {ok, integer(), Val2, Val3, Val4, Val5} | {error, posix()}
