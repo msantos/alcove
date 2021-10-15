@@ -1783,10 +1783,10 @@ unveil(Config) ->
 
     {ok, Proc} = alcove:fork(Drv, []),
 
-    ok = alcove:unveil(Drv, [Proc], "/etc", "r"),
-    ok = alcove:unveil(Drv, [Proc], "/bin", "rx"),
-    ok = alcove:unveil(Drv, [Proc], "/sbin", "r"),
-    ok = alcove:unveil(Drv, [Proc], null, null),
+    ok = alcove:unveil(Drv, [Proc], <<"/etc">>, <<"r">>),
+    ok = alcove:unveil(Drv, [Proc], <<"/bin">>, <<"rx">>),
+    ok = alcove:unveil(Drv, [Proc], <<"/sbin">>, <<"r">>),
+    ok = alcove:unveil(Drv, [Proc], [], []),
 
     {ok, SubProc} = alcove:fork(Drv, [Proc]),
 

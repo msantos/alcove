@@ -1277,6 +1277,12 @@ atom is used as the argument and is not found on the platform.
 
         unveil(2) : restrict filesystem view
 
+        To disable unveil calls, use an empty list ([]) or, equivalently,
+        an empty string ("").
+
+            alcove:unveil(Drv, [Task], <<"/etc">>, <<"r">>),
+            alcove:unveil(Drv, [Task], [], [])
+
     version(Drv, ForkChain) -> binary()
 
         Retrieves the alcove version.

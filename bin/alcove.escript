@@ -823,8 +823,8 @@ specs() ->
 -spec unshare(alcove_drv:ref(),[pid_t()],int32_t() | [constant()]) -> 'ok' | {'error', posix()}.
 -spec unshare(alcove_drv:ref(),[pid_t()],int32_t() | [constant()],timeout()) -> 'ok' | {'error', posix()}.
 
--spec unveil(alcove_drv:ref(),[pid_t()],iodata() | null,iodata() | null) -> 'ok' | {'error', posix()}.
--spec unveil(alcove_drv:ref(),[pid_t()],iodata() | null,iodata() | null,timeout()) -> 'ok' | {'error', posix()}.
+-spec unveil(alcove_drv:ref(),[pid_t()],iodata(),iodata()) -> 'ok' | {'error', posix()}.
+-spec unveil(alcove_drv:ref(),[pid_t()],iodata(),iodata(),timeout()) -> 'ok' | {'error', posix()}.
 
 -type waitpid_value() :: {exit_status, int32_t()}
     | {termsig, atom()}
