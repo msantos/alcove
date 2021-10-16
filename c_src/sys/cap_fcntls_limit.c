@@ -31,8 +31,8 @@ ssize_t alcove_sys_cap_fcntls_limit(alcove_state_t *ap, const char *arg,
   int index = 0;
   int rv;
 
-  int fd;
-  int32_t val;
+  int fd = 0;
+  int32_t val = 0;
   uint32_t rights;
 
   UNUSED(ap);
