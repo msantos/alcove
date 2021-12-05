@@ -1,0 +1,123 @@
+/* Copyright (c) 2021, Michael Santos <michael.santos@gmail.com>
+ *
+ * Permission to use, copy, modify, and/or distribute this software for any
+ * purpose with or without fee is hereby granted, provided that the above
+ * copyright notice and this permission notice appear in all copies.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+ * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+ * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+ * ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+ * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+ * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+ * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+ */
+
+/* calls */
+typedef struct {
+    ssize_t (*fp)(alcove_state_t *, const char *, size_t, char *, size_t);
+    u_int8_t narg;
+} alcove_call_t;
+
+static const alcove_call_t calls[] = {
+    {alcove_sys_alloc, 1},
+    {alcove_sys_cap_constant, 1},
+    {alcove_sys_cap_enter, 0},
+    {alcove_sys_cap_fcntls_get, 1},
+    {alcove_sys_cap_fcntls_limit, 2},
+    {alcove_sys_cap_getmode, 0},
+    {alcove_sys_cap_ioctls_limit, 2},
+    {alcove_sys_cap_rights_limit, 2},
+    {alcove_sys_chdir, 1},
+    {alcove_sys_chmod, 2},
+    {alcove_sys_chown, 3},
+    {alcove_sys_chroot, 1},
+    {alcove_sys_clearenv, 0},
+    {alcove_sys_clone, 1},
+    {alcove_sys_clone_constant, 1},
+    {alcove_sys_close, 1},
+    {alcove_sys_connect, 2},
+    {alcove_sys_cpid, 0},
+    {alcove_sys_environ, 0},
+    {alcove_sys_errno_id, 1},
+    {alcove_sys_execve, 3},
+    {alcove_sys_execvp, 2},
+    {alcove_sys_exit, 1},
+    {alcove_sys_fcntl, 3},
+    {alcove_sys_fcntl_constant, 1},
+    {alcove_sys_fexecve, 3},
+    {alcove_sys_file_constant, 1},
+    {alcove_sys_filter, 2},
+    {alcove_sys_fork, 0},
+    {alcove_sys_getcwd, 0},
+    {alcove_sys_getenv, 1},
+    {alcove_sys_getgid, 0},
+    {alcove_sys_getgroups, 0},
+    {alcove_sys_gethostname, 0},
+    {alcove_sys_getopt, 1},
+    {alcove_sys_getpgrp, 0},
+    {alcove_sys_getpid, 0},
+    {alcove_sys_getpriority, 2},
+    {alcove_sys_getresgid, 0},
+    {alcove_sys_getresuid, 0},
+    {alcove_sys_getrlimit, 1},
+    {alcove_sys_getsid, 1},
+    {alcove_sys_getuid, 0},
+    {alcove_sys_ioctl, 3},
+    {alcove_sys_ioctl_constant, 1},
+    {alcove_sys_iolist_to_bin, 1},
+    {alcove_sys_jail, 1},
+    {alcove_sys_jail_attach, 1},
+    {alcove_sys_jail_remove, 1},
+    {alcove_sys_kill, 2},
+    {alcove_sys_link, 2},
+    {alcove_sys_lseek, 3},
+    {alcove_sys_mkdir, 2},
+    {alcove_sys_mkfifo, 2},
+    {alcove_sys_mount, 6},
+    {alcove_sys_mount_constant, 1},
+    {alcove_sys_open, 3},
+    {alcove_sys_pivot_root, 2},
+    {alcove_sys_pledge, 2},
+    {alcove_sys_prctl, 5},
+    {alcove_sys_prctl_constant, 1},
+    {alcove_sys_procctl, 4},
+    {alcove_sys_ptrace, 4},
+    {alcove_sys_ptrace_constant, 1},
+    {alcove_sys_read, 2},
+    {alcove_sys_readdir, 1},
+    {alcove_sys_rlimit_constant, 1},
+    {alcove_sys_rmdir, 1},
+    {alcove_sys_seccomp, 3},
+    {alcove_sys_seccomp_constant, 1},
+    {alcove_sys_select, 4},
+    {alcove_sys_setcpid, 3},
+    {alcove_sys_setenv, 3},
+    {alcove_sys_setgid, 1},
+    {alcove_sys_setgroups, 1},
+    {alcove_sys_sethostname, 1},
+    {alcove_sys_setns, 2},
+    {alcove_sys_setopt, 2},
+    {alcove_sys_setpgid, 2},
+    {alcove_sys_setpriority, 3},
+    {alcove_sys_setproctitle, 1},
+    {alcove_sys_setresgid, 3},
+    {alcove_sys_setresuid, 3},
+    {alcove_sys_setrlimit, 2},
+    {alcove_sys_setsid, 0},
+    {alcove_sys_setuid, 1},
+    {alcove_sys_sigaction, 2},
+    {alcove_sys_signal_constant, 1},
+    {alcove_sys_socket, 3},
+    {alcove_sys_symlink, 2},
+    {alcove_sys_syscall_constant, 1},
+    {alcove_sys_umount, 1},
+    {alcove_sys_umount2, 2},
+    {alcove_sys_unlink, 1},
+    {alcove_sys_unsetenv, 1},
+    {alcove_sys_unshare, 1},
+    {alcove_sys_unveil, 2},
+    {alcove_sys_version, 0},
+    {alcove_sys_waitpid, 2},
+    {alcove_sys_write, 2},
+};

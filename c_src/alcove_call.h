@@ -1,0 +1,114 @@
+/* Copyright (c) 2021, Michael Santos <michael.santos@gmail.com>
+ *
+ * Permission to use, copy, modify, and/or distribute this software for any
+ * purpose with or without fee is hereby granted, provided that the above
+ * copyright notice and this permission notice appear in all copies.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+ * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+ * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+ * ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+ * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+ * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+ * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+ */
+ssize_t alcove_sys_alloc(alcove_state_t *, const char *, size_t, char *, size_t);
+ssize_t alcove_sys_cap_constant(alcove_state_t *, const char *, size_t, char *, size_t);
+ssize_t alcove_sys_cap_enter(alcove_state_t *, const char *, size_t, char *, size_t);
+ssize_t alcove_sys_cap_fcntls_get(alcove_state_t *, const char *, size_t, char *, size_t);
+ssize_t alcove_sys_cap_fcntls_limit(alcove_state_t *, const char *, size_t, char *, size_t);
+ssize_t alcove_sys_cap_getmode(alcove_state_t *, const char *, size_t, char *, size_t);
+ssize_t alcove_sys_cap_ioctls_limit(alcove_state_t *, const char *, size_t, char *, size_t);
+ssize_t alcove_sys_cap_rights_limit(alcove_state_t *, const char *, size_t, char *, size_t);
+ssize_t alcove_sys_chdir(alcove_state_t *, const char *, size_t, char *, size_t);
+ssize_t alcove_sys_chmod(alcove_state_t *, const char *, size_t, char *, size_t);
+ssize_t alcove_sys_chown(alcove_state_t *, const char *, size_t, char *, size_t);
+ssize_t alcove_sys_chroot(alcove_state_t *, const char *, size_t, char *, size_t);
+ssize_t alcove_sys_clearenv(alcove_state_t *, const char *, size_t, char *, size_t);
+ssize_t alcove_sys_clone(alcove_state_t *, const char *, size_t, char *, size_t);
+ssize_t alcove_sys_clone_constant(alcove_state_t *, const char *, size_t, char *, size_t);
+ssize_t alcove_sys_close(alcove_state_t *, const char *, size_t, char *, size_t);
+ssize_t alcove_sys_connect(alcove_state_t *, const char *, size_t, char *, size_t);
+ssize_t alcove_sys_cpid(alcove_state_t *, const char *, size_t, char *, size_t);
+ssize_t alcove_sys_environ(alcove_state_t *, const char *, size_t, char *, size_t);
+ssize_t alcove_sys_errno_id(alcove_state_t *, const char *, size_t, char *, size_t);
+ssize_t alcove_sys_execve(alcove_state_t *, const char *, size_t, char *, size_t);
+ssize_t alcove_sys_execvp(alcove_state_t *, const char *, size_t, char *, size_t);
+ssize_t alcove_sys_exit(alcove_state_t *, const char *, size_t, char *, size_t);
+ssize_t alcove_sys_fcntl(alcove_state_t *, const char *, size_t, char *, size_t);
+ssize_t alcove_sys_fcntl_constant(alcove_state_t *, const char *, size_t, char *, size_t);
+ssize_t alcove_sys_fexecve(alcove_state_t *, const char *, size_t, char *, size_t);
+ssize_t alcove_sys_file_constant(alcove_state_t *, const char *, size_t, char *, size_t);
+ssize_t alcove_sys_filter(alcove_state_t *, const char *, size_t, char *, size_t);
+ssize_t alcove_sys_fork(alcove_state_t *, const char *, size_t, char *, size_t);
+ssize_t alcove_sys_getcwd(alcove_state_t *, const char *, size_t, char *, size_t);
+ssize_t alcove_sys_getenv(alcove_state_t *, const char *, size_t, char *, size_t);
+ssize_t alcove_sys_getgid(alcove_state_t *, const char *, size_t, char *, size_t);
+ssize_t alcove_sys_getgroups(alcove_state_t *, const char *, size_t, char *, size_t);
+ssize_t alcove_sys_gethostname(alcove_state_t *, const char *, size_t, char *, size_t);
+ssize_t alcove_sys_getopt(alcove_state_t *, const char *, size_t, char *, size_t);
+ssize_t alcove_sys_getpgrp(alcove_state_t *, const char *, size_t, char *, size_t);
+ssize_t alcove_sys_getpid(alcove_state_t *, const char *, size_t, char *, size_t);
+ssize_t alcove_sys_getpriority(alcove_state_t *, const char *, size_t, char *, size_t);
+ssize_t alcove_sys_getresgid(alcove_state_t *, const char *, size_t, char *, size_t);
+ssize_t alcove_sys_getresuid(alcove_state_t *, const char *, size_t, char *, size_t);
+ssize_t alcove_sys_getrlimit(alcove_state_t *, const char *, size_t, char *, size_t);
+ssize_t alcove_sys_getsid(alcove_state_t *, const char *, size_t, char *, size_t);
+ssize_t alcove_sys_getuid(alcove_state_t *, const char *, size_t, char *, size_t);
+ssize_t alcove_sys_ioctl(alcove_state_t *, const char *, size_t, char *, size_t);
+ssize_t alcove_sys_ioctl_constant(alcove_state_t *, const char *, size_t, char *, size_t);
+ssize_t alcove_sys_iolist_to_bin(alcove_state_t *, const char *, size_t, char *, size_t);
+ssize_t alcove_sys_jail(alcove_state_t *, const char *, size_t, char *, size_t);
+ssize_t alcove_sys_jail_attach(alcove_state_t *, const char *, size_t, char *, size_t);
+ssize_t alcove_sys_jail_remove(alcove_state_t *, const char *, size_t, char *, size_t);
+ssize_t alcove_sys_kill(alcove_state_t *, const char *, size_t, char *, size_t);
+ssize_t alcove_sys_link(alcove_state_t *, const char *, size_t, char *, size_t);
+ssize_t alcove_sys_lseek(alcove_state_t *, const char *, size_t, char *, size_t);
+ssize_t alcove_sys_mkdir(alcove_state_t *, const char *, size_t, char *, size_t);
+ssize_t alcove_sys_mkfifo(alcove_state_t *, const char *, size_t, char *, size_t);
+ssize_t alcove_sys_mount(alcove_state_t *, const char *, size_t, char *, size_t);
+ssize_t alcove_sys_mount_constant(alcove_state_t *, const char *, size_t, char *, size_t);
+ssize_t alcove_sys_open(alcove_state_t *, const char *, size_t, char *, size_t);
+ssize_t alcove_sys_pivot_root(alcove_state_t *, const char *, size_t, char *, size_t);
+ssize_t alcove_sys_pledge(alcove_state_t *, const char *, size_t, char *, size_t);
+ssize_t alcove_sys_prctl(alcove_state_t *, const char *, size_t, char *, size_t);
+ssize_t alcove_sys_prctl_constant(alcove_state_t *, const char *, size_t, char *, size_t);
+ssize_t alcove_sys_procctl(alcove_state_t *, const char *, size_t, char *, size_t);
+ssize_t alcove_sys_ptrace(alcove_state_t *, const char *, size_t, char *, size_t);
+ssize_t alcove_sys_ptrace_constant(alcove_state_t *, const char *, size_t, char *, size_t);
+ssize_t alcove_sys_read(alcove_state_t *, const char *, size_t, char *, size_t);
+ssize_t alcove_sys_readdir(alcove_state_t *, const char *, size_t, char *, size_t);
+ssize_t alcove_sys_rlimit_constant(alcove_state_t *, const char *, size_t, char *, size_t);
+ssize_t alcove_sys_rmdir(alcove_state_t *, const char *, size_t, char *, size_t);
+ssize_t alcove_sys_seccomp(alcove_state_t *, const char *, size_t, char *, size_t);
+ssize_t alcove_sys_seccomp_constant(alcove_state_t *, const char *, size_t, char *, size_t);
+ssize_t alcove_sys_select(alcove_state_t *, const char *, size_t, char *, size_t);
+ssize_t alcove_sys_setcpid(alcove_state_t *, const char *, size_t, char *, size_t);
+ssize_t alcove_sys_setenv(alcove_state_t *, const char *, size_t, char *, size_t);
+ssize_t alcove_sys_setgid(alcove_state_t *, const char *, size_t, char *, size_t);
+ssize_t alcove_sys_setgroups(alcove_state_t *, const char *, size_t, char *, size_t);
+ssize_t alcove_sys_sethostname(alcove_state_t *, const char *, size_t, char *, size_t);
+ssize_t alcove_sys_setns(alcove_state_t *, const char *, size_t, char *, size_t);
+ssize_t alcove_sys_setopt(alcove_state_t *, const char *, size_t, char *, size_t);
+ssize_t alcove_sys_setpgid(alcove_state_t *, const char *, size_t, char *, size_t);
+ssize_t alcove_sys_setpriority(alcove_state_t *, const char *, size_t, char *, size_t);
+ssize_t alcove_sys_setproctitle(alcove_state_t *, const char *, size_t, char *, size_t);
+ssize_t alcove_sys_setresgid(alcove_state_t *, const char *, size_t, char *, size_t);
+ssize_t alcove_sys_setresuid(alcove_state_t *, const char *, size_t, char *, size_t);
+ssize_t alcove_sys_setrlimit(alcove_state_t *, const char *, size_t, char *, size_t);
+ssize_t alcove_sys_setsid(alcove_state_t *, const char *, size_t, char *, size_t);
+ssize_t alcove_sys_setuid(alcove_state_t *, const char *, size_t, char *, size_t);
+ssize_t alcove_sys_sigaction(alcove_state_t *, const char *, size_t, char *, size_t);
+ssize_t alcove_sys_signal_constant(alcove_state_t *, const char *, size_t, char *, size_t);
+ssize_t alcove_sys_socket(alcove_state_t *, const char *, size_t, char *, size_t);
+ssize_t alcove_sys_symlink(alcove_state_t *, const char *, size_t, char *, size_t);
+ssize_t alcove_sys_syscall_constant(alcove_state_t *, const char *, size_t, char *, size_t);
+ssize_t alcove_sys_umount(alcove_state_t *, const char *, size_t, char *, size_t);
+ssize_t alcove_sys_umount2(alcove_state_t *, const char *, size_t, char *, size_t);
+ssize_t alcove_sys_unlink(alcove_state_t *, const char *, size_t, char *, size_t);
+ssize_t alcove_sys_unsetenv(alcove_state_t *, const char *, size_t, char *, size_t);
+ssize_t alcove_sys_unshare(alcove_state_t *, const char *, size_t, char *, size_t);
+ssize_t alcove_sys_unveil(alcove_state_t *, const char *, size_t, char *, size_t);
+ssize_t alcove_sys_version(alcove_state_t *, const char *, size_t, char *, size_t);
+ssize_t alcove_sys_waitpid(alcove_state_t *, const char *, size_t, char *, size_t);
+ssize_t alcove_sys_write(alcove_state_t *, const char *, size_t, char *, size_t);

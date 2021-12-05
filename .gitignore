@@ -1,9 +1,5 @@
 *.beam
 _build
-c_src/alcove_call.h
-c_src/alcove_calls.h
-c_src/alcove_nr.h
-c_src/alcove_version.h
 deps/
 .depsolver_plt
 ebin/
@@ -12,6 +8,4 @@ ebin/
 *.[oa]
 .rebar/
 .rebar3/
-src/alcove.erl
-src/alcove_proto.erl
 *.swp
