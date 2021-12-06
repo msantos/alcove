@@ -1,4 +1,4 @@
-.PHONY: test dialyzer typer clean compile examples eg all generate gen
+.PHONY: test dialyzer typer clean compile examples eg all generate gen doc
 
 REBAR ?= rebar3
 
@@ -15,6 +15,13 @@ gen:
 	bin/alcove_nr.sh c_src/alcove_call.proto > c_src/alcove_nr.h
 	bin/alcove_proto.escript alcove_proto c_src/alcove_call.proto > src/alcove_proto.erl
 	bin/alcove.escript alcove c_src/alcove_call.proto > src/alcove.erl
+
+doc:
+	rebar3 edoc
+	ex_doc --config .ex_doc.config \
+	 	--source-url "https://github.com/msantos/alcove" \
+	 	--source-ref "master" \
+	 	"alcove" "0.36.0" _build/default/lib/alcove/ebin
 
 clean:
 	@$(REBAR) clean

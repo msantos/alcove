@@ -29,6 +29,9 @@ Build
       # then compile
       MUSL_INCLUDE=/path/to/dir ./musl-wrapper rebar3 do clean, compile
 
+      ## Generate code
+      make gen
+
 Overview
 ========
 
@@ -133,7 +136,7 @@ chroot process involves:
 
 * running as root
 * setting process limits
-* changing the root directory to limit the process' view of the filesystem
+* changing the root directory to limit the process view of the filesystem
 * changing to an unprivileged user
 * running the sandboxed code
 
@@ -237,7 +240,7 @@ rebar shell
 ```
 
 We can test the limits of the sandbox by using a shell instead of
-herding cat's:
+herding cats:
 
 ```erlang
 5> Sh = chrootex:sandbox(Drv, ["/bin/busybox", "sh"]).
@@ -637,7 +640,7 @@ atom is used as the argument and is not found on the platform.
 
     getgid(Drv, ForkChain) -> non_neg_integer()
 
-        getgid(2) : retrieve the processes' group ID
+        getgid(2) : retrieve the process group ID
 
     getgroups(Drv, ForkChain) -> {ok, [gid_t()]} | {error, posix()}
 
@@ -667,7 +670,7 @@ atom is used as the argument and is not found on the platform.
             exit_status : 1 | 0 : 1
 
                 Controls whether the controlling Erlang process is
-                informed of a process' exit value.
+                informed of a process exit value.
 
             maxforkdepth : non_neg_integer() : 16
 
@@ -715,7 +718,7 @@ atom is used as the argument and is not found on the platform.
 
         getresgid(2) : get real, effective and saved group ID
 
-        Supported on Linux and BSD's.
+        Supported on Linux and BSDs.
 
     getresuid(Drv, ForkChain) -> {ok, RUID, EUID, SUID}
 
@@ -723,7 +726,7 @@ atom is used as the argument and is not found on the platform.
 
         getresuid(2) : get real, effective and saved user ID
 
-        Supported on Linux and BSD's.
+        Supported on Linux and BSDs.
 
     getrlimit(Drv, ForkChain, constant()) -> {ok, #alcove_rlimit{}} | {error, posix()}
 
@@ -766,7 +769,7 @@ atom is used as the argument and is not found on the platform.
 
             Result: an integer equal to the return value of the ioctl.
 
-                    Usually 0 but some ioctl's may use the return value as the
+                    Usually 0 but some ioctls may use the return value as the
                     output parameter.
 
             Bin: the value depends on the type of the input parameter Argp.
@@ -907,7 +910,7 @@ atom is used as the argument and is not found on the platform.
 
         open(2) : returns a file descriptor associated with a file
 
-        Lists of values are OR'ed:
+        Lists of values are ORed:
 
             alcove:open(Drv, [], "/tmp/test", [o_wronly,o_creat], 8#644)
 
@@ -953,7 +956,7 @@ atom is used as the argument and is not found on the platform.
                         On return, the contents of the binary is returned
                         to the caller.
 
-            * {ptr, N}: N bytes of memory is allocated and zero'ed. The
+            * {ptr, N}: N bytes of memory is allocated and zeroed. The
                         pointer is placed in the buffer.
 
                         On return, the contents of the memory is returned
@@ -1140,7 +1143,7 @@ atom is used as the argument and is not found on the platform.
 
         On Ubuntu 12.04, the ipc, net and uts namespaces are available.
 
-        For example, to attach to another process' network namespace:
+        For example, to attach to another process network namespace:
 
             {ok, Child1} = alcove:clone(Drv, [], [clone_newnet]),
             {ok, Child2} = alcove:fork(Drv, []),
@@ -1182,7 +1185,7 @@ atom is used as the argument and is not found on the platform.
 
         setresgid(2) : set real, effective and saved group ID
 
-        Supported on Linux and BSD's.
+        Supported on Linux and BSDs.
 
     setresuid(Drv, ForkChain, RUID, EUID, SUID) -> ok | {error, posix()}
 
@@ -1190,7 +1193,7 @@ atom is used as the argument and is not found on the platform.
 
         setresuid(2) : set real, effective and saved user ID
 
-        Supported on Linux and BSD's.
+        Supported on Linux and BSDs.
 
     setrlimit(Drv, ForkChain, Resource, Limit) -> ok | {error, posix()}
 

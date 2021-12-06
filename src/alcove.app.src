@@ -7,6 +7,7 @@
     {licenses, ["ISC"]},
     {maintainers, ["Michael Santos"]},
     {links, [{"Github", "https://github.com/msantos/alcove"}]},
+    {doc, "doc"},
     {files, [
         "bin",
         "src",

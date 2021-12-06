@@ -9,3 +9,4 @@ ebin/
 .rebar/
 .rebar3/
 *.swp
+doc/
