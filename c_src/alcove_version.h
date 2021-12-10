@@ -1,1 +1,1 @@
-#define ALCOVE_VERSION "0.36.0"
+#define ALCOVE_VERSION "0.37.0"
