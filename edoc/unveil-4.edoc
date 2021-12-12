@@ -1,0 +1,11 @@
+@doc unveil(2): restrict filesystem view
+
+OpenBSD only.
+
+To disable unveil calls, use an empty list ([]) or, equivalently, an
+empty string ("").
+
+```
+alcove:unveil(Drv, [Task], <<"/etc">>, <<"r">>),
+alcove:unveil(Drv, [Task], [], []).
+'''

@@ -1,0 +1,12 @@
+@doc getrlimit(2): retrieve the resource limits for a process
+
+Returns a record:
+
+```
+-include_lib("alcove/include/alcove.hrl").
+
+#alcove_rlimit{
+    cur = integer(),
+    max = integer()
+    }
+'''

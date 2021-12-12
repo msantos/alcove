@@ -1,0 +1,3 @@
+@doc getresgid(2): get real, effective and saved group ID
+
+Supported on Linux and BSDs.

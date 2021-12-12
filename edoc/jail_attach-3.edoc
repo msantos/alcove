@@ -1,0 +1,3 @@
+@doc jail_attach(2): join a jailed process
+
+FreeBSD only.

@@ -1,0 +1,4 @@
+@doc write(2): write to a file descriptor
+
+Writes a buffer to a file descriptor and returns the number of bytes
+written.

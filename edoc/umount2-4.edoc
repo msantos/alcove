@@ -1,0 +1,3 @@
+@doc umount2(2): unmount filesystem with flags
+
+Linux only.

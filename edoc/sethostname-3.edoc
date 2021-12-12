@@ -1,0 +1,11 @@
+@doc sethostname(2): set the system hostname
+
+This function is probably only useful if running in a uts namespace:
+
+```
+{ok, Child} = alcove:clone(Drv, [], [clone_newuts]),
+ok = alcove:sethostname(Drv, [Child], "test"),
+Hostname1 = alcove:gethostname(Drv, []),
+Hostname2 = alcove:gethostname(Drv, [Child]),
+Hostname1 =/= Hostname2.
+'''

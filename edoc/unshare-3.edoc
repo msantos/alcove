@@ -1,0 +1,8 @@
+@doc unshare(2): create a new namespace in the current process
+
+Make a new namespace without calling clone(2):
+
+```
+ok = alcove:unshare(Drv, [], [clone_newnet]).
+% The port is now running in a namespace without network access.
+'''

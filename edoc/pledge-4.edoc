@@ -1,0 +1,15 @@
+@doc pledge(2): restrict system operations
+
+OpenBSD only.
+
+An empty list ([]) specifies promises should not be changed. Warning:
+an empty string ("") is equivalent to an empty list.
+
+To specify no capabilities, use an empty binary: `<<>>>' or `<<"">>'
+
+Example:
+
+```
+% no change to restrictions afer exec()
+alcove:pledge(Drv, [Task], <<"stdio proc exec">>, [])
+'''

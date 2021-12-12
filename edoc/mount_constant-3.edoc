@@ -1,0 +1,9 @@
+@doc Convert flag names to integers
+
+The lower case atoms are used for portability:
+
+```
+alcove:mount_constant(Drv, [], rdonly)
+'''
+
+`rdonly' is mapped to MS_RDONLY on Linux and MNT_RDONLY on FreeBSD.

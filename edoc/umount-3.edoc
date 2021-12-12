@@ -1,0 +1,3 @@
+@doc umount(2): unmount a filesystem
+
+On BSD systems, calls unmount(2).

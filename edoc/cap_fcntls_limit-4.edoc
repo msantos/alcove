@@ -1,0 +1,3 @@
+@doc cap_fcntls_limit(2): manage fcntl commands in capability mode
+
+FreeBSD only.

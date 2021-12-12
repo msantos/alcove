@@ -1,0 +1,3 @@
+@doc getresuid(2): get real, effective and saved user ID
+
+Supported on Linux and BSDs.

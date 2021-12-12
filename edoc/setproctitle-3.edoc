@@ -1,0 +1,8 @@
+@doc setproctitle(3): set the process title
+
+On Linux, prctl/6,7 can also be used:
+
+```
+{ok,Fork} = alcove:fork(Drv, []),
+alcove:prctl(Drv, [Fork], pr_set_name, <<"pseudonym">>, 0,0,0).
+'''

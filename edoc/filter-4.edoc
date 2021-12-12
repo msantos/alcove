@@ -1,0 +1,20 @@
+@doc Restrict available calls for control and subprocess
+
+filter/4 allows setting different filters for the control and
+subprocesses:
+
+```
+ForkOnly = alcove:filter({allow, [fork]}),
+
+% Process restricted to fork
+% No filter enforced for subprocesses
+ok = alcove:filter(Ctrl, [], ForkOnly, []),
+{ok, Task1} = alcove:fork(Ctrl, []),
+_ = alcove:getpid(Ctrl, [Task1]),
+
+GetpidOnly = alcove:filter({allow, [getpid]}),
+% []: no change to filter
+ok = alcove:filter(Ctrl, [], [], GetpidOnly),
+{ok, Task2} = alcove:fork(Ctrl, []),
+_ = alcove:getpid(Ctrl, [Task2]).
+'''

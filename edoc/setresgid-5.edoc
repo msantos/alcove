@@ -1,0 +1,3 @@
+@doc setresgid(2): set real, effective and saved group ID
+
+Supported on Linux and BSDs.

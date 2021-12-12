@@ -1,0 +1,7 @@
+@doc open(2): returns a file descriptor associated with a file
+
+Lists of values are ORed:
+
+```
+alcove:open(Drv, [], "/tmp/test", [o_wronly,o_creat], 8#644)
+'''

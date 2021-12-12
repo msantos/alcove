@@ -1,0 +1,3 @@
+@doc jail_remove(2): destroy a jailed process
+
+FreeBSD only.

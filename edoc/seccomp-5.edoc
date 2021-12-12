@@ -1,0 +1,5 @@
+@doc seccomp(2): restrict system operations
+
+Linux only.
+
+See prctl/7.
