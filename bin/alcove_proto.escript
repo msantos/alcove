@@ -116,7 +116,7 @@ includes(Header) ->
 % FIXME hack for hard coding typespecs
 specs([{Call, _}|Calls] = X) ->
     Max = integer_to_list(length(X)),
-    lists:flatten(["-export_type([call/0]).",
+    lists:flatten(["-export_type([call/0, calls/0]).",
                    "
 
 ",
@@ -133,6 +133,7 @@ specs([{Call, _}|Calls] = X) ->
                    "-spec will_return(call()) -> boolean().",
                    "
 ",
+                   "-type calls() :: [call()].", "\n",
                    "-spec calls() -> [call(),...]."
                   ]).
 

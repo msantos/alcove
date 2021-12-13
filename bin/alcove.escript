@@ -158,12 +158,15 @@ docfile(Fun, Arity) ->
   File = "edoc/" ++ Fun ++ "-" ++ integer_to_list(Arity+2) ++ ".edoc",
   case file:read_file(File) of
     {ok, Bin} ->
-      Doc = [ unicode:characters_to_list([" ", X])
-              || X <- re:split(Bin, "\n", [{return,list}, trim]) ],
+      Doc = [ case X of
+               <<>> -> [];
+               _ -> unicode:characters_to_list([" ", X])
+             end || X <- re:split(Bin, "\n", [trim]) ],
       erl_syntax:comment(Doc);
 
     {error, _} ->
-      erl_syntax:comment([" docfile missing: \"" ++ File ++ "\""])
+      io:format(standard_error, "docfile missing: ~s~n", [File]),
+      halt(111)
   end.
 
 static() ->

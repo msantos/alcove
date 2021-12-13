@@ -1,1 +1,2 @@
+/* GENERATED: DO NOT EDIT */
 #define ALCOVE_VERSION "0.37.0"

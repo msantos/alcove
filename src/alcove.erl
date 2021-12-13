@@ -1289,7 +1289,7 @@ indexof(El, [_ | Tail], N) ->
 
 
 % @doc Allocate memory
-% 
+%
 % Test memory allocation.
 
 alloc(Drv, Pids, Arg1) ->
@@ -1301,7 +1301,7 @@ alloc(Drv, Pids, Arg1) ->
     end.
 
 % @doc Allocate memory
-% 
+%
 % Test memory allocation.
 
 alloc(Drv, Pids, Arg1, Timeout) ->
@@ -1313,7 +1313,7 @@ alloc(Drv, Pids, Arg1, Timeout) ->
     end.
 
 % @doc Convert capsicum constants to integer
-% 
+%
 % FreeBSD only.
 
 cap_constant(Drv, Pids, Arg1) ->
@@ -1329,7 +1329,7 @@ cap_constant(Drv, Pids, Arg1) ->
     end.
 
 % @doc Convert capsicum constants to integer
-% 
+%
 % FreeBSD only.
 
 cap_constant(Drv, Pids, Arg1, Timeout) ->
@@ -1345,7 +1345,7 @@ cap_constant(Drv, Pids, Arg1, Timeout) ->
     end.
 
 % @doc cap_enter(2): place process into capability mode
-% 
+%
 % FreeBSD only.
 
 cap_enter(Drv, Pids) ->
@@ -1357,7 +1357,7 @@ cap_enter(Drv, Pids) ->
     end.
 
 % @doc cap_enter(2): place process into capability mode
-% 
+%
 % FreeBSD only.
 
 cap_enter(Drv, Pids, Timeout) ->
@@ -1369,7 +1369,7 @@ cap_enter(Drv, Pids, Timeout) ->
     end.
 
 % @doc cap_fcntls_get(2): get allowed fcntl commands in capability mode
-% 
+%
 % FreeBSD only
 
 cap_fcntls_get(Drv, Pids, Arg1) ->
@@ -1385,7 +1385,7 @@ cap_fcntls_get(Drv, Pids, Arg1) ->
     end.
 
 % @doc cap_fcntls_get(2): get allowed fcntl commands in capability mode
-% 
+%
 % FreeBSD only
 
 cap_fcntls_get(Drv, Pids, Arg1, Timeout) ->
@@ -1401,7 +1401,7 @@ cap_fcntls_get(Drv, Pids, Arg1, Timeout) ->
     end.
 
 % @doc cap_fcntls_limit(2): manage fcntl commands in capability mode
-% 
+%
 % FreeBSD only.
 
 cap_fcntls_limit(Drv, Pids, Arg1, Arg2) ->
@@ -1417,7 +1417,7 @@ cap_fcntls_limit(Drv, Pids, Arg1, Arg2) ->
     end.
 
 % @doc cap_fcntls_limit(2): manage fcntl commands in capability mode
-% 
+%
 % FreeBSD only.
 
 cap_fcntls_limit(Drv, Pids, Arg1, Arg2, Timeout) ->
@@ -1433,7 +1433,7 @@ cap_fcntls_limit(Drv, Pids, Arg1, Arg2, Timeout) ->
     end.
 
 % @doc cap_getmode(2): check if capability mode is enabled
-% 
+%
 % FreeBSD only.
 
 cap_getmode(Drv, Pids) ->
@@ -1449,7 +1449,7 @@ cap_getmode(Drv, Pids) ->
     end.
 
 % @doc cap_getmode(2): check if capability mode is enabled
-% 
+%
 % FreeBSD only.
 
 cap_getmode(Drv, Pids, Timeout) ->
@@ -1465,7 +1465,7 @@ cap_getmode(Drv, Pids, Timeout) ->
     end.
 
 % @doc cap_ioctls_limit(2): manage allowed ioctl commands
-% 
+%
 % FreeBSD only.
 
 cap_ioctls_limit(Drv, Pids, Arg1, Arg2) ->
@@ -1481,7 +1481,7 @@ cap_ioctls_limit(Drv, Pids, Arg1, Arg2) ->
     end.
 
 % @doc cap_ioctls_limit(2): manage allowed ioctl commands
-% 
+%
 % FreeBSD only.
 
 cap_ioctls_limit(Drv, Pids, Arg1, Arg2, Timeout) ->
@@ -1497,7 +1497,7 @@ cap_ioctls_limit(Drv, Pids, Arg1, Arg2, Timeout) ->
     end.
 
 % @doc cap_rights_limit(2): manage process capabilities
-% 
+%
 % FreeBSD only.
 
 cap_rights_limit(Drv, Pids, Arg1, Arg2) ->
@@ -1513,7 +1513,7 @@ cap_rights_limit(Drv, Pids, Arg1, Arg2) ->
     end.
 
 % @doc cap_rights_limit(2): manage process capabilities
-% 
+%
 % FreeBSD only.
 
 cap_rights_limit(Drv, Pids, Arg1, Arg2, Timeout) ->
@@ -1650,7 +1650,7 @@ clearenv(Drv, Pids, Timeout) ->
     end.
 
 % @doc clone(2): create a new process
-% 
+%
 % Linux only.
 
 clone(Drv, Pids, Arg1) ->
@@ -1662,7 +1662,7 @@ clone(Drv, Pids, Arg1) ->
     end.
 
 % @doc clone(2): create a new process
-% 
+%
 % Linux only.
 
 clone(Drv, Pids, Arg1, Timeout) ->
@@ -1673,8 +1673,8 @@ clone(Drv, Pids, Arg1, Timeout) ->
         Reply -> Reply
     end.
 
-% Map clone(2) symbols to integer constants
-% 
+% @doc Map clone(2) symbols to integer constants
+%
 % Linux only.
 
 clone_constant(Drv, Pids, Arg1) ->
@@ -1689,8 +1689,8 @@ clone_constant(Drv, Pids, Arg1) ->
         Reply -> Reply
     end.
 
-% Map clone(2) symbols to integer constants
-% 
+% @doc Map clone(2) symbols to integer constants
+%
 % Linux only.
 
 clone_constant(Drv, Pids, Arg1, Timeout) ->
@@ -1819,7 +1819,7 @@ errno_id(Drv, Pids, Arg1, Timeout) ->
     end.
 
 % @doc execve(2): replace process image with environment
-% 
+%
 % Replace the process image, specifying the environment for the new
 % process image.
 
@@ -1836,7 +1836,7 @@ execve(Drv, Pids, Arg1, Arg2, Arg3) ->
     end.
 
 % @doc execve(2): replace process image with environment
-% 
+%
 % Replace the process image, specifying the environment for the new
 % process image.
 
@@ -1959,20 +1959,20 @@ fcntl_constant(Drv, Pids, Arg1, Timeout) ->
     end.
 
 % @doc fexecve(2): replace the process image
-% 
+%
 % Replace the process image, specifying the environment for the new process
 % image, using a previously opened file descriptor.  The file descriptor
 % can be set to close after exec() by passing the O_CLOEXEC flag to open:
-% 
+%
 % ```
 % {ok, Proc} = alcove:fork(Drv, []),
 % {ok, FD} = alcove:open(Drv, [Proc], "/bin/ls", [o_rdonly,o_cloexec]),
 % ok = alcove:fexecve(Drv, [Proc], FD, ["-al"], ["FOO=123"]).
 % '''
-% 
+%
 % Linux and FreeBSD only. Linux requires an environment to be set unlike
 % with execve(2). The environment can be empty:
-% 
+%
 % ```
 % % Environment required on Linux
 % ok = alcove:fexecve(Drv, [Proc], FD, ["-al"], [""]).
@@ -1991,20 +1991,20 @@ fexecve(Drv, Pids, Arg1, Arg2, Arg3) ->
     end.
 
 % @doc fexecve(2): replace the process image
-% 
+%
 % Replace the process image, specifying the environment for the new process
 % image, using a previously opened file descriptor.  The file descriptor
 % can be set to close after exec() by passing the O_CLOEXEC flag to open:
-% 
+%
 % ```
 % {ok, Proc} = alcove:fork(Drv, []),
 % {ok, FD} = alcove:open(Drv, [Proc], "/bin/ls", [o_rdonly,o_cloexec]),
 % ok = alcove:fexecve(Drv, [Proc], FD, ["-al"], ["FOO=123"]).
 % '''
-% 
+%
 % Linux and FreeBSD only. Linux requires an environment to be set unlike
 % with execve(2). The environment can be empty:
-% 
+%
 % ```
 % % Environment required on Linux
 % ok = alcove:fexecve(Drv, [Proc], FD, ["-al"], [""]).
@@ -2052,19 +2052,19 @@ file_constant(Drv, Pids, Arg1, Timeout) ->
     end.
 
 % @doc Restrict available calls for control and subprocess
-% 
+%
 % filter/4 allows setting different filters for the control and
 % subprocesses:
-% 
+%
 % ```
 % ForkOnly = alcove:filter({allow, [fork]}),
-% 
+%
 % % Process restricted to fork
 % % No filter enforced for subprocesses
 % ok = alcove:filter(Ctrl, [], ForkOnly, []),
 % {ok, Task1} = alcove:fork(Ctrl, []),
 % _ = alcove:getpid(Ctrl, [Task1]),
-% 
+%
 % GetpidOnly = alcove:filter({allow, [getpid]}),
 % % []: no change to filter
 % ok = alcove:filter(Ctrl, [], [], GetpidOnly),
@@ -2085,19 +2085,19 @@ filter(Drv, Pids, Arg1, Arg2) ->
     end.
 
 % @doc Restrict available calls for control and subprocess
-% 
+%
 % filter/4 allows setting different filters for the control and
 % subprocesses:
-% 
+%
 % ```
 % ForkOnly = alcove:filter({allow, [fork]}),
-% 
+%
 % % Process restricted to fork
 % % No filter enforced for subprocesses
 % ok = alcove:filter(Ctrl, [], ForkOnly, []),
 % {ok, Task1} = alcove:fork(Ctrl, []),
 % _ = alcove:getpid(Ctrl, [Task1]),
-% 
+%
 % GetpidOnly = alcove:filter({allow, [getpid]}),
 % % []: no change to filter
 % ok = alcove:filter(Ctrl, [], [], GetpidOnly),
@@ -2244,44 +2244,44 @@ gethostname(Drv, Pids, Timeout) ->
     end.
 
 % @doc Retrieve port options for event loop
-% 
+%
 % Options are configurable per process, with the default settings inherited
 % from the parent.
-% 
+%
 % The initial values for these options are set for the port by
 % alcove_drv:start/1.
-% 
+%
 % * maxchild : non_neg_integer() : (ulimit -n) / 4 - 4
-% 
+%
 %   Number of child processes allowed for this process. This value can be
 %   modified by adjusting RLIMIT_NOFILE for the process.
-% 
+%
 % * exit_status : 1 | 0 : 1
-% 
+%
 %   Controls whether the controlling Erlang process is informed of a
 %   process exit value.
-% 
+%
 % * maxforkdepth : non_neg_integer() : 16
-% 
+%
 %   Sets the maximum length of the fork chain.
-% 
+%
 % * termsig : 1 | 0 : 1
-% 
+%
 %   If a child process exits because of a signal, notify the controlling
 %   Erlang process.
-% 
+%
 % * flowcontrol : int32_t() : -1 (disabled)
-% 
+%
 %   Sets the default flow control behaviour for a newly forked process. Flow
 %   control is applied after the child process calls exec().
-% 
+%
 %    See setcpid/5.
-% 
+%
 % * signaloneof : 0-255 : 15
-% 
+%
 %   Send a signal to a child process on shutdown (stdin of the alcove
 %   control process is closed).
-% 
+%
 %   See setcpid/5.
 
 getopt(Drv, Pids, Arg1) ->
@@ -2297,44 +2297,44 @@ getopt(Drv, Pids, Arg1) ->
     end.
 
 % @doc Retrieve port options for event loop
-% 
+%
 % Options are configurable per process, with the default settings inherited
 % from the parent.
-% 
+%
 % The initial values for these options are set for the port by
 % alcove_drv:start/1.
-% 
+%
 % * maxchild : non_neg_integer() : (ulimit -n) / 4 - 4
-% 
+%
 %   Number of child processes allowed for this process. This value can be
 %   modified by adjusting RLIMIT_NOFILE for the process.
-% 
+%
 % * exit_status : 1 | 0 : 1
-% 
+%
 %   Controls whether the controlling Erlang process is informed of a
 %   process exit value.
-% 
+%
 % * maxforkdepth : non_neg_integer() : 16
-% 
+%
 %   Sets the maximum length of the fork chain.
-% 
+%
 % * termsig : 1 | 0 : 1
-% 
+%
 %   If a child process exits because of a signal, notify the controlling
 %   Erlang process.
-% 
+%
 % * flowcontrol : int32_t() : -1 (disabled)
-% 
+%
 %   Sets the default flow control behaviour for a newly forked process. Flow
 %   control is applied after the child process calls exec().
-% 
+%
 %    See setcpid/5.
-% 
+%
 % * signaloneof : 0-255 : 15
-% 
+%
 %   Send a signal to a child process on shutdown (stdin of the alcove
 %   control process is closed).
-% 
+%
 %   See setcpid/5.
 
 getopt(Drv, Pids, Arg1, Timeout) ->
@@ -2411,7 +2411,7 @@ getpriority(Drv, Pids, Arg1, Arg2, Timeout) ->
     end.
 
 % @doc getresgid(2): get real, effective and saved group ID
-% 
+%
 % Supported on Linux and BSDs.
 
 getresgid(Drv, Pids) ->
@@ -2423,7 +2423,7 @@ getresgid(Drv, Pids) ->
     end.
 
 % @doc getresgid(2): get real, effective and saved group ID
-% 
+%
 % Supported on Linux and BSDs.
 
 getresgid(Drv, Pids, Timeout) ->
@@ -2435,7 +2435,7 @@ getresgid(Drv, Pids, Timeout) ->
     end.
 
 % @doc getresuid(2): get real, effective and saved user ID
-% 
+%
 % Supported on Linux and BSDs.
 
 getresuid(Drv, Pids) ->
@@ -2447,7 +2447,7 @@ getresuid(Drv, Pids) ->
     end.
 
 % @doc getresuid(2): get real, effective and saved user ID
-% 
+%
 % Supported on Linux and BSDs.
 
 getresuid(Drv, Pids, Timeout) ->
@@ -2459,12 +2459,12 @@ getresuid(Drv, Pids, Timeout) ->
     end.
 
 % @doc getrlimit(2): retrieve the resource limits for a process
-% 
+%
 % Returns a record:
-% 
+%
 % ```
 % -include_lib("alcove/include/alcove.hrl").
-% 
+%
 % #alcove_rlimit{
 %     cur = integer(),
 %     max = integer()
@@ -2484,12 +2484,12 @@ getrlimit(Drv, Pids, Arg1) ->
     end.
 
 % @doc getrlimit(2): retrieve the resource limits for a process
-% 
+%
 % Returns a record:
-% 
+%
 % ```
 % -include_lib("alcove/include/alcove.hrl").
-% 
+%
 % #alcove_rlimit{
 %     cur = integer(),
 %     max = integer()
@@ -2551,28 +2551,28 @@ getuid(Drv, Pids, Timeout) ->
     end.
 
 % @doc ioctl(2): control device
-% 
+%
 % Controls a device using a file descriptor previously obtained using
 % open/5.
-% 
+%
 % Argp can be either a binary or a list represention of a C struct. See
 % prctl/7 below for a description of the list elements.
-% 
+%
 % On success, ioctl/5 returns a 3-tuple:
-% 
+%
 % * Result: an integer equal to the return value of the ioctl
-% 
+%
 %   Usually 0 but some ioctls may use the return value as the output
 %   parameter.
-% 
+%
 % * Bin: the value depends on the type of the input parameter Argp
-% 
+%
 % * cstruct: contains the contents of the memory pointed to by Argp
-% 
+%
 % * integer/binary: an empty binary
-% 
+%
 % An example of creating a tap device in a net namespace on Linux:
-% 
+%
 % ```
 % {ok, Child} = alcove:clone(Drv, [], [clone_newnet]),
 % {ok, FD} = alcove:open(Drv, [Child], "/dev/net/tun", [o_rdwr], 0),
@@ -2599,28 +2599,28 @@ ioctl(Drv, Pids, Arg1, Arg2, Arg3) ->
     end.
 
 % @doc ioctl(2): control device
-% 
+%
 % Controls a device using a file descriptor previously obtained using
 % open/5.
-% 
+%
 % Argp can be either a binary or a list represention of a C struct. See
 % prctl/7 below for a description of the list elements.
-% 
+%
 % On success, ioctl/5 returns a 3-tuple:
-% 
+%
 % * Result: an integer equal to the return value of the ioctl
-% 
+%
 %   Usually 0 but some ioctls may use the return value as the output
 %   parameter.
-% 
+%
 % * Bin: the value depends on the type of the input parameter Argp
-% 
+%
 % * cstruct: contains the contents of the memory pointed to by Argp
-% 
+%
 % * integer/binary: an empty binary
-% 
+%
 % An example of creating a tap device in a net namespace on Linux:
-% 
+%
 % ```
 % {ok, Child} = alcove:clone(Drv, [], [clone_newnet]),
 % {ok, FD} = alcove:open(Drv, [Child], "/dev/net/tun", [o_rdwr], 0),
@@ -2676,7 +2676,7 @@ ioctl_constant(Drv, Pids, Arg1, Timeout) ->
     end.
 
 % @doc Convert iolist to binary
-% 
+%
 % Test conversion of iolists to binary in a control process.
 
 iolist_to_bin(Drv, Pids, Arg1) ->
@@ -2692,7 +2692,7 @@ iolist_to_bin(Drv, Pids, Arg1) ->
     end.
 
 % @doc Convert iolist to binary
-% 
+%
 % Test conversion of iolists to binary in a control process.
 
 iolist_to_bin(Drv, Pids, Arg1, Timeout) ->
@@ -2708,12 +2708,12 @@ iolist_to_bin(Drv, Pids, Arg1, Timeout) ->
     end.
 
 % @doc jail(2): restrict the current process in a system jail
-% 
+%
 % FreeBSD only.
-% 
+%
 % An example of a function to generate a version 2 jail struct (FreeBSD
 % 10.2):
-% 
+%
 % ```
 % struct_jail2(Path, Hostname, Jailname, IPv4, IPv6) ->
 %     [
@@ -2733,9 +2733,9 @@ iolist_to_bin(Drv, Pids, Arg1, Timeout) ->
 %         >>}
 %     ].
 % '''
-% 
+%
 % To apply the jail:
-% 
+%
 % ```
 % {ok, Child} = alcove:fork(Drv, []),
 % Jailv2 = struct_jail2(<<"/rescue">>, <<"test">>, <<"jail0">>, [], []),
@@ -2752,12 +2752,12 @@ jail(Drv, Pids, Arg1) ->
     end.
 
 % @doc jail(2): restrict the current process in a system jail
-% 
+%
 % FreeBSD only.
-% 
+%
 % An example of a function to generate a version 2 jail struct (FreeBSD
 % 10.2):
-% 
+%
 % ```
 % struct_jail2(Path, Hostname, Jailname, IPv4, IPv6) ->
 %     [
@@ -2777,9 +2777,9 @@ jail(Drv, Pids, Arg1) ->
 %         >>}
 %     ].
 % '''
-% 
+%
 % To apply the jail:
-% 
+%
 % ```
 % {ok, Child} = alcove:fork(Drv, []),
 % Jailv2 = struct_jail2(<<"/rescue">>, <<"test">>, <<"jail0">>, [], []),
@@ -2796,7 +2796,7 @@ jail(Drv, Pids, Arg1, Timeout) ->
     end.
 
 % @doc jail_attach(2): join a jailed process
-% 
+%
 % FreeBSD only.
 
 jail_attach(Drv, Pids, Arg1) ->
@@ -2812,7 +2812,7 @@ jail_attach(Drv, Pids, Arg1) ->
     end.
 
 % @doc jail_attach(2): join a jailed process
-% 
+%
 % FreeBSD only.
 
 jail_attach(Drv, Pids, Arg1, Timeout) ->
@@ -2828,7 +2828,7 @@ jail_attach(Drv, Pids, Arg1, Timeout) ->
     end.
 
 % @doc jail_remove(2): destroy a jailed process
-% 
+%
 % FreeBSD only.
 
 jail_remove(Drv, Pids, Arg1) ->
@@ -2844,7 +2844,7 @@ jail_remove(Drv, Pids, Arg1) ->
     end.
 
 % @doc jail_remove(2): destroy a jailed process
-% 
+%
 % FreeBSD only.
 
 jail_remove(Drv, Pids, Arg1, Timeout) ->
@@ -3001,37 +3001,37 @@ mkfifo(Drv, Pids, Arg1, Arg2, Timeout) ->
     end.
 
 % @doc mount(2): mount a filesystem, Linux style
-% 
+%
 % The arguments are:
-% 
+%
 % * source
-% 
+%
 % * target
-% 
+%
 % * filesystem type
-% 
+%
 % * flags
-% 
+%
 % * data
-% 
+%
 % An empty list may be used to specify NULL.
-% 
+%
 % For example, filesystems mounted in a Linux mount namespace may be
 % visible in the global mount namespace. To avoid this, first remount the
 % root filesystem within mount namespace using the MS_REC|MS_PRIVATE flags:
-% 
+%
 % ```
 % {ok, Task} = prx:clone(Parent, [clone_newns]),
 % ok = prx:mount(Task, "none", "/", [], [ms_rec, ms_private], []).
 % '''
-% 
+%
 % On BSD systems, the Source argument is ignored and passed to the system
 % mount call as:
-% 
+%
 % ```
 % mount(FSType, Target, Flags, Data);
 % '''
-% 
+%
 % On Solaris, some mount options are passed in the Options argument as a
 % string of comma separated values terminated by a NULL.  Other platforms
 % ignore the Options parameter.
@@ -3050,37 +3050,37 @@ mount(Drv, Pids, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6) ->
     end.
 
 % @doc mount(2): mount a filesystem, Linux style
-% 
+%
 % The arguments are:
-% 
+%
 % * source
-% 
+%
 % * target
-% 
+%
 % * filesystem type
-% 
+%
 % * flags
-% 
+%
 % * data
-% 
+%
 % An empty list may be used to specify NULL.
-% 
+%
 % For example, filesystems mounted in a Linux mount namespace may be
 % visible in the global mount namespace. To avoid this, first remount the
 % root filesystem within mount namespace using the MS_REC|MS_PRIVATE flags:
-% 
+%
 % ```
 % {ok, Task} = prx:clone(Parent, [clone_newns]),
 % ok = prx:mount(Task, "none", "/", [], [ms_rec, ms_private], []).
 % '''
-% 
+%
 % On BSD systems, the Source argument is ignored and passed to the system
 % mount call as:
-% 
+%
 % ```
 % mount(FSType, Target, Flags, Data);
 % '''
-% 
+%
 % On Solaris, some mount options are passed in the Options argument as a
 % string of comma separated values terminated by a NULL.  Other platforms
 % ignore the Options parameter.
@@ -3108,13 +3108,13 @@ mount(Drv, Pids, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6,
     end.
 
 % @doc Convert flag names to integers
-% 
+%
 % The lower case atoms are used for portability:
-% 
+%
 % ```
 % alcove:mount_constant(Drv, [], rdonly)
 % '''
-% 
+%
 % `rdonly' is mapped to MS_RDONLY on Linux and MNT_RDONLY on FreeBSD.
 
 mount_constant(Drv, Pids, Arg1) ->
@@ -3130,13 +3130,13 @@ mount_constant(Drv, Pids, Arg1) ->
     end.
 
 % @doc Convert flag names to integers
-% 
+%
 % The lower case atoms are used for portability:
-% 
+%
 % ```
 % alcove:mount_constant(Drv, [], rdonly)
 % '''
-% 
+%
 % `rdonly' is mapped to MS_RDONLY on Linux and MNT_RDONLY on FreeBSD.
 
 mount_constant(Drv, Pids, Arg1, Timeout) ->
@@ -3152,9 +3152,9 @@ mount_constant(Drv, Pids, Arg1, Timeout) ->
     end.
 
 % @doc open(2): returns a file descriptor associated with a file
-% 
+%
 % Lists of values are ORed:
-% 
+%
 % ```
 % alcove:open(Drv, [], "/tmp/test", [o_wronly,o_creat], 8#644)
 % '''
@@ -3172,9 +3172,9 @@ open(Drv, Pids, Arg1, Arg2, Arg3) ->
     end.
 
 % @doc open(2): returns a file descriptor associated with a file
-% 
+%
 % Lists of values are ORed:
-% 
+%
 % ```
 % alcove:open(Drv, [], "/tmp/test", [o_wronly,o_creat], 8#644)
 % '''
@@ -3193,7 +3193,7 @@ open(Drv, Pids, Arg1, Arg2, Arg3, Timeout) ->
     end.
 
 % @doc pivot_root(2): change the root mount
-% 
+%
 % Linux only.
 
 pivot_root(Drv, Pids, Arg1, Arg2) ->
@@ -3209,7 +3209,7 @@ pivot_root(Drv, Pids, Arg1, Arg2) ->
     end.
 
 % @doc pivot_root(2): change the root mount
-% 
+%
 % Linux only.
 
 pivot_root(Drv, Pids, Arg1, Arg2, Timeout) ->
@@ -3225,16 +3225,16 @@ pivot_root(Drv, Pids, Arg1, Arg2, Timeout) ->
     end.
 
 % @doc pledge(2): restrict system operations
-% 
+%
 % OpenBSD only.
-% 
+%
 % An empty list ([]) specifies promises should not be changed. Warning:
 % an empty string ("") is equivalent to an empty list.
-% 
+%
 % To specify no capabilities, use an empty binary: `<<>>>' or `<<"">>'
-% 
+%
 % Example:
-% 
+%
 % ```
 % % no change to restrictions afer exec()
 % alcove:pledge(Drv, [Task], <<"stdio proc exec">>, [])
@@ -3253,16 +3253,16 @@ pledge(Drv, Pids, Arg1, Arg2) ->
     end.
 
 % @doc pledge(2): restrict system operations
-% 
+%
 % OpenBSD only.
-% 
+%
 % An empty list ([]) specifies promises should not be changed. Warning:
 % an empty string ("") is equivalent to an empty list.
-% 
+%
 % To specify no capabilities, use an empty binary: `<<>>>' or `<<"">>'
-% 
+%
 % Example:
-% 
+%
 % ```
 % % no change to restrictions afer exec()
 % alcove:pledge(Drv, [Task], <<"stdio proc exec">>, [])
@@ -3281,39 +3281,39 @@ pledge(Drv, Pids, Arg1, Arg2, Timeout) ->
     end.
 
 % @doc prctl(2): operations on a process
-% 
+%
 % Linux only.
-% 
+%
 % This function can be used to set BPF syscall filters on processes
 % (seccomp mode).
-% 
+%
 % A list can be used for prctl operations requiring a C structure as
 % an argument. List elements are used to contiguously populate a buffer
 % (it is up to the caller to add padding):
-% 
+%
 % * binary(): the element is copied directly into the buffer
-% 
+%
 %   On return, the contents of the binary is returned to the caller.
-% 
+%
 % * {ptr, N}: N bytes of memory is allocated and zeroed. The pointer is
 %   placed in the buffer.
-% 
+%
 %   On return, the contents of the memory is returned to the caller.
-% 
+%
 % * {ptr, binary()}
-% 
+%
 %    Memory equal to the size of the binary is allocated and initialized
 %    with the contents of the binary.
-% 
+%
 %    On return, the contents of the memory is returned to the caller.
-% 
+%
 % For example, to enforce a seccomp filter:
-% 
+%
 % ```
 % % NOTE: this filter will cause the port to receive a SIGSYS
 % % See test/alcove_seccomp_tests.erl for all the syscalls
 % % required for the port process to run
-% 
+%
 % Arch = alcove:define(Drv, [], alcove:audit_arch()),
 % Filter = [
 %     ?VALIDATE_ARCHITECTURE(Arch),
@@ -3321,10 +3321,10 @@ pledge(Drv, Pids, Arg1, Arg2, Timeout) ->
 %     sys_read,
 %     sys_write
 % ],
-% 
+%
 % {ok,_,_,_,_,_} = alcove:prctl(Drv, [], pr_set_no_new_privs, 1, 0, 0, 0),
 % Pad = (erlang:system_info({wordsize,external}) - 2) * 8,
-% 
+%
 % Prog = [
 %     <<(iolist_size(Filter) div 8):2/native-unsigned-integer-unit:8>>,
 %     <<0:Pad>>,
@@ -3347,39 +3347,39 @@ prctl(Drv, Pids, Arg1, Arg2, Arg3, Arg4, Arg5) ->
     end.
 
 % @doc prctl(2): operations on a process
-% 
+%
 % Linux only.
-% 
+%
 % This function can be used to set BPF syscall filters on processes
 % (seccomp mode).
-% 
+%
 % A list can be used for prctl operations requiring a C structure as
 % an argument. List elements are used to contiguously populate a buffer
 % (it is up to the caller to add padding):
-% 
+%
 % * binary(): the element is copied directly into the buffer
-% 
+%
 %   On return, the contents of the binary is returned to the caller.
-% 
+%
 % * {ptr, N}: N bytes of memory is allocated and zeroed. The pointer is
 %   placed in the buffer.
-% 
+%
 %   On return, the contents of the memory is returned to the caller.
-% 
+%
 % * {ptr, binary()}
-% 
+%
 %    Memory equal to the size of the binary is allocated and initialized
 %    with the contents of the binary.
-% 
+%
 %    On return, the contents of the memory is returned to the caller.
-% 
+%
 % For example, to enforce a seccomp filter:
-% 
+%
 % ```
 % % NOTE: this filter will cause the port to receive a SIGSYS
 % % See test/alcove_seccomp_tests.erl for all the syscalls
 % % required for the port process to run
-% 
+%
 % Arch = alcove:define(Drv, [], alcove:audit_arch()),
 % Filter = [
 %     ?VALIDATE_ARCHITECTURE(Arch),
@@ -3387,10 +3387,10 @@ prctl(Drv, Pids, Arg1, Arg2, Arg3, Arg4, Arg5) ->
 %     sys_read,
 %     sys_write
 % ],
-% 
+%
 % {ok,_,_,_,_,_} = alcove:prctl(Drv, [], pr_set_no_new_privs, 1, 0, 0, 0),
 % Pad = (erlang:system_info({wordsize,external}) - 2) * 8,
-% 
+%
 % Prog = [
 %     <<(iolist_size(Filter) div 8):2/native-unsigned-integer-unit:8>>,
 %     <<0:Pad>>,
@@ -3442,7 +3442,7 @@ prctl_constant(Drv, Pids, Arg1, Timeout) ->
     end.
 
 % @doc procctl(2): control processes
-% 
+%
 % FreeBSD only.
 
 procctl(Drv, Pids, Arg1, Arg2, Arg3, Arg4) ->
@@ -3459,7 +3459,7 @@ procctl(Drv, Pids, Arg1, Arg2, Arg3, Arg4) ->
     end.
 
 % @doc procctl(2): control processes
-% 
+%
 % FreeBSD only.
 
 procctl(Drv, Pids, Arg1, Arg2, Arg3, Arg4, Timeout) ->
@@ -3638,9 +3638,9 @@ rmdir(Drv, Pids, Arg1, Timeout) ->
     end.
 
 % @doc seccomp(2): restrict system operations
-% 
+%
 % Linux only.
-% 
+%
 % See prctl/7.
 
 seccomp(Drv, Pids, Arg1, Arg2, Arg3) ->
@@ -3656,9 +3656,9 @@ seccomp(Drv, Pids, Arg1, Arg2, Arg3) ->
     end.
 
 % @doc seccomp(2): restrict system operations
-% 
+%
 % Linux only.
-% 
+%
 % See prctl/7.
 
 seccomp(Drv, Pids, Arg1, Arg2, Arg3, Timeout) ->
@@ -3703,19 +3703,19 @@ seccomp_constant(Drv, Pids, Arg1, Timeout) ->
     end.
 
 % @doc select(2): poll a list of file descriptor for events
-% 
+%
 % select/6 will block until an event occurs on a file descriptor, a timeout
 % is reached or interrupted by a signal.
-% 
+%
 % The Timeout value may be:
-% 
+%
 % * passing an empty list ([]) causes select to block indefinitely
 %   (no timeout)
-% 
+%
 % * an alcove_timeval record with these fields:
-% 
+%
 %     * sec : number of seconds to wait
-% 
+%
 %     * usec : number of microseconds to wait
 
 select(Drv, Pids, Arg1, Arg2, Arg3, Arg4) ->
@@ -3732,19 +3732,19 @@ select(Drv, Pids, Arg1, Arg2, Arg3, Arg4) ->
     end.
 
 % @doc select(2): poll a list of file descriptor for events
-% 
+%
 % select/6 will block until an event occurs on a file descriptor, a timeout
 % is reached or interrupted by a signal.
-% 
+%
 % The Timeout value may be:
-% 
+%
 % * passing an empty list ([]) causes select to block indefinitely
 %   (no timeout)
-% 
+%
 % * an alcove_timeval record with these fields:
-% 
+%
 %     * sec : number of seconds to wait
-% 
+%
 %     * usec : number of microseconds to wait
 
 select(Drv, Pids, Arg1, Arg2, Arg3, Arg4, Timeout) ->
@@ -3761,25 +3761,25 @@ select(Drv, Pids, Arg1, Arg2, Arg3, Arg4, Timeout) ->
     end.
 
 % @doc Set options for child process of alcove control process
-% 
+%
 % * flowcontrol
-% 
+%
 %   Enable rate limiting of the stdout and stderr of a child process. stdin
 %   is not rate limited (default: -1 (disabled))
-% 
+%
 %       * 0 : stdout/stderr for process is not read
 %       * 1-2147483646 : read this many messages from the process
 %       * -1 : disable flow control
-% 
+%
 %    NOTE: the limit applies to stdout and stderr. If the limit is set to 1,
 %    it is possible to get:
-% 
+%
 %       * 1 message from stdout
 %       * 1 message from stderr
 %       * 1 message from stdout and stderr
-% 
+%
 % * signaloneof
-% 
+%
 %   The alcove control process sends this signal to the child process on
 %   shutdown (default: 15 (SIGTERM))
 
@@ -3796,25 +3796,25 @@ setcpid(Drv, Pids, Arg1, Arg2, Arg3) ->
     end.
 
 % @doc Set options for child process of alcove control process
-% 
+%
 % * flowcontrol
-% 
+%
 %   Enable rate limiting of the stdout and stderr of a child process. stdin
 %   is not rate limited (default: -1 (disabled))
-% 
+%
 %       * 0 : stdout/stderr for process is not read
 %       * 1-2147483646 : read this many messages from the process
 %       * -1 : disable flow control
-% 
+%
 %    NOTE: the limit applies to stdout and stderr. If the limit is set to 1,
 %    it is possible to get:
-% 
+%
 %       * 1 message from stdout
 %       * 1 message from stderr
 %       * 1 message from stdout and stderr
-% 
+%
 % * signaloneof
-% 
+%
 %   The alcove control process sends this signal to the child process on
 %   shutdown (default: 15 (SIGTERM))
 
@@ -3913,9 +3913,9 @@ setgroups(Drv, Pids, Arg1, Timeout) ->
     end.
 
 % @doc sethostname(2): set the system hostname
-% 
+%
 % This function is probably only useful if running in a uts namespace:
-% 
+%
 % ```
 % {ok, Child} = alcove:clone(Drv, [], [clone_newuts]),
 % ok = alcove:sethostname(Drv, [Child], "test"),
@@ -3937,9 +3937,9 @@ sethostname(Drv, Pids, Arg1) ->
     end.
 
 % @doc sethostname(2): set the system hostname
-% 
+%
 % This function is probably only useful if running in a uts namespace:
-% 
+%
 % ```
 % {ok, Child} = alcove:clone(Drv, [], [clone_newuts]),
 % ok = alcove:sethostname(Drv, [Child], "test"),
@@ -3961,29 +3961,29 @@ sethostname(Drv, Pids, Arg1, Timeout) ->
     end.
 
 % @doc setns(2): attach to a namespace
-% 
+%
 % Linux only.
-% 
+%
 % A process namespace is represented as a path in the /proc filesystem. The
 % path is `/proc/<pid>/ns/<ns>', where:
-% 
+%
 % * pid: the system PID
-% 
+%
 % * ns: a file representing the namespace
-% 
+%
 % The available namespaces is dependent on the kernel version. You can
 % see which are supported by running:
-% 
+%
 % ```
 % ls -al /proc/$$/ns
 % '''
-% 
+%
 % For example, to attach to another process network namespace:
-% 
+%
 % ```
 % {ok, Child1} = alcove:clone(Drv, [], [clone_newnet]),
 % {ok, Child2} = alcove:fork(Drv, []),
-% 
+%
 % % Move Child2 into the Child1 network namespace
 % {ok,FD} = alcove:open(Drv, [Child2],
 %         ["/proc/", integer_to_list(Child1), "/ns/net"], [o_rdonly], 0),
@@ -4004,29 +4004,29 @@ setns(Drv, Pids, Arg1, Arg2) ->
     end.
 
 % @doc setns(2): attach to a namespace
-% 
+%
 % Linux only.
-% 
+%
 % A process namespace is represented as a path in the /proc filesystem. The
 % path is `/proc/<pid>/ns/<ns>', where:
-% 
+%
 % * pid: the system PID
-% 
+%
 % * ns: a file representing the namespace
-% 
+%
 % The available namespaces is dependent on the kernel version. You can
 % see which are supported by running:
-% 
+%
 % ```
 % ls -al /proc/$$/ns
 % '''
-% 
+%
 % For example, to attach to another process network namespace:
-% 
+%
 % ```
 % {ok, Child1} = alcove:clone(Drv, [], [clone_newnet]),
 % {ok, Child2} = alcove:fork(Drv, []),
-% 
+%
 % % Move Child2 into the Child1 network namespace
 % {ok,FD} = alcove:open(Drv, [Child2],
 %         ["/proc/", integer_to_list(Child1), "/ns/net"], [o_rdonly], 0),
@@ -4047,7 +4047,7 @@ setns(Drv, Pids, Arg1, Arg2, Timeout) ->
     end.
 
 % @doc Set port options
-% 
+%
 % See getopt/2,3 for the list of options.
 
 setopt(Drv, Pids, Arg1, Arg2) ->
@@ -4063,7 +4063,7 @@ setopt(Drv, Pids, Arg1, Arg2) ->
     end.
 
 % @doc Set port options
-% 
+%
 % See getopt/2,3 for the list of options.
 
 setopt(Drv, Pids, Arg1, Arg2, Timeout) ->
@@ -4136,9 +4136,9 @@ setpriority(Drv, Pids, Arg1, Arg2, Arg3, Timeout) ->
     end.
 
 % @doc setproctitle(3): set the process title
-% 
+%
 % On Linux, prctl/6,7 can also be used:
-% 
+%
 % ```
 % {ok,Fork} = alcove:fork(Drv, []),
 % alcove:prctl(Drv, [Fork], pr_set_name, <<"pseudonym">>, 0,0,0).
@@ -4157,9 +4157,9 @@ setproctitle(Drv, Pids, Arg1) ->
     end.
 
 % @doc setproctitle(3): set the process title
-% 
+%
 % On Linux, prctl/6,7 can also be used:
-% 
+%
 % ```
 % {ok,Fork} = alcove:fork(Drv, []),
 % alcove:prctl(Drv, [Fork], pr_set_name, <<"pseudonym">>, 0,0,0).
@@ -4178,7 +4178,7 @@ setproctitle(Drv, Pids, Arg1, Timeout) ->
     end.
 
 % @doc setresgid(2): set real, effective and saved group ID
-% 
+%
 % Supported on Linux and BSDs.
 
 setresgid(Drv, Pids, Arg1, Arg2, Arg3) ->
@@ -4194,7 +4194,7 @@ setresgid(Drv, Pids, Arg1, Arg2, Arg3) ->
     end.
 
 % @doc setresgid(2): set real, effective and saved group ID
-% 
+%
 % Supported on Linux and BSDs.
 
 setresgid(Drv, Pids, Arg1, Arg2, Arg3, Timeout) ->
@@ -4211,7 +4211,7 @@ setresgid(Drv, Pids, Arg1, Arg2, Arg3, Timeout) ->
     end.
 
 % @doc setresuid(2): set real, effective and saved user ID
-% 
+%
 % Supported on Linux and BSDs.
 
 setresuid(Drv, Pids, Arg1, Arg2, Arg3) ->
@@ -4227,7 +4227,7 @@ setresuid(Drv, Pids, Arg1, Arg2, Arg3) ->
     end.
 
 % @doc setresuid(2): set real, effective and saved user ID
-% 
+%
 % Supported on Linux and BSDs.
 
 setresuid(Drv, Pids, Arg1, Arg2, Arg3, Timeout) ->
@@ -4314,30 +4314,30 @@ setuid(Drv, Pids, Arg1, Timeout) ->
     end.
 
 % @doc sigaction(2): set process behaviour for signals
-% 
+%
 % * sig_dfl
-% 
+%
 %   Uses the default behaviour for the signal
-% 
+%
 % * sig_ign
-% 
+%
 %   Ignores the signal
-% 
+%
 % * sig_info
-% 
+%
 %   Catches the signal and sends the controlling Erlang process an event:
-% 
+%
 % ```
 % {signal, atom(), Info}
 % '''
-% 
+%
 %   Info is a binary containing the siginfo_t structure. See sigaction(2)
 %   for details.
-% 
+%
 % * []
-% 
+%
 %   Returns the current handler for the signal.
-% 
+%
 % Multiple caught signals of the same type may be reported as one event.
 
 sigaction(Drv, Pids, Arg1, Arg2) ->
@@ -4353,30 +4353,30 @@ sigaction(Drv, Pids, Arg1, Arg2) ->
     end.
 
 % @doc sigaction(2): set process behaviour for signals
-% 
+%
 % * sig_dfl
-% 
+%
 %   Uses the default behaviour for the signal
-% 
+%
 % * sig_ign
-% 
+%
 %   Ignores the signal
-% 
+%
 % * sig_info
-% 
+%
 %   Catches the signal and sends the controlling Erlang process an event:
-% 
+%
 % ```
 % {signal, atom(), Info}
 % '''
-% 
+%
 %   Info is a binary containing the siginfo_t structure. See sigaction(2)
 %   for details.
-% 
+%
 % * []
-% 
+%
 %   Returns the current handler for the signal.
-% 
+%
 % Multiple caught signals of the same type may be reported as one event.
 
 sigaction(Drv, Pids, Arg1, Arg2, Timeout) ->
@@ -4505,7 +4505,7 @@ syscall_constant(Drv, Pids, Arg1, Timeout) ->
     end.
 
 % @doc umount(2): unmount a filesystem
-% 
+%
 % On BSD systems, calls unmount(2).
 
 umount(Drv, Pids, Arg1) ->
@@ -4521,7 +4521,7 @@ umount(Drv, Pids, Arg1) ->
     end.
 
 % @doc umount(2): unmount a filesystem
-% 
+%
 % On BSD systems, calls unmount(2).
 
 umount(Drv, Pids, Arg1, Timeout) ->
@@ -4533,7 +4533,7 @@ umount(Drv, Pids, Arg1, Timeout) ->
     end.
 
 % @doc umount2(2): unmount filesystem with flags
-% 
+%
 % Linux only.
 
 umount2(Drv, Pids, Arg1, Arg2) ->
@@ -4549,7 +4549,7 @@ umount2(Drv, Pids, Arg1, Arg2) ->
     end.
 
 % @doc umount2(2): unmount filesystem with flags
-% 
+%
 % Linux only.
 
 umount2(Drv, Pids, Arg1, Arg2, Timeout) ->
@@ -4617,9 +4617,9 @@ unsetenv(Drv, Pids, Arg1, Timeout) ->
     end.
 
 % @doc unshare(2): create a new namespace in the current process
-% 
+%
 % Make a new namespace without calling clone(2):
-% 
+%
 % ```
 % ok = alcove:unshare(Drv, [], [clone_newnet]).
 % % The port is now running in a namespace without network access.
@@ -4638,9 +4638,9 @@ unshare(Drv, Pids, Arg1) ->
     end.
 
 % @doc unshare(2): create a new namespace in the current process
-% 
+%
 % Make a new namespace without calling clone(2):
-% 
+%
 % ```
 % ok = alcove:unshare(Drv, [], [clone_newnet]).
 % % The port is now running in a namespace without network access.
@@ -4659,12 +4659,12 @@ unshare(Drv, Pids, Arg1, Timeout) ->
     end.
 
 % @doc unveil(2): restrict filesystem view
-% 
+%
 % OpenBSD only.
-% 
+%
 % To disable unveil calls, use an empty list ([]) or, equivalently, an
 % empty string ("").
-% 
+%
 % ```
 % alcove:unveil(Drv, [Task], <<"/etc">>, <<"r">>),
 % alcove:unveil(Drv, [Task], [], []).
@@ -4683,12 +4683,12 @@ unveil(Drv, Pids, Arg1, Arg2) ->
     end.
 
 % @doc unveil(2): restrict filesystem view
-% 
+%
 % OpenBSD only.
-% 
+%
 % To disable unveil calls, use an empty list ([]) or, equivalently, an
 % empty string ("").
-% 
+%
 % ```
 % alcove:unveil(Drv, [Task], <<"/etc">>, <<"r">>),
 % alcove:unveil(Drv, [Task], [], []).
@@ -4754,7 +4754,7 @@ waitpid(Drv, Pids, Arg1, Arg2, Timeout) ->
     end.
 
 % @doc write(2): write to a file descriptor
-% 
+%
 % Writes a buffer to a file descriptor and returns the number of bytes
 % written.
 
@@ -4771,7 +4771,7 @@ write(Drv, Pids, Arg1, Arg2) ->
     end.
 
 % @doc write(2): write to a file descriptor
-% 
+%
 % Writes a buffer to a file descriptor and returns the number of bytes
 % written.
 
