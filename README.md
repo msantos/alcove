@@ -62,7 +62,7 @@ We access the child process by using the fork chain:
 
 ```erlang
 {ok, Child2} = alcove:fork(Drv, [Child1]),
-Child2 = alcove:getpid(Drv, [Child1,Child2]).
+Child2 = alcove:getpid(Drv, [Child1, Child2]).
 ```
 
 An empty fork chain refers to the port process:
@@ -79,7 +79,7 @@ Finally, we can replace the event loop with a system executable by
 calling exec(3):
 
 ```erlang
-ok = alcove:execvp(Drv, [Child1,Child2], "/bin/cat", ["/bin/cat"]).
+ok = alcove:execvp(Drv, [Child1, Child2], "/bin/cat", ["/bin/cat"]).
 ```
 
 The process tree now looks like:
@@ -96,8 +96,8 @@ beam.smp
 We can interact with the process via stdin, stdout and stderr:
 
 ```erlang
-alcove:stdin(Drv, [Child1,Child2], "hello process\n"),
-[<<"hello process\n">>] = alcove:stdout(Drv, [Child1,Child2]).
+alcove:stdin(Drv, [Child1, Child2], "hello process\n"),
+[<<"hello process\n">>] = alcove:stdout(Drv, [Child1, Child2]).
 ```
 
 Setting Up Privileges
@@ -164,15 +164,27 @@ limits. In this case, we'll use setrlimit(2):
 ```erlang
 setlimits(Drv, Child) ->
     % Disable creation of files
-    ok = alcove:setrlimit(Drv, [Child], rlimit_fsize,
-            #alcove_rlimit{cur = 0, max = 0}),
+    ok = alcove:setrlimit(
+        Drv,
+        [Child],
+        rlimit_fsize,
+        #alcove_rlimit{cur = 0, max = 0}
+    ),
 
-    ok = alcove:setrlimit(Drv, [Child], rlimit_nofile,
-            #alcove_rlimit{cur = 0, max = 0}),
+    ok = alcove:setrlimit(
+        Drv,
+        [Child],
+        rlimit_nofile,
+        #alcove_rlimit{cur = 0, max = 0}
+    ),
 
     % Limit to one process
-    ok = alcove:setrlimit(Drv, [Child], rlimit_nproc,
-            #alcove_rlimit{cur = 1, max = 1}).
+    ok = alcove:setrlimit(
+        Drv,
+        [Child],
+        rlimit_nproc,
+        #alcove_rlimit{cur = 1, max = 1}
+    ).
 ```
 
 Next we chroot and drop root privileges. We will set the user and group
@@ -295,29 +307,58 @@ start() ->
     % Set the CPUs these processes are allowed to run on. For example,
     % if there are 4 available CPUs, any process in this cgroup will only
     % be able to run on CPU 0
-    {ok,1} = alcove_cgroup:set(Drv, [], <<"cpuset">>, <<"alcove">>,
-            <<"cpuset.cpus">>, <<"0">>),
-    {ok,1} = alcove_cgroup:set(Drv, [], <<"cpuset">>, <<"alcove">>,
-            <<"cpuset.mems">>, <<"0">>),
+    {ok, 1} = alcove_cgroup:set(
+        Drv,
+        [],
+        <<"cpuset">>,
+        <<"alcove">>,
+        <<"cpuset.cpus">>,
+        <<"0">>
+    ),
+    {ok, 1} = alcove_cgroup:set(
+        Drv,
+        [],
+        <<"cpuset">>,
+        <<"alcove">>,
+        <<"cpuset.mems">>,
+        <<"0">>
+    ),
 
     % Set the amount of memory available to the process
 
     % Total memory, including swap. We allow this to fail, because some
     % systems may not have a swap partition/file
-    alcove_cgroup:set(Drv, [], <<"memory">>, <<"alcove">>,
-            <<"memory.memsw.limit_in_bytes">>, <<"16m">>),
+    alcove_cgroup:set(
+        Drv,
+        [],
+        <<"memory">>,
+        <<"alcove">>,
+        <<"memory.memsw.limit_in_bytes">>,
+        <<"16m">>
+    ),
 
     % Total memory
-    {ok,3} = alcove_cgroup:set(Drv, [], <<"memory">>, <<"alcove">>,
-            <<"memory.limit_in_bytes">>, <<"16m">>),
+    {ok, 3} = alcove_cgroup:set(
+        Drv,
+        [],
+        <<"memory">>,
+        <<"alcove">>,
+        <<"memory.limit_in_bytes">>,
+        <<"16m">>
+    ),
 
     Drv.
 
 setlimits(Drv, Child) ->
     % Add our process to the "alcove" cgroup
-    {ok,_} = alcove_cgroup:set(Drv, [], <<>>, <<"alcove">>,
-            <<"tasks">>, integer_to_list(Child)).
-
+    {ok, _} = alcove_cgroup:set(
+        Drv,
+        [],
+        <<>>,
+        <<"alcove">>,
+        <<"tasks">>,
+        integer_to_list(Child)
+    ).
 ```
 
 * running the code involves calling clone(2) to create the namespaces,
@@ -328,12 +369,17 @@ sandbox(Drv, Argv) ->
     {Path, Arg0, Args} = argv(Argv),
 
     {ok, Child} = alcove:clone(Drv, [], [
-            clone_newipc, % IPC
-            clone_newnet, % network
-            clone_newns,  % mounts
-            clone_newpid, % PID, Child is PID 1 in the namespace
-            clone_newuts  % hostname
-            ]),
+        % IPC
+        clone_newipc,
+        % network
+        clone_newnet,
+        % mounts
+        clone_newns,
+        % PID, Child is PID 1 in the namespace
+        clone_newpid,
+        % hostname
+        clone_newuts
+    ]),
 
     setlimits(Drv, Child),
     chroot(Drv, Child, Path),
@@ -344,84 +390,13 @@ sandbox(Drv, Argv) ->
     Child.
 ```
 
-alcove_drv
-==========
-
-    start() -> port()
-    start(Options) -> port()
-    start_link() -> port()
-    start_link(Options) -> port()
-
-    Types   Options = [Option]
-            Option = stderr_to_stdout | {env, [{Key, Val}]}
-                | {exec, string()}
-                | {progname, string()}
-
-    Create the alcove port.
-
-        stderr_to_stdout
-
-            The behaviour of stderr from the port differs from child
-            processes. Standard error from the port goes to the console
-            while stderr from child processes is tagged and sent to the
-            controlling Erlang process.
-
-            This option merges stderr and stdout from the port. Since
-            stdout is used for communicating with the Erlang side and
-            is tagged with a header, this will likely mess things up.
-
-            Only use this option if you want to call execvp/3,4 in
-            the port.
-
-        {env, [{Key,Val}]}
-
-            Set the environment for the port.
-
-        {exec, Exec}
-
-            Default: ""
-
-            Sets a command to run the port, such as sudo.
-
-        {progname, Path}
-
-            Default: priv/alcove
-
-            Sets the path to the alcove executable.
-
-        {ctldir, Path}
-
-            Default: priv
-
-            Sets the path to the alcove control directory. The directory
-            must be writable by the alcove user.
-
-    For the remaining options, see alcove:getopt/2,3.
-
 alcove
 ------
 
+### Operating System Support
+
 Functions marked as operating system specific will return
 {error,enotsup} on other platforms.
-
-### Data Types
-
-    Drv = pid()
-    OSPid = non_neg_integer()
-    ForkChain = [OSPid]
-    Path = iodata()
-    FD = integer()
-
-    constant() = atom() | integer()
-
-    alcove_pid() =
-        #alcove_pid{pid = alcove:pid_t(),
-                    flowcontrol = alcove:int32_t(),
-                    signaloneof = alcove:int32_t(),
-                    fdctl = alcove::fd(),
-                    stdin = alcove::fd(),
-                    stdout = alcove::fd(),
-                    stderr = alcove::fd()}
 
 ### Event Loop
 

@@ -1,4 +1,4 @@
-%%% Copyright (c) 2014-2018, Michael Santos <michael.santos@gmail.com>
+%%% Copyright (c) 2014-2021, Michael Santos <michael.santos@gmail.com>
 %%%
 %%% Permission to use, copy, modify, and/or distribute this software for any
 %%% purpose with or without fee is hereby granted, provided that the above
@@ -46,10 +46,14 @@
     buf = <<>> :: binary()
 }).
 
+% @doc Create the alcove port using the default options
 -spec start() -> 'ignore' | {'error', _} | {'ok', pid()}.
 start() ->
     start(self(), []).
 
+% @doc Create the alcove port
+%
+% See start_link/1 for options.
 -spec start(proplists:proplist()) -> 'ignore' | {'error', _} | {'ok', pid()}.
 start(Options) ->
     start(self(), Options).
@@ -58,10 +62,53 @@ start(Options) ->
 start(Owner, Options) ->
     gen_server:start(?MODULE, [Owner, Options], []).
 
+% @doc Create and link against the alcove port using the default options
 -spec start_link() -> 'ignore' | {'error', _} | {'ok', pid()}.
 start_link() ->
     start_link(self(), []).
 
+% @doc Create and link against the alcove port
+%
+% Create the alcove port.
+%
+% * stderr_to_stdout
+%
+%   The behaviour of stderr from the port differs from child
+%   processes. Standard error from the port goes to the console
+%   while stderr from child processes is tagged and sent to the
+%   controlling Erlang process.
+%
+%   This option merges stderr and stdout from the port. Since
+%   stdout is used for communicating with the Erlang side and
+%   is tagged with a header, this will likely mess things up.
+%
+%   Only use this option if you want to call execvp/3,4 in
+%   the port.
+%
+% * {env, [{Key,Val}]}
+%
+%   Set the environment for the port.
+%
+% * {exec, Exec}
+%
+%   Default: ""
+%
+%   Sets a command to run the port, such as sudo.
+%
+% * {progname, Path}
+%
+%   Default: priv/alcove
+%
+%   Sets the path to the alcove executable.
+%
+% * {ctldir, Path}
+%
+%   Default: priv
+%
+%   Sets the path to the alcove control directory. The directory
+%   must be writable by the alcove user.
+%
+% For the remaining options, see alcove:getopt/2,3.
 -spec start_link(proplists:proplist()) -> 'ignore' | {'error', _} | {'ok', pid()}.
 start_link(Options) ->
     start_link(self(), Options).
