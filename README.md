@@ -41,7 +41,7 @@ When alcove is started, it enters an event loop:
 {ok, Drv} = alcove_drv:start().
 ```
 
-Much like a shell, alcove waits for a command. For example, alcove can
+Similar to a shell, alcove waits for a command. For example, alcove can
 be requested to fork(2):
 
 ```erlang
@@ -58,22 +58,31 @@ beam.smp
   |       `-alcove
 ```
 
-We access the child process by using the fork chain:
+Processes are arranged in a pipeline:
+
+* a pipeline is a list of 0 or more integers representing the process IDs
+
+  By default, pipelines are limited to a length of 16 processes. The
+  pipeline length can be increased using getopt/3 up to the system limits.
+
+* unlike in a shell, each successive process in the pipeline is forked
+  from the previous process
+
+* like a shell pipeline, the stdout of a process is connected to the
+  stdin of the next process in the pipeline using a FIFO
+
+The child process is addressed via the pipeline using a list of PIDs:
 
 ```erlang
 {ok, Child2} = alcove:fork(Drv, [Child1]),
 Child2 = alcove:getpid(Drv, [Child1, Child2]).
 ```
 
-An empty fork chain refers to the port process:
+An empty pipeline refers to the port process:
 
 ```erlang
 {ok, Child3} = alcove:fork(Drv, []).
 ```
-
-Fork chains can be arbitrarily long (well, until you hit a system limit
-or overflow the stack) but, by default, are limited to a length of 16
-Unix processes.
 
 Finally, we can replace the event loop with a system executable by
 calling exec(3):
@@ -410,14 +419,14 @@ atom is used as the argument and is not found on the platform.
 The alcove module functions accept an additional argument which allows
 setting timeouts. For example:
 
-    write(Drv, ForkChain, FD, Buf) -> {ok, Count} | {error, posix()}
-    write(Drv, ForkChain, FD, Buf, timeout()) -> {ok, Count} | {error, posix()}
+    write(Drv, Pipeline, FD, Buf) -> {ok, Count} | {error, posix()}
+    write(Drv, Pipeline, FD, Buf, timeout()) -> {ok, Count} | {error, posix()}
 
 By default, timeout is set to infinity. Similar to gen_server:call/3,
 setting an integer timeout will cause the process to crash if the
-timeout is reached. If the failure is caught, the caller must deal with
-any delayed messages that arrive for the Unix process described by the
-fork chain.
+timeout is reached. If the failure is caught, the caller must deal
+with any delayed messages that arrive for the Unix process described by
+the pipeline.
 
 See "Message Format" for a description of the messages.
 

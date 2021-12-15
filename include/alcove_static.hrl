@@ -782,17 +782,17 @@
 -spec unveil(alcove_drv:ref(), [pid_t()], Path :: iodata(), Permissions :: iodata(), timeout()) ->
     'ok' | {'error', posix()}.
 
--type waitpid_value() ::
+-type waitstatus() ::
     {exit_status, int32_t()}
     | {termsig, atom()}
     | {stopsig, atom()}
     | continued.
 -spec waitpid(alcove_drv:ref(), [pid_t()], OSPid :: pid_t(), Options :: int32_t() | [constant()]) ->
-    {'ok', pid_t(), WaitStatus :: [waitpid_value()]} | {'error', posix()}.
+    {'ok', pid_t(), WaitStatus :: [waitstatus()]} | {'error', posix()}.
 -spec waitpid(
     alcove_drv:ref(), [pid_t()], OSPid :: pid_t(), Options :: int32_t() | [constant()], timeout()
 ) ->
-    {'ok', pid_t(), WaitStatus :: [waitpid_value()]} | {'error', posix()}.
+    {'ok', pid_t(), WaitStatus :: [waitstatus()]} | {'error', posix()}.
 
 -spec write(alcove_drv:ref(), [pid_t()], FD :: fd(), Buf :: iodata()) ->
     {'ok', Count :: ssize_t()} | {'error', posix()}.
@@ -847,13 +847,13 @@ wordalign(Offset, Align) ->
 
 % @doc Convert constant to integer
 -spec define(alcove_drv:ref(), [pid_t()], atom() | [atom()]) -> integer().
-define(Drv, ForkChain, Constant) when is_atom(Constant) ->
-    define(Drv, ForkChain, [Constant]);
-define(Drv, ForkChain, Constants) when is_list(Constants) ->
+define(Drv, Pipeline, Constant) when is_atom(Constant) ->
+    define(Drv, Pipeline, [Constant]);
+define(Drv, Pipeline, Constants) when is_list(Constants) ->
     lists:foldl(
         fun
             (Constant, Result) when is_atom(Constant) ->
-                Val = define_constant(Drv, ForkChain, Constant),
+                Val = define_constant(Drv, Pipeline, Constant),
                 Result bxor Val;
             (Val, Result) when is_integer(Val) ->
                 Result bxor Val
@@ -862,7 +862,7 @@ define(Drv, ForkChain, Constants) when is_list(Constants) ->
         Constants
     ).
 
-define_constant(Drv, ForkChain, Constant) ->
+define_constant(Drv, Pipeline, Constant) ->
     Fun = [
         fun clone_constant/3,
         fun fcntl_constant/3,
@@ -874,20 +874,20 @@ define_constant(Drv, ForkChain, Constant) ->
         fun signal_constant/3,
         fun syscall_constant/3
     ],
-    define_foreach(Drv, ForkChain, Constant, Fun).
+    define_foreach(Drv, Pipeline, Constant, Fun).
 
-define_foreach(_Drv, _ForkChain, Constant, []) ->
+define_foreach(_Drv, _Pipeline, Constant, []) ->
     erlang:error({unknown, Constant});
-define_foreach(Drv, ForkChain, Constant, [Fun | Rest]) ->
-    try Fun(Drv, ForkChain, Constant) of
+define_foreach(Drv, Pipeline, Constant, [Fun | Rest]) ->
+    try Fun(Drv, Pipeline, Constant) of
         unknown ->
-            define_foreach(Drv, ForkChain, Constant, Rest);
+            define_foreach(Drv, Pipeline, Constant, Rest);
         Val when is_integer(Val) ->
             Val
     catch
         % Function call not supported on this platform
         error:undef ->
-            define_foreach(Drv, ForkChain, Constant, Rest)
+            define_foreach(Drv, Pipeline, Constant, Rest)
     end.
 
 % @doc Send data to stdin of the process

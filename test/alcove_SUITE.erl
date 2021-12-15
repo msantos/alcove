@@ -45,7 +45,7 @@
     event/1,
     execve/1,
     execvp/1,
-    execvp_mid_chain/1,
+    execvp_mid_pipeline/1,
     execvp_with_signal/1,
     fcntl/1,
     fexecve/1,
@@ -56,7 +56,7 @@
     flowcontrol/1,
     flowcontrol_fork_exec_exit/1,
     fork/1,
-    forkchain/1,
+    pipeline/1,
     forkstress/1,
     getpid/1,
     ioctl/1,
@@ -138,7 +138,7 @@ all() ->
         signal,
         portstress,
         forkstress,
-        forkchain,
+        pipeline,
         eof,
         alloc,
         priority,
@@ -156,7 +156,7 @@ all() ->
         mkfifo,
         ioctl,
         symlink,
-        execvp_mid_chain,
+        execvp_mid_pipeline,
         pipe_buf,
         signaloneof,
         flowcontrol,
@@ -791,7 +791,7 @@ forkstress(Config) ->
     {ok, Fork} = alcove:fork(Drv, []),
     ok = forkstress_1(Drv, Fork, 100).
 
-forkchain(Config) ->
+pipeline(Config) ->
     Drv = ?config(drv, Config),
 
     {ok, Child0} = alcove:fork(Drv, []),
@@ -1030,17 +1030,17 @@ execvp_with_signal(Config) ->
 stream(Config) ->
     Drv = ?config(drv, Config),
 
-    Chain = chain(Drv, 16),
-    {ok, _} = alcove:sigaction(Drv, Chain, sigpipe, sig_dfl),
+    Pipeline = pipeline(Drv, 16),
+    {ok, _} = alcove:sigaction(Drv, Pipeline, sigpipe, sig_dfl),
     DefaultCount = 1 * 1024 * 1024,
     Count = getenv("ALCOVE_TEST_STREAM_COUNT", integer_to_list(DefaultCount)),
     Sleep = getenv("ALCOVE_TEST_STREAM_MAGIC_SLEEP", "0"),
     % XXX procs in the fork path may exit before all the data has
     % XXX been written
     Cmd = ["yes | head -", Count, ";sleep ", Sleep],
-    ok = alcove:execvp(Drv, Chain, "/bin/sh", ["/bin/sh", "-c", Cmd]),
+    ok = alcove:execvp(Drv, Pipeline, "/bin/sh", ["/bin/sh", "-c", Cmd]),
     % <<"y\n">>
-    ok = stream_count(Drv, Chain, list_to_integer(Count) * 2).
+    ok = stream_count(Drv, Pipeline, list_to_integer(Count) * 2).
 
 open(Config) ->
     Drv = ?config(drv, Config),
@@ -1209,16 +1209,16 @@ symlink(Config) ->
     ok = alcove:unlink(Drv, [], Newpath0),
     ok = alcove:unlink(Drv, [], Newpath1).
 
-execvp_mid_chain(Config) ->
+execvp_mid_pipeline(Config) ->
     Drv = ?config(drv, Config),
 
-    Chain = chain(Drv, 8),
-    {Pids, Rest} = lists:split(3, Chain),
+    Pipeline = pipeline(Drv, 8),
+    {Pids, Rest} = lists:split(3, Pipeline),
     ok = alcove:execvp(Drv, Pids, "/bin/cat", ["/bin/cat"]),
 
     alcove:stdin(Drv, Pids, "test\n"),
     [<<"test\n">>] = alcove:stdout(Drv, Pids, 5000),
-    false = alcove:event(Drv, Chain, 2000),
+    false = alcove:event(Drv, Pipeline, 2000),
     Reply = [alcove:kill(Drv, [], Pid, 0) || Pid <- Rest],
 
     % The child spawned by the exec'ed process becomes a zombie
@@ -1360,16 +1360,16 @@ flowcontrol(Config) ->
 
     ok.
 
-flowcontrol_wait(Drv, Chain, Timeout, 0) ->
+flowcontrol_wait(Drv, Pipeline, Timeout, 0) ->
     receive
-        {alcove_stdout, Drv, Chain, _} = Failed ->
+        {alcove_stdout, Drv, Pipeline, _} = Failed ->
             Failed
     after Timeout -> ok
     end;
-flowcontrol_wait(Drv, Chain, Timeout, N) ->
+flowcontrol_wait(Drv, Pipeline, Timeout, N) ->
     receive
-        {alcove_stdout, Drv, Chain, _} ->
-            flowcontrol_wait(Drv, Chain, Timeout, N - 1)
+        {alcove_stdout, Drv, Pipeline, _} ->
+            flowcontrol_wait(Drv, Pipeline, Timeout, N - 1)
     after Timeout -> timeout
     end.
 
@@ -1846,58 +1846,58 @@ forkstress_1(Drv, Child, N) ->
     Version = alcove:version(Drv, [Child]),
     forkstress_1(Drv, Child, N - 1).
 
-chain(Drv, N) ->
-    chain(Drv, [], N).
+pipeline(Drv, N) ->
+    pipeline(Drv, [], N).
 
-chain(_Drv, Fork, 0) ->
+pipeline(_Drv, Fork, 0) ->
     Fork;
-chain(Drv, Fork, N) ->
+pipeline(Drv, Fork, N) ->
     {ok, Child} = alcove:fork(Drv, Fork),
-    chain(Drv, Fork ++ [Child], N - 1).
+    pipeline(Drv, Fork ++ [Child], N - 1).
 
-stream_count(_Drv, _Chain, 0) ->
+stream_count(_Drv, _Pipeline, 0) ->
     ok;
-stream_count(Drv, Chain, N) ->
+stream_count(Drv, Pipeline, N) ->
     receive
-        {alcove_stdout, Drv, Chain, Bin} ->
-            stream_count(Drv, Chain, N - byte_size(Bin))
+        {alcove_stdout, Drv, Pipeline, Bin} ->
+            stream_count(Drv, Pipeline, N - byte_size(Bin))
     after 1000 -> {error, N}
     end.
 
 %
 % re-exec the alcove program
 %
-fexecve_process_image(Drv, Chain) ->
+fexecve_process_image(Drv, Pipeline) ->
     Progname = alcove_drv:progname(),
-    {ok, FD} = alcove:open(Drv, Chain, Progname, [o_rdonly, o_cloexec], 0),
+    {ok, FD} = alcove:open(Drv, Pipeline, Progname, [o_rdonly, o_cloexec], 0),
     Argv = alcove_drv:getopts([
         {progname, Progname},
-        {depth, length(Chain)}
+        {depth, length(Pipeline)}
     ]),
-    Env = alcove:environ(Drv, Chain),
+    Env = alcove:environ(Drv, Pipeline),
 
-    ok = setflag(Drv, Chain, [3, 4, 5, FD], fd_cloexec, unset),
-    Reply = alcove:fexecve(Drv, Chain, FD, Argv, Env),
-    ok = setflag(Drv, Chain, [3, 4, 5, FD], fd_cloexec, set),
+    ok = setflag(Drv, Pipeline, [3, 4, 5, FD], fd_cloexec, unset),
+    Reply = alcove:fexecve(Drv, Pipeline, FD, Argv, Env),
+    ok = setflag(Drv, Pipeline, [3, 4, 5, FD], fd_cloexec, set),
     Reply.
 
-setflag(_Drv, _Chain, [], _Flag, _Status) ->
+setflag(_Drv, _Pipeline, [], _Flag, _Status) ->
     ok;
-setflag(Drv, Chain, [FD | FDSet], Flag, Status) ->
-    Constant = alcove:fcntl_constant(Drv, Chain, Flag),
-    case alcove:fcntl(Drv, Chain, FD, f_getfd, 0) of
+setflag(Drv, Pipeline, [FD | FDSet], Flag, Status) ->
+    Constant = alcove:fcntl_constant(Drv, Pipeline, Flag),
+    case alcove:fcntl(Drv, Pipeline, FD, f_getfd, 0) of
         {ok, Flags} ->
             case
                 alcove:fcntl(
                     Drv,
-                    Chain,
+                    Pipeline,
                     FD,
                     f_setfd,
                     fdstatus(Flags, Constant, Status)
                 )
             of
                 {ok, _NewFlags} ->
-                    setflag(Drv, Chain, FDSet, Flag, Status);
+                    setflag(Drv, Pipeline, FDSet, Flag, Status);
                 Error1 ->
                     Error1
             end;

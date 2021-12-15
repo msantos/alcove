@@ -18,7 +18,7 @@ alcove_drv:start/1.
 
 * maxforkdepth : non_neg_integer() : 16
 
-  Sets the maximum length of the fork chain.
+  Sets the maximum length of the alcove process pipeline.
 
 * termsig : 1 | 0 : 1
 
