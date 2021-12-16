@@ -1,3 +1,24 @@
 @doc cap_rights_limit(2): manage process capabilities
 
 FreeBSD only.
+
+== Examples ==
+
+```
+1> {ok, Drv} = alcove_drv:start().
+{ok,<0.209.0>}
+2> {ok, Pid} = alcove:fork(Drv, []).
+{ok,75710}
+3> {ok, FD} = alcove:open(Drv, [Pid], "/etc/passwd", [o_rdonly], 0).
+{ok,6}
+4> alcove:cap_enter(Drv, [Pid]).
+ok
+5> alcove:cap_rights_limit(Drv, [Pid], FD, [cap_read]).
+ok
+6> alcove:read(Drv, [Pid], FD, 64).
+{ok,<<"# $FreeBSD$\n#\nroot:*:0:0:Charlie &:/root:/bin/csh\ntoor:*:0:0:Bou">>}
+7> alcove:lseek(Drv, [Pid], FD, 0, 0).
+{error,enotcapable}
+8> alcove:open(Drv, [Pid], "/etc/passwd", [o_rdonly], 0).
+{error,ecapmode}
+'''

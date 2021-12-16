@@ -28,8 +28,8 @@ struct_jail2(Path, Hostname, Jailname, IPv4, IPv6) ->
 To apply the jail:
 
 ```
-{ok, Child} = alcove:fork(Drv, []),
+{ok, Pid} = alcove:fork(Drv, []),
 Jailv2 = struct_jail2(<<"/rescue">>, <<"test">>, <<"jail0">>, [], []),
-{ok, JID} = alcove:jail(Drv, [Child], Jailv2),
-ok = alcove:chdir(Drv, [Child], "/").
+{ok, JID} = alcove:jail(Drv, [Pid], Jailv2),
+ok = alcove:chdir(Drv, [Pid], "/").
 '''

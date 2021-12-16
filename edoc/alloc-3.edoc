@@ -1,3 +1,34 @@
 @doc Allocate memory
 
 Test memory allocation.
+
+Memory is allocated using a cstruct which is a list containing:
+
+* binary: a value to be allocated and initialized in the memory
+* {ptr, integer()}: create a pointer to 0 initialized memory
+* {ptr, binary()}: create a pointer to memory initialized to the binary
+
+The return value is an ok tuple:
+
+* the atom ok
+* a binary with the raw memory
+* an initialized cstruct
+
+== Examples ==
+
+```
+1> {ok, Drv} = alcove_drv:start().
+{ok,<0.182.0>}
+2> {ok, Pid} = alcove:fork(Drv, []).
+{ok,4040}
+3> alcove:alloc(Drv, [Pid], [<<"initialized">>, {ptr, 16}, {ptr, <<"initialized">>}]).
+{ok,<<105,110,105,116,105,97,108,105,122,101,100,48,238,
+      23,162,165,87,0,0,80,238,23,162,165,87,0,0>>,
+    [<<"initialized">>,
+     {ptr,<<0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0>>},
+     {ptr,<<"initialized">>}]}
+
+% <<"initialized">>: 105,110,105,116,105,97,108,105,122,101,100
+% {ptr,<<0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0>>}: 48,238,23,162,165,87,0,0 (pointer)
+% {ptr,<<"initialized">>}: 80,238,23,162,165,87,0,0 (pointer)
+'''

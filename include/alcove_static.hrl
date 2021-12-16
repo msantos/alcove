@@ -220,7 +220,7 @@
     alcove_timeval/0
 ]).
 
--spec alloc(alcove_drv:ref(), [pid_t()], Ptr :: atom()) -> {'ok', binary(), iodata()}.
+-spec alloc(alcove_drv:ref(), [pid_t()], Ptr :: cstruct()) -> {'ok', binary(), iodata()}.
 -spec alloc(alcove_drv:ref(), [pid_t()], Ptr :: cstruct(), timeout()) ->
     {'ok', binary(), iodata()}.
 
@@ -824,6 +824,17 @@
 ]).
 
 % @doc Get seccomp system architecture
+%
+% == Examples ==
+%
+% ```
+% 1> {ok, Drv} = alcove_drv:start().
+% {ok,<0.176.0>}
+% 2> alcove:audit_arch().
+% audit_arch_x86_64
+% 3> alcove:define(Drv, [], alcove:audit_arch()).
+% 3221225534
+% '''
 -spec audit_arch() -> atom().
 audit_arch() ->
     Arches = [
@@ -846,6 +857,15 @@ wordalign(Offset, Align) ->
     (Align - (Offset rem Align)) rem Align.
 
 % @doc Convert constant to integer
+%
+% == Examples ==
+%
+% ```
+% 1> {ok, Drv} = alcove_drv:start().
+% {ok,<0.176.0>}
+% 2> alcove:define(Drv, [], clone_newns).
+% 131072
+% '''
 -spec define(alcove_drv:ref(), [pid_t()], atom() | [atom()]) -> integer().
 define(Drv, Pipeline, Constant) when is_atom(Constant) ->
     define(Drv, Pipeline, [Constant]);

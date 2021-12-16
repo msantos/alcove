@@ -19,12 +19,12 @@ ls -al /proc/$$/ns
 For example, to attach to another process network namespace:
 
 ```
-{ok, Child1} = alcove:clone(Drv, [], [clone_newnet]),
-{ok, Child2} = alcove:fork(Drv, []),
+{ok, Pid1} = alcove:clone(Drv, [], [clone_newnet]),
+{ok, Pid2} = alcove:fork(Drv, []),
 
-% Move Child2 into the Child1 network namespace
-{ok,FD} = alcove:open(Drv, [Child2],
-        ["/proc/", integer_to_list(Child1), "/ns/net"], [o_rdonly], 0),
-ok = alcove:setns(Drv, [Child2], FD, 0),
-ok = alcove:close(Drv, [Child2], FD).
+% Move Pid2 into the Pid1 network namespace
+{ok,FD} = alcove:open(Drv, [Pid2],
+        ["/proc/", integer_to_list(Pid1), "/ns/net"], [o_rdonly], 0),
+ok = alcove:setns(Drv, [Pid2], FD, 0),
+ok = alcove:close(Drv, [Pid2], FD).
 '''

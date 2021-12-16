@@ -1,3 +1,22 @@
 @doc cap_ioctls_limit(2): manage allowed ioctl commands
 
 FreeBSD only.
+
+== Examples ==
+
+```
+1> {ok, Drv} = alcove_drv:start().
+{ok,<0.209.0>}
+2> {ok, Pid} = alcove:fork(Drv, []).
+{ok,75710}
+3> {ok, Pty} = alcove:open(Drv, [Pid], "/dev/pts/1", [o_rdwr, o_nonblock], 0).
+{ok,6}
+4> alcove:cap_enter(Drv, [Pid]).
+ok
+5> alcove:cap_ioctls_limit(Drv, [Pid], FD, [tiocmget, tiocgwinsz]).
+ok
+6> alcove:ioctl(Drv, [Pid], FD, tiocmset, <<>>).
+{error,enotcapable}
+7> alcove:ioctl(Drv, [Pid], FD, tiocmget, <<>>).
+{ok,0,<<>>}
+'''

@@ -1,3 +1,12 @@
 @doc Convert capsicum constants to integer
 
 FreeBSD only.
+
+== Examples ==
+
+```
+1> {ok, Drv} = alcove_drv:start().
+{ok,<0.208.0>}
+2> alcove:cap_constant(Drv, [], cap_fcntl_setfl).
+16
+'''

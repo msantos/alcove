@@ -3,9 +3,9 @@
 This function is probably only useful if running in a uts namespace:
 
 ```
-{ok, Child} = alcove:clone(Drv, [], [clone_newuts]),
-ok = alcove:sethostname(Drv, [Child], "test"),
+{ok, Pid} = alcove:clone(Drv, [], [clone_newuts]),
+ok = alcove:sethostname(Drv, [Pid], "test"),
 Hostname1 = alcove:gethostname(Drv, []),
-Hostname2 = alcove:gethostname(Drv, [Child]),
+Hostname2 = alcove:gethostname(Drv, [Pid]),
 Hostname1 =/= Hostname2.
 '''

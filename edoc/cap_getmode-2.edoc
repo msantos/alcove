@@ -1,3 +1,18 @@
 @doc cap_getmode(2): check if capability mode is enabled
 
 FreeBSD only.
+
+== Examples ==
+
+```
+1> {ok, Drv} = alcove_drv:start().
+{ok,<0.209.0>}
+2> {ok, Pid} = alcove:fork(Drv, []).
+{ok,75710}
+3> ok = alcove:cap_enter(Drv, [Pid]).
+ok
+4> alcove:cap_getmode(Drv, [Pid]).
+{ok,1}
+5> alcove:cap_getmode(Drv, []).
+{ok,0}
+'''
