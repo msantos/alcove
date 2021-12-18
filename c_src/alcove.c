@@ -26,8 +26,8 @@ static void usage(void);
 extern char *__progname;
 
 int main(int argc, char *argv[]) {
-  alcove_state_t *ap = NULL;
-  int ch = 0;
+  alcove_state_t *ap;
+  int ch;
   char *fifo = NULL;
   int boot = 1;
   struct rlimit maxfd = {0};
@@ -96,7 +96,7 @@ int main(int argc, char *argv[]) {
 
 static int alcove_signal_init(int boot) {
   struct sigaction act = {0};
-  int sig = 0;
+  int sig;
 
   act.sa_flags |= SA_SIGINFO;
   act.sa_sigaction = alcove_sig_info;
@@ -142,7 +142,7 @@ static int alcove_rlimit_init(void) {
 
 static int alcove_fd_init(char *fifo) {
   int sigpipe[2] = {0};
-  int fdctl = 0;
+  int fdctl;
 
   if (!fifo)
     return -1;
@@ -218,7 +218,7 @@ static int alcove_fd_init(char *fifo) {
 }
 
 static int alcove_fdmove(int fd, int dupfd) {
-  int flags = 0;
+  int flags;
 
   flags = fcntl(fd, F_GETFD);
 
