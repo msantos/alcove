@@ -3,18 +3,29 @@
 filter/4 allows setting different filters for the control and
 subprocesses:
 
+== Examples ==
+
 ```
-ForkOnly = alcove:filter({allow, [fork]}),
-
-% Process restricted to fork
-% No filter enforced for subprocesses
-ok = alcove:filter(Ctrl, [], ForkOnly, []),
-{ok, Task1} = alcove:fork(Ctrl, []),
-_ = alcove:getpid(Ctrl, [Task1]),
-
-GetpidOnly = alcove:filter({allow, [getpid]}),
-% []: no change to filter
-ok = alcove:filter(Ctrl, [], [], GetpidOnly),
-{ok, Task2} = alcove:fork(Ctrl, []),
-_ = alcove:getpid(Ctrl, [Task2]).
+1> catch_exception(true).
+false
+2> {ok, Drv} = alcove_drv:start().
+{ok,<0.189.0>}
+3> F1 = alcove:filter({allow, [fork,filter,getcwd]}).
+<<255,255,255,231,239,255,255,255,255,255,255,255,15>>
+4> F2 = alcove:filter({allow, [getpid,gethostname]}).
+<<255,255,255,223,237,255,255,255,255,255,255,255,15>>
+% Control process: restricted to: fork, filter
+% Any forked control subprocess: restricted to: getpid, gethostname
+5> alcove:filter(Drv, [], F1, F2).
+ok
+6> {ok, Pid} = alcove:fork(Drv, []).
+{ok,18721}
+7> alcove:getpid(Drv, [Pid]).
+18721
+8> alcove:getpid(Drv, []).
+* exception error: undefined function alcove:getpid/2
+9> alcove:getcwd(Drv, [Pid]).
+* exception error: undefined function alcove:getcwd/2
+10> alcove:getcwd(Drv, []).
+{ok, <<"/">>}
 '''

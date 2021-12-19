@@ -338,17 +338,9 @@
 -spec file_constant(alcove_drv:ref(), [pid_t()], Symbol :: atom(), timeout()) ->
     non_neg_integer() | 'unknown'.
 
--spec filter(
-    alcove_drv:ref(), [pid_t()], Calls :: [alcove_proto:call()], Calls :: [alcove_proto:call()]
-) ->
+-spec filter(alcove_drv:ref(), [pid_t()], Calls :: binary(), Calls :: binary()) ->
     ok | {'error', 'einval'}.
--spec filter(
-    alcove_drv:ref(),
-    [pid_t()],
-    Calls :: [alcove_proto:call()],
-    Calls :: [alcove_proto:call()],
-    timeout()
-) ->
+-spec filter(alcove_drv:ref(), [pid_t()], Calls :: binary(), Calls :: binary(), timeout()) ->
     ok | {'error', 'einval'}.
 
 -spec fork(alcove_drv:ref(), [pid_t()]) -> {'ok', pid_t()} | {'error', posix()}.
@@ -1072,21 +1064,39 @@ event(Drv, Pids, Timeout) ->
 % # alcove process restricted to fork, clone, getpid
 % alcove:filter({allow, [fork, clone, getpid]})
 % '''
--spec filter(filter()) -> [uint8_t()].
+%
+% == Examples ==
+% ```
+% 1> alcove:filter({allow, [fork, clone, getpid]}).
+% <<255,223,255,239,239,255,255,255,255,255,255,255,15>>
+% 2> alcove:filter([fork, clone, getpid]).
+% <<0,32,0,16,16>>
+% 3> alcove:filter({deny, [fork, clone, getpid]}).
+% <<0,32,0,16,16>>
+% '''
+-spec filter(filter()) -> binary().
 filter(Calls) when is_list(Calls) ->
     filter({deny, Calls});
 filter({allow, Calls}) when is_list(Calls) ->
-    [
+    Filter = [
         alcove_proto:call(Call)
      || Call <-
             alcove_proto:calls() -- Calls
-    ];
+    ],
+    filter_encode(Filter);
 filter({deny, Calls}) when is_list(Calls) ->
-    [
+    Filter = [
         alcove_proto:call(Call)
      || Call <-
             sets:to_list(sets:from_list(Calls))
-    ].
+    ],
+    filter_encode(Filter).
+
+filter_encode(Filter) ->
+    binary:encode_unsigned(
+        lists:foldl(fun(Call, N) -> N bxor (1 bsl Call) end, 0, Filter),
+        little
+    ).
 
 % @doc Restrict calls available to an alcove control process
 %
@@ -1105,15 +1115,20 @@ filter({deny, Calls}) when is_list(Calls) ->
 % specifies the subprocess should use the same filter as the parent:
 %
 % ```
-% {ok, Ctrl} = alcove_drv:start(),
-% {ok, Task} = alcove:fork(Ctrl, []),
-%
-% Calls = alcove:filter([fork]),
-% % equivalent to: alcove:filter(Ctrl, [], Calls, Calls)
-% ok = alcove:filter(Ctrl, [], Calls),
-% {'EXIT', {undef, _}} = (catch alcove:fork(Ctrl, [])).
+% 1> {ok, Drv} = alcove_drv:start().
+% {ok,<0.179.0>}
+% 2> {ok, Pid} = alcove:fork(Drv, []).
+% {ok,16464}
+% 3> Filter = alcove:filter([fork]).
+% <<0,0,0,16>>
+% % equivalent to: alcove:filter(Drv, [], Filter, Filter)
+% 4> alcove:filter(Drv, [], Filter).
+% ok
+% 5> alcove:fork(Drv, [Pid]).
+% * exception error: undefined function alcove:fork/2
 % '''
--spec filter(alcove_drv:ref(), [pid_t()], [alcove_proto:call()]) -> ok | {'error', 'einval'}.
+
+-spec filter(alcove_drv:ref(), [pid_t()], binary()) -> ok | {'error', 'einval'}.
 filter(Drv, Pids, Calls) ->
     filter(Drv, Pids, Calls, Calls).
 

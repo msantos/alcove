@@ -15,7 +15,6 @@
 #include "alcove.h"
 #include "alcove_call.h"
 
-static int check_filter(const char *calls, int arity);
 static void set_filter(uint8_t *filter, const char *calls, int arity);
 
 /* Allow/filter calls */
@@ -23,11 +22,14 @@ ssize_t alcove_sys_filter(alcove_state_t *ap, const char *arg, size_t len,
                           char *reply, size_t rlen) {
   int index = 0;
   int type = 0;
-  int arity;
-  int arity1;
+  int arity = 0;
+  int arity1 = 0;
 
-  char calls[ALCOVE_MAX_NR + 1] = {0};
-  char calls1[ALCOVE_MAX_NR + 1] = {0};
+  char calls[ALCOVE_NR_SIZE] = {0};
+  char calls1[ALCOVE_NR_SIZE] = {0};
+
+  size_t csize = 0;
+  size_t csize1 = 0;
 
   /* calls: process */
   if (alcove_get_type(arg, len, &index, &type, &arity) < 0)
@@ -35,22 +37,17 @@ ssize_t alcove_sys_filter(alcove_state_t *ap, const char *arg, size_t len,
 
   switch (type) {
   case ERL_NIL_EXT:
-    arity = 0;
+    if (alcove_decode_list_header(arg, len, &index, &arity) < 0 || arity != 0)
+      return -1;
+
     break;
 
-  case ERL_LIST_EXT:
-    /* list element exceeds 255 */
-    return alcove_mk_errno(reply, rlen, EINVAL);
-
-  case ERL_STRING_EXT:
-    if (arity > ALCOVE_MAX_NR)
+  case ERL_BINARY_EXT:
+    if (arity > ALCOVE_NR_SIZE)
       return -1;
 
-    if (alcove_decode_string(arg, len, &index, calls, arity + 1) < 0)
+    if (alcove_decode_binary(arg, len, &index, calls, &csize) < 0)
       return -1;
-
-    if (check_filter(calls, arity) == -1)
-      return alcove_mk_errno(reply, rlen, EINVAL);
 
     break;
 
@@ -64,22 +61,17 @@ ssize_t alcove_sys_filter(alcove_state_t *ap, const char *arg, size_t len,
 
   switch (type) {
   case ERL_NIL_EXT:
-    arity1 = 0;
+    if (alcove_decode_list_header(arg, len, &index, &arity1) < 0 || arity1 != 0)
+      return -1;
+
     break;
 
-  case ERL_LIST_EXT:
-    /* list element exceeds 255 */
-    return alcove_mk_errno(reply, rlen, EINVAL);
-
-  case ERL_STRING_EXT:
-    if (arity1 > ALCOVE_MAX_NR)
+  case ERL_BINARY_EXT:
+    if (arity1 > ALCOVE_NR_SIZE)
       return -1;
 
-    if (alcove_decode_string(arg, len, &index, calls1, arity1 + 1) < 0)
+    if (alcove_decode_binary(arg, len, &index, calls1, &csize1) < 0)
       return -1;
-
-    if (check_filter(calls, arity1) == -1)
-      return alcove_mk_errno(reply, rlen, EINVAL);
 
     break;
 
@@ -93,30 +85,10 @@ ssize_t alcove_sys_filter(alcove_state_t *ap, const char *arg, size_t len,
   return alcove_mk_atom(reply, rlen, "ok");
 }
 
-static int check_filter(const char *calls, int arity) {
-  int n;
-
-  for (n = 0; n < arity; n++) {
-    if (calls[n] >= ALCOVE_MAX_NR) {
-      return -1;
-    }
-  }
-
-  return 0;
-}
-
 static void set_filter(uint8_t *filter, const char *calls, int arity) {
   int n;
-  int nr;
-  uint8_t j = 0;
-  uint8_t k = 0;
 
   for (n = 0; n < arity; n++) {
-    nr = calls[n];
-
-    j = nr / 8;
-    k = nr % 8;
-
-    filter[j] |= (1 << k);
+    filter[n] |= calls[n];
   }
 }

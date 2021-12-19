@@ -53,6 +53,7 @@
     file_constant/1,
     filter/1,
     filter1/1,
+    filter_nil/1,
     flowcontrol/1,
     flowcontrol_fork_exec_exit/1,
     fork/1,
@@ -162,7 +163,8 @@ all() ->
         flowcontrol,
         flowcontrol_fork_exec_exit,
         filter,
-        filter1
+        filter1,
+        filter_nil
     ].
 
 groups() ->
@@ -1409,8 +1411,8 @@ filter(Config) ->
 
     {ok, Task1} = alcove:fork(Drv, []),
 
-    ok = alcove:filter(Drv, [], [alcove_proto:call(fork)]),
-    ok = alcove:filter(Drv, [Task1], [alcove_proto:call(getpid)]),
+    ok = alcove:filter(Drv, [], alcove:filter([fork])),
+    ok = alcove:filter(Drv, [Task1], alcove:filter([getpid])),
 
     {ok, _} = alcove:fork(Drv, [Task1]),
     {'EXIT', {undef, _}} = (catch alcove:fork(Drv, [])),
@@ -1418,20 +1420,11 @@ filter(Config) ->
     {'EXIT', {undef, _}} = (catch alcove:getpid(Drv, [Task1])),
     _ = alcove:getpid(Drv, []),
 
-    NR = length(alcove_proto:calls()),
-
-    ok = alcove:filter(Drv, [Task1], [NR - 1]),
-    {error, einval} = alcove:filter(Drv, [Task1], [NR]),
-    {error, einval} = alcove:filter(Drv, [Task1], [NR + 1]),
-    {error, einval} = alcove:filter(Drv, [Task1], [16#fffffffe]),
-
     Calls = alcove:filter([fork, clone, getpid]),
-    3 = length(Calls),
     Calls = alcove:filter({deny, [fork, clone, getpid]}),
 
     Allowed = alcove:filter({allow, [fork, clone, getpid]}),
-    Sorted = lists:sort(Calls),
-    Sorted = lists:sort([alcove_proto:call(N) || N <- alcove_proto:calls()] -- Allowed),
+    Allowed = alcove:filter({deny, alcove_proto:calls() -- [fork, clone, getpid]}),
 
     ok.
 
@@ -1453,6 +1446,28 @@ filter1(Config) ->
 
     ok = alcove:filter(Drv, [Task1], Calls2),
     {'EXIT', {undef, _}} = (catch alcove:getcwd(Drv, [Task1])),
+
+    ok.
+
+filter_nil(Config) ->
+    Drv = ?config(drv, Config),
+
+    Calls = alcove:filter({allow, [fork, filter, clone, getpid]}),
+    Calls1 = alcove:filter({allow, [getcwd]}),
+
+    ok = alcove:filter(Drv, [], Calls, []),
+
+    {ok, Task1} = alcove:fork(Drv, []),
+
+    {ok, _} = alcove:getcwd(Drv, [Task1]),
+    _ = alcove:getpid(Drv, [Task1]),
+
+    ok = alcove:filter(Drv, [], [], Calls1),
+
+    {ok, Task2} = alcove:fork(Drv, []),
+
+    {ok, _} = alcove:getcwd(Drv, [Task2]),
+    {'EXIT', {undef, _}} = (catch alcove:getpid(Drv, [Task2])),
 
     ok.
 
