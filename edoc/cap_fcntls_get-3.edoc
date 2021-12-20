@@ -1,6 +1,8 @@
 @doc cap_fcntls_get(2): get allowed fcntl commands in capability mode
 
-FreeBSD only
+== Support ==
+
+* FreeBSD
 
 == Examples ==
 

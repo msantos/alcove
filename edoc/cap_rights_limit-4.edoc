@@ -1,6 +1,8 @@
 @doc cap_rights_limit(2): manage process capabilities
 
-FreeBSD only.
+== Support ==
+
+* FreeBSD
 
 == Examples ==
 

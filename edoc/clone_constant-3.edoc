@@ -1,6 +1,8 @@
 @doc Map clone(2) symbols to integer constants
 
-Linux only.
+== Support ==
+
+* Linux
 
 == Examples ==
 

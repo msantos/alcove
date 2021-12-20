@@ -1,6 +1,8 @@
 @doc cap_ioctls_limit(2): manage allowed ioctl commands
 
-FreeBSD only.
+== Support ==
+
+* FreeBSD
 
 == Examples ==
 

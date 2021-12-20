@@ -1,6 +1,8 @@
 @doc cap_getmode(2): check if capability mode is enabled
 
-FreeBSD only.
+== Support ==
+
+* FreeBSD
 
 == Examples ==
 

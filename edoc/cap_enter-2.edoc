@@ -1,6 +1,8 @@
 @doc cap_enter(2): place process into capability mode
 
-FreeBSD only.
+== Support ==
+
+* FreeBSD
 
 == Examples ==
 

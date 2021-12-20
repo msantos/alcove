@@ -1,9 +1,16 @@
 @doc Convert flag names to integers
 
-The lower case atoms are used for portability:
+Names are derived from the C macro name with the underscore prefix
+removed.  For example, `rdonly' is mapped to MS_RDONLY on Linux and
+MNT_RDONLY on FreeBSD.
+
+== Examples ==
 
 ```
-alcove:mount_constant(Drv, [], rdonly)
+1> {ok, Drv} = alcove_drv:start().
+{ok,<0.177.0>}
+2> alcove:mount_constant(Drv, [], rdonly).
+1
+3> alcove:mount_constant(Drv, [], 'RDONLY').
+1
 '''
-
-`rdonly' is mapped to MS_RDONLY on Linux and MNT_RDONLY on FreeBSD.

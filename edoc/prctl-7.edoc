@@ -1,7 +1,5 @@
 @doc prctl(2): operations on a process
 
-Linux only.
-
 This function can be used to set BPF syscall filters on processes
 (seccomp mode).
 
@@ -25,7 +23,13 @@ an argument. List elements are used to contiguously populate a buffer
 
    On return, the contents of the memory is returned to the caller.
 
-For example, to enforce a seccomp filter:
+== Support ==
+
+* Linux
+
+== Examples ==
+
+To enforce a seccomp filter:
 
 ```
 % NOTE: this filter will cause the port to receive a SIGSYS

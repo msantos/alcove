@@ -596,9 +596,9 @@
 -spec getresuid(alcove_drv:ref(), [pid_t()], timeout()) ->
     {'ok', Real :: uid_t(), Effective :: uid_t(), Saved :: uid_t()} | {'error', posix()}.
 
--spec getrlimit(alcove_drv:ref(), [pid_t()], constant()) ->
+-spec getrlimit(alcove_drv:ref(), [pid_t()], Resource :: constant()) ->
     {'ok', alcove_rlimit()} | {'error', posix()}.
--spec getrlimit(alcove_drv:ref(), [pid_t()], constant(), timeout()) ->
+-spec getrlimit(alcove_drv:ref(), [pid_t()], Resource :: constant(), timeout()) ->
     {'ok', alcove_rlimit()} | {'error', posix()}.
 
 -spec getsid(alcove_drv:ref(), [pid_t()], OSPid :: pid_t()) -> {'ok', pid_t()} | {'error', posix()}.
@@ -1326,16 +1326,18 @@ filter_encode(Filter) ->
 % specifies the subprocess should use the same filter as the parent:
 %
 % ```
-% 1> {ok, Drv} = alcove_drv:start().
+% 1> catch_exception(true).
+% false
+% 2> {ok, Drv} = alcove_drv:start().
 % {ok,<0.179.0>}
-% 2> {ok, Pid} = alcove:fork(Drv, []).
+% 3> {ok, Pid} = alcove:fork(Drv, []).
 % {ok,16464}
-% 3> Filter = alcove:filter([fork]).
+% 4> Filter = alcove:filter([fork]).
 % <<0,0,0,16>>
 % % equivalent to: alcove:filter(Drv, [], Filter, Filter)
-% 4> alcove:filter(Drv, [], Filter).
+% 5> alcove:filter(Drv, [], Filter).
 % ok
-% 5> alcove:fork(Drv, [Pid]).
+% 6> alcove:fork(Drv, [Pid]).
 % * exception error: undefined function alcove:fork/2
 % '''
 
@@ -1361,6 +1363,17 @@ filter(Drv, Pids, Calls) ->
 % * signaloneof
 %
 %   Signal sent to child process on shutdown.
+%
+% == Examples ==
+%
+% ```
+% 1> {ok, Drv} = alcove_drv:start().
+% {ok,<0.177.0>}
+% 2> {ok, Pid} = alcove:fork(Drv, []).
+% {ok,3925}
+% 3> alcove:getcpid(Drv, [], Pid, flowcontrol).
+% -1
+% '''
 -spec getcpid(alcove_drv:ref(), [pid_t()], pid_t(), alcove_pid_field()) -> 'false' | int32_t().
 getcpid(Drv, Pids, Pid, Key) ->
     N = indexof(Key, record_info(fields, alcove_pid)),
@@ -1469,7 +1482,9 @@ alloc(Drv, Pids, Arg1, Timeout) ->
 
 % @doc Convert capsicum constants to integer
 %
-% FreeBSD only.
+% == Support ==
+%
+% * FreeBSD
 %
 % == Examples ==
 %
@@ -1494,7 +1509,9 @@ cap_constant(Drv, Pids, Arg1) ->
 
 % @doc Convert capsicum constants to integer
 %
-% FreeBSD only.
+% == Support ==
+%
+% * FreeBSD
 %
 % == Examples ==
 %
@@ -1519,7 +1536,9 @@ cap_constant(Drv, Pids, Arg1, Timeout) ->
 
 % @doc cap_enter(2): place process into capability mode
 %
-% FreeBSD only.
+% == Support ==
+%
+% * FreeBSD
 %
 % == Examples ==
 %
@@ -1550,7 +1569,9 @@ cap_enter(Drv, Pids) ->
 
 % @doc cap_enter(2): place process into capability mode
 %
-% FreeBSD only.
+% == Support ==
+%
+% * FreeBSD
 %
 % == Examples ==
 %
@@ -1581,7 +1602,9 @@ cap_enter(Drv, Pids, Timeout) ->
 
 % @doc cap_fcntls_get(2): get allowed fcntl commands in capability mode
 %
-% FreeBSD only
+% == Support ==
+%
+% * FreeBSD
 %
 % == Examples ==
 %
@@ -1612,7 +1635,9 @@ cap_fcntls_get(Drv, Pids, Arg1) ->
 
 % @doc cap_fcntls_get(2): get allowed fcntl commands in capability mode
 %
-% FreeBSD only
+% == Support ==
+%
+% * FreeBSD
 %
 % == Examples ==
 %
@@ -1643,7 +1668,9 @@ cap_fcntls_get(Drv, Pids, Arg1, Timeout) ->
 
 % @doc cap_fcntls_limit(2): manage fcntl commands in capability mode
 %
-% FreeBSD only.
+% == Support ==
+%
+% * FreeBSD
 %
 % == Examples ==
 %
@@ -1678,7 +1705,9 @@ cap_fcntls_limit(Drv, Pids, Arg1, Arg2) ->
 
 % @doc cap_fcntls_limit(2): manage fcntl commands in capability mode
 %
-% FreeBSD only.
+% == Support ==
+%
+% * FreeBSD
 %
 % == Examples ==
 %
@@ -1713,7 +1742,9 @@ cap_fcntls_limit(Drv, Pids, Arg1, Arg2, Timeout) ->
 
 % @doc cap_getmode(2): check if capability mode is enabled
 %
-% FreeBSD only.
+% == Support ==
+%
+% * FreeBSD
 %
 % == Examples ==
 %
@@ -1744,7 +1775,9 @@ cap_getmode(Drv, Pids) ->
 
 % @doc cap_getmode(2): check if capability mode is enabled
 %
-% FreeBSD only.
+% == Support ==
+%
+% * FreeBSD
 %
 % == Examples ==
 %
@@ -1775,7 +1808,9 @@ cap_getmode(Drv, Pids, Timeout) ->
 
 % @doc cap_ioctls_limit(2): manage allowed ioctl commands
 %
-% FreeBSD only.
+% == Support ==
+%
+% * FreeBSD
 %
 % == Examples ==
 %
@@ -1810,7 +1845,9 @@ cap_ioctls_limit(Drv, Pids, Arg1, Arg2) ->
 
 % @doc cap_ioctls_limit(2): manage allowed ioctl commands
 %
-% FreeBSD only.
+% == Support ==
+%
+% * FreeBSD
 %
 % == Examples ==
 %
@@ -1845,7 +1882,9 @@ cap_ioctls_limit(Drv, Pids, Arg1, Arg2, Timeout) ->
 
 % @doc cap_rights_limit(2): manage process capabilities
 %
-% FreeBSD only.
+% == Support ==
+%
+% * FreeBSD
 %
 % == Examples ==
 %
@@ -1882,7 +1921,9 @@ cap_rights_limit(Drv, Pids, Arg1, Arg2) ->
 
 % @doc cap_rights_limit(2): manage process capabilities
 %
-% FreeBSD only.
+% == Support ==
+%
+% * FreeBSD
 %
 % == Examples ==
 %
@@ -2182,7 +2223,9 @@ clearenv(Drv, Pids, Timeout) ->
 
 % @doc clone(2): create a new process
 %
-% Linux only.
+% == Support ==
+%
+% * Linux
 %
 % == Examples ==
 %
@@ -2191,7 +2234,7 @@ clearenv(Drv, Pids, Timeout) ->
 % {ok,<0.176.0>}
 % 2> {ok, Pid} = alcove:clone(Drv, [], [clone_newns, clone_newpid, clone_newipc, clone_newuts, clone_newnet]).
 % {ok,19127}
-% 11> alcove:getpid(Drv, [Pid]).
+% 3> alcove:getpid(Drv, [Pid]).
 % 1
 % '''
 
@@ -2205,7 +2248,9 @@ clone(Drv, Pids, Arg1) ->
 
 % @doc clone(2): create a new process
 %
-% Linux only.
+% == Support ==
+%
+% * Linux
 %
 % == Examples ==
 %
@@ -2214,7 +2259,7 @@ clone(Drv, Pids, Arg1) ->
 % {ok,<0.176.0>}
 % 2> {ok, Pid} = alcove:clone(Drv, [], [clone_newns, clone_newpid, clone_newipc, clone_newuts, clone_newnet]).
 % {ok,19127}
-% 11> alcove:getpid(Drv, [Pid]).
+% 3> alcove:getpid(Drv, [Pid]).
 % 1
 % '''
 
@@ -2228,7 +2273,9 @@ clone(Drv, Pids, Arg1, Timeout) ->
 
 % @doc Map clone(2) symbols to integer constants
 %
-% Linux only.
+% == Support ==
+%
+% * Linux
 %
 % == Examples ==
 %
@@ -2255,7 +2302,9 @@ clone_constant(Drv, Pids, Arg1) ->
 
 % @doc Map clone(2) symbols to integer constants
 %
-% Linux only.
+% == Support ==
+%
+% * Linux
 %
 % == Examples ==
 %
@@ -2943,13 +2992,19 @@ fcntl_constant(Drv, Pids, Arg1, Timeout) ->
 % ok = alcove:fexecve(Drv, [Pid], FD, ["ls", "-al"], ["FOO=123"]).
 % '''
 %
-% Linux and FreeBSD only. Linux requires an environment to be set unlike
-% with execve(2). The environment can be empty:
+% Linux requires an environment to be set unlike with execve(2). The
+% environment can be empty:
 %
 % ```
 % % Environment required on Linux
 % ok = alcove:fexecve(Drv, [Pid], FD, ["ls", "-al"], [""]).
 % '''
+%
+% == Support ==
+%
+% * Linux
+%
+% * FreeBSD
 %
 % == Examples ==
 %
@@ -2992,13 +3047,19 @@ fexecve(Drv, Pids, Arg1, Arg2, Arg3) ->
 % ok = alcove:fexecve(Drv, [Pid], FD, ["ls", "-al"], ["FOO=123"]).
 % '''
 %
-% Linux and FreeBSD only. Linux requires an environment to be set unlike
-% with execve(2). The environment can be empty:
+% Linux requires an environment to be set unlike with execve(2). The
+% environment can be empty:
 %
 % ```
 % % Environment required on Linux
 % ok = alcove:fexecve(Drv, [Pid], FD, ["ls", "-al"], [""]).
 % '''
+%
+% == Support ==
+%
+% * Linux
+%
+% * FreeBSD
 %
 % == Examples ==
 %
@@ -3165,6 +3226,17 @@ filter(Drv, Pids, Arg1, Arg2, Timeout) ->
     end.
 
 % @doc fork(2): create a new process
+%
+% == Examples ==
+%
+% ```
+% 1> {ok, Drv} = alcove_drv:start().
+% {ok,<0.189.0>}
+% 2> {ok, Pid} = alcove:fork(Drv, []).
+% {ok,18721}
+% 3> alcove:getpid(Drv, [Pid]).
+% 18721
+% '''
 
 fork(Drv, Pids) ->
     case alcove_drv:call(Drv, Pids, fork, [], infinity) of
@@ -3174,6 +3246,17 @@ fork(Drv, Pids) ->
     end.
 
 % @doc fork(2): create a new process
+%
+% == Examples ==
+%
+% ```
+% 1> {ok, Drv} = alcove_drv:start().
+% {ok,<0.189.0>}
+% 2> {ok, Pid} = alcove:fork(Drv, []).
+% {ok,18721}
+% 3> alcove:getpid(Drv, [Pid]).
+% 18721
+% '''
 
 fork(Drv, Pids, Timeout) ->
     case alcove_drv:call(Drv, Pids, fork, [], Timeout) of
@@ -3183,6 +3266,19 @@ fork(Drv, Pids, Timeout) ->
     end.
 
 % @doc getcwd(3): return the current working directory
+%
+% == Examples ==
+%
+% ```
+% 1> {ok, Drv} = alcove_drv:start().
+% {ok,<0.177.0>}
+% 2> {ok, Pid} = alcove:fork(Drv, []).
+% {ok,3925}
+% 3> alcove:chdir(Drv, [Pid], "/").
+% ok
+% 4> alcove:getcwd(Drv, [Pid]).
+% {ok,<<"/">>}
+% '''
 
 getcwd(Drv, Pids) ->
     case alcove_drv:call(Drv, Pids, getcwd, [], infinity) of
@@ -3192,6 +3288,19 @@ getcwd(Drv, Pids) ->
     end.
 
 % @doc getcwd(3): return the current working directory
+%
+% == Examples ==
+%
+% ```
+% 1> {ok, Drv} = alcove_drv:start().
+% {ok,<0.177.0>}
+% 2> {ok, Pid} = alcove:fork(Drv, []).
+% {ok,3925}
+% 3> alcove:chdir(Drv, [Pid], "/").
+% ok
+% 4> alcove:getcwd(Drv, [Pid]).
+% {ok,<<"/">>}
+% '''
 
 getcwd(Drv, Pids, Timeout) ->
     case alcove_drv:call(Drv, Pids, getcwd, [], Timeout) of
@@ -3201,6 +3310,15 @@ getcwd(Drv, Pids, Timeout) ->
     end.
 
 % @doc getenv(3): retrieve an environment variable
+%
+% == Examples ==
+%
+% ```
+% 1> {ok, Drv} = alcove_drv:start().
+% {ok,<0.177.0>}
+% 2> alcove:getenv(Drv, [], "TERM").
+% <<"screen">>
+% '''
 
 getenv(Drv, Pids, Arg1) ->
     case alcove_drv:call(Drv,
@@ -3215,6 +3333,15 @@ getenv(Drv, Pids, Arg1) ->
     end.
 
 % @doc getenv(3): retrieve an environment variable
+%
+% == Examples ==
+%
+% ```
+% 1> {ok, Drv} = alcove_drv:start().
+% {ok,<0.177.0>}
+% 2> alcove:getenv(Drv, [], "TERM").
+% <<"screen">>
+% '''
 
 getenv(Drv, Pids, Arg1, Timeout) ->
     case alcove_drv:call(Drv, Pids, getenv, [Arg1], Timeout)
@@ -3225,6 +3352,15 @@ getenv(Drv, Pids, Arg1, Timeout) ->
     end.
 
 % @doc getgid(2): retrieve the process group ID
+%
+% == EXAMPLES ==
+%
+% ```
+% 1> {ok, Drv} = alcove_drv:start().
+% {ok,<0.177.0>}
+% 2> alcove:getgid(Drv, []).
+% 1000
+% '''
 
 getgid(Drv, Pids) ->
     case alcove_drv:call(Drv, Pids, getgid, [], infinity) of
@@ -3234,6 +3370,15 @@ getgid(Drv, Pids) ->
     end.
 
 % @doc getgid(2): retrieve the process group ID
+%
+% == EXAMPLES ==
+%
+% ```
+% 1> {ok, Drv} = alcove_drv:start().
+% {ok,<0.177.0>}
+% 2> alcove:getgid(Drv, []).
+% 1000
+% '''
 
 getgid(Drv, Pids, Timeout) ->
     case alcove_drv:call(Drv, Pids, getgid, [], Timeout) of
@@ -3243,6 +3388,15 @@ getgid(Drv, Pids, Timeout) ->
     end.
 
 % @doc getgroups(2): retrieve the list of supplementary groups
+%
+% == Examples ==
+%
+% ```
+% 1> {ok, Drv} = alcove_drv:start().
+% {ok,<0.177.0>}
+% 2> alcove:getgroups(Drv, []).
+% {ok,[24,20,1000]}
+% '''
 
 getgroups(Drv, Pids) ->
     case alcove_drv:call(Drv, Pids, getgroups, [], infinity)
@@ -3253,6 +3407,15 @@ getgroups(Drv, Pids) ->
     end.
 
 % @doc getgroups(2): retrieve the list of supplementary groups
+%
+% == Examples ==
+%
+% ```
+% 1> {ok, Drv} = alcove_drv:start().
+% {ok,<0.177.0>}
+% 2> alcove:getgroups(Drv, []).
+% {ok,[24,20,1000]}
+% '''
 
 getgroups(Drv, Pids, Timeout) ->
     case alcove_drv:call(Drv, Pids, getgroups, [], Timeout)
@@ -3263,6 +3426,15 @@ getgroups(Drv, Pids, Timeout) ->
     end.
 
 % @doc gethostname(2): retrieve the system hostname
+%
+% == Examples ==
+%
+% ```
+% 1> {ok, Drv} = alcove_drv:start().
+% {ok,<0.177.0>}
+% 2> alcove:gethostname(Drv, []).
+% {ok,<<"host1">>}
+% '''
 
 gethostname(Drv, Pids) ->
     case alcove_drv:call(Drv,
@@ -3277,6 +3449,15 @@ gethostname(Drv, Pids) ->
     end.
 
 % @doc gethostname(2): retrieve the system hostname
+%
+% == Examples ==
+%
+% ```
+% 1> {ok, Drv} = alcove_drv:start().
+% {ok,<0.177.0>}
+% 2> alcove:gethostname(Drv, []).
+% {ok,<<"host1">>}
+% '''
 
 gethostname(Drv, Pids, Timeout) ->
     case alcove_drv:call(Drv,
@@ -3330,6 +3511,15 @@ gethostname(Drv, Pids, Timeout) ->
 %   control process is closed).
 %
 %   See setcpid/5.
+%
+% == Examples ==
+%
+% ```
+% 1> {ok, Drv} = alcove_drv:start().
+% {ok,<0.177.0>}
+% 2> alcove:getopt(Drv, [], maxforkdepth).
+% 16
+% '''
 
 getopt(Drv, Pids, Arg1) ->
     case alcove_drv:call(Drv,
@@ -3383,6 +3573,15 @@ getopt(Drv, Pids, Arg1) ->
 %   control process is closed).
 %
 %   See setcpid/5.
+%
+% == Examples ==
+%
+% ```
+% 1> {ok, Drv} = alcove_drv:start().
+% {ok,<0.177.0>}
+% 2> alcove:getopt(Drv, [], maxforkdepth).
+% 16
+% '''
 
 getopt(Drv, Pids, Arg1, Timeout) ->
     case alcove_drv:call(Drv, Pids, getopt, [Arg1], Timeout)
@@ -3393,6 +3592,15 @@ getopt(Drv, Pids, Arg1, Timeout) ->
     end.
 
 % @doc getpgrp(2): retrieve the process group
+%
+% == Examples ==
+%
+% ```
+% 1> {ok, Drv} = alcove_drv:start().
+% {ok,<0.177.0>}
+% 2> alcove:getpgrp(Drv, []).
+% 3924
+% '''
 
 getpgrp(Drv, Pids) ->
     case alcove_drv:call(Drv, Pids, getpgrp, [], infinity)
@@ -3403,6 +3611,15 @@ getpgrp(Drv, Pids) ->
     end.
 
 % @doc getpgrp(2): retrieve the process group
+%
+% == Examples ==
+%
+% ```
+% 1> {ok, Drv} = alcove_drv:start().
+% {ok,<0.177.0>}
+% 2> alcove:getpgrp(Drv, []).
+% 3924
+% '''
 
 getpgrp(Drv, Pids, Timeout) ->
     case alcove_drv:call(Drv, Pids, getpgrp, [], Timeout) of
@@ -3412,6 +3629,15 @@ getpgrp(Drv, Pids, Timeout) ->
     end.
 
 % @doc getpid(2): retrieve the system PID of the process
+%
+% == Examples ==
+%
+% ```
+% 1> {ok, Drv} = alcove_drv:start().
+% {ok,<0.177.0>}
+% 2> alcove:getpid(Drv, []).
+% 3924
+% '''
 
 getpid(Drv, Pids) ->
     case alcove_drv:call(Drv, Pids, getpid, [], infinity) of
@@ -3421,6 +3647,15 @@ getpid(Drv, Pids) ->
     end.
 
 % @doc getpid(2): retrieve the system PID of the process
+%
+% == Examples ==
+%
+% ```
+% 1> {ok, Drv} = alcove_drv:start().
+% {ok,<0.177.0>}
+% 2> alcove:getpid(Drv, []).
+% 3924
+% '''
 
 getpid(Drv, Pids, Timeout) ->
     case alcove_drv:call(Drv, Pids, getpid, [], Timeout) of
@@ -3430,6 +3665,15 @@ getpid(Drv, Pids, Timeout) ->
     end.
 
 % @doc getpriority(2): retrieve scheduling priority of process, process group or user
+%
+% == Examples ==
+%
+% ```
+% 1> {ok, Drv} = alcove_drv:start().
+% {ok,<0.177.0>}
+% 2> alcove:getpriority(Drv, [], prio_process, 0).
+% {ok,0}
+% '''
 
 getpriority(Drv, Pids, Arg1, Arg2) ->
     case alcove_drv:call(Drv,
@@ -3444,6 +3688,15 @@ getpriority(Drv, Pids, Arg1, Arg2) ->
     end.
 
 % @doc getpriority(2): retrieve scheduling priority of process, process group or user
+%
+% == Examples ==
+%
+% ```
+% 1> {ok, Drv} = alcove_drv:start().
+% {ok,<0.177.0>}
+% 2> alcove:getpriority(Drv, [], prio_process, 0).
+% {ok,0}
+% '''
 
 getpriority(Drv, Pids, Arg1, Arg2, Timeout) ->
     case alcove_drv:call(Drv,
@@ -3459,7 +3712,22 @@ getpriority(Drv, Pids, Arg1, Arg2, Timeout) ->
 
 % @doc getresgid(2): get real, effective and saved group ID
 %
-% Supported on Linux and BSDs.
+% == Support ==
+%
+% * Linux
+%
+% * OpenBSD
+%
+% * FreeBSD
+%
+% == Examples ==
+%
+% ```
+% 1> {ok, Drv} = alcove_drv:start().
+% {ok,<0.177.0>}
+% 2> alcove:getresgid(Drv, []).
+% {ok,1000,1000,1000}
+% '''
 
 getresgid(Drv, Pids) ->
     case alcove_drv:call(Drv, Pids, getresgid, [], infinity)
@@ -3471,7 +3739,22 @@ getresgid(Drv, Pids) ->
 
 % @doc getresgid(2): get real, effective and saved group ID
 %
-% Supported on Linux and BSDs.
+% == Support ==
+%
+% * Linux
+%
+% * OpenBSD
+%
+% * FreeBSD
+%
+% == Examples ==
+%
+% ```
+% 1> {ok, Drv} = alcove_drv:start().
+% {ok,<0.177.0>}
+% 2> alcove:getresgid(Drv, []).
+% {ok,1000,1000,1000}
+% '''
 
 getresgid(Drv, Pids, Timeout) ->
     case alcove_drv:call(Drv, Pids, getresgid, [], Timeout)
@@ -3483,7 +3766,22 @@ getresgid(Drv, Pids, Timeout) ->
 
 % @doc getresuid(2): get real, effective and saved user ID
 %
-% Supported on Linux and BSDs.
+% == Support ==
+%
+% * Linux
+%
+% * OpenBSD
+%
+% * FreeBSD
+%
+% == Examples ==
+%
+% ```
+% 1> {ok, Drv} = alcove_drv:start().
+% {ok,<0.177.0>}
+% 2> alcove:getresuid(Drv, []).
+% {ok,1000,1000,1000}
+% '''
 
 getresuid(Drv, Pids) ->
     case alcove_drv:call(Drv, Pids, getresuid, [], infinity)
@@ -3495,7 +3793,22 @@ getresuid(Drv, Pids) ->
 
 % @doc getresuid(2): get real, effective and saved user ID
 %
-% Supported on Linux and BSDs.
+% == Support ==
+%
+% * Linux
+%
+% * OpenBSD
+%
+% * FreeBSD
+%
+% == Examples ==
+%
+% ```
+% 1> {ok, Drv} = alcove_drv:start().
+% {ok,<0.177.0>}
+% 2> alcove:getresuid(Drv, []).
+% {ok,1000,1000,1000}
+% '''
 
 getresuid(Drv, Pids, Timeout) ->
     case alcove_drv:call(Drv, Pids, getresuid, [], Timeout)
@@ -3516,6 +3829,17 @@ getresuid(Drv, Pids, Timeout) ->
 %     cur = integer(),
 %     max = integer()
 %     }
+% '''
+%
+% == Examples ==
+%
+% ```
+% 1> {ok, Drv} = alcove_drv:start().
+% {ok,<0.177.0>}
+% 2> rr(alcove).
+% [alcove_jail,alcove_pid,alcove_rlimit,alcove_timeval]
+% 3> alcove:getrlimit(Drv, [], rlimit_nofile).
+% {ok,#alcove_rlimit{cur = 1024,max = 1048576}}
 % '''
 
 getrlimit(Drv, Pids, Arg1) ->
@@ -3542,6 +3866,17 @@ getrlimit(Drv, Pids, Arg1) ->
 %     max = integer()
 %     }
 % '''
+%
+% == Examples ==
+%
+% ```
+% 1> {ok, Drv} = alcove_drv:start().
+% {ok,<0.177.0>}
+% 2> rr(alcove).
+% [alcove_jail,alcove_pid,alcove_rlimit,alcove_timeval]
+% 3> alcove:getrlimit(Drv, [], rlimit_nofile).
+% {ok,#alcove_rlimit{cur = 1024,max = 1048576}}
+% '''
 
 getrlimit(Drv, Pids, Arg1, Timeout) ->
     case alcove_drv:call(Drv,
@@ -3556,6 +3891,15 @@ getrlimit(Drv, Pids, Arg1, Timeout) ->
     end.
 
 % @doc getsid(2): retrieve the session ID
+%
+% == Examples ==
+%
+% ```
+% 1> {ok, Drv} = alcove_drv:start().
+% {ok,<0.177.0>}
+% 2> alcove:getsid(Drv, [], 0).
+% {ok,3924}
+% '''
 
 getsid(Drv, Pids, Arg1) ->
     case alcove_drv:call(Drv,
@@ -3570,6 +3914,15 @@ getsid(Drv, Pids, Arg1) ->
     end.
 
 % @doc getsid(2): retrieve the session ID
+%
+% == Examples ==
+%
+% ```
+% 1> {ok, Drv} = alcove_drv:start().
+% {ok,<0.177.0>}
+% 2> alcove:getsid(Drv, [], 0).
+% {ok,3924}
+% '''
 
 getsid(Drv, Pids, Arg1, Timeout) ->
     case alcove_drv:call(Drv, Pids, getsid, [Arg1], Timeout)
@@ -3580,6 +3933,15 @@ getsid(Drv, Pids, Arg1, Timeout) ->
     end.
 
 % @doc getuid(2): returns the process user ID
+%
+% == Examples ==
+%
+% ```
+% 1> {ok, Drv} = alcove_drv:start().
+% {ok,<0.177.0>}
+% 2> alcove:getuid(Drv, []).
+% 1000
+% '''
 
 getuid(Drv, Pids) ->
     case alcove_drv:call(Drv, Pids, getuid, [], infinity) of
@@ -3589,6 +3951,15 @@ getuid(Drv, Pids) ->
     end.
 
 % @doc getuid(2): returns the process user ID
+%
+% == Examples ==
+%
+% ```
+% 1> {ok, Drv} = alcove_drv:start().
+% {ok,<0.177.0>}
+% 2> alcove:getuid(Drv, []).
+% 1000
+% '''
 
 getuid(Drv, Pids, Timeout) ->
     case alcove_drv:call(Drv, Pids, getuid, [], Timeout) of
@@ -3618,19 +3989,27 @@ getuid(Drv, Pids, Timeout) ->
 %
 % * integer/binary: an empty binary
 %
+% == Examples ==
+%
 % An example of creating a tap device in a net namespace on Linux:
 %
 % ```
-% {ok, Pid} = alcove:clone(Drv, [], [clone_newnet]),
-% {ok, FD} = alcove:open(Drv, [Pid], "/dev/net/tun", [o_rdwr], 0),
-% TUNSETIFF = alcove_ioctl:iow($T, 202, 4),
-% {ok, _, <<"tap", N, _/binary>>} = alcove:ioctl(Drv, [Pid], FD,
-%     TUNSETIFF, <<
-%     0:(16*8), % generate a tuntap device name
-%     (16#0002 bor 16#1000):2/native-unsigned-integer-unit:8, % IFF_TAP, IFF_NO_PI
-%     0:(14*8)
-%     >>),
-% {ok, <<"tap", N>>}.
+% 1> {ok, Drv} = alcove_drv:start([{exec, "sudo -n"}]).
+% {ok,<0.177.0>}
+% 2> {ok, Pid} = alcove:clone(Drv, [], [clone_newnet]).
+% {ok,8288}
+% 3> {ok, FD} = alcove:open(Drv, [Pid], "/dev/net/tun", [o_rdwr], 0).
+% {ok,6}
+% 4> {ok, 0, <<"tap", _/binary>>} = alcove:ioctl(Drv, [Pid], FD, tunsetiff, <<
+% 4>                 % generate a tuntap device name
+% 4>                 0:(16 * 8),
+% 4>                 % IFF_TAP, IFF_NO_PI
+% 4>                 (16#0002 bor 16#1000):2/native-unsigned-integer-unit:8,
+% 4>                 0:(14 * 8)
+% 4>             >>).
+% {ok,0,
+%     <<116,97,112,48,0,0,0,0,0,0,0,0,0,0,0,0,2,16,0,0,0,0,0,0,
+%       0,0,...>>}
 % '''
 
 ioctl(Drv, Pids, Arg1, Arg2, Arg3) ->
@@ -3666,19 +4045,27 @@ ioctl(Drv, Pids, Arg1, Arg2, Arg3) ->
 %
 % * integer/binary: an empty binary
 %
+% == Examples ==
+%
 % An example of creating a tap device in a net namespace on Linux:
 %
 % ```
-% {ok, Pid} = alcove:clone(Drv, [], [clone_newnet]),
-% {ok, FD} = alcove:open(Drv, [Pid], "/dev/net/tun", [o_rdwr], 0),
-% TUNSETIFF = alcove_ioctl:iow($T, 202, 4),
-% {ok, _, <<"tap", N, _/binary>>} = alcove:ioctl(Drv, [Pid], FD,
-%     TUNSETIFF, <<
-%     0:(16*8), % generate a tuntap device name
-%     (16#0002 bor 16#1000):2/native-unsigned-integer-unit:8, % IFF_TAP, IFF_NO_PI
-%     0:(14*8)
-%     >>),
-% {ok, <<"tap", N>>}.
+% 1> {ok, Drv} = alcove_drv:start([{exec, "sudo -n"}]).
+% {ok,<0.177.0>}
+% 2> {ok, Pid} = alcove:clone(Drv, [], [clone_newnet]).
+% {ok,8288}
+% 3> {ok, FD} = alcove:open(Drv, [Pid], "/dev/net/tun", [o_rdwr], 0).
+% {ok,6}
+% 4> {ok, 0, <<"tap", _/binary>>} = alcove:ioctl(Drv, [Pid], FD, tunsetiff, <<
+% 4>                 % generate a tuntap device name
+% 4>                 0:(16 * 8),
+% 4>                 % IFF_TAP, IFF_NO_PI
+% 4>                 (16#0002 bor 16#1000):2/native-unsigned-integer-unit:8,
+% 4>                 0:(14 * 8)
+% 4>             >>).
+% {ok,0,
+%     <<116,97,112,48,0,0,0,0,0,0,0,0,0,0,0,0,2,16,0,0,0,0,0,0,
+%       0,0,...>>}
 % '''
 
 ioctl(Drv, Pids, Arg1, Arg2, Arg3, Timeout) ->
@@ -3695,6 +4082,17 @@ ioctl(Drv, Pids, Arg1, Arg2, Arg3, Timeout) ->
     end.
 
 % @doc Convert ioctl constant to integer
+%
+% == Examples ==
+%
+% ```
+% 1> {ok, Drv} = alcove_drv:start().
+% {ok,<0.177.0>}
+% 2> alcove:ioctl_constant(Drv, [], siocgifaddr).
+% 35093
+% 3> alcove:ioctl_constant(Drv, [], 'SIOCGIFADDR').
+% 35093
+% '''
 
 ioctl_constant(Drv, Pids, Arg1) ->
     case alcove_drv:call(Drv,
@@ -3709,6 +4107,17 @@ ioctl_constant(Drv, Pids, Arg1) ->
     end.
 
 % @doc Convert ioctl constant to integer
+%
+% == Examples ==
+%
+% ```
+% 1> {ok, Drv} = alcove_drv:start().
+% {ok,<0.177.0>}
+% 2> alcove:ioctl_constant(Drv, [], siocgifaddr).
+% 35093
+% 3> alcove:ioctl_constant(Drv, [], 'SIOCGIFADDR').
+% 35093
+% '''
 
 ioctl_constant(Drv, Pids, Arg1, Timeout) ->
     case alcove_drv:call(Drv,
@@ -3725,6 +4134,15 @@ ioctl_constant(Drv, Pids, Arg1, Timeout) ->
 % @doc Convert iolist to binary
 %
 % Test conversion of iolists to binary in a control process.
+%
+% == Examples ==
+%
+% ```
+% 1> {ok, Drv} = alcove_drv:start().
+% {ok,<0.177.0>}
+% 2> alcove:iolist_to_bin(Drv, [], ["foo", [<<"1">>, <<"2">>, [<<"3">>], ["bar"]]]).
+% <<"foo123bar">>
+% '''
 
 iolist_to_bin(Drv, Pids, Arg1) ->
     case alcove_drv:call(Drv,
@@ -3741,6 +4159,15 @@ iolist_to_bin(Drv, Pids, Arg1) ->
 % @doc Convert iolist to binary
 %
 % Test conversion of iolists to binary in a control process.
+%
+% == Examples ==
+%
+% ```
+% 1> {ok, Drv} = alcove_drv:start().
+% {ok,<0.177.0>}
+% 2> alcove:iolist_to_bin(Drv, [], ["foo", [<<"1">>, <<"2">>, [<<"3">>], ["bar"]]]).
+% <<"foo123bar">>
+% '''
 
 iolist_to_bin(Drv, Pids, Arg1, Timeout) ->
     case alcove_drv:call(Drv,
@@ -3756,7 +4183,11 @@ iolist_to_bin(Drv, Pids, Arg1, Timeout) ->
 
 % @doc jail(2): restrict the current process in a system jail
 %
-% FreeBSD only.
+% == Support ==
+%
+% * FreeBSD
+%
+% == Examples ==
 %
 % An example of a function to generate a version 2 jail struct (FreeBSD
 % 10.2):
@@ -3800,7 +4231,11 @@ jail(Drv, Pids, Arg1) ->
 
 % @doc jail(2): restrict the current process in a system jail
 %
-% FreeBSD only.
+% == Support ==
+%
+% * FreeBSD
+%
+% == Examples ==
 %
 % An example of a function to generate a version 2 jail struct (FreeBSD
 % 10.2):
@@ -3907,6 +4342,28 @@ jail_remove(Drv, Pids, Arg1, Timeout) ->
     end.
 
 % @doc kill(2): terminate a process
+%
+% == Examples ==
+%
+% ```
+% 1> {ok, Drv} = alcove_drv:start().
+% {ok,<0.177.0>}
+% 2> alcove:kill(Drv, [], 0, 0).
+% ok
+% 3> alcove:kill(Drv, [], 12345, 0).
+% {error,esrch}
+% 4> {ok, Pid} = alcove:fork(Drv, []).
+% {ok,8288}
+% 5> alcove:kill(Drv, [], Pid, 0).
+% ok
+% 6> alcove:kill(Drv, [], Pid, sigkill).
+% ok
+% 7> alcove:kill(Drv, [], Pid, 0).
+% {error,esrch}
+% 8> flush().
+% Shell got {alcove_ctl,<0.177.0>,[8288],fdctl_closed}
+% Shell got {alcove_event,<0.177.0>,[8288],{termsig,sigkill}}
+% '''
 
 kill(Drv, Pids, Arg1, Arg2) ->
     case alcove_drv:call(Drv,
@@ -3921,6 +4378,28 @@ kill(Drv, Pids, Arg1, Arg2) ->
     end.
 
 % @doc kill(2): terminate a process
+%
+% == Examples ==
+%
+% ```
+% 1> {ok, Drv} = alcove_drv:start().
+% {ok,<0.177.0>}
+% 2> alcove:kill(Drv, [], 0, 0).
+% ok
+% 3> alcove:kill(Drv, [], 12345, 0).
+% {error,esrch}
+% 4> {ok, Pid} = alcove:fork(Drv, []).
+% {ok,8288}
+% 5> alcove:kill(Drv, [], Pid, 0).
+% ok
+% 6> alcove:kill(Drv, [], Pid, sigkill).
+% ok
+% 7> alcove:kill(Drv, [], Pid, 0).
+% {error,esrch}
+% 8> flush().
+% Shell got {alcove_ctl,<0.177.0>,[8288],fdctl_closed}
+% Shell got {alcove_event,<0.177.0>,[8288],{termsig,sigkill}}
+% '''
 
 kill(Drv, Pids, Arg1, Arg2, Timeout) ->
     case alcove_drv:call(Drv,
@@ -3935,6 +4414,19 @@ kill(Drv, Pids, Arg1, Arg2, Timeout) ->
     end.
 
 % @doc link(2) : create a hard link
+%
+% == Examples ==
+%
+% ```
+% 1> {ok, Drv} = alcove_drv:start().
+% {ok,<0.177.0>}
+% 2> {ok, Pid} = alcove:fork(Drv, []).
+% {ok,18820}
+% 3> {ok, FD} = alcove:open(Drv, [Pid], "/tmp/alcove-link-test.txt", [o_wronly, o_creat], 8#644).
+% {ok,6}
+% 4> alcove:link(Drv, [Pid], "/tmp/alcove-link-test.txt", "/tmp/alcove-link-test.link").
+% ok
+% '''
 
 link(Drv, Pids, Arg1, Arg2) ->
     case alcove_drv:call(Drv,
@@ -3949,6 +4441,19 @@ link(Drv, Pids, Arg1, Arg2) ->
     end.
 
 % @doc link(2) : create a hard link
+%
+% == Examples ==
+%
+% ```
+% 1> {ok, Drv} = alcove_drv:start().
+% {ok,<0.177.0>}
+% 2> {ok, Pid} = alcove:fork(Drv, []).
+% {ok,18820}
+% 3> {ok, FD} = alcove:open(Drv, [Pid], "/tmp/alcove-link-test.txt", [o_wronly, o_creat], 8#644).
+% {ok,6}
+% 4> alcove:link(Drv, [Pid], "/tmp/alcove-link-test.txt", "/tmp/alcove-link-test.link").
+% ok
+% '''
 
 link(Drv, Pids, Arg1, Arg2, Timeout) ->
     case alcove_drv:call(Drv,
@@ -3963,6 +4468,19 @@ link(Drv, Pids, Arg1, Arg2, Timeout) ->
     end.
 
 % @doc lseek(2): set file offset for read/write
+%
+% == Examples ==
+%
+% ```
+% 1> {ok, Drv} = alcove_drv:start().
+% {ok,<0.177.0>}
+% 2> {ok, Pid} = alcove:fork(Drv, []).
+% {ok,18820}
+% 3> {ok, FD} = alcove:open(Drv, [Pid], "/etc/passwd", [o_rdonly], 0).
+% {ok,6}
+% 4> alcove:lseek(Drv, [Pid], FD, 0, 0).
+% ok
+% '''
 
 lseek(Drv, Pids, Arg1, Arg2, Arg3) ->
     case alcove_drv:call(Drv,
@@ -3977,6 +4495,19 @@ lseek(Drv, Pids, Arg1, Arg2, Arg3) ->
     end.
 
 % @doc lseek(2): set file offset for read/write
+%
+% == Examples ==
+%
+% ```
+% 1> {ok, Drv} = alcove_drv:start().
+% {ok,<0.177.0>}
+% 2> {ok, Pid} = alcove:fork(Drv, []).
+% {ok,18820}
+% 3> {ok, FD} = alcove:open(Drv, [Pid], "/etc/passwd", [o_rdonly], 0).
+% {ok,6}
+% 4> alcove:lseek(Drv, [Pid], FD, 0, 0).
+% ok
+% '''
 
 lseek(Drv, Pids, Arg1, Arg2, Arg3, Timeout) ->
     case alcove_drv:call(Drv,
@@ -3992,6 +4523,15 @@ lseek(Drv, Pids, Arg1, Arg2, Arg3, Timeout) ->
     end.
 
 % @doc mkdir(2): create a directory
+%
+% == Examples ==
+%
+% ```
+% 1> {ok, Drv} = alcove_drv:start().
+% {ok,<0.177.0>}
+% 2> alcove:mkdir(Drv, [], "/tmp/alcove-mkdir-test", 8#755).
+% ok
+% '''
 
 mkdir(Drv, Pids, Arg1, Arg2) ->
     case alcove_drv:call(Drv,
@@ -4006,6 +4546,15 @@ mkdir(Drv, Pids, Arg1, Arg2) ->
     end.
 
 % @doc mkdir(2): create a directory
+%
+% == Examples ==
+%
+% ```
+% 1> {ok, Drv} = alcove_drv:start().
+% {ok,<0.177.0>}
+% 2> alcove:mkdir(Drv, [], "/tmp/alcove-mkdir-test", 8#755).
+% ok
+% '''
 
 mkdir(Drv, Pids, Arg1, Arg2, Timeout) ->
     case alcove_drv:call(Drv,
@@ -4020,6 +4569,15 @@ mkdir(Drv, Pids, Arg1, Arg2, Timeout) ->
     end.
 
 % @doc mkfifo(3): make named pipe file
+%
+% == Examples ==
+%
+% ```
+% 1> {ok, Drv} = alcove_drv:start().
+% {ok,<0.177.0>}
+% 2> alcove:mkfifo(Drv, [], "/tmp/alcove-fifo-test", 8#700).
+% ok
+% '''
 
 mkfifo(Drv, Pids, Arg1, Arg2) ->
     case alcove_drv:call(Drv,
@@ -4034,6 +4592,15 @@ mkfifo(Drv, Pids, Arg1, Arg2) ->
     end.
 
 % @doc mkfifo(3): make named pipe file
+%
+% == Examples ==
+%
+% ```
+% 1> {ok, Drv} = alcove_drv:start().
+% {ok,<0.177.0>}
+% 2> alcove:mkfifo(Drv, [], "/tmp/alcove-fifo-test", 8#700).
+% ok
+% '''
 
 mkfifo(Drv, Pids, Arg1, Arg2, Timeout) ->
     case alcove_drv:call(Drv,
@@ -4065,11 +4632,11 @@ mkfifo(Drv, Pids, Arg1, Arg2, Timeout) ->
 %
 % For example, filesystems mounted in a Linux mount namespace may be
 % visible in the global mount namespace. To avoid this, first remount the
-% root filesystem within mount namespace using the MS_REC|MS_PRIVATE flags:
+% root filesystem within a mount namespace using the MS_REC|MS_PRIVATE flags:
 %
 % ```
-% {ok, Task} = prx:clone(Parent, [clone_newns]),
-% ok = prx:mount(Task, "none", "/", [], [ms_rec, ms_private], []).
+% {ok, Task} = alcove:clone(Drv, [], [clone_newns]),
+% ok = alcove:mount(Drv, [Task], "none", "/", [], [ms_rec, ms_private], []).
 % '''
 %
 % On BSD systems, the Source argument is ignored and passed to the system
@@ -4082,6 +4649,21 @@ mkfifo(Drv, Pids, Arg1, Arg2, Timeout) ->
 % On Solaris, some mount options are passed in the Options argument as a
 % string of comma separated values terminated by a NULL.  Other platforms
 % ignore the Options parameter.
+%
+% == Examples ==
+%
+% An example of bind mounting a directory within a linux mount namespace:
+%
+% ```
+% 1> {ok, Drv} = alcove_drv:start([{exec, "sudo -n"}]).
+% {ok,<0.177.0>}
+% 2> {ok, Pid} = alcove:clone(Drv, [], [clone_newns]).
+% {ok,10059}
+% 3> alcove:mount(Drv, [Pid], "/tmp", "/mnt", "", [ms_bind, ms_rdonly, ms_noexec], "", "").
+% ok
+% 4> alcove:umount(Drv, [Pid], "/mnt").
+% ok
+% '''
 
 mount(Drv, Pids, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6) ->
     case alcove_drv:call(Drv,
@@ -4114,11 +4696,11 @@ mount(Drv, Pids, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6) ->
 %
 % For example, filesystems mounted in a Linux mount namespace may be
 % visible in the global mount namespace. To avoid this, first remount the
-% root filesystem within mount namespace using the MS_REC|MS_PRIVATE flags:
+% root filesystem within a mount namespace using the MS_REC|MS_PRIVATE flags:
 %
 % ```
-% {ok, Task} = prx:clone(Parent, [clone_newns]),
-% ok = prx:mount(Task, "none", "/", [], [ms_rec, ms_private], []).
+% {ok, Task} = alcove:clone(Drv, [], [clone_newns]),
+% ok = alcove:mount(Drv, [Task], "none", "/", [], [ms_rec, ms_private], []).
 % '''
 %
 % On BSD systems, the Source argument is ignored and passed to the system
@@ -4131,6 +4713,21 @@ mount(Drv, Pids, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6) ->
 % On Solaris, some mount options are passed in the Options argument as a
 % string of comma separated values terminated by a NULL.  Other platforms
 % ignore the Options parameter.
+%
+% == Examples ==
+%
+% An example of bind mounting a directory within a linux mount namespace:
+%
+% ```
+% 1> {ok, Drv} = alcove_drv:start([{exec, "sudo -n"}]).
+% {ok,<0.177.0>}
+% 2> {ok, Pid} = alcove:clone(Drv, [], [clone_newns]).
+% {ok,10059}
+% 3> alcove:mount(Drv, [Pid], "/tmp", "/mnt", "", [ms_bind, ms_rdonly, ms_noexec], "", "").
+% ok
+% 4> alcove:umount(Drv, [Pid], "/mnt").
+% ok
+% '''
 
 mount(Drv, Pids, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6,
       Timeout) ->
@@ -4156,13 +4753,20 @@ mount(Drv, Pids, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6,
 
 % @doc Convert flag names to integers
 %
-% The lower case atoms are used for portability:
+% Names are derived from the C macro name with the underscore prefix
+% removed.  For example, `rdonly' is mapped to MS_RDONLY on Linux and
+% MNT_RDONLY on FreeBSD.
+%
+% == Examples ==
 %
 % ```
-% alcove:mount_constant(Drv, [], rdonly)
+% 1> {ok, Drv} = alcove_drv:start().
+% {ok,<0.177.0>}
+% 2> alcove:mount_constant(Drv, [], rdonly).
+% 1
+% 3> alcove:mount_constant(Drv, [], 'RDONLY').
+% 1
 % '''
-%
-% `rdonly' is mapped to MS_RDONLY on Linux and MNT_RDONLY on FreeBSD.
 
 mount_constant(Drv, Pids, Arg1) ->
     case alcove_drv:call(Drv,
@@ -4178,13 +4782,20 @@ mount_constant(Drv, Pids, Arg1) ->
 
 % @doc Convert flag names to integers
 %
-% The lower case atoms are used for portability:
+% Names are derived from the C macro name with the underscore prefix
+% removed.  For example, `rdonly' is mapped to MS_RDONLY on Linux and
+% MNT_RDONLY on FreeBSD.
+%
+% == Examples ==
 %
 % ```
-% alcove:mount_constant(Drv, [], rdonly)
+% 1> {ok, Drv} = alcove_drv:start().
+% {ok,<0.177.0>}
+% 2> alcove:mount_constant(Drv, [], rdonly).
+% 1
+% 3> alcove:mount_constant(Drv, [], 'RDONLY').
+% 1
 % '''
-%
-% `rdonly' is mapped to MS_RDONLY on Linux and MNT_RDONLY on FreeBSD.
 
 mount_constant(Drv, Pids, Arg1, Timeout) ->
     case alcove_drv:call(Drv,
@@ -4200,10 +4811,13 @@ mount_constant(Drv, Pids, Arg1, Timeout) ->
 
 % @doc open(2): returns a file descriptor associated with a file
 %
-% Lists of values are ORed:
+% == Examples ==
 %
 % ```
-% alcove:open(Drv, [], "/tmp/test", [o_wronly,o_creat], 8#644)
+% 1> {ok, Drv} = alcove_drv:start().
+% {ok,<0.177.0>}
+% 2> alcove:open(Drv, [], "/tmp/alcove-open-test", [o_wronly,o_creat], 8#644).
+% {ok,6}
 % '''
 
 open(Drv, Pids, Arg1, Arg2, Arg3) ->
@@ -4220,10 +4834,13 @@ open(Drv, Pids, Arg1, Arg2, Arg3) ->
 
 % @doc open(2): returns a file descriptor associated with a file
 %
-% Lists of values are ORed:
+% == Examples ==
 %
 % ```
-% alcove:open(Drv, [], "/tmp/test", [o_wronly,o_creat], 8#644)
+% 1> {ok, Drv} = alcove_drv:start().
+% {ok,<0.177.0>}
+% 2> alcove:open(Drv, [], "/tmp/alcove-open-test", [o_wronly,o_creat], 8#644).
+% {ok,6}
 % '''
 
 open(Drv, Pids, Arg1, Arg2, Arg3, Timeout) ->
@@ -4273,18 +4890,29 @@ pivot_root(Drv, Pids, Arg1, Arg2, Timeout) ->
 
 % @doc pledge(2): restrict system operations
 %
-% OpenBSD only.
-%
 % An empty list ([]) specifies promises should not be changed. Warning:
 % an empty string ("") is equivalent to an empty list.
 %
 % To specify no capabilities, use an empty binary: `<<>>>' or `<<"">>'
 %
-% Example:
+% == Support ==
+%
+% * OpenBSD
+%
+% == Examples ==
+%
+% Fork a control process:
+%
+% * restricted to stdio, proc and exec capabilities
+% * unrestricted after calling exec
 %
 % ```
-% % no change to restrictions afer exec()
-% alcove:pledge(Drv, [Task], <<"stdio proc exec">>, [])
+% 1> {ok, Drv} = alcove_drv:start().
+% {ok,<0.177.0>}
+% 2> {ok, Pid} = alcove:fork(Drv, []).
+% {ok,10059}
+% 3> alcove:pledge(Drv, [Pid], <<"stdio proc exec">>, []).
+% ok
 % '''
 
 pledge(Drv, Pids, Arg1, Arg2) ->
@@ -4301,18 +4929,29 @@ pledge(Drv, Pids, Arg1, Arg2) ->
 
 % @doc pledge(2): restrict system operations
 %
-% OpenBSD only.
-%
 % An empty list ([]) specifies promises should not be changed. Warning:
 % an empty string ("") is equivalent to an empty list.
 %
 % To specify no capabilities, use an empty binary: `<<>>>' or `<<"">>'
 %
-% Example:
+% == Support ==
+%
+% * OpenBSD
+%
+% == Examples ==
+%
+% Fork a control process:
+%
+% * restricted to stdio, proc and exec capabilities
+% * unrestricted after calling exec
 %
 % ```
-% % no change to restrictions afer exec()
-% alcove:pledge(Drv, [Task], <<"stdio proc exec">>, [])
+% 1> {ok, Drv} = alcove_drv:start().
+% {ok,<0.177.0>}
+% 2> {ok, Pid} = alcove:fork(Drv, []).
+% {ok,10059}
+% 3> alcove:pledge(Drv, [Pid], <<"stdio proc exec">>, []).
+% ok
 % '''
 
 pledge(Drv, Pids, Arg1, Arg2, Timeout) ->
@@ -4328,8 +4967,6 @@ pledge(Drv, Pids, Arg1, Arg2, Timeout) ->
     end.
 
 % @doc prctl(2): operations on a process
-%
-% Linux only.
 %
 % This function can be used to set BPF syscall filters on processes
 % (seccomp mode).
@@ -4354,7 +4991,13 @@ pledge(Drv, Pids, Arg1, Arg2, Timeout) ->
 %
 %    On return, the contents of the memory is returned to the caller.
 %
-% For example, to enforce a seccomp filter:
+% == Support ==
+%
+% * Linux
+%
+% == Examples ==
+%
+% To enforce a seccomp filter:
 %
 % ```
 % % NOTE: this filter will cause the port to receive a SIGSYS
@@ -4395,8 +5038,6 @@ prctl(Drv, Pids, Arg1, Arg2, Arg3, Arg4, Arg5) ->
 
 % @doc prctl(2): operations on a process
 %
-% Linux only.
-%
 % This function can be used to set BPF syscall filters on processes
 % (seccomp mode).
 %
@@ -4420,7 +5061,13 @@ prctl(Drv, Pids, Arg1, Arg2, Arg3, Arg4, Arg5) ->
 %
 %    On return, the contents of the memory is returned to the caller.
 %
-% For example, to enforce a seccomp filter:
+% == Support ==
+%
+% * Linux
+%
+% == Examples ==
+%
+% To enforce a seccomp filter:
 %
 % ```
 % % NOTE: this filter will cause the port to receive a SIGSYS
@@ -4461,6 +5108,15 @@ prctl(Drv, Pids, Arg1, Arg2, Arg3, Arg4, Arg5,
     end.
 
 % @doc Convert prctl option names to integers
+%
+% == Examples ==
+%
+% ```
+% 1> {ok, Drv} = alcove_drv:start().
+% {ok,<0.177.0>}
+% 2> alcove:prctl_constant(Drv, [], pr_set_name).
+% 15
+% '''
 
 prctl_constant(Drv, Pids, Arg1) ->
     case alcove_drv:call(Drv,
@@ -4475,6 +5131,15 @@ prctl_constant(Drv, Pids, Arg1) ->
     end.
 
 % @doc Convert prctl option names to integers
+%
+% == Examples ==
+%
+% ```
+% 1> {ok, Drv} = alcove_drv:start().
+% {ok,<0.177.0>}
+% 2> alcove:prctl_constant(Drv, [], pr_set_name).
+% 15
+% '''
 
 prctl_constant(Drv, Pids, Arg1, Timeout) ->
     case alcove_drv:call(Drv,
@@ -4553,6 +5218,15 @@ ptrace(Drv, Pids, Arg1, Arg2, Arg3, Arg4, Timeout) ->
     end.
 
 % @doc Convert ptrace constant to integer
+%
+% == Examples ==
+%
+% ```
+% 1> {ok, Drv} = alcove_drv:start().
+% {ok,<0.177.0>}
+% 2> alcove:ptrace_constant(Drv, [], ptrace_traceme).
+% 0
+% '''
 
 ptrace_constant(Drv, Pids, Arg1) ->
     case alcove_drv:call(Drv,
@@ -4567,6 +5241,15 @@ ptrace_constant(Drv, Pids, Arg1) ->
     end.
 
 % @doc Convert ptrace constant to integer
+%
+% == Examples ==
+%
+% ```
+% 1> {ok, Drv} = alcove_drv:start().
+% {ok,<0.177.0>}
+% 2> alcove:ptrace_constant(Drv, [], ptrace_traceme).
+% 0
+% '''
 
 ptrace_constant(Drv, Pids, Arg1, Timeout) ->
     case alcove_drv:call(Drv,
@@ -4581,6 +5264,19 @@ ptrace_constant(Drv, Pids, Arg1, Timeout) ->
     end.
 
 % @doc read(2): read bytes from a file descriptor
+%
+% == Examples ==
+%
+% ```
+% 1> {ok, Drv} = alcove_drv:start().
+% {ok,<0.209.0>}
+% 2> {ok, Pid} = alcove:fork(Drv, []).
+% {ok,75710}
+% 3> {ok, FD} = alcove:open(Drv, [Pid], "/etc/passwd", [o_rdonly], 0).
+% {ok,6}
+% 4> alcove:read(Drv, [Pid], FD, 64).
+% {ok,<<"# $FreeBSD$\n#\nroot:*:0:0:Charlie &:/root:/bin/csh\ntoor:*:0:0:Bou">>}
+% '''
 
 read(Drv, Pids, Arg1, Arg2) ->
     case alcove_drv:call(Drv,
@@ -4595,6 +5291,19 @@ read(Drv, Pids, Arg1, Arg2) ->
     end.
 
 % @doc read(2): read bytes from a file descriptor
+%
+% == Examples ==
+%
+% ```
+% 1> {ok, Drv} = alcove_drv:start().
+% {ok,<0.209.0>}
+% 2> {ok, Pid} = alcove:fork(Drv, []).
+% {ok,75710}
+% 3> {ok, FD} = alcove:open(Drv, [Pid], "/etc/passwd", [o_rdonly], 0).
+% {ok,6}
+% 4> alcove:read(Drv, [Pid], FD, 64).
+% {ok,<<"# $FreeBSD$\n#\nroot:*:0:0:Charlie &:/root:/bin/csh\ntoor:*:0:0:Bou">>}
+% '''
 
 read(Drv, Pids, Arg1, Arg2, Timeout) ->
     case alcove_drv:call(Drv,
@@ -4609,6 +5318,19 @@ read(Drv, Pids, Arg1, Arg2, Timeout) ->
     end.
 
 % @doc readdir(3): retrieve list of objects in a directory
+%
+% == Examples ==
+%
+% ```
+% 1> {ok, Drv} = alcove_drv:start().
+% {ok,<0.209.0>}
+% 2> alcove:readdir(Drv, [], "/dev/pts").
+% {ok,[<<".">>,<<"..">>,<<"50">>,<<"49">>,<<"45">>,<<"48">>,
+%      <<"47">>,<<"46">>,<<"44">>,<<"43">>,<<"42">>,<<"41">>,
+%      <<"40">>,<<"39">>,<<"38">>,<<"37">>,<<"36">>,<<"35">>,
+%      <<"34">>,<<"33">>,<<"32">>,<<"31">>,<<"30">>,<<"29">>,
+%      <<"28">>,<<"27">>,<<...>>|...]}
+% '''
 
 readdir(Drv, Pids, Arg1) ->
     case alcove_drv:call(Drv,
@@ -4623,6 +5345,19 @@ readdir(Drv, Pids, Arg1) ->
     end.
 
 % @doc readdir(3): retrieve list of objects in a directory
+%
+% == Examples ==
+%
+% ```
+% 1> {ok, Drv} = alcove_drv:start().
+% {ok,<0.209.0>}
+% 2> alcove:readdir(Drv, [], "/dev/pts").
+% {ok,[<<".">>,<<"..">>,<<"50">>,<<"49">>,<<"45">>,<<"48">>,
+%      <<"47">>,<<"46">>,<<"44">>,<<"43">>,<<"42">>,<<"41">>,
+%      <<"40">>,<<"39">>,<<"38">>,<<"37">>,<<"36">>,<<"35">>,
+%      <<"34">>,<<"33">>,<<"32">>,<<"31">>,<<"30">>,<<"29">>,
+%      <<"28">>,<<"27">>,<<...>>|...]}
+% '''
 
 readdir(Drv, Pids, Arg1, Timeout) ->
     case alcove_drv:call(Drv,
@@ -4637,6 +5372,15 @@ readdir(Drv, Pids, Arg1, Timeout) ->
     end.
 
 % @doc Convert an RLIMIT_* flag to an integer
+%
+% == Examples ==
+%
+% ```
+% 1> {ok, Drv} = alcove_drv:start().
+% {ok,<0.177.0>}
+% 2> alcove:rlimit_constant(Drv, [], rlimit_nofile).
+% 7
+% '''
 
 rlimit_constant(Drv, Pids, Arg1) ->
     case alcove_drv:call(Drv,
@@ -4651,6 +5395,15 @@ rlimit_constant(Drv, Pids, Arg1) ->
     end.
 
 % @doc Convert an RLIMIT_* flag to an integer
+%
+% == Examples ==
+%
+% ```
+% 1> {ok, Drv} = alcove_drv:start().
+% {ok,<0.177.0>}
+% 2> alcove:rlimit_constant(Drv, [], rlimit_nofile).
+% 7
+% '''
 
 rlimit_constant(Drv, Pids, Arg1, Timeout) ->
     case alcove_drv:call(Drv,
@@ -4665,6 +5418,17 @@ rlimit_constant(Drv, Pids, Arg1, Timeout) ->
     end.
 
 % @doc rmdir(2): delete a directory
+%
+% == Examples ==
+%
+% ```
+% 1> {ok, Drv} = alcove_drv:start().
+% {ok,<0.177.0>}
+% 2> alcove:mkdir(Drv, [], "/tmp/alcove-rmdir-test", 8#755).
+% ok
+% 3> alcove:rmdir(Drv, [], "/tmp/alcove-rmdir-test").
+% ok
+% '''
 
 rmdir(Drv, Pids, Arg1) ->
     case alcove_drv:call(Drv, Pids, rmdir, [Arg1], infinity)
@@ -4675,6 +5439,17 @@ rmdir(Drv, Pids, Arg1) ->
     end.
 
 % @doc rmdir(2): delete a directory
+%
+% == Examples ==
+%
+% ```
+% 1> {ok, Drv} = alcove_drv:start().
+% {ok,<0.177.0>}
+% 2> alcove:mkdir(Drv, [], "/tmp/alcove-rmdir-test", 8#755).
+% ok
+% 3> alcove:rmdir(Drv, [], "/tmp/alcove-rmdir-test").
+% ok
+% '''
 
 rmdir(Drv, Pids, Arg1, Timeout) ->
     case alcove_drv:call(Drv, Pids, rmdir, [Arg1], Timeout)
@@ -4722,6 +5497,15 @@ seccomp(Drv, Pids, Arg1, Arg2, Arg3, Timeout) ->
     end.
 
 % @doc Convert seccomp option name to integer
+%
+% == Examples ==
+%
+% ```
+% 1> {ok, Drv} = alcove_drv:start().
+% {ok,<0.177.0>}
+% 2> alcove:seccomp_constant(Drv, [], 'SECCOMP_SET_MODE_STRICT').
+% 0
+% '''
 
 seccomp_constant(Drv, Pids, Arg1) ->
     case alcove_drv:call(Drv,
@@ -4736,6 +5520,15 @@ seccomp_constant(Drv, Pids, Arg1) ->
     end.
 
 % @doc Convert seccomp option name to integer
+%
+% == Examples ==
+%
+% ```
+% 1> {ok, Drv} = alcove_drv:start().
+% {ok,<0.177.0>}
+% 2> alcove:seccomp_constant(Drv, [], 'SECCOMP_SET_MODE_STRICT').
+% 0
+% '''
 
 seccomp_constant(Drv, Pids, Arg1, Timeout) ->
     case alcove_drv:call(Drv,

@@ -19,17 +19,25 @@ On success, ioctl/5 returns a 3-tuple:
 
 * integer/binary: an empty binary
 
+== Examples ==
+
 An example of creating a tap device in a net namespace on Linux:
 
 ```
-{ok, Pid} = alcove:clone(Drv, [], [clone_newnet]),
-{ok, FD} = alcove:open(Drv, [Pid], "/dev/net/tun", [o_rdwr], 0),
-TUNSETIFF = alcove_ioctl:iow($T, 202, 4),
-{ok, _, <<"tap", N, _/binary>>} = alcove:ioctl(Drv, [Pid], FD,
-    TUNSETIFF, <<
-    0:(16*8), % generate a tuntap device name
-    (16#0002 bor 16#1000):2/native-unsigned-integer-unit:8, % IFF_TAP, IFF_NO_PI
-    0:(14*8)
-    >>),
-{ok, <<"tap", N>>}.
+1> {ok, Drv} = alcove_drv:start([{exec, "sudo -n"}]).
+{ok,<0.177.0>}
+2> {ok, Pid} = alcove:clone(Drv, [], [clone_newnet]).
+{ok,8288}
+3> {ok, FD} = alcove:open(Drv, [Pid], "/dev/net/tun", [o_rdwr], 0).
+{ok,6}
+4> {ok, 0, <<"tap", _/binary>>} = alcove:ioctl(Drv, [Pid], FD, tunsetiff, <<
+4>                 % generate a tuntap device name
+4>                 0:(16 * 8),
+4>                 % IFF_TAP, IFF_NO_PI
+4>                 (16#0002 bor 16#1000):2/native-unsigned-integer-unit:8,
+4>                 0:(14 * 8)
+4>             >>).
+{ok,0,
+    <<116,97,112,48,0,0,0,0,0,0,0,0,0,0,0,0,2,16,0,0,0,0,0,0,
+      0,0,...>>}
 '''

@@ -385,9 +385,9 @@
 -spec getresuid(alcove_drv:ref(), [pid_t()], timeout()) ->
     {'ok', Real :: uid_t(), Effective :: uid_t(), Saved :: uid_t()} | {'error', posix()}.
 
--spec getrlimit(alcove_drv:ref(), [pid_t()], constant()) ->
+-spec getrlimit(alcove_drv:ref(), [pid_t()], Resource :: constant()) ->
     {'ok', alcove_rlimit()} | {'error', posix()}.
--spec getrlimit(alcove_drv:ref(), [pid_t()], constant(), timeout()) ->
+-spec getrlimit(alcove_drv:ref(), [pid_t()], Resource :: constant(), timeout()) ->
     {'ok', alcove_rlimit()} | {'error', posix()}.
 
 -spec getsid(alcove_drv:ref(), [pid_t()], OSPid :: pid_t()) -> {'ok', pid_t()} | {'error', posix()}.
@@ -1115,16 +1115,18 @@ filter_encode(Filter) ->
 % specifies the subprocess should use the same filter as the parent:
 %
 % ```
-% 1> {ok, Drv} = alcove_drv:start().
+% 1> catch_exception(true).
+% false
+% 2> {ok, Drv} = alcove_drv:start().
 % {ok,<0.179.0>}
-% 2> {ok, Pid} = alcove:fork(Drv, []).
+% 3> {ok, Pid} = alcove:fork(Drv, []).
 % {ok,16464}
-% 3> Filter = alcove:filter([fork]).
+% 4> Filter = alcove:filter([fork]).
 % <<0,0,0,16>>
 % % equivalent to: alcove:filter(Drv, [], Filter, Filter)
-% 4> alcove:filter(Drv, [], Filter).
+% 5> alcove:filter(Drv, [], Filter).
 % ok
-% 5> alcove:fork(Drv, [Pid]).
+% 6> alcove:fork(Drv, [Pid]).
 % * exception error: undefined function alcove:fork/2
 % '''
 
@@ -1150,6 +1152,17 @@ filter(Drv, Pids, Calls) ->
 % * signaloneof
 %
 %   Signal sent to child process on shutdown.
+%
+% == Examples ==
+%
+% ```
+% 1> {ok, Drv} = alcove_drv:start().
+% {ok,<0.177.0>}
+% 2> {ok, Pid} = alcove:fork(Drv, []).
+% {ok,3925}
+% 3> alcove:getcpid(Drv, [], Pid, flowcontrol).
+% -1
+% '''
 -spec getcpid(alcove_drv:ref(), [pid_t()], pid_t(), alcove_pid_field()) -> 'false' | int32_t().
 getcpid(Drv, Pids, Pid, Key) ->
     N = indexof(Key, record_info(fields, alcove_pid)),

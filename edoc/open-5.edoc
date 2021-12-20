@@ -1,7 +1,10 @@
 @doc open(2): returns a file descriptor associated with a file
 
-Lists of values are ORed:
+== Examples ==
 
 ```
-alcove:open(Drv, [], "/tmp/test", [o_wronly,o_creat], 8#644)
+1> {ok, Drv} = alcove_drv:start().
+{ok,<0.177.0>}
+2> alcove:open(Drv, [], "/tmp/alcove-open-test", [o_wronly,o_creat], 8#644).
+{ok,6}
 '''

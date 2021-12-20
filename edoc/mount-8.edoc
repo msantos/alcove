@@ -16,11 +16,11 @@ An empty list may be used to specify NULL.
 
 For example, filesystems mounted in a Linux mount namespace may be
 visible in the global mount namespace. To avoid this, first remount the
-root filesystem within mount namespace using the MS_REC|MS_PRIVATE flags:
+root filesystem within a mount namespace using the MS_REC|MS_PRIVATE flags:
 
 ```
-{ok, Task} = prx:clone(Parent, [clone_newns]),
-ok = prx:mount(Task, "none", "/", [], [ms_rec, ms_private], []).
+{ok, Task} = alcove:clone(Drv, [], [clone_newns]),
+ok = alcove:mount(Drv, [Task], "none", "/", [], [ms_rec, ms_private], []).
 '''
 
 On BSD systems, the Source argument is ignored and passed to the system
@@ -33,3 +33,18 @@ mount(FSType, Target, Flags, Data);
 On Solaris, some mount options are passed in the Options argument as a
 string of comma separated values terminated by a NULL.  Other platforms
 ignore the Options parameter.
+
+== Examples ==
+
+An example of bind mounting a directory within a linux mount namespace:
+
+```
+1> {ok, Drv} = alcove_drv:start([{exec, "sudo -n"}]).
+{ok,<0.177.0>}
+2> {ok, Pid} = alcove:clone(Drv, [], [clone_newns]).
+{ok,10059}
+3> alcove:mount(Drv, [Pid], "/tmp", "/mnt", "", [ms_bind, ms_rdonly, ms_noexec], "", "").
+ok
+4> alcove:umount(Drv, [Pid], "/mnt").
+ok
+'''

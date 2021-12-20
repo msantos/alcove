@@ -1,6 +1,10 @@
 @doc jail(2): restrict the current process in a system jail
 
-FreeBSD only.
+== Support ==
+
+* FreeBSD
+
+== Examples ==
 
 An example of a function to generate a version 2 jail struct (FreeBSD
 10.2):

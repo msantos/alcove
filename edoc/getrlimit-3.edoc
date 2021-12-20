@@ -10,3 +10,14 @@ Returns a record:
     max = integer()
     }
 '''
+
+== Examples ==
+
+```
+1> {ok, Drv} = alcove_drv:start().
+{ok,<0.177.0>}
+2> rr(alcove).
+[alcove_jail,alcove_pid,alcove_rlimit,alcove_timeval]
+3> alcove:getrlimit(Drv, [], rlimit_nofile).
+{ok,#alcove_rlimit{cur = 1024,max = 1048576}}
+'''
