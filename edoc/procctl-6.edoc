@@ -1,3 +1,29 @@
 @doc procctl(2): control processes
 
-FreeBSD only.
+== Support ==
+
+* FreeBSD
+
+== Examples ==
+
+```
+1> {ok, Drv} = alcove_drv:start().
+{ok,<0.208.0>}
+2> {ok, Pid} = alcove:fork(Pid, []).
+{ok,44378}
+3> alcove:procctl(Drv, [Pid], 0, Pid, 'PROC_REAP_ACQUIRE', []).
+{ok,<<>>,[]}
+4> alcove:procctl(Drv, [Pid], p_pid, Pid, 'PROC_REAP_STATUS', [
+4>      <<0,0,0,0>>, % rs_flags
+4>      <<0,0,0,0>>, % rs_children
+4>      <<0,0,0,0>>, % rs_descendants
+4>      <<0,0,0,0>>, % rs_reaper
+4>      <<0,0,0,0>>  % rs_pid
+4>    ]).
+{ok,<<1,0,0,0,0,0,0,0,0,0,0,0,118,173,0,0,255,255,255,255>>,
+    [<<1,0,0,0>>,
+     <<0,0,0,0>>,
+     <<0,0,0,0>>,
+     <<118,173,0,0>>,
+     <<"\377\377\377\377">>]}
+'''

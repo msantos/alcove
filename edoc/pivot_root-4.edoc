@@ -1,3 +1,27 @@
 @doc pivot_root(2): change the root mount
 
-Linux only.
+Use pivot_root(2) in a Linux mount namespace to change the root
+filesystem.
+
+Warning: using pivot_root(2) in the global namespace may have unexpected
+effects.
+
+== Support ==
+
+* Linux
+
+== Examples ==
+
+The new root must be a mount point. /tmp or /run are usually mounted
+as tmpfs.
+
+```
+1> {ok, Drv} = alcove_drv:start([{exec, "sudo -n"}]).
+{ok,<0.177.0>}
+2> alcove:mkdir(Drv, [], "/run/alcove-old-root", 8#755).
+ok
+3> {ok, Pid} = alcove:clone(Drv, [], [clone_newns]).
+{ok,1371}
+4> alcove:pivot_root(Drv, [Pid], "/run", "/run/alcove-old-root").
+ok
+'''

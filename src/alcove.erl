@@ -1054,8 +1054,11 @@ audit_arch() ->
     Wordsize = erlang:system_info({wordsize, external}),
     proplists:get_value({Arch, OS, Wordsize}, Arches, enotsup).
 
+% @private
 wordalign(Offset) ->
     wordalign(Offset, erlang:system_info({wordsize, external})).
+
+% @private
 wordalign(Offset, Align) ->
     (Align - (Offset rem Align)) rem Align.
 
@@ -1114,6 +1117,21 @@ define_foreach(Drv, Pipeline, Constant, [Fun | Rest]) ->
     end.
 
 % @doc Send data to stdin of the process
+%
+% == Examples ==
+%
+% ```
+% 1> {ok, Drv} = alcove_drv:start([{exec, "sudo -n"}]).
+% {ok,<0.177.0>}
+% 2> {ok, Pid} = alcove:fork(Drv, []).
+% {ok,28493}
+% 3> alcove:execvp(Drv, [Pid], "cat", ["cat"]).
+% ok
+% 4> alcove:stdin(Drv, [Pid], "testn").
+% ok
+% 5> alcove:stdout(Drv, [Pid]).
+% [<<"testn">>]
+% '''
 -spec stdin(alcove_drv:ref(), [pid_t()], iodata()) -> 'ok'.
 stdin(Drv, Pids, Data) ->
     case alcove_drv:stdin(Drv, Pids, Data) of
@@ -1124,6 +1142,21 @@ stdin(Drv, Pids, Data) ->
     end.
 
 % @doc Read stdout from the process
+%
+% == Examples ==
+%
+% ```
+% 1> {ok, Drv} = alcove_drv:start([{exec, "sudo -n"}]).
+% {ok,<0.177.0>}
+% 2> {ok, Pid} = alcove:fork(Drv, []).
+% {ok,28493}
+% 3> alcove:execvp(Drv, [Pid], "cat", ["cat"]).
+% ok
+% 4> alcove:stdin(Drv, [Pid], "testn").
+% ok
+% 5> alcove:stdout(Drv, [Pid]).
+% [<<"testn">>]
+% '''
 -spec stdout(alcove_drv:ref(), [pid_t()]) -> [binary()].
 stdout(Drv, Pids) ->
     stdout(Drv, Pids, 0).
@@ -1145,6 +1178,19 @@ stdout_1(Drv, Pids, Timeout, Acc) ->
     end.
 
 % @doc Read stderr from the process
+%
+% == Examples ==
+%
+% ```
+% 1> {ok, Drv} = alcove_drv:start([{exec, "sudo -n"}]).
+% {ok,<0.177.0>}
+% 2> {ok, Pid} = alcove:fork(Drv, []).
+% {ok,28493}
+% 3> alcove:execvp(Drv, [Pid], "cat", ["cat", "/nonexistent"]).
+% ok
+% 4> alcove:stderr(Drv, [Pid]).
+% [<<"cat: /nonexistent: No such file or directoryn">>]
+% '''
 -spec stderr(alcove_drv:ref(), [pid_t()]) -> [binary()].
 stderr(Drv, Pids) ->
     stderr(Drv, Pids, 0).
@@ -3353,7 +3399,7 @@ getenv(Drv, Pids, Arg1, Timeout) ->
 
 % @doc getgid(2): retrieve the process group ID
 %
-% == EXAMPLES ==
+% == Examples ==
 %
 % ```
 % 1> {ok, Drv} = alcove_drv:start().
@@ -3371,7 +3417,7 @@ getgid(Drv, Pids) ->
 
 % @doc getgid(2): retrieve the process group ID
 %
-% == EXAMPLES ==
+% == Examples ==
 %
 % ```
 % 1> {ok, Drv} = alcove_drv:start().
@@ -4189,36 +4235,30 @@ iolist_to_bin(Drv, Pids, Arg1, Timeout) ->
 %
 % == Examples ==
 %
-% An example of a function to generate a version 2 jail struct (FreeBSD
-% 10.2):
-%
 % ```
-% struct_jail2(Path, Hostname, Jailname, IPv4, IPv6) ->
-%     [
-%         <<2:4/native-unsigned-integer-unit:8>>,
-%         <<0:(alcove:wordalign(4) * 8)>>,
-%         {ptr, <<Path/binary, 0>>},
-%         {ptr, <<Hostname/binary, 0>>},
-%         {ptr, <<Jailname/binary, 0>>},
-%         <<
-%             (length(IPv4)):4/native-unsigned-integer-unit:8,
-%             (length(IPv6)):4/native-unsigned-integer-unit:8
-%         >>,
-%         {ptr, <<<<IP1, IP2, IP3, IP4>> || {IP1, IP2, IP3, IP4} <- IPv4>>},
-%         {ptr, <<
-%             <<IP1:16, IP2:16, IP3:16, IP4:16, IP5:16, IP6:16, IP7:16, IP8:16>>
-%          || {IP1, IP2, IP3, IP4, IP5, IP6, IP7, IP8} <- IPv6
-%         >>}
-%     ].
-% '''
-%
-% To apply the jail:
-%
-% ```
-% {ok, Pid} = alcove:fork(Drv, []),
-% Jailv2 = struct_jail2(<<"/rescue">>, <<"test">>, <<"jail0">>, [], []),
-% {ok, JID} = alcove:jail(Drv, [Pid], Jailv2),
-% ok = alcove:chdir(Drv, [Pid], "/").
+% 1> {ok, Drv} = alcove_drv:start([{exec, "sudo -n"}]).
+% {ok,<0.208.0>}
+% 2> {ok, Pid} = alcove:fork(Drv, []).
+% {ok,44378}
+% 3> rr(alcove).
+% [alcove_jail,alcove_pid,alcove_rlimit,alcove_timeval]
+% 4> Jail0 = alcove_cstruct:jail(#alcove_jail{
+% 4>         path = "/rescue",
+% 4>         hostname = "test0",
+% 4>         jailname = "jail0"
+% 4>     }).
+% [<<2,0,0,0>>,
+%  <<0,0,0,0>>,
+%  {ptr,<<47,114,101,115,99,117,101,0>>},
+%  {ptr,<<116,101,115,116,48,0>>},
+%  {ptr,<<106,97,105,108,48,0>>},
+%  <<0,0,0,0,0,0,0,0>>,
+%  {ptr,<<>>},
+%  {ptr,<<>>}]
+% 5> {ok, JID0} = alcove:jail(Drv, [Pid], Jail0).
+% {ok,21}
+% 6> alcove:gethostname(Drv, [Pid]).
+% {ok,<<"test0">>}
 % '''
 
 jail(Drv, Pids, Arg1) ->
@@ -4237,36 +4277,30 @@ jail(Drv, Pids, Arg1) ->
 %
 % == Examples ==
 %
-% An example of a function to generate a version 2 jail struct (FreeBSD
-% 10.2):
-%
 % ```
-% struct_jail2(Path, Hostname, Jailname, IPv4, IPv6) ->
-%     [
-%         <<2:4/native-unsigned-integer-unit:8>>,
-%         <<0:(alcove:wordalign(4) * 8)>>,
-%         {ptr, <<Path/binary, 0>>},
-%         {ptr, <<Hostname/binary, 0>>},
-%         {ptr, <<Jailname/binary, 0>>},
-%         <<
-%             (length(IPv4)):4/native-unsigned-integer-unit:8,
-%             (length(IPv6)):4/native-unsigned-integer-unit:8
-%         >>,
-%         {ptr, <<<<IP1, IP2, IP3, IP4>> || {IP1, IP2, IP3, IP4} <- IPv4>>},
-%         {ptr, <<
-%             <<IP1:16, IP2:16, IP3:16, IP4:16, IP5:16, IP6:16, IP7:16, IP8:16>>
-%          || {IP1, IP2, IP3, IP4, IP5, IP6, IP7, IP8} <- IPv6
-%         >>}
-%     ].
-% '''
-%
-% To apply the jail:
-%
-% ```
-% {ok, Pid} = alcove:fork(Drv, []),
-% Jailv2 = struct_jail2(<<"/rescue">>, <<"test">>, <<"jail0">>, [], []),
-% {ok, JID} = alcove:jail(Drv, [Pid], Jailv2),
-% ok = alcove:chdir(Drv, [Pid], "/").
+% 1> {ok, Drv} = alcove_drv:start([{exec, "sudo -n"}]).
+% {ok,<0.208.0>}
+% 2> {ok, Pid} = alcove:fork(Drv, []).
+% {ok,44378}
+% 3> rr(alcove).
+% [alcove_jail,alcove_pid,alcove_rlimit,alcove_timeval]
+% 4> Jail0 = alcove_cstruct:jail(#alcove_jail{
+% 4>         path = "/rescue",
+% 4>         hostname = "test0",
+% 4>         jailname = "jail0"
+% 4>     }).
+% [<<2,0,0,0>>,
+%  <<0,0,0,0>>,
+%  {ptr,<<47,114,101,115,99,117,101,0>>},
+%  {ptr,<<116,101,115,116,48,0>>},
+%  {ptr,<<106,97,105,108,48,0>>},
+%  <<0,0,0,0,0,0,0,0>>,
+%  {ptr,<<>>},
+%  {ptr,<<>>}]
+% 5> {ok, JID0} = alcove:jail(Drv, [Pid], Jail0).
+% {ok,21}
+% 6> alcove:gethostname(Drv, [Pid]).
+% {ok,<<"test0">>}
 % '''
 
 jail(Drv, Pids, Arg1, Timeout) ->
@@ -4279,7 +4313,43 @@ jail(Drv, Pids, Arg1, Timeout) ->
 
 % @doc jail_attach(2): join a jailed process
 %
-% FreeBSD only.
+% == Support ==
+%
+% * FreeBSD
+%
+% == Examples ==
+%
+% ```
+% 1> {ok, Drv} = alcove_drv:start([{exec, "sudo -n"}]).
+% {ok,<0.208.0>}
+% 2> {ok, Pid} = alcove:fork(Drv, []).
+% {ok,44378}
+% 3> rr(alcove).
+% [alcove_jail,alcove_pid,alcove_rlimit,alcove_timeval]
+% 4> Jail0 = alcove_cstruct:jail(#alcove_jail{
+% 4>         path = "/rescue",
+% 4>         hostname = "test0",
+% 4>         jailname = "jail0"
+% 4>     }).
+% [<<2,0,0,0>>,
+%  <<0,0,0,0>>,
+%  {ptr,<<47,114,101,115,99,117,101,0>>},
+%  {ptr,<<116,101,115,116,48,0>>},
+%  {ptr,<<106,97,105,108,48,0>>},
+%  <<0,0,0,0,0,0,0,0>>,
+%  {ptr,<<>>},
+%  {ptr,<<>>}]
+% 5> {ok, JID0} = alcove:jail(Drv, [Pid], Jail0).
+% {ok,21}
+% 6> {ok, Pid0} = alcove:fork(Drv, []).
+% {ok,44379}
+% 7> ok = alcove:jail_attach(Drv, [Pid0], JID0).
+% ok
+% 8> alcove:gethostname(Drv, [Pid0]).
+% {ok,<<"test0">>}
+% 9> ok = alcove:jail_remove(Drv, [], JID0).
+% ok
+% '''
 
 jail_attach(Drv, Pids, Arg1) ->
     case alcove_drv:call(Drv,
@@ -4295,7 +4365,43 @@ jail_attach(Drv, Pids, Arg1) ->
 
 % @doc jail_attach(2): join a jailed process
 %
-% FreeBSD only.
+% == Support ==
+%
+% * FreeBSD
+%
+% == Examples ==
+%
+% ```
+% 1> {ok, Drv} = alcove_drv:start([{exec, "sudo -n"}]).
+% {ok,<0.208.0>}
+% 2> {ok, Pid} = alcove:fork(Drv, []).
+% {ok,44378}
+% 3> rr(alcove).
+% [alcove_jail,alcove_pid,alcove_rlimit,alcove_timeval]
+% 4> Jail0 = alcove_cstruct:jail(#alcove_jail{
+% 4>         path = "/rescue",
+% 4>         hostname = "test0",
+% 4>         jailname = "jail0"
+% 4>     }).
+% [<<2,0,0,0>>,
+%  <<0,0,0,0>>,
+%  {ptr,<<47,114,101,115,99,117,101,0>>},
+%  {ptr,<<116,101,115,116,48,0>>},
+%  {ptr,<<106,97,105,108,48,0>>},
+%  <<0,0,0,0,0,0,0,0>>,
+%  {ptr,<<>>},
+%  {ptr,<<>>}]
+% 5> {ok, JID0} = alcove:jail(Drv, [Pid], Jail0).
+% {ok,21}
+% 6> {ok, Pid0} = alcove:fork(Drv, []).
+% {ok,44379}
+% 7> ok = alcove:jail_attach(Drv, [Pid0], JID0).
+% ok
+% 8> alcove:gethostname(Drv, [Pid0]).
+% {ok,<<"test0">>}
+% 9> ok = alcove:jail_remove(Drv, [], JID0).
+% ok
+% '''
 
 jail_attach(Drv, Pids, Arg1, Timeout) ->
     case alcove_drv:call(Drv,
@@ -4311,7 +4417,43 @@ jail_attach(Drv, Pids, Arg1, Timeout) ->
 
 % @doc jail_remove(2): destroy a jailed process
 %
-% FreeBSD only.
+% == Support ==
+%
+% * FreeBSD
+%
+% == Examples ==
+%
+% ```
+% 1> {ok, Drv} = alcove_drv:start([{exec, "sudo -n"}]).
+% {ok,<0.208.0>}
+% 2> {ok, Pid} = alcove:fork(Drv, []).
+% {ok,44378}
+% 3> rr(alcove).
+% [alcove_jail,alcove_pid,alcove_rlimit,alcove_timeval]
+% 4> Jail0 = alcove_cstruct:jail(#alcove_jail{
+% 4>         path = "/rescue",
+% 4>         hostname = "test0",
+% 4>         jailname = "jail0"
+% 4>     }).
+% [<<2,0,0,0>>,
+%  <<0,0,0,0>>,
+%  {ptr,<<47,114,101,115,99,117,101,0>>},
+%  {ptr,<<116,101,115,116,48,0>>},
+%  {ptr,<<106,97,105,108,48,0>>},
+%  <<0,0,0,0,0,0,0,0>>,
+%  {ptr,<<>>},
+%  {ptr,<<>>}]
+% 5> {ok, JID0} = alcove:jail(Drv, [Pid], Jail0).
+% {ok,21}
+% 6> {ok, Pid0} = alcove:fork(Drv, []).
+% {ok,44379}
+% 7> ok = alcove:jail_attach(Drv, [Pid0], JID0).
+% ok
+% 8> alcove:gethostname(Drv, [Pid0]).
+% {ok,<<"test0">>}
+% 9> ok = alcove:jail_remove(Drv, [], JID0).
+% ok
+% '''
 
 jail_remove(Drv, Pids, Arg1) ->
     case alcove_drv:call(Drv,
@@ -4327,7 +4469,43 @@ jail_remove(Drv, Pids, Arg1) ->
 
 % @doc jail_remove(2): destroy a jailed process
 %
-% FreeBSD only.
+% == Support ==
+%
+% * FreeBSD
+%
+% == Examples ==
+%
+% ```
+% 1> {ok, Drv} = alcove_drv:start([{exec, "sudo -n"}]).
+% {ok,<0.208.0>}
+% 2> {ok, Pid} = alcove:fork(Drv, []).
+% {ok,44378}
+% 3> rr(alcove).
+% [alcove_jail,alcove_pid,alcove_rlimit,alcove_timeval]
+% 4> Jail0 = alcove_cstruct:jail(#alcove_jail{
+% 4>         path = "/rescue",
+% 4>         hostname = "test0",
+% 4>         jailname = "jail0"
+% 4>     }).
+% [<<2,0,0,0>>,
+%  <<0,0,0,0>>,
+%  {ptr,<<47,114,101,115,99,117,101,0>>},
+%  {ptr,<<116,101,115,116,48,0>>},
+%  {ptr,<<106,97,105,108,48,0>>},
+%  <<0,0,0,0,0,0,0,0>>,
+%  {ptr,<<>>},
+%  {ptr,<<>>}]
+% 5> {ok, JID0} = alcove:jail(Drv, [Pid], Jail0).
+% {ok,21}
+% 6> {ok, Pid0} = alcove:fork(Drv, []).
+% {ok,44379}
+% 7> ok = alcove:jail_attach(Drv, [Pid0], JID0).
+% ok
+% 8> alcove:gethostname(Drv, [Pid0]).
+% {ok,<<"test0">>}
+% 9> ok = alcove:jail_remove(Drv, [], JID0).
+% ok
+% '''
 
 jail_remove(Drv, Pids, Arg1, Timeout) ->
     case alcove_drv:call(Drv,
@@ -4858,7 +5036,31 @@ open(Drv, Pids, Arg1, Arg2, Arg3, Timeout) ->
 
 % @doc pivot_root(2): change the root mount
 %
-% Linux only.
+% Use pivot_root(2) in a Linux mount namespace to change the root
+% filesystem.
+%
+% Warning: using pivot_root(2) in the global namespace may have unexpected
+% effects.
+%
+% == Support ==
+%
+% * Linux
+%
+% == Examples ==
+%
+% The new root must be a mount point. /tmp or /run are usually mounted
+% as tmpfs.
+%
+% ```
+% 1> {ok, Drv} = alcove_drv:start([{exec, "sudo -n"}]).
+% {ok,<0.177.0>}
+% 2> alcove:mkdir(Drv, [], "/run/alcove-old-root", 8#755).
+% ok
+% 3> {ok, Pid} = alcove:clone(Drv, [], [clone_newns]).
+% {ok,1371}
+% 4> alcove:pivot_root(Drv, [Pid], "/run", "/run/alcove-old-root").
+% ok
+% '''
 
 pivot_root(Drv, Pids, Arg1, Arg2) ->
     case alcove_drv:call(Drv,
@@ -4874,7 +5076,31 @@ pivot_root(Drv, Pids, Arg1, Arg2) ->
 
 % @doc pivot_root(2): change the root mount
 %
-% Linux only.
+% Use pivot_root(2) in a Linux mount namespace to change the root
+% filesystem.
+%
+% Warning: using pivot_root(2) in the global namespace may have unexpected
+% effects.
+%
+% == Support ==
+%
+% * Linux
+%
+% == Examples ==
+%
+% The new root must be a mount point. /tmp or /run are usually mounted
+% as tmpfs.
+%
+% ```
+% 1> {ok, Drv} = alcove_drv:start([{exec, "sudo -n"}]).
+% {ok,<0.177.0>}
+% 2> alcove:mkdir(Drv, [], "/run/alcove-old-root", 8#755).
+% ok
+% 3> {ok, Pid} = alcove:clone(Drv, [], [clone_newns]).
+% {ok,1371}
+% 4> alcove:pivot_root(Drv, [Pid], "/run", "/run/alcove-old-root").
+% ok
+% '''
 
 pivot_root(Drv, Pids, Arg1, Arg2, Timeout) ->
     case alcove_drv:call(Drv,
@@ -5155,7 +5381,33 @@ prctl_constant(Drv, Pids, Arg1, Timeout) ->
 
 % @doc procctl(2): control processes
 %
-% FreeBSD only.
+% == Support ==
+%
+% * FreeBSD
+%
+% == Examples ==
+%
+% ```
+% 1> {ok, Drv} = alcove_drv:start().
+% {ok,<0.208.0>}
+% 2> {ok, Pid} = alcove:fork(Pid, []).
+% {ok,44378}
+% 3> alcove:procctl(Drv, [Pid], 0, Pid, 'PROC_REAP_ACQUIRE', []).
+% {ok,<<>>,[]}
+% 4> alcove:procctl(Drv, [Pid], p_pid, Pid, 'PROC_REAP_STATUS', [
+% 4>      <<0,0,0,0>>, % rs_flags
+% 4>      <<0,0,0,0>>, % rs_children
+% 4>      <<0,0,0,0>>, % rs_descendants
+% 4>      <<0,0,0,0>>, % rs_reaper
+% 4>      <<0,0,0,0>>  % rs_pid
+% 4>    ]).
+% {ok,<<1,0,0,0,0,0,0,0,0,0,0,0,118,173,0,0,255,255,255,255>>,
+%     [<<1,0,0,0>>,
+%      <<0,0,0,0>>,
+%      <<0,0,0,0>>,
+%      <<118,173,0,0>>,
+%      <<"\377\377\377\377">>]}
+% '''
 
 procctl(Drv, Pids, Arg1, Arg2, Arg3, Arg4) ->
     case alcove_drv:call(Drv,
@@ -5172,7 +5424,33 @@ procctl(Drv, Pids, Arg1, Arg2, Arg3, Arg4) ->
 
 % @doc procctl(2): control processes
 %
-% FreeBSD only.
+% == Support ==
+%
+% * FreeBSD
+%
+% == Examples ==
+%
+% ```
+% 1> {ok, Drv} = alcove_drv:start().
+% {ok,<0.208.0>}
+% 2> {ok, Pid} = alcove:fork(Pid, []).
+% {ok,44378}
+% 3> alcove:procctl(Drv, [Pid], 0, Pid, 'PROC_REAP_ACQUIRE', []).
+% {ok,<<>>,[]}
+% 4> alcove:procctl(Drv, [Pid], p_pid, Pid, 'PROC_REAP_STATUS', [
+% 4>      <<0,0,0,0>>, % rs_flags
+% 4>      <<0,0,0,0>>, % rs_children
+% 4>      <<0,0,0,0>>, % rs_descendants
+% 4>      <<0,0,0,0>>, % rs_reaper
+% 4>      <<0,0,0,0>>  % rs_pid
+% 4>    ]).
+% {ok,<<1,0,0,0,0,0,0,0,0,0,0,0,118,173,0,0,255,255,255,255>>,
+%     [<<1,0,0,0>>,
+%      <<0,0,0,0>>,
+%      <<0,0,0,0>>,
+%      <<118,173,0,0>>,
+%      <<"\377\377\377\377">>]}
+% '''
 
 procctl(Drv, Pids, Arg1, Arg2, Arg3, Arg4, Timeout) ->
     case alcove_drv:call(Drv,
@@ -5188,6 +5466,96 @@ procctl(Drv, Pids, Arg1, Arg2, Arg3, Arg4, Timeout) ->
     end.
 
 % @doc ptrace(2): process trace
+%
+% == Examples ==
+%
+% ```
+% -module(ptrace).
+%
+% -export([run/0]).
+%
+% run() ->
+%     {ok, Drv} = alcove_drv:start_link(),
+%     {ok, Pid1} = alcove:fork(Drv, []),
+%
+%     {ok, Pid2} = alcove:fork(Drv, [Pid1]),
+%
+%     % disable the alcove event loop: child process must be managed by
+%     % the caller
+%     {ok, sig_dfl} = alcove:sigaction(Drv, [Pid1], sigchld, sig_info),
+%
+%     % enable ptracing in the child process and exec() a command
+%     {ok, 0, <<>>, <<>>} = alcove:ptrace(
+%         Drv,
+%         [Pid1, Pid2],
+%         ptrace_traceme,
+%         0,
+%         0,
+%         0
+%     ),
+%     ok = alcove:execvp(Drv, [Pid1, Pid2], "cat", ["cat"]),
+%
+%     % the parent is notified
+%     {signal, sigchld, _} = alcove:event(Drv, [Pid1], 5000),
+%     {ok, Pid2, _, [{stopsig, sigtrap}]} = alcove:waitpid(
+%         Drv,
+%         [Pid1],
+%         -1,
+%         [wnohang]
+%     ),
+%
+%     % should be no other events
+%     {ok, 0, 0, []} = alcove:waitpid(Drv, [Pid1], -1, [wnohang]),
+%
+%     % allow the process to continue
+%     {ok, 0, <<>>, <<>>} = alcove:ptrace(Drv, [Pid1], ptrace_cont, Pid2, 0, 0),
+%
+%     ok = alcove:stdin(Drv, [Pid1, Pid2], "test\n"),
+%
+%     ok =
+%         receive
+%             {alcove_stdout, Drv, [Pid1, Pid2], <<"test\n">>} ->
+%                 ok
+%         after 5000 -> timeout
+%         end,
+%
+%     % Send a SIGTERM and re-write it to a harmless SIGWINCH
+%     ok = alcove:kill(Drv, [Pid1], Pid2, sigterm),
+%     {signal, sigchld, _} = alcove:event(Drv, [Pid1], 5000),
+%     {ok, Pid2, _, [{stopsig, sigterm}]} = alcove:waitpid(
+%         Drv,
+%         [Pid1],
+%         -1,
+%         [wnohang]
+%     ),
+%
+%     {ok, 0, <<>>, <<>>} = alcove:ptrace(
+%         Drv,
+%         [Pid1],
+%         ptrace_cont,
+%         Pid2,
+%         0,
+%         28
+%     ),
+%
+%     % Convert a SIGWINCH to SIGTERM
+%     ok = alcove:kill(Drv, [Pid1], Pid2, sigwinch),
+%     {signal, sigchld, _} = alcove:event(Drv, [Pid1], 5000),
+%     {ok, 0, <<>>, <<>>} = alcove:ptrace(
+%         Drv,
+%         [Pid1],
+%         ptrace_cont,
+%         Pid2,
+%         0,
+%         15
+%     ),
+%     {ok, Pid2, _, [{termsig, sigterm}]} = alcove:waitpid(
+%         Drv,
+%         [Pid1],
+%         -1,
+%         []
+%     ).
+% '''
 
 ptrace(Drv, Pids, Arg1, Arg2, Arg3, Arg4) ->
     case alcove_drv:call(Drv,
@@ -5203,6 +5571,96 @@ ptrace(Drv, Pids, Arg1, Arg2, Arg3, Arg4) ->
     end.
 
 % @doc ptrace(2): process trace
+%
+% == Examples ==
+%
+% ```
+% -module(ptrace).
+%
+% -export([run/0]).
+%
+% run() ->
+%     {ok, Drv} = alcove_drv:start_link(),
+%     {ok, Pid1} = alcove:fork(Drv, []),
+%
+%     {ok, Pid2} = alcove:fork(Drv, [Pid1]),
+%
+%     % disable the alcove event loop: child process must be managed by
+%     % the caller
+%     {ok, sig_dfl} = alcove:sigaction(Drv, [Pid1], sigchld, sig_info),
+%
+%     % enable ptracing in the child process and exec() a command
+%     {ok, 0, <<>>, <<>>} = alcove:ptrace(
+%         Drv,
+%         [Pid1, Pid2],
+%         ptrace_traceme,
+%         0,
+%         0,
+%         0
+%     ),
+%     ok = alcove:execvp(Drv, [Pid1, Pid2], "cat", ["cat"]),
+%
+%     % the parent is notified
+%     {signal, sigchld, _} = alcove:event(Drv, [Pid1], 5000),
+%     {ok, Pid2, _, [{stopsig, sigtrap}]} = alcove:waitpid(
+%         Drv,
+%         [Pid1],
+%         -1,
+%         [wnohang]
+%     ),
+%
+%     % should be no other events
+%     {ok, 0, 0, []} = alcove:waitpid(Drv, [Pid1], -1, [wnohang]),
+%
+%     % allow the process to continue
+%     {ok, 0, <<>>, <<>>} = alcove:ptrace(Drv, [Pid1], ptrace_cont, Pid2, 0, 0),
+%
+%     ok = alcove:stdin(Drv, [Pid1, Pid2], "test\n"),
+%
+%     ok =
+%         receive
+%             {alcove_stdout, Drv, [Pid1, Pid2], <<"test\n">>} ->
+%                 ok
+%         after 5000 -> timeout
+%         end,
+%
+%     % Send a SIGTERM and re-write it to a harmless SIGWINCH
+%     ok = alcove:kill(Drv, [Pid1], Pid2, sigterm),
+%     {signal, sigchld, _} = alcove:event(Drv, [Pid1], 5000),
+%     {ok, Pid2, _, [{stopsig, sigterm}]} = alcove:waitpid(
+%         Drv,
+%         [Pid1],
+%         -1,
+%         [wnohang]
+%     ),
+%
+%     {ok, 0, <<>>, <<>>} = alcove:ptrace(
+%         Drv,
+%         [Pid1],
+%         ptrace_cont,
+%         Pid2,
+%         0,
+%         28
+%     ),
+%
+%     % Convert a SIGWINCH to SIGTERM
+%     ok = alcove:kill(Drv, [Pid1], Pid2, sigwinch),
+%     {signal, sigchld, _} = alcove:event(Drv, [Pid1], 5000),
+%     {ok, 0, <<>>, <<>>} = alcove:ptrace(
+%         Drv,
+%         [Pid1],
+%         ptrace_cont,
+%         Pid2,
+%         0,
+%         15
+%     ),
+%     {ok, Pid2, _, [{termsig, sigterm}]} = alcove:waitpid(
+%         Drv,
+%         [Pid1],
+%         -1,
+%         []
+%     ).
+% '''
 
 ptrace(Drv, Pids, Arg1, Arg2, Arg3, Arg4, Timeout) ->
     case alcove_drv:call(Drv,
@@ -5461,9 +5919,39 @@ rmdir(Drv, Pids, Arg1, Timeout) ->
 
 % @doc seccomp(2): restrict system operations
 %
-% Linux only.
+% Also see prctl/7.
 %
-% See prctl/7.
+% == Support ==
+%
+% * Linux
+%
+% == Examples ==
+%
+% To enforce a seccomp filter:
+%
+% ```
+% % NOTE: this filter will cause the port to receive a SIGSYS
+% % See test/alcove_seccomp_tests.erl for all the syscalls
+% % required for the port process to run
+%
+% Arch = alcove:define(Drv, [], alcove:audit_arch()),
+% Filter = [
+%     ?VALIDATE_ARCHITECTURE(Arch),
+%     ?EXAMINE_SYSCALL,
+%     sys_read,
+%     sys_write
+% ],
+%
+% {ok,_,_,_,_,_} = alcove:prctl(Drv, [], pr_set_no_new_privs, 1, 0, 0, 0),
+% Pad = (erlang:system_info({wordsize,external}) - 2) * 8,
+%
+% Prog = [
+%     <<(iolist_size(Filter) div 8):2/native-unsigned-integer-unit:8>>,
+%     <<0:Pad>>,
+%     {ptr, list_to_binary(Filter)}
+% ],
+% alcove:seccomp(Drv, [], seccomp_set_mode_filter, 0, Prog).
+% '''
 
 seccomp(Drv, Pids, Arg1, Arg2, Arg3) ->
     case alcove_drv:call(Drv,
@@ -5479,9 +5967,39 @@ seccomp(Drv, Pids, Arg1, Arg2, Arg3) ->
 
 % @doc seccomp(2): restrict system operations
 %
-% Linux only.
+% Also see prctl/7.
 %
-% See prctl/7.
+% == Support ==
+%
+% * Linux
+%
+% == Examples ==
+%
+% To enforce a seccomp filter:
+%
+% ```
+% % NOTE: this filter will cause the port to receive a SIGSYS
+% % See test/alcove_seccomp_tests.erl for all the syscalls
+% % required for the port process to run
+%
+% Arch = alcove:define(Drv, [], alcove:audit_arch()),
+% Filter = [
+%     ?VALIDATE_ARCHITECTURE(Arch),
+%     ?EXAMINE_SYSCALL,
+%     sys_read,
+%     sys_write
+% ],
+%
+% {ok,_,_,_,_,_} = alcove:prctl(Drv, [], pr_set_no_new_privs, 1, 0, 0, 0),
+% Pad = (erlang:system_info({wordsize,external}) - 2) * 8,
+%
+% Prog = [
+%     <<(iolist_size(Filter) div 8):2/native-unsigned-integer-unit:8>>,
+%     <<0:Pad>>,
+%     {ptr, list_to_binary(Filter)}
+% ],
+% alcove:seccomp(Drv, [], seccomp_set_mode_filter, 0, Prog).
+% '''
 
 seccomp(Drv, Pids, Arg1, Arg2, Arg3, Timeout) ->
     case alcove_drv:call(Drv,
@@ -5557,6 +6075,21 @@ seccomp_constant(Drv, Pids, Arg1, Timeout) ->
 %     * sec : number of seconds to wait
 %
 %     * usec : number of microseconds to wait
+%
+% == Examples ==
+%
+% ```
+% 1> {ok, Drv} = alcove_drv:start().
+% {ok,<0.177.0>}
+% 2> {ok, FD} = alcove:open(Drv, [], "/dev/null", [o_rdwr], 0).
+% {ok,6}
+% 3> alcove:select(Drv, [], [FD], [FD], [FD], []).
+% {ok,[6],[6],[]}
+% 4> rr(alcove).
+% [alcove_jail,alcove_pid,alcove_rlimit,alcove_timeval]
+% 5> alcove:select(Drv, [], [FD], [FD], [FD], #alcove_timeval{sec = 1, usec = 1}).
+% {ok,[6],[6],[]}
+% '''
 
 select(Drv, Pids, Arg1, Arg2, Arg3, Arg4) ->
     case alcove_drv:call(Drv,
@@ -5586,6 +6119,21 @@ select(Drv, Pids, Arg1, Arg2, Arg3, Arg4) ->
 %     * sec : number of seconds to wait
 %
 %     * usec : number of microseconds to wait
+%
+% == Examples ==
+%
+% ```
+% 1> {ok, Drv} = alcove_drv:start().
+% {ok,<0.177.0>}
+% 2> {ok, FD} = alcove:open(Drv, [], "/dev/null", [o_rdwr], 0).
+% {ok,6}
+% 3> alcove:select(Drv, [], [FD], [FD], [FD], []).
+% {ok,[6],[6],[]}
+% 4> rr(alcove).
+% [alcove_jail,alcove_pid,alcove_rlimit,alcove_timeval]
+% 5> alcove:select(Drv, [], [FD], [FD], [FD], #alcove_timeval{sec = 1, usec = 1}).
+% {ok,[6],[6],[]}
+% '''
 
 select(Drv, Pids, Arg1, Arg2, Arg3, Arg4, Timeout) ->
     case alcove_drv:call(Drv,
@@ -5622,6 +6170,19 @@ select(Drv, Pids, Arg1, Arg2, Arg3, Arg4, Timeout) ->
 %
 %   The alcove control process sends this signal to the child process on
 %   shutdown (default: 15 (SIGTERM))
+%
+% == Examples ==
+%
+% ```
+% 1> {ok, Drv} = alcove_drv:start().
+% {ok,<0.177.0>}
+% 2> {ok, Pid} = alcove:fork(Drv, []).
+% {ok,24440}
+% 3> alcove:setcpid(Drv, [], Pid, flowcontrol, 0).
+% true
+% 4> alcove:getcpid(Drv, [], Pid, flowcontrol).
+% 0
+% '''
 
 setcpid(Drv, Pids, Arg1, Arg2, Arg3) ->
     case alcove_drv:call(Drv,
@@ -5657,6 +6218,19 @@ setcpid(Drv, Pids, Arg1, Arg2, Arg3) ->
 %
 %   The alcove control process sends this signal to the child process on
 %   shutdown (default: 15 (SIGTERM))
+%
+% == Examples ==
+%
+% ```
+% 1> {ok, Drv} = alcove_drv:start().
+% {ok,<0.177.0>}
+% 2> {ok, Pid} = alcove:fork(Drv, []).
+% {ok,24440}
+% 3> alcove:setcpid(Drv, [], Pid, flowcontrol, 0).
+% true
+% 4> alcove:getcpid(Drv, [], Pid, flowcontrol).
+% 0
+% '''
 
 setcpid(Drv, Pids, Arg1, Arg2, Arg3, Timeout) ->
     case alcove_drv:call(Drv,
@@ -5672,6 +6246,25 @@ setcpid(Drv, Pids, Arg1, Arg2, Arg3, Timeout) ->
     end.
 
 % @doc setenv(3): set an environment variable
+%
+% == Examples ==
+%
+% ```
+% 1> {ok, Drv} = alcove_drv:start().
+% {ok,<0.177.0>}
+% 2> alcove:setenv(Drv, [], "ALCOVE_TEST", "foo", 0).
+% ok
+% 3> alcove:getenv(Drv, [], "ALCOVE_TEST").
+% <<"foo">>
+% 4> alcove:setenv(Drv, [], "ALCOVE_TEST", "bar", 0).
+% ok
+% 5> alcove:getenv(Drv, [], "ALCOVE_TEST").
+% <<"foo">>
+% 6> alcove:setenv(Drv, [], "ALCOVE_TEST", "bar", 1).
+% ok
+% 7> alcove:getenv(Drv, [], "ALCOVE_TEST").
+% <<"bar">>
+% '''
 
 setenv(Drv, Pids, Arg1, Arg2, Arg3) ->
     case alcove_drv:call(Drv,
@@ -5686,6 +6279,25 @@ setenv(Drv, Pids, Arg1, Arg2, Arg3) ->
     end.
 
 % @doc setenv(3): set an environment variable
+%
+% == Examples ==
+%
+% ```
+% 1> {ok, Drv} = alcove_drv:start().
+% {ok,<0.177.0>}
+% 2> alcove:setenv(Drv, [], "ALCOVE_TEST", "foo", 0).
+% ok
+% 3> alcove:getenv(Drv, [], "ALCOVE_TEST").
+% <<"foo">>
+% 4> alcove:setenv(Drv, [], "ALCOVE_TEST", "bar", 0).
+% ok
+% 5> alcove:getenv(Drv, [], "ALCOVE_TEST").
+% <<"foo">>
+% 6> alcove:setenv(Drv, [], "ALCOVE_TEST", "bar", 1).
+% ok
+% 7> alcove:getenv(Drv, [], "ALCOVE_TEST").
+% <<"bar">>
+% '''
 
 setenv(Drv, Pids, Arg1, Arg2, Arg3, Timeout) ->
     case alcove_drv:call(Drv,
@@ -5701,6 +6313,19 @@ setenv(Drv, Pids, Arg1, Arg2, Arg3, Timeout) ->
     end.
 
 % @doc setgid(2): set the GID of the process
+%
+% == Examples ==
+%
+% ```
+% 1> {ok, Drv} = alcove_drv:start([{exec, "sudo -n"}]).
+% {ok,<0.208.0>}
+% 2> {ok, Pid} = alcove:fork(Drv, []).
+% {ok,44378}
+% 72> alcove:setgid(Drv, [Pid], 123).
+% ok
+% 73> alcove:getgid(Drv, [Pid]).
+% 123
+% '''
 
 setgid(Drv, Pids, Arg1) ->
     case alcove_drv:call(Drv,
@@ -5715,6 +6340,19 @@ setgid(Drv, Pids, Arg1) ->
     end.
 
 % @doc setgid(2): set the GID of the process
+%
+% == Examples ==
+%
+% ```
+% 1> {ok, Drv} = alcove_drv:start([{exec, "sudo -n"}]).
+% {ok,<0.208.0>}
+% 2> {ok, Pid} = alcove:fork(Drv, []).
+% {ok,44378}
+% 72> alcove:setgid(Drv, [Pid], 123).
+% ok
+% 73> alcove:getgid(Drv, [Pid]).
+% 123
+% '''
 
 setgid(Drv, Pids, Arg1, Timeout) ->
     case alcove_drv:call(Drv, Pids, setgid, [Arg1], Timeout)
@@ -5725,6 +6363,19 @@ setgid(Drv, Pids, Arg1, Timeout) ->
     end.
 
 % @doc setgroups(2): set the supplementary groups of the process
+%
+% == Examples ==
+%
+% ```
+% 1> {ok, Drv} = alcove_drv:start([{exec, "sudo -n"}]).
+% {ok,<0.208.0>}
+% 2> {ok, Pid} = alcove:fork(Drv, []).
+% {ok,44378}
+% 75> alcove:setgroups(Drv, [Pid], []).
+% ok
+% 76> alcove:getgroups(Drv, [Pid]).
+% {ok,[]}
+% '''
 
 setgroups(Drv, Pids, Arg1) ->
     case alcove_drv:call(Drv,
@@ -5739,6 +6390,19 @@ setgroups(Drv, Pids, Arg1) ->
     end.
 
 % @doc setgroups(2): set the supplementary groups of the process
+%
+% == Examples ==
+%
+% ```
+% 1> {ok, Drv} = alcove_drv:start([{exec, "sudo -n"}]).
+% {ok,<0.208.0>}
+% 2> {ok, Pid} = alcove:fork(Drv, []).
+% {ok,44378}
+% 75> alcove:setgroups(Drv, [Pid], []).
+% ok
+% 76> alcove:getgroups(Drv, [Pid]).
+% {ok,[]}
+% '''
 
 setgroups(Drv, Pids, Arg1, Timeout) ->
     case alcove_drv:call(Drv,
@@ -5754,14 +6418,22 @@ setgroups(Drv, Pids, Arg1, Timeout) ->
 
 % @doc sethostname(2): set the system hostname
 %
-% This function is probably only useful if running in a uts namespace:
+% This function is probably only useful if running in a uts namespace or
+% a jail.
+%
+% == Examples ==
 %
 % ```
-% {ok, Pid} = alcove:clone(Drv, [], [clone_newuts]),
-% ok = alcove:sethostname(Drv, [Pid], "test"),
-% Hostname1 = alcove:gethostname(Drv, []),
-% Hostname2 = alcove:gethostname(Drv, [Pid]),
-% Hostname1 =/= Hostname2.
+% 1> {ok, Drv} = alcove_drv:start([{exec, "sudo -n"}]).
+% {ok,<0.208.0>}
+% 2> {ok, Pid} = alcove:clone(Drv, [], [clone_newuts]).
+% {ok,44378}
+% 3> alcove:sethostname(Drv, [Pid], "test").
+% ok
+% 4> alcove:gethostname(Drv, []).
+% {ok,<<"host1">>}
+% 5> alcove:gethostname(Drv, [Pid]).
+% {ok,<<"test">>}
 % '''
 
 sethostname(Drv, Pids, Arg1) ->
@@ -5778,14 +6450,22 @@ sethostname(Drv, Pids, Arg1) ->
 
 % @doc sethostname(2): set the system hostname
 %
-% This function is probably only useful if running in a uts namespace:
+% This function is probably only useful if running in a uts namespace or
+% a jail.
+%
+% == Examples ==
 %
 % ```
-% {ok, Pid} = alcove:clone(Drv, [], [clone_newuts]),
-% ok = alcove:sethostname(Drv, [Pid], "test"),
-% Hostname1 = alcove:gethostname(Drv, []),
-% Hostname2 = alcove:gethostname(Drv, [Pid]),
-% Hostname1 =/= Hostname2.
+% 1> {ok, Drv} = alcove_drv:start([{exec, "sudo -n"}]).
+% {ok,<0.208.0>}
+% 2> {ok, Pid} = alcove:clone(Drv, [], [clone_newuts]).
+% {ok,44378}
+% 3> alcove:sethostname(Drv, [Pid], "test").
+% ok
+% 4> alcove:gethostname(Drv, []).
+% {ok,<<"host1">>}
+% 5> alcove:gethostname(Drv, [Pid]).
+% {ok,<<"test">>}
 % '''
 
 sethostname(Drv, Pids, Arg1, Timeout) ->
@@ -5802,8 +6482,6 @@ sethostname(Drv, Pids, Arg1, Timeout) ->
 
 % @doc setns(2): attach to a namespace
 %
-% Linux only.
-%
 % A process namespace is represented as a path in the /proc filesystem. The
 % path is `/proc/<pid>/ns/<ns>', where:
 %
@@ -5818,17 +6496,27 @@ sethostname(Drv, Pids, Arg1, Timeout) ->
 % ls -al /proc/$$/ns
 % '''
 %
-% For example, to attach to another process network namespace:
+% == Support ==
+%
+% * Linux
+%
+% == Examples ==
+%
+% Attach a process to an existing network namespace:
 %
 % ```
-% {ok, Pid1} = alcove:clone(Drv, [], [clone_newnet]),
-% {ok, Pid2} = alcove:fork(Drv, []),
-%
+% 1> {ok, Drv} = alcove_drv:start([{exec, "sudo -n"}]).
+% {ok,<0.208.0>}
+% 2> {ok, Pid1} = alcove:clone(Drv, [], [clone_newnet]).
+% {ok,27125}
+% 3> {ok, Pid2} = alcove:fork(Drv, []).
+% {ok,27126}
 % % Move Pid2 into the Pid1 network namespace
-% {ok,FD} = alcove:open(Drv, [Pid2],
-%         ["/proc/", integer_to_list(Pid1), "/ns/net"], [o_rdonly], 0),
-% ok = alcove:setns(Drv, [Pid2], FD, 0),
-% ok = alcove:close(Drv, [Pid2], FD).
+% 4> {ok, FD} = alcove:open(Drv, [Pid2], ["/proc/", integer_to_list(Pid1), "/ns/net"], [o_rdonly], 0).
+% {ok,8}
+% 5> alcove:setns(Drv, [Pid2], FD, 0).
+% ok
+% 6> alcove:close(Drv, [Pid2], FD).
 % '''
 
 setns(Drv, Pids, Arg1, Arg2) ->
@@ -5845,8 +6533,6 @@ setns(Drv, Pids, Arg1, Arg2) ->
 
 % @doc setns(2): attach to a namespace
 %
-% Linux only.
-%
 % A process namespace is represented as a path in the /proc filesystem. The
 % path is `/proc/<pid>/ns/<ns>', where:
 %
@@ -5861,17 +6547,27 @@ setns(Drv, Pids, Arg1, Arg2) ->
 % ls -al /proc/$$/ns
 % '''
 %
-% For example, to attach to another process network namespace:
+% == Support ==
+%
+% * Linux
+%
+% == Examples ==
+%
+% Attach a process to an existing network namespace:
 %
 % ```
-% {ok, Pid1} = alcove:clone(Drv, [], [clone_newnet]),
-% {ok, Pid2} = alcove:fork(Drv, []),
-%
+% 1> {ok, Drv} = alcove_drv:start([{exec, "sudo -n"}]).
+% {ok,<0.208.0>}
+% 2> {ok, Pid1} = alcove:clone(Drv, [], [clone_newnet]).
+% {ok,27125}
+% 3> {ok, Pid2} = alcove:fork(Drv, []).
+% {ok,27126}
 % % Move Pid2 into the Pid1 network namespace
-% {ok,FD} = alcove:open(Drv, [Pid2],
-%         ["/proc/", integer_to_list(Pid1), "/ns/net"], [o_rdonly], 0),
-% ok = alcove:setns(Drv, [Pid2], FD, 0),
-% ok = alcove:close(Drv, [Pid2], FD).
+% 4> {ok, FD} = alcove:open(Drv, [Pid2], ["/proc/", integer_to_list(Pid1), "/ns/net"], [o_rdonly], 0).
+% {ok,8}
+% 5> alcove:setns(Drv, [Pid2], FD, 0).
+% ok
+% 6> alcove:close(Drv, [Pid2], FD).
 % '''
 
 setns(Drv, Pids, Arg1, Arg2, Timeout) ->
@@ -5889,6 +6585,15 @@ setns(Drv, Pids, Arg1, Arg2, Timeout) ->
 % @doc Set port options
 %
 % See getopt/2,3 for the list of options.
+%
+% == Examples ==
+%
+% ```
+% 1> {ok, Drv} = alcove_drv:start().
+% {ok,<0.177.0>}
+% 2> alcove:setopt(Drv, [], maxforkdepth, 128).
+% true
+% '''
 
 setopt(Drv, Pids, Arg1, Arg2) ->
     case alcove_drv:call(Drv,
@@ -5905,6 +6610,15 @@ setopt(Drv, Pids, Arg1, Arg2) ->
 % @doc Set port options
 %
 % See getopt/2,3 for the list of options.
+%
+% == Examples ==
+%
+% ```
+% 1> {ok, Drv} = alcove_drv:start().
+% {ok,<0.177.0>}
+% 2> alcove:setopt(Drv, [], maxforkdepth, 128).
+% true
+% '''
 
 setopt(Drv, Pids, Arg1, Arg2, Timeout) ->
     case alcove_drv:call(Drv,
@@ -5919,6 +6633,17 @@ setopt(Drv, Pids, Arg1, Arg2, Timeout) ->
     end.
 
 % @doc setpgid(2): set process group
+%
+% == Examples ==
+%
+% ```
+% 1> {ok, Drv} = alcove_drv:start().
+% {ok,<0.177.0>}
+% 2> {ok, Pid} = alcove:fork(Drv, []).
+% {ok,28210}
+% 3> alcove:setpgid(Drv, [Pid], 0, 0).
+% ok
+% '''
 
 setpgid(Drv, Pids, Arg1, Arg2) ->
     case alcove_drv:call(Drv,
@@ -5933,6 +6658,17 @@ setpgid(Drv, Pids, Arg1, Arg2) ->
     end.
 
 % @doc setpgid(2): set process group
+%
+% == Examples ==
+%
+% ```
+% 1> {ok, Drv} = alcove_drv:start().
+% {ok,<0.177.0>}
+% 2> {ok, Pid} = alcove:fork(Drv, []).
+% {ok,28210}
+% 3> alcove:setpgid(Drv, [Pid], 0, 0).
+% ok
+% '''
 
 setpgid(Drv, Pids, Arg1, Arg2, Timeout) ->
     case alcove_drv:call(Drv,
@@ -5947,6 +6683,19 @@ setpgid(Drv, Pids, Arg1, Arg2, Timeout) ->
     end.
 
 % @doc setpriority(2): set scheduling priority of process, process group or user
+%
+% == Examples ==
+%
+% ```
+% 1> {ok, Drv} = alcove_drv:start().
+% {ok,<0.177.0>}
+% 2> {ok, Pid} = alcove:fork(Drv, []).
+% {ok,28210}
+% 3> alcove:setpriority(Drv, [Pid], prio_process, 0, 10).
+% ok
+% 4> alcove:getpriority(Drv, [Pid], prio_process, 0).
+% {ok,10}
+% '''
 
 setpriority(Drv, Pids, Arg1, Arg2, Arg3) ->
     case alcove_drv:call(Drv,
@@ -5961,6 +6710,19 @@ setpriority(Drv, Pids, Arg1, Arg2, Arg3) ->
     end.
 
 % @doc setpriority(2): set scheduling priority of process, process group or user
+%
+% == Examples ==
+%
+% ```
+% 1> {ok, Drv} = alcove_drv:start().
+% {ok,<0.177.0>}
+% 2> {ok, Pid} = alcove:fork(Drv, []).
+% {ok,28210}
+% 3> alcove:setpriority(Drv, [Pid], prio_process, 0, 10).
+% ok
+% 4> alcove:getpriority(Drv, [Pid], prio_process, 0).
+% {ok,10}
+% '''
 
 setpriority(Drv, Pids, Arg1, Arg2, Arg3, Timeout) ->
     case alcove_drv:call(Drv,
@@ -5977,11 +6739,24 @@ setpriority(Drv, Pids, Arg1, Arg2, Arg3, Timeout) ->
 
 % @doc setproctitle(3): set the process title
 %
-% On Linux, prctl/6,7 can also be used:
+% Overwrites arg0.
+%
+% On Linux, prctl/6,7 can be used to set the command name:
 %
 % ```
 % {ok,Fork} = alcove:fork(Drv, []),
 % alcove:prctl(Drv, [Fork], pr_set_name, <<"pseudonym">>, 0,0,0).
+% '''
+%
+% == Examples ==
+%
+% ```
+% 1> {ok, Drv} = alcove_drv:start().
+% {ok,<0.177.0>}
+% 2> {ok, Pid} = alcove:fork(Drv, []).
+% {ok,28210}
+% 3> alcove:setproctitle(Drv, [Pid], "new process name").
+% ok
 % '''
 
 setproctitle(Drv, Pids, Arg1) ->
@@ -5998,11 +6773,24 @@ setproctitle(Drv, Pids, Arg1) ->
 
 % @doc setproctitle(3): set the process title
 %
-% On Linux, prctl/6,7 can also be used:
+% Overwrites arg0.
+%
+% On Linux, prctl/6,7 can be used to set the command name:
 %
 % ```
 % {ok,Fork} = alcove:fork(Drv, []),
 % alcove:prctl(Drv, [Fork], pr_set_name, <<"pseudonym">>, 0,0,0).
+% '''
+%
+% == Examples ==
+%
+% ```
+% 1> {ok, Drv} = alcove_drv:start().
+% {ok,<0.177.0>}
+% 2> {ok, Pid} = alcove:fork(Drv, []).
+% {ok,28210}
+% 3> alcove:setproctitle(Drv, [Pid], "new process name").
+% ok
 % '''
 
 setproctitle(Drv, Pids, Arg1, Timeout) ->
@@ -6019,7 +6807,24 @@ setproctitle(Drv, Pids, Arg1, Timeout) ->
 
 % @doc setresgid(2): set real, effective and saved group ID
 %
-% Supported on Linux and BSDs.
+% == Support ==
+%
+% * Linux
+%
+% * FreeBSD
+%
+% * OpenBSD
+%
+% == Examples ==
+%
+% ```
+% 1> {ok, Drv} = alcove_drv:start([{exec, "sudo -n"}]).
+% {ok,<0.177.0>}
+% 2> {ok, Pid} = alcove:fork(Drv, []).
+% {ok,28493}
+% 3> alcove:setresgid(Drv, [Pid], 123, 123, 123).
+% ok
+% '''
 
 setresgid(Drv, Pids, Arg1, Arg2, Arg3) ->
     case alcove_drv:call(Drv,
@@ -6035,7 +6840,24 @@ setresgid(Drv, Pids, Arg1, Arg2, Arg3) ->
 
 % @doc setresgid(2): set real, effective and saved group ID
 %
-% Supported on Linux and BSDs.
+% == Support ==
+%
+% * Linux
+%
+% * FreeBSD
+%
+% * OpenBSD
+%
+% == Examples ==
+%
+% ```
+% 1> {ok, Drv} = alcove_drv:start([{exec, "sudo -n"}]).
+% {ok,<0.177.0>}
+% 2> {ok, Pid} = alcove:fork(Drv, []).
+% {ok,28493}
+% 3> alcove:setresgid(Drv, [Pid], 123, 123, 123).
+% ok
+% '''
 
 setresgid(Drv, Pids, Arg1, Arg2, Arg3, Timeout) ->
     case alcove_drv:call(Drv,
@@ -6052,7 +6874,24 @@ setresgid(Drv, Pids, Arg1, Arg2, Arg3, Timeout) ->
 
 % @doc setresuid(2): set real, effective and saved user ID
 %
-% Supported on Linux and BSDs.
+% == Support ==
+%
+% * Linux
+%
+% * FreeBSD
+%
+% * OpenBSD
+%
+% == Examples ==
+%
+% ```
+% 1> {ok, Drv} = alcove_drv:start([{exec, "sudo -n"}]).
+% {ok,<0.177.0>}
+% 2> {ok, Pid} = alcove:fork(Drv, []).
+% {ok,28493}
+% 3> alcove:setresuid(Drv, [Pid], 123, 123, 123).
+% ok
+% '''
 
 setresuid(Drv, Pids, Arg1, Arg2, Arg3) ->
     case alcove_drv:call(Drv,
@@ -6068,7 +6907,24 @@ setresuid(Drv, Pids, Arg1, Arg2, Arg3) ->
 
 % @doc setresuid(2): set real, effective and saved user ID
 %
-% Supported on Linux and BSDs.
+% == Support ==
+%
+% * Linux
+%
+% * FreeBSD
+%
+% * OpenBSD
+%
+% == Examples ==
+%
+% ```
+% 1> {ok, Drv} = alcove_drv:start([{exec, "sudo -n"}]).
+% {ok,<0.177.0>}
+% 2> {ok, Pid} = alcove:fork(Drv, []).
+% {ok,28493}
+% 3> alcove:setresuid(Drv, [Pid], 123, 123, 123).
+% ok
+% '''
 
 setresuid(Drv, Pids, Arg1, Arg2, Arg3, Timeout) ->
     case alcove_drv:call(Drv,
@@ -6084,6 +6940,23 @@ setresuid(Drv, Pids, Arg1, Arg2, Arg3, Timeout) ->
     end.
 
 % @doc setrlimit(2): set a resource limit
+%
+% == Examples ==
+%
+% ```
+% 1> {ok, Drv} = alcove_drv:start().
+% {ok,<0.177.0>}
+% 2> rr(alcove).
+% [alcove_jail,alcove_pid,alcove_rlimit,alcove_timeval]
+% 3> {ok, Pid} = alcove:fork(Drv, []).
+% {ok,28493}
+% 4> alcove:getrlimit(Drv, [Pid], rlimit_nofile).
+% {ok,#alcove_rlimit{cur = 1024,max = 1048576}}
+% 5> alcove:setrlimit(Drv, [Pid], rlimit_nofile, #alcove_rlimit{cur = 64, max = 64}).
+% ok
+% 6> alcove:getrlimit(Drv, [Pid], rlimit_nofile).
+% {ok,#alcove_rlimit{cur = 64,max = 64}}
+% '''
 
 setrlimit(Drv, Pids, Arg1, Arg2) ->
     case alcove_drv:call(Drv,
@@ -6098,6 +6971,23 @@ setrlimit(Drv, Pids, Arg1, Arg2) ->
     end.
 
 % @doc setrlimit(2): set a resource limit
+%
+% == Examples ==
+%
+% ```
+% 1> {ok, Drv} = alcove_drv:start().
+% {ok,<0.177.0>}
+% 2> rr(alcove).
+% [alcove_jail,alcove_pid,alcove_rlimit,alcove_timeval]
+% 3> {ok, Pid} = alcove:fork(Drv, []).
+% {ok,28493}
+% 4> alcove:getrlimit(Drv, [Pid], rlimit_nofile).
+% {ok,#alcove_rlimit{cur = 1024,max = 1048576}}
+% 5> alcove:setrlimit(Drv, [Pid], rlimit_nofile, #alcove_rlimit{cur = 64, max = 64}).
+% ok
+% 6> alcove:getrlimit(Drv, [Pid], rlimit_nofile).
+% {ok,#alcove_rlimit{cur = 64,max = 64}}
+% '''
 
 setrlimit(Drv, Pids, Arg1, Arg2, Timeout) ->
     case alcove_drv:call(Drv,
@@ -6112,6 +7002,17 @@ setrlimit(Drv, Pids, Arg1, Arg2, Timeout) ->
     end.
 
 % @doc setsid(2): create a new session
+%
+% == Examples ==
+%
+% ```
+% 1> {ok, Drv} = alcove_drv:start().
+% {ok,<0.177.0>}
+% 2> {ok, Pid} = alcove:fork(Drv, []).
+% {ok,28493}
+% 3> alcove:setsid(Drv, [Pid]).
+% {ok,28493}
+% '''
 
 setsid(Drv, Pids) ->
     case alcove_drv:call(Drv, Pids, setsid, [], infinity) of
@@ -6121,6 +7022,17 @@ setsid(Drv, Pids) ->
     end.
 
 % @doc setsid(2): create a new session
+%
+% == Examples ==
+%
+% ```
+% 1> {ok, Drv} = alcove_drv:start().
+% {ok,<0.177.0>}
+% 2> {ok, Pid} = alcove:fork(Drv, []).
+% {ok,28493}
+% 3> alcove:setsid(Drv, [Pid]).
+% {ok,28493}
+% '''
 
 setsid(Drv, Pids, Timeout) ->
     case alcove_drv:call(Drv, Pids, setsid, [], Timeout) of
@@ -6130,6 +7042,19 @@ setsid(Drv, Pids, Timeout) ->
     end.
 
 % @doc setuid(2): change UID
+%
+% == Examples ==
+%
+% ```
+% 1> {ok, Drv} = alcove_drv:start([{exec, "sudo -n"}]).
+% {ok,<0.208.0>}
+% 2> {ok, Pid} = alcove:fork(Drv, []).
+% {ok,44378}
+% 72> alcove:setuid(Drv, [Pid], 123).
+% ok
+% 73> alcove:getuid(Drv, [Pid]).
+% 123
+% '''
 
 setuid(Drv, Pids, Arg1) ->
     case alcove_drv:call(Drv,
@@ -6144,6 +7069,19 @@ setuid(Drv, Pids, Arg1) ->
     end.
 
 % @doc setuid(2): change UID
+%
+% == Examples ==
+%
+% ```
+% 1> {ok, Drv} = alcove_drv:start([{exec, "sudo -n"}]).
+% {ok,<0.208.0>}
+% 2> {ok, Pid} = alcove:fork(Drv, []).
+% {ok,44378}
+% 72> alcove:setuid(Drv, [Pid], 123).
+% ok
+% 73> alcove:getuid(Drv, [Pid]).
+% 123
+% '''
 
 setuid(Drv, Pids, Arg1, Timeout) ->
     case alcove_drv:call(Drv, Pids, setuid, [Arg1], Timeout)
@@ -6179,6 +7117,53 @@ setuid(Drv, Pids, Arg1, Timeout) ->
 %   Returns the current handler for the signal.
 %
 % Multiple caught signals of the same type may be reported as one event.
+%
+% == Examples ==
+%
+% ```
+% 1> {ok, Drv} = alcove_drv:start().
+% {ok,<0.177.0>}
+% 2> rr(alcove).
+% [alcove_jail,alcove_pid,alcove_rlimit,alcove_timeval]
+% 3> {ok, Pid} = alcove:fork(Drv, []).
+% {ok,28493}
+% 4> alcove:kill(Drv, [], Pid, sigterm).
+% ok
+% 5> flush().
+% Shell got {alcove_event,<0.177.0>,
+%                         [28493],
+%                         {signal,sigterm,
+%                                 <<15,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,76,111,0,
+%                                   0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+%                                   0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+%                                   0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+%                                   0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+%                                   0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+%                                   0,0,0,0>>}}
+% ok
+% 6> alcove:sigaction(Drv, [Pid], sigterm, sig_ign).
+% {ok,sig_info}
+% 7> alcove:kill(Drv, [], Pid, sigterm).
+% ok
+% 8> flush().
+% ok
+% 9> alcove:sigaction(Drv, [Pid], sigterm, sig_info).
+% {ok,sig_ign}
+% 10> alcove:kill(Drv, [], Pid, sigterm).
+% ok
+% 11> flush().
+% Shell got {alcove_event,<0.177.0>,
+%                         [28493],
+%                         {signal,sigterm,
+%                                 <<15,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,76,111,0,
+%                                   0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+%                                   0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+%                                   0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+%                                   0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+%                                   0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+%                                   0,0,0,0>>}}
+% ok
+% '''
 
 sigaction(Drv, Pids, Arg1, Arg2) ->
     case alcove_drv:call(Drv,
@@ -6218,6 +7203,53 @@ sigaction(Drv, Pids, Arg1, Arg2) ->
 %   Returns the current handler for the signal.
 %
 % Multiple caught signals of the same type may be reported as one event.
+%
+% == Examples ==
+%
+% ```
+% 1> {ok, Drv} = alcove_drv:start().
+% {ok,<0.177.0>}
+% 2> rr(alcove).
+% [alcove_jail,alcove_pid,alcove_rlimit,alcove_timeval]
+% 3> {ok, Pid} = alcove:fork(Drv, []).
+% {ok,28493}
+% 4> alcove:kill(Drv, [], Pid, sigterm).
+% ok
+% 5> flush().
+% Shell got {alcove_event,<0.177.0>,
+%                         [28493],
+%                         {signal,sigterm,
+%                                 <<15,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,76,111,0,
+%                                   0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+%                                   0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+%                                   0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+%                                   0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+%                                   0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+%                                   0,0,0,0>>}}
+% ok
+% 6> alcove:sigaction(Drv, [Pid], sigterm, sig_ign).
+% {ok,sig_info}
+% 7> alcove:kill(Drv, [], Pid, sigterm).
+% ok
+% 8> flush().
+% ok
+% 9> alcove:sigaction(Drv, [Pid], sigterm, sig_info).
+% {ok,sig_ign}
+% 10> alcove:kill(Drv, [], Pid, sigterm).
+% ok
+% 11> flush().
+% Shell got {alcove_event,<0.177.0>,
+%                         [28493],
+%                         {signal,sigterm,
+%                                 <<15,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,76,111,0,
+%                                   0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+%                                   0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+%                                   0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+%                                   0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+%                                   0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+%                                   0,0,0,0>>}}
+% ok
+% '''
 
 sigaction(Drv, Pids, Arg1, Arg2, Timeout) ->
     case alcove_drv:call(Drv,
@@ -6232,6 +7264,17 @@ sigaction(Drv, Pids, Arg1, Arg2, Timeout) ->
     end.
 
 % @doc Convert signal names to integers
+%
+% == Examples ==
+%
+% ```
+% 1> {ok, Drv} = alcove_drv:start().
+% {ok,<0.177.0>}
+% 2> alcove:signal_constant(Drv, [], 'SIGHUP').
+% 1
+% 3> alcove:signal_constant(Drv, [], sighup).
+% 1
+% '''
 
 signal_constant(Drv, Pids, Arg1) ->
     case alcove_drv:call(Drv,
@@ -6246,6 +7289,17 @@ signal_constant(Drv, Pids, Arg1) ->
     end.
 
 % @doc Convert signal names to integers
+%
+% == Examples ==
+%
+% ```
+% 1> {ok, Drv} = alcove_drv:start().
+% {ok,<0.177.0>}
+% 2> alcove:signal_constant(Drv, [], 'SIGHUP').
+% 1
+% 3> alcove:signal_constant(Drv, [], sighup).
+% 1
+% '''
 
 signal_constant(Drv, Pids, Arg1, Timeout) ->
     case alcove_drv:call(Drv,
@@ -6260,6 +7314,17 @@ signal_constant(Drv, Pids, Arg1, Timeout) ->
     end.
 
 % @doc socket(2): returns a file descriptor for a communication endpoint
+%
+% == Examples ==
+%
+% ```
+% 1> {ok, Drv} = alcove_drv:start().
+% {ok,<0.177.0>}
+% 2> {ok, Socket} = alcove:socket(Drv, [], af_inet, sock_stream, 0).
+% {ok,6}
+% 3> alcove:close(Drv, [], Socket).
+% ok
+% '''
 
 socket(Drv, Pids, Arg1, Arg2, Arg3) ->
     case alcove_drv:call(Drv,
@@ -6274,6 +7339,17 @@ socket(Drv, Pids, Arg1, Arg2, Arg3) ->
     end.
 
 % @doc socket(2): returns a file descriptor for a communication endpoint
+%
+% == Examples ==
+%
+% ```
+% 1> {ok, Drv} = alcove_drv:start().
+% {ok,<0.177.0>}
+% 2> {ok, Socket} = alcove:socket(Drv, [], af_inet, sock_stream, 0).
+% {ok,6}
+% 3> alcove:close(Drv, [], Socket).
+% ok
+% '''
 
 socket(Drv, Pids, Arg1, Arg2, Arg3, Timeout) ->
     case alcove_drv:call(Drv,
@@ -6289,6 +7365,15 @@ socket(Drv, Pids, Arg1, Arg2, Arg3, Timeout) ->
     end.
 
 % @doc symlink(2): create a symbolic link
+%
+% == Examples ==
+%
+% ```
+% 1> {ok, Drv} = alcove_drv:start().
+% {ok,<0.177.0>}
+% 2> alcove:symlink(Drv, [], "/etc/hosts", "/tmp/hosts.tmp").
+% ok
+% '''
 
 symlink(Drv, Pids, Arg1, Arg2) ->
     case alcove_drv:call(Drv,
@@ -6303,6 +7388,15 @@ symlink(Drv, Pids, Arg1, Arg2) ->
     end.
 
 % @doc symlink(2): create a symbolic link
+%
+% == Examples ==
+%
+% ```
+% 1> {ok, Drv} = alcove_drv:start().
+% {ok,<0.177.0>}
+% 2> alcove:symlink(Drv, [], "/etc/hosts", "/tmp/hosts.tmp").
+% ok
+% '''
 
 symlink(Drv, Pids, Arg1, Arg2, Timeout) ->
     case alcove_drv:call(Drv,
@@ -6317,6 +7411,17 @@ symlink(Drv, Pids, Arg1, Arg2, Timeout) ->
     end.
 
 % @doc Convert syscall name to integer
+%
+% == Examples ==
+%
+% ```
+% 1> {ok, Drv} = alcove_drv:start().
+% {ok,<0.177.0>}
+% 2> alcove:syscall_constant(Drv, [], 'SYS_exit').
+% 60
+% 3> alcove:syscall_constant(Drv, [], sys_exit).
+% 60
+% '''
 
 syscall_constant(Drv, Pids, Arg1) ->
     case alcove_drv:call(Drv,
@@ -6331,6 +7436,17 @@ syscall_constant(Drv, Pids, Arg1) ->
     end.
 
 % @doc Convert syscall name to integer
+%
+% == Examples ==
+%
+% ```
+% 1> {ok, Drv} = alcove_drv:start().
+% {ok,<0.177.0>}
+% 2> alcove:syscall_constant(Drv, [], 'SYS_exit').
+% 60
+% 3> alcove:syscall_constant(Drv, [], sys_exit).
+% 60
+% '''
 
 syscall_constant(Drv, Pids, Arg1, Timeout) ->
     case alcove_drv:call(Drv,
@@ -6347,6 +7463,21 @@ syscall_constant(Drv, Pids, Arg1, Timeout) ->
 % @doc umount(2): unmount a filesystem
 %
 % On BSD systems, calls unmount(2).
+%
+% == Examples ==
+%
+% An example of bind mounting a directory within a linux mount namespace:
+%
+% ```
+% 1> {ok, Drv} = alcove_drv:start([{exec, "sudo -n"}]).
+% {ok,<0.177.0>}
+% 2> {ok, Pid} = alcove:clone(Drv, [], [clone_newns]).
+% {ok,10059}
+% 3> alcove:mount(Drv, [Pid], "/tmp", "/mnt", "", [ms_bind, ms_rdonly, ms_noexec], "", "").
+% ok
+% 4> alcove:umount(Drv, [Pid], "/mnt").
+% ok
+% '''
 
 umount(Drv, Pids, Arg1) ->
     case alcove_drv:call(Drv,
@@ -6363,6 +7494,21 @@ umount(Drv, Pids, Arg1) ->
 % @doc umount(2): unmount a filesystem
 %
 % On BSD systems, calls unmount(2).
+%
+% == Examples ==
+%
+% An example of bind mounting a directory within a linux mount namespace:
+%
+% ```
+% 1> {ok, Drv} = alcove_drv:start([{exec, "sudo -n"}]).
+% {ok,<0.177.0>}
+% 2> {ok, Pid} = alcove:clone(Drv, [], [clone_newns]).
+% {ok,10059}
+% 3> alcove:mount(Drv, [Pid], "/tmp", "/mnt", "", [ms_bind, ms_rdonly, ms_noexec], "", "").
+% ok
+% 4> alcove:umount(Drv, [Pid], "/mnt").
+% ok
+% '''
 
 umount(Drv, Pids, Arg1, Timeout) ->
     case alcove_drv:call(Drv, Pids, umount, [Arg1], Timeout)
@@ -6374,7 +7520,24 @@ umount(Drv, Pids, Arg1, Timeout) ->
 
 % @doc umount2(2): unmount filesystem with flags
 %
-% Linux only.
+% == Support ==
+%
+% * Linux
+%
+% == Examples ==
+%
+% An example of bind mounting a directory within a linux mount namespace:
+%
+% ```
+% 1> {ok, Drv} = alcove_drv:start([{exec, "sudo -n"}]).
+% {ok,<0.177.0>}
+% 2> {ok, Pid} = alcove:clone(Drv, [], [clone_newns]).
+% {ok,10059}
+% 3> alcove:mount(Drv, [Pid], "/tmp", "/mnt", "", [ms_bind, ms_rdonly, ms_noexec], "", "").
+% ok
+% 4> alcove:umount2(Drv, [Pid], "/mnt", [mnt_detach]).
+% ok
+% '''
 
 umount2(Drv, Pids, Arg1, Arg2) ->
     case alcove_drv:call(Drv,
@@ -6390,7 +7553,24 @@ umount2(Drv, Pids, Arg1, Arg2) ->
 
 % @doc umount2(2): unmount filesystem with flags
 %
-% Linux only.
+% == Support ==
+%
+% * Linux
+%
+% == Examples ==
+%
+% An example of bind mounting a directory within a linux mount namespace:
+%
+% ```
+% 1> {ok, Drv} = alcove_drv:start([{exec, "sudo -n"}]).
+% {ok,<0.177.0>}
+% 2> {ok, Pid} = alcove:clone(Drv, [], [clone_newns]).
+% {ok,10059}
+% 3> alcove:mount(Drv, [Pid], "/tmp", "/mnt", "", [ms_bind, ms_rdonly, ms_noexec], "", "").
+% ok
+% 4> alcove:umount2(Drv, [Pid], "/mnt", [mnt_detach]).
+% ok
+% '''
 
 umount2(Drv, Pids, Arg1, Arg2, Timeout) ->
     case alcove_drv:call(Drv,
@@ -6405,6 +7585,17 @@ umount2(Drv, Pids, Arg1, Arg2, Timeout) ->
     end.
 
 % @doc unlink(2): delete a name from the filesystem
+%
+% == Examples ==
+%
+% ```
+% 1> {ok, Drv} = alcove_drv:start().
+% {ok,<0.177.0>}
+% 2> alcove:open(Drv, [], "/tmp/alcove-open-test", [o_wronly,o_creat], 8#644).
+% {ok,6}
+% 3> alcove:unlink(Drv, [], "/tmp/alcove-open-test").
+% ok
+% '''
 
 unlink(Drv, Pids, Arg1) ->
     case alcove_drv:call(Drv,
@@ -6419,6 +7610,17 @@ unlink(Drv, Pids, Arg1) ->
     end.
 
 % @doc unlink(2): delete a name from the filesystem
+%
+% == Examples ==
+%
+% ```
+% 1> {ok, Drv} = alcove_drv:start().
+% {ok,<0.177.0>}
+% 2> alcove:open(Drv, [], "/tmp/alcove-open-test", [o_wronly,o_creat], 8#644).
+% {ok,6}
+% 3> alcove:unlink(Drv, [], "/tmp/alcove-open-test").
+% ok
+% '''
 
 unlink(Drv, Pids, Arg1, Timeout) ->
     case alcove_drv:call(Drv, Pids, unlink, [Arg1], Timeout)
@@ -6429,6 +7631,21 @@ unlink(Drv, Pids, Arg1, Timeout) ->
     end.
 
 % @doc unsetenv(3): remove an environment variable
+%
+% == Examples ==
+%
+% ```
+% 1> {ok, Drv} = alcove_drv:start().
+% {ok,<0.177.0>}
+% 2> alcove:setenv(Drv, [], "ALCOVE_TEST", "foo", 0).
+% ok
+% 3> alcove:getenv(Drv, [], "ALCOVE_TEST").
+% <<"foo">>
+% 4> alcove:unsetenv(Drv, [], "ALCOVE_TEST").
+% ok
+% 5> alcove:getenv(Drv, [], "ALCOVE_TEST").
+% false
+% '''
 
 unsetenv(Drv, Pids, Arg1) ->
     case alcove_drv:call(Drv,
@@ -6443,6 +7660,21 @@ unsetenv(Drv, Pids, Arg1) ->
     end.
 
 % @doc unsetenv(3): remove an environment variable
+%
+% == Examples ==
+%
+% ```
+% 1> {ok, Drv} = alcove_drv:start().
+% {ok,<0.177.0>}
+% 2> alcove:setenv(Drv, [], "ALCOVE_TEST", "foo", 0).
+% ok
+% 3> alcove:getenv(Drv, [], "ALCOVE_TEST").
+% <<"foo">>
+% 4> alcove:unsetenv(Drv, [], "ALCOVE_TEST").
+% ok
+% 5> alcove:getenv(Drv, [], "ALCOVE_TEST").
+% false
+% '''
 
 unsetenv(Drv, Pids, Arg1, Timeout) ->
     case alcove_drv:call(Drv,
@@ -6463,6 +7695,23 @@ unsetenv(Drv, Pids, Arg1, Timeout) ->
 % ```
 % ok = alcove:unshare(Drv, [], [clone_newnet]).
 % % The port is now running in a namespace without network access.
+% '''
+%
+% == Examples ==
+%
+% ```
+% 1> {ok, Drv} = alcove_drv:start([{exec, "sudo -n"}]).
+% {ok,<0.177.0>}
+% 2> {ok, Pid} = alcove:fork(Drv, []).
+% {ok,28493}
+% 3> alcove:unshare(Drv, [Pid], [clone_newuts]).
+% ok
+% 4> alcove:sethostname(Drv, [Pid], "unshare").
+% ok
+% 5> alcove:gethostname(Drv, [Pid]).
+% {ok,<<"unshare">>}
+% 6> alcove:gethostname(Drv, []).
+% {ok,<<"host1">>}
 % '''
 
 unshare(Drv, Pids, Arg1) ->
@@ -6485,6 +7734,23 @@ unshare(Drv, Pids, Arg1) ->
 % ok = alcove:unshare(Drv, [], [clone_newnet]).
 % % The port is now running in a namespace without network access.
 % '''
+%
+% == Examples ==
+%
+% ```
+% 1> {ok, Drv} = alcove_drv:start([{exec, "sudo -n"}]).
+% {ok,<0.177.0>}
+% 2> {ok, Pid} = alcove:fork(Drv, []).
+% {ok,28493}
+% 3> alcove:unshare(Drv, [Pid], [clone_newuts]).
+% ok
+% 4> alcove:sethostname(Drv, [Pid], "unshare").
+% ok
+% 5> alcove:gethostname(Drv, [Pid]).
+% {ok,<<"unshare">>}
+% 6> alcove:gethostname(Drv, []).
+% {ok,<<"host1">>}
+% '''
 
 unshare(Drv, Pids, Arg1, Timeout) ->
     case alcove_drv:call(Drv,
@@ -6500,14 +7766,29 @@ unshare(Drv, Pids, Arg1, Timeout) ->
 
 % @doc unveil(2): restrict filesystem view
 %
-% OpenBSD only.
-%
 % To disable unveil calls, use an empty list ([]) or, equivalently, an
 % empty string ("").
 %
 % ```
 % alcove:unveil(Drv, [Task], <<"/etc">>, <<"r">>),
 % alcove:unveil(Drv, [Task], [], []).
+% '''
+%
+% == Support ==
+%
+% * OpenBSD
+%
+% == Examples ==
+%
+% ```
+% 1> {ok, Drv} = alcove_drv:start().
+% {ok,<0.177.0>}
+% 2> {ok, Pid} = alcove:fork(Drv, []).
+% {ok,28978}
+% 3> alcove:unveil(Drv, [Pid], <<"/etc">>, <<"r">>).
+% ok
+% 4> alcove:unveil(Drv, [Task], [], []).
+% ok
 % '''
 
 unveil(Drv, Pids, Arg1, Arg2) ->
@@ -6524,14 +7805,29 @@ unveil(Drv, Pids, Arg1, Arg2) ->
 
 % @doc unveil(2): restrict filesystem view
 %
-% OpenBSD only.
-%
 % To disable unveil calls, use an empty list ([]) or, equivalently, an
 % empty string ("").
 %
 % ```
 % alcove:unveil(Drv, [Task], <<"/etc">>, <<"r">>),
 % alcove:unveil(Drv, [Task], [], []).
+% '''
+%
+% == Support ==
+%
+% * OpenBSD
+%
+% == Examples ==
+%
+% ```
+% 1> {ok, Drv} = alcove_drv:start().
+% {ok,<0.177.0>}
+% 2> {ok, Pid} = alcove:fork(Drv, []).
+% {ok,28978}
+% 3> alcove:unveil(Drv, [Pid], <<"/etc">>, <<"r">>).
+% ok
+% 4> alcove:unveil(Drv, [Task], [], []).
+% ok
 % '''
 
 unveil(Drv, Pids, Arg1, Arg2, Timeout) ->
@@ -6547,6 +7843,15 @@ unveil(Drv, Pids, Arg1, Arg2, Timeout) ->
     end.
 
 % @doc Retrieve the alcove version
+%
+% == Examples ==
+%
+% ```
+% 1> {ok, Drv} = alcove_drv:start().
+% {ok,<0.177.0>}
+% 2> alcove:version(Drv, []).
+% <<"0.37.0">>
+% '''
 
 version(Drv, Pids) ->
     case alcove_drv:call(Drv, Pids, version, [], infinity)
@@ -6557,6 +7862,15 @@ version(Drv, Pids) ->
     end.
 
 % @doc Retrieve the alcove version
+%
+% == Examples ==
+%
+% ```
+% 1> {ok, Drv} = alcove_drv:start().
+% {ok,<0.177.0>}
+% 2> alcove:version(Drv, []).
+% <<"0.37.0">>
+% '''
 
 version(Drv, Pids, Timeout) ->
     case alcove_drv:call(Drv, Pids, version, [], Timeout) of
@@ -6566,6 +7880,35 @@ version(Drv, Pids, Timeout) ->
     end.
 
 % @doc waitpid(2): wait for process to change state
+%
+% Process state changes are handled by the alcove SIGCHLD event handler
+% by default. To use waitpid/4,5, disable the signal handler:
+%
+% ```
+% alcove:sigaction(Drv, [Pid], sigchld, sig_info)
+% '''
+%
+% Note: if the default SIGCHLD handler is disabled, waitpid/4,5 should be
+% called to reap zombie processes:
+%
+% ```
+% alcove:waitpid(Drv, [], -1, [wnohang])
+% '''
+%
+% == Examples ==
+%
+% ```
+% 1> {ok, Drv} = alcove_drv:start().
+% {ok,<0.177.0>}
+% 2> {ok, Pid} = alcove:fork(Drv, []).
+% {ok,28978}
+% 3> alcove:sigaction(Drv, [Pid], sigchld, sig_info).
+% {ok,sig_dfl}
+% 4> alcove:execvp(Drv, [Pid], "sleep", ["sleep", "20"]).
+% ok
+% 5> alcove:waitpid(Drv, [], -1, []).
+% {ok,28978,0,[{exit_status,0}]}
+% '''
 
 waitpid(Drv, Pids, Arg1, Arg2) ->
     case alcove_drv:call(Drv,
@@ -6580,6 +7923,35 @@ waitpid(Drv, Pids, Arg1, Arg2) ->
     end.
 
 % @doc waitpid(2): wait for process to change state
+%
+% Process state changes are handled by the alcove SIGCHLD event handler
+% by default. To use waitpid/4,5, disable the signal handler:
+%
+% ```
+% alcove:sigaction(Drv, [Pid], sigchld, sig_info)
+% '''
+%
+% Note: if the default SIGCHLD handler is disabled, waitpid/4,5 should be
+% called to reap zombie processes:
+%
+% ```
+% alcove:waitpid(Drv, [], -1, [wnohang])
+% '''
+%
+% == Examples ==
+%
+% ```
+% 1> {ok, Drv} = alcove_drv:start().
+% {ok,<0.177.0>}
+% 2> {ok, Pid} = alcove:fork(Drv, []).
+% {ok,28978}
+% 3> alcove:sigaction(Drv, [Pid], sigchld, sig_info).
+% {ok,sig_dfl}
+% 4> alcove:execvp(Drv, [Pid], "sleep", ["sleep", "20"]).
+% ok
+% 5> alcove:waitpid(Drv, [], -1, []).
+% {ok,28978,0,[{exit_status,0}]}
+% '''
 
 waitpid(Drv, Pids, Arg1, Arg2, Timeout) ->
     case alcove_drv:call(Drv,
@@ -6597,6 +7969,17 @@ waitpid(Drv, Pids, Arg1, Arg2, Timeout) ->
 %
 % Writes a buffer to a file descriptor and returns the number of bytes
 % written.
+%
+% == Examples ==
+%
+% ```
+% 1> {ok, Drv} = alcove_drv:start().
+% {ok,<0.177.0>}
+% 2> {ok, FD} = alcove:open(Drv, [], "/tmp/alcove-write-test", [o_wronly,o_creat], 8#644).
+% {ok,6}
+% 3> alcove:write(Drv, [], FD, <<"test">>).
+% {ok,4}
+% '''
 
 write(Drv, Pids, Arg1, Arg2) ->
     case alcove_drv:call(Drv,
@@ -6614,6 +7997,17 @@ write(Drv, Pids, Arg1, Arg2) ->
 %
 % Writes a buffer to a file descriptor and returns the number of bytes
 % written.
+%
+% == Examples ==
+%
+% ```
+% 1> {ok, Drv} = alcove_drv:start().
+% {ok,<0.177.0>}
+% 2> {ok, FD} = alcove:open(Drv, [], "/tmp/alcove-write-test", [o_wronly,o_creat], 8#644).
+% {ok,6}
+% 3> alcove:write(Drv, [], FD, <<"test">>).
+% {ok,4}
+% '''
 
 write(Drv, Pids, Arg1, Arg2, Timeout) ->
     case alcove_drv:call(Drv,

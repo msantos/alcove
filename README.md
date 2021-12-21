@@ -1,10 +1,11 @@
 alcove
 ======
 
-alcove is an Erlang interface for creating system and application
-containers like sandboxes or Linux containers. alcove works by giving
-Erlang processes access to the system primitives used for isolating and
-controlling Unix processes.
+alcove is:
+
+* a control plane for system processes
+* an interface for system programming
+* a library for building containerized services
 
 _alcove_ is an external port process (a stand-alone
 Unix process that communicates with the Erlang VM using
@@ -404,8 +405,8 @@ alcove
 
 ### Operating System Support
 
-Functions marked as operating system specific will return
-{error,enotsup} on other platforms.
+Functions marked as operating system specific raise an undefined function
+error on unsupported platforms.
 
 ### Event Loop
 

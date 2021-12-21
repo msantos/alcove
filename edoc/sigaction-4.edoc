@@ -24,3 +24,50 @@
   Returns the current handler for the signal.
 
 Multiple caught signals of the same type may be reported as one event.
+
+== Examples ==
+
+```
+1> {ok, Drv} = alcove_drv:start().
+{ok,<0.177.0>}
+2> rr(alcove).
+[alcove_jail,alcove_pid,alcove_rlimit,alcove_timeval]
+3> {ok, Pid} = alcove:fork(Drv, []).
+{ok,28493}
+4> alcove:kill(Drv, [], Pid, sigterm).
+ok
+5> flush().
+Shell got {alcove_event,<0.177.0>,
+                        [28493],
+                        {signal,sigterm,
+                                <<15,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,76,111,0,
+                                  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+                                  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+                                  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+                                  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+                                  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+                                  0,0,0,0>>}}
+ok
+6> alcove:sigaction(Drv, [Pid], sigterm, sig_ign).
+{ok,sig_info}
+7> alcove:kill(Drv, [], Pid, sigterm).
+ok
+8> flush().
+ok
+9> alcove:sigaction(Drv, [Pid], sigterm, sig_info).
+{ok,sig_ign}
+10> alcove:kill(Drv, [], Pid, sigterm).
+ok
+11> flush().
+Shell got {alcove_event,<0.177.0>,
+                        [28493],
+                        {signal,sigterm,
+                                <<15,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,76,111,0,
+                                  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+                                  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+                                  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+                                  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+                                  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+                                  0,0,0,0>>}}
+ok
+'''

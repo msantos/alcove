@@ -13,3 +13,18 @@ The Timeout value may be:
     * sec : number of seconds to wait
 
     * usec : number of microseconds to wait
+
+== Examples ==
+
+```
+1> {ok, Drv} = alcove_drv:start().
+{ok,<0.177.0>}
+2> {ok, FD} = alcove:open(Drv, [], "/dev/null", [o_rdwr], 0).
+{ok,6}
+3> alcove:select(Drv, [], [FD], [FD], [FD], []).
+{ok,[6],[6],[]}
+4> rr(alcove).
+[alcove_jail,alcove_pid,alcove_rlimit,alcove_timeval]
+5> alcove:select(Drv, [], [FD], [FD], [FD], #alcove_timeval{sec = 1, usec = 1}).
+{ok,[6],[6],[]}
+'''

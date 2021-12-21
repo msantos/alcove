@@ -1,1 +1,14 @@
 @doc setuid(2): change UID
+
+== Examples ==
+
+```
+1> {ok, Drv} = alcove_drv:start([{exec, "sudo -n"}]).
+{ok,<0.208.0>}
+2> {ok, Pid} = alcove:fork(Drv, []).
+{ok,44378}
+72> alcove:setuid(Drv, [Pid], 123).
+ok
+73> alcove:getuid(Drv, [Pid]).
+123
+'''

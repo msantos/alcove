@@ -1,3 +1,12 @@
 @doc Set port options
 
 See getopt/2,3 for the list of options.
+
+== Examples ==
+
+```
+1> {ok, Drv} = alcove_drv:start().
+{ok,<0.177.0>}
+2> alcove:setopt(Drv, [], maxforkdepth, 128).
+true
+'''

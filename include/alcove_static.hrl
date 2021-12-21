@@ -843,8 +843,11 @@ audit_arch() ->
     Wordsize = erlang:system_info({wordsize, external}),
     proplists:get_value({Arch, OS, Wordsize}, Arches, enotsup).
 
+% @private
 wordalign(Offset) ->
     wordalign(Offset, erlang:system_info({wordsize, external})).
+
+% @private
 wordalign(Offset, Align) ->
     (Align - (Offset rem Align)) rem Align.
 
@@ -903,6 +906,21 @@ define_foreach(Drv, Pipeline, Constant, [Fun | Rest]) ->
     end.
 
 % @doc Send data to stdin of the process
+%
+% == Examples ==
+%
+% ```
+% 1> {ok, Drv} = alcove_drv:start([{exec, "sudo -n"}]).
+% {ok,<0.177.0>}
+% 2> {ok, Pid} = alcove:fork(Drv, []).
+% {ok,28493}
+% 3> alcove:execvp(Drv, [Pid], "cat", ["cat"]).
+% ok
+% 4> alcove:stdin(Drv, [Pid], "test\n").
+% ok
+% 5> alcove:stdout(Drv, [Pid]).
+% [<<"test\n">>]
+% '''
 -spec stdin(alcove_drv:ref(), [pid_t()], iodata()) -> 'ok'.
 stdin(Drv, Pids, Data) ->
     case alcove_drv:stdin(Drv, Pids, Data) of
@@ -913,6 +931,21 @@ stdin(Drv, Pids, Data) ->
     end.
 
 % @doc Read stdout from the process
+%
+% == Examples ==
+%
+% ```
+% 1> {ok, Drv} = alcove_drv:start([{exec, "sudo -n"}]).
+% {ok,<0.177.0>}
+% 2> {ok, Pid} = alcove:fork(Drv, []).
+% {ok,28493}
+% 3> alcove:execvp(Drv, [Pid], "cat", ["cat"]).
+% ok
+% 4> alcove:stdin(Drv, [Pid], "test\n").
+% ok
+% 5> alcove:stdout(Drv, [Pid]).
+% [<<"test\n">>]
+% '''
 -spec stdout(alcove_drv:ref(), [pid_t()]) -> [binary()].
 stdout(Drv, Pids) ->
     stdout(Drv, Pids, 0).
@@ -934,6 +967,19 @@ stdout_1(Drv, Pids, Timeout, Acc) ->
     end.
 
 % @doc Read stderr from the process
+%
+% == Examples ==
+%
+% ```
+% 1> {ok, Drv} = alcove_drv:start([{exec, "sudo -n"}]).
+% {ok,<0.177.0>}
+% 2> {ok, Pid} = alcove:fork(Drv, []).
+% {ok,28493}
+% 3> alcove:execvp(Drv, [Pid], "cat", ["cat", "/nonexistent"]).
+% ok
+% 4> alcove:stderr(Drv, [Pid]).
+% [<<"cat: /nonexistent: No such file or directory\n">>]
+% '''
 -spec stderr(alcove_drv:ref(), [pid_t()]) -> [binary()].
 stderr(Drv, Pids) ->
     stderr(Drv, Pids, 0).

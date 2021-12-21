@@ -1,7 +1,5 @@
 @doc setns(2): attach to a namespace
 
-Linux only.
-
 A process namespace is represented as a path in the /proc filesystem. The
 path is `/proc/<pid>/ns/<ns>', where:
 
@@ -16,15 +14,25 @@ see which are supported by running:
 ls -al /proc/$$/ns
 '''
 
-For example, to attach to another process network namespace:
+== Support ==
+
+* Linux
+
+== Examples ==
+
+Attach a process to an existing network namespace:
 
 ```
-{ok, Pid1} = alcove:clone(Drv, [], [clone_newnet]),
-{ok, Pid2} = alcove:fork(Drv, []),
-
+1> {ok, Drv} = alcove_drv:start([{exec, "sudo -n"}]).
+{ok,<0.208.0>}
+2> {ok, Pid1} = alcove:clone(Drv, [], [clone_newnet]).
+{ok,27125}
+3> {ok, Pid2} = alcove:fork(Drv, []).
+{ok,27126}
 % Move Pid2 into the Pid1 network namespace
-{ok,FD} = alcove:open(Drv, [Pid2],
-        ["/proc/", integer_to_list(Pid1), "/ns/net"], [o_rdonly], 0),
-ok = alcove:setns(Drv, [Pid2], FD, 0),
-ok = alcove:close(Drv, [Pid2], FD).
+4> {ok, FD} = alcove:open(Drv, [Pid2], ["/proc/", integer_to_list(Pid1), "/ns/net"], [o_rdonly], 0).
+{ok,8}
+5> alcove:setns(Drv, [Pid2], FD, 0).
+ok
+6> alcove:close(Drv, [Pid2], FD).
 '''

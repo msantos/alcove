@@ -1,6 +1,6 @@
 @doc getgid(2): retrieve the process group ID
 
-== EXAMPLES ==
+== Examples ==
 
 ```
 1> {ok, Drv} = alcove_drv:start().
