@@ -132,7 +132,7 @@ call(Drv, Pids, Command, Argv, Timeout) when
     Data = alcove_codec:call(Command, Pids, Argv),
     case sync_send(Drv, Data) of
         ok ->
-            call_reply(Drv, Pids, alcove_proto:will_return(Command), Timeout);
+            call_reply(Drv, Pids, alcove_proto:noreturn(Command), Timeout);
         Error ->
             Error
     end.
@@ -307,7 +307,7 @@ handle_info(Info, State) ->
 %%--------------------------------------------------------------------
 %%% Internal functions
 %%--------------------------------------------------------------------
-call_reply(Drv, Pids, false, Timeout) ->
+call_reply(Drv, Pids, true, Timeout) ->
     receive
         {alcove_ctl, Drv, Pids, fdctl_closed} ->
             ok;
@@ -321,10 +321,10 @@ call_reply(Drv, Pids, false, Timeout) ->
             Event
     after Timeout -> {alcove_error, timeout}
     end;
-call_reply(Drv, Pids, true, Timeout) ->
+call_reply(Drv, Pids, false, Timeout) ->
     receive
         {alcove_ctl, Drv, Pids, fdctl_closed} ->
-            call_reply(Drv, Pids, true, Timeout);
+            call_reply(Drv, Pids, false, Timeout);
         {alcove_ctl, Drv, Pids, Error} ->
             {alcove_error, Error};
         {alcove_event, Drv, Pids, {termsig, _} = Event} ->
