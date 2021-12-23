@@ -77,17 +77,21 @@ ssize_t alcove_sys_procctl(alcove_state_t *ap, const char *arg, size_t len,
     return -1;
 
   switch (type) {
-    case ERL_NIL_EXT:
-      datalen = 0;
-      break;
-
-    case ERL_LIST_EXT:
-      if (alcove_decode_cstruct(arg, len, &index, data, &datalen, &elem, &nelem) < 0)
-        return -1;
-      break;
-
-    default:
+  case ERL_NIL_EXT:
+    if (alcove_decode_list_header(arg, len, &index, &arity) < 0 || arity != 0)
       return -1;
+
+    datalen = 0;
+    break;
+
+  case ERL_LIST_EXT:
+    if (alcove_decode_cstruct(arg, len, &index, data, &datalen, &elem, &nelem) <
+        0)
+      return -1;
+    break;
+
+  default:
+    return -1;
   }
 
   rv = procctl(idtype, id, cmd, datalen > 0 ? data : NULL);

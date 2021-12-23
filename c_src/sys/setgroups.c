@@ -103,6 +103,9 @@ static int alcove_list_to_groups(const char *arg, size_t len, int *index,
     break;
 
   case ERL_NIL_EXT:
+    if (alcove_decode_list_header(arg, len, index, &n) < 0 || n != 0)
+      return -1;
+
     break;
 
   default:

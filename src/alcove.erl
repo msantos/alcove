@@ -549,9 +549,11 @@
 -spec file_constant(alcove_drv:ref(), [pid_t()], Symbol :: atom(), timeout()) ->
     non_neg_integer() | 'unknown'.
 
--spec filter(alcove_drv:ref(), [pid_t()], Calls :: binary(), Calls :: binary()) ->
+-spec filter(alcove_drv:ref(), [pid_t()], Calls :: [] | binary(), Calls :: [] | binary()) ->
     ok | {'error', 'einval'}.
--spec filter(alcove_drv:ref(), [pid_t()], Calls :: binary(), Calls :: binary(), timeout()) ->
+-spec filter(
+    alcove_drv:ref(), [pid_t()], Calls :: [] | binary(), Calls :: [] | binary(), timeout()
+) ->
     ok | {'error', 'einval'}.
 
 -spec fork(alcove_drv:ref(), [pid_t()]) -> {'ok', pid_t()} | {'error', posix()}.
@@ -1387,7 +1389,7 @@ filter_encode(Filter) ->
 % * exception error: undefined function alcove:fork/2
 % '''
 
--spec filter(alcove_drv:ref(), [pid_t()], binary()) -> ok | {'error', 'einval'}.
+-spec filter(alcove_drv:ref(), [pid_t()], [] | binary()) -> ok | {'error', 'einval'}.
 filter(Drv, Pids, Calls) ->
     filter(Drv, Pids, Calls, Calls).
 

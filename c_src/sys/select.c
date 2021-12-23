@@ -66,6 +66,9 @@ ssize_t alcove_sys_select(alcove_state_t *ap, const char *arg, size_t len,
 
   switch (type) {
   case ERL_NIL_EXT:
+    if (alcove_decode_list_header(arg, len, &index, &arity) < 0 || arity != 0)
+      return -1;
+
     timeout = NULL;
     break;
 
