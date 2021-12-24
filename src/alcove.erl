@@ -1449,13 +1449,17 @@ indexof(El, [_ | Tail], N) ->
 % Memory is allocated using a cstruct which is a list containing:
 %
 % * binary: a value to be allocated and initialized in the memory
+%
 % * {ptr, integer()}: create a pointer to 0 initialized memory
+%
 % * {ptr, binary()}: create a pointer to memory initialized to the binary
 %
 % The return value is an ok tuple:
 %
 % * the atom ok
+%
 % * a binary with the raw memory
+%
 % * an initialized cstruct
 %
 % == Examples ==
@@ -1492,13 +1496,17 @@ alloc(Drv, Pids, Arg1) ->
 % Memory is allocated using a cstruct which is a list containing:
 %
 % * binary: a value to be allocated and initialized in the memory
+%
 % * {ptr, integer()}: create a pointer to 0 initialized memory
+%
 % * {ptr, binary()}: create a pointer to memory initialized to the binary
 %
 % The return value is an ok tuple:
 %
 % * the atom ok
+%
 % * a binary with the raw memory
+%
 % * an initialized cstruct
 %
 % == Examples ==
@@ -3551,7 +3559,7 @@ gethostname(Drv, Pids, Timeout) ->
 %   Sets the default flow control behaviour for a newly forked process. Flow
 %   control is applied after the child process calls exec().
 %
-%    See setcpid/5.
+%   See setcpid/5.
 %
 % * signaloneof : 0-255 : 15
 %
@@ -3613,7 +3621,7 @@ getopt(Drv, Pids, Arg1) ->
 %   Sets the default flow control behaviour for a newly forked process. Flow
 %   control is applied after the child process calls exec().
 %
-%    See setcpid/5.
+%   See setcpid/5.
 %
 % * signaloneof : 0-255 : 15
 %
@@ -4021,7 +4029,7 @@ getuid(Drv, Pids, Timeout) ->
 % Controls a device using a file descriptor previously obtained using
 % open/5.
 %
-% Argp can be either a binary or a list represention of a C struct. See
+% Argp can be either a binary or a list representation of a C struct. See
 % prctl/7 below for a description of the list elements.
 %
 % On success, ioctl/5 returns a 3-tuple:
@@ -4077,7 +4085,7 @@ ioctl(Drv, Pids, Arg1, Arg2, Arg3) ->
 % Controls a device using a file descriptor previously obtained using
 % open/5.
 %
-% Argp can be either a binary or a list represention of a C struct. See
+% Argp can be either a binary or a list representation of a C struct. See
 % prctl/7 below for a description of the list elements.
 %
 % On success, ioctl/5 returns a 3-tuple:

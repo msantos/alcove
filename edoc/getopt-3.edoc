@@ -30,7 +30,7 @@ alcove_drv:start/1.
   Sets the default flow control behaviour for a newly forked process. Flow
   control is applied after the child process calls exec().
 
-   See setcpid/5.
+  See setcpid/5.
 
 * signaloneof : 0-255 : 15
 

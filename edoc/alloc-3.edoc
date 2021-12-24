@@ -5,13 +5,17 @@ Test memory allocation.
 Memory is allocated using a cstruct which is a list containing:
 
 * binary: a value to be allocated and initialized in the memory
+
 * {ptr, integer()}: create a pointer to 0 initialized memory
+
 * {ptr, binary()}: create a pointer to memory initialized to the binary
 
 The return value is an ok tuple:
 
 * the atom ok
+
 * a binary with the raw memory
+
 * an initialized cstruct
 
 == Examples ==
