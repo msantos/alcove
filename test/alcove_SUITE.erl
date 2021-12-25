@@ -1455,14 +1455,14 @@ filter_nil(Config) ->
     Calls = alcove:filter({allow, [fork, filter, clone, getpid]}),
     Calls1 = alcove:filter({allow, [getcwd]}),
 
-    ok = alcove:filter(Drv, [], Calls, []),
+    ok = alcove:filter(Drv, [], Calls, <<>>),
 
     {ok, Task1} = alcove:fork(Drv, []),
 
     {ok, _} = alcove:getcwd(Drv, [Task1]),
     _ = alcove:getpid(Drv, [Task1]),
 
-    ok = alcove:filter(Drv, [], [], Calls1),
+    ok = alcove:filter(Drv, [], <<>>, Calls1),
 
     {ok, Task2} = alcove:fork(Drv, []),
 

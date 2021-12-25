@@ -549,11 +549,9 @@
 -spec file_constant(alcove_drv:ref(), [pid_t()], Symbol :: atom(), timeout()) ->
     non_neg_integer() | 'unknown'.
 
--spec filter(alcove_drv:ref(), [pid_t()], Calls :: [] | binary(), Calls :: [] | binary()) ->
+-spec filter(alcove_drv:ref(), [pid_t()], Calls :: binary(), Calls :: binary()) ->
     ok | {'error', 'einval'}.
--spec filter(
-    alcove_drv:ref(), [pid_t()], Calls :: [] | binary(), Calls :: [] | binary(), timeout()
-) ->
+-spec filter(alcove_drv:ref(), [pid_t()], Calls :: binary(), Calls :: binary(), timeout()) ->
     ok | {'error', 'einval'}.
 
 -spec fork(alcove_drv:ref(), [pid_t()]) -> {'ok', pid_t()} | {'error', posix()}.
@@ -1343,6 +1341,8 @@ filter({allow, Calls}) when is_list(Calls) ->
             alcove_proto:calls() -- Calls
     ],
     filter_encode(Filter);
+filter({deny, []}) ->
+    <<>>;
 filter({deny, Calls}) when is_list(Calls) ->
     Filter = [
         alcove_proto:call(Call)
@@ -1368,7 +1368,7 @@ filter_encode(Filter) ->
 % If the filter call is filtered, subsequent calls to filter/3,4 will fail.
 %
 % Once added, the call cannot be removed from the filter set. Passing an
-% empty list ([]) specifies the current filter set should not be modified.
+% empty binary (<<>>) will not modify the current filter set.
 %
 % Filters are inherited by the child process from the parent. filter/3
 % specifies the subprocess should use the same filter as the parent:
@@ -1389,7 +1389,7 @@ filter_encode(Filter) ->
 % * exception error: undefined function alcove:fork/2
 % '''
 
--spec filter(alcove_drv:ref(), [pid_t()], [] | binary()) -> ok | {'error', 'einval'}.
+-spec filter(alcove_drv:ref(), [pid_t()], binary()) -> ok | {'error', 'einval'}.
 filter(Drv, Pids, Calls) ->
     filter(Drv, Pids, Calls, Calls).
 

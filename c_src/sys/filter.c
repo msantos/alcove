@@ -15,7 +15,7 @@
 #include "alcove.h"
 #include "alcove_call.h"
 
-static void set_filter(uint8_t *filter, const char *calls, int arity);
+static void set_filter(uint8_t *filter, const char *calls, size_t len);
 
 /* Allow/filter calls */
 ssize_t alcove_sys_filter(alcove_state_t *ap, const char *arg, size_t len,
@@ -23,7 +23,6 @@ ssize_t alcove_sys_filter(alcove_state_t *ap, const char *arg, size_t len,
   int index = 0;
   int type = 0;
   int arity = 0;
-  int arity1 = 0;
 
   char calls[ALCOVE_NR_SIZE] = {0};
   char calls1[ALCOVE_NR_SIZE] = {0};
@@ -35,60 +34,32 @@ ssize_t alcove_sys_filter(alcove_state_t *ap, const char *arg, size_t len,
   if (alcove_get_type(arg, len, &index, &type, &arity) < 0)
     return -1;
 
-  switch (type) {
-  case ERL_NIL_EXT:
-    if (alcove_decode_list_header(arg, len, &index, &arity) < 0 || arity != 0)
-      return -1;
-
-    break;
-
-  case ERL_BINARY_EXT:
-    if (arity > ALCOVE_NR_SIZE)
-      return -1;
-
-    if (alcove_decode_binary(arg, len, &index, calls, &csize) < 0)
-      return -1;
-
-    break;
-
-  default:
+  if (type != ERL_BINARY_EXT || arity > ALCOVE_NR_SIZE)
     return -1;
-  }
+
+  if (alcove_decode_binary(arg, len, &index, calls, &csize) < 0)
+    return -1;
 
   /* calls: subprocess */
-  if (alcove_get_type(arg, len, &index, &type, &arity1) < 0)
+  if (alcove_get_type(arg, len, &index, &type, &arity) < 0)
     return -1;
 
-  switch (type) {
-  case ERL_NIL_EXT:
-    if (alcove_decode_list_header(arg, len, &index, &arity1) < 0 || arity1 != 0)
-      return -1;
-
-    break;
-
-  case ERL_BINARY_EXT:
-    if (arity1 > ALCOVE_NR_SIZE)
-      return -1;
-
-    if (alcove_decode_binary(arg, len, &index, calls1, &csize1) < 0)
-      return -1;
-
-    break;
-
-  default:
+  if (type != ERL_BINARY_EXT || arity > ALCOVE_NR_SIZE)
     return -1;
-  }
 
-  set_filter(ap->filter, calls, arity);
-  set_filter(ap->filter1, calls1, arity1);
+  if (alcove_decode_binary(arg, len, &index, calls1, &csize1) < 0)
+    return -1;
+
+  set_filter(ap->filter, calls, csize);
+  set_filter(ap->filter1, calls1, csize1);
 
   return alcove_mk_atom(reply, rlen, "ok");
 }
 
-static void set_filter(uint8_t *filter, const char *calls, int arity) {
-  int n;
+static void set_filter(uint8_t *filter, const char *calls, size_t n) {
+  int i;
 
-  for (n = 0; n < arity; n++) {
-    filter[n] |= calls[n];
+  for (i = 0; i < n; i++) {
+    filter[i] |= calls[i];
   }
 }
