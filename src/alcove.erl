@@ -1368,7 +1368,7 @@ filter_encode(Filter) ->
 % If the filter call is filtered, subsequent calls to filter/3,4 will fail.
 %
 % Once added, the call cannot be removed from the filter set. Passing an
-% empty binary (<<>>) will not modify the current filter set.
+% empty binary (`<<>>') will not modify the current filter set.
 %
 % Filters are inherited by the child process from the parent. filter/3
 % specifies the subprocess should use the same filter as the parent:
