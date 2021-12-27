@@ -297,7 +297,7 @@ file_constant(Config) ->
     Drv = ?config(drv, Config),
     Child = ?config(child, Config),
 
-    O_RDONLY = alcove:file_constant(Drv, [], 'O_RDONLY'),
+    O_RDONLY = alcove:file_constant(Drv, [], o_rdonly),
     O_RDONLY = alcove:file_constant(Drv, [Child], o_rdonly),
     true = is_integer(O_RDONLY),
 
@@ -309,7 +309,7 @@ ioctl_constant(Config) ->
     Drv = ?config(drv, Config),
     Child = ?config(child, Config),
 
-    SIOCGIFADDR = alcove:ioctl_constant(Drv, [], 'SIOCGIFADDR'),
+    SIOCGIFADDR = alcove:ioctl_constant(Drv, [], siocgifaddr),
     SIOCGIFADDR = alcove:ioctl_constant(Drv, [Child], siocgifaddr),
     true = is_integer(SIOCGIFADDR),
 
@@ -321,7 +321,7 @@ prctl_constant(Config) ->
     Drv = ?config(drv, Config),
     Child = ?config(child, Config),
 
-    PR_SET_NAME = alcove:prctl_constant(Drv, [], 'PR_SET_NAME'),
+    PR_SET_NAME = alcove:prctl_constant(Drv, [], pr_set_name),
     PR_SET_NAME = alcove:prctl_constant(Drv, [Child], pr_set_name),
     true = is_integer(PR_SET_NAME),
 
@@ -333,7 +333,7 @@ ptrace_constant(Config) ->
     Drv = ?config(drv, Config),
     Child = ?config(child, Config),
 
-    PTRACE_TRACEME = alcove:ptrace_constant(Drv, [], 'PTRACE_TRACEME'),
+    PTRACE_TRACEME = alcove:ptrace_constant(Drv, [], ptrace_traceme),
     PTRACE_TRACEME = alcove:ptrace_constant(Drv, [Child], ptrace_traceme),
     true = is_integer(PTRACE_TRACEME),
 
@@ -345,7 +345,7 @@ rlimit_constant(Config) ->
     Drv = ?config(drv, Config),
     Child = ?config(child, Config),
 
-    RLIMIT_NOFILE = alcove:rlimit_constant(Drv, [], 'RLIMIT_NOFILE'),
+    RLIMIT_NOFILE = alcove:rlimit_constant(Drv, [], rlimit_nofile),
     RLIMIT_NOFILE = alcove:rlimit_constant(Drv, [Child], rlimit_nofile),
     true = is_integer(RLIMIT_NOFILE),
 
@@ -357,7 +357,7 @@ signal_constant(Config) ->
     Drv = ?config(drv, Config),
     Child = ?config(child, Config),
 
-    SIGHUP = alcove:signal_constant(Drv, [], 'SIGHUP'),
+    SIGHUP = alcove:signal_constant(Drv, [], sighup),
     SIGHUP = alcove:signal_constant(Drv, [Child], sighup),
     true = is_integer(SIGHUP),
 
@@ -369,7 +369,7 @@ syscall_constant(Config) ->
     Drv = ?config(drv, Config),
     Child = ?config(child, Config),
 
-    N = alcove:syscall_constant(Drv, [], 'SYS_exit'),
+    N = alcove:syscall_constant(Drv, [], sys_exit),
     N = alcove:syscall_constant(Drv, [Child], sys_exit),
     true = is_integer(N),
 

@@ -11,9 +11,9 @@
 {ok,<0.208.0>}
 2> {ok, Pid} = alcove:fork(Pid, []).
 {ok,44378}
-3> alcove:procctl(Drv, [Pid], 0, Pid, 'PROC_REAP_ACQUIRE', []).
+3> alcove:procctl(Drv, [Pid], 0, Pid, proc_reap_acquire, []).
 {ok,<<>>,[]}
-4> alcove:procctl(Drv, [Pid], p_pid, Pid, 'PROC_REAP_STATUS', [
+4> alcove:procctl(Drv, [Pid], p_pid, Pid, proc_reap_status, [
 4>      <<0,0,0,0>>, % rs_flags
 4>      <<0,0,0,0>>, % rs_children
 4>      <<0,0,0,0>>, % rs_descendants

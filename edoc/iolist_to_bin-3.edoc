@@ -1,3 +1,4 @@
+@private
 @doc Convert iolist to binary
 
 Test conversion of iolists to binary in a control process.

@@ -1442,6 +1442,7 @@ indexof(El, [_ | Tail], N) ->
     indexof(El, Tail, N + 1).
 
 
+% @private
 % @doc Allocate memory
 %
 % Test memory allocation.
@@ -1489,6 +1490,7 @@ alloc(Drv, Pids, Arg1) ->
         Reply -> Reply
     end.
 
+% @private
 % @doc Allocate memory
 %
 % Test memory allocation.
@@ -4146,8 +4148,6 @@ ioctl(Drv, Pids, Arg1, Arg2, Arg3, Timeout) ->
 % {ok,<0.177.0>}
 % 2> alcove:ioctl_constant(Drv, [], siocgifaddr).
 % 35093
-% 3> alcove:ioctl_constant(Drv, [], 'SIOCGIFADDR').
-% 35093
 % '''
 
 ioctl_constant(Drv, Pids, Arg1) ->
@@ -4171,8 +4171,6 @@ ioctl_constant(Drv, Pids, Arg1) ->
 % {ok,<0.177.0>}
 % 2> alcove:ioctl_constant(Drv, [], siocgifaddr).
 % 35093
-% 3> alcove:ioctl_constant(Drv, [], 'SIOCGIFADDR').
-% 35093
 % '''
 
 ioctl_constant(Drv, Pids, Arg1, Timeout) ->
@@ -4187,6 +4185,7 @@ ioctl_constant(Drv, Pids, Arg1, Timeout) ->
         Reply -> Reply
     end.
 
+% @private
 % @doc Convert iolist to binary
 %
 % Test conversion of iolists to binary in a control process.
@@ -4212,6 +4211,7 @@ iolist_to_bin(Drv, Pids, Arg1) ->
         Reply -> Reply
     end.
 
+% @private
 % @doc Convert iolist to binary
 %
 % Test conversion of iolists to binary in a control process.
@@ -4952,8 +4952,6 @@ mount(Drv, Pids, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6,
 % {ok,<0.177.0>}
 % 2> alcove:mount_constant(Drv, [], rdonly).
 % 1
-% 3> alcove:mount_constant(Drv, [], 'RDONLY').
-% 1
 % '''
 
 mount_constant(Drv, Pids, Arg1) ->
@@ -4980,8 +4978,6 @@ mount_constant(Drv, Pids, Arg1) ->
 % 1> {ok, Drv} = alcove_drv:start().
 % {ok,<0.177.0>}
 % 2> alcove:mount_constant(Drv, [], rdonly).
-% 1
-% 3> alcove:mount_constant(Drv, [], 'RDONLY').
 % 1
 % '''
 
@@ -5402,9 +5398,9 @@ prctl_constant(Drv, Pids, Arg1, Timeout) ->
 % {ok,<0.208.0>}
 % 2> {ok, Pid} = alcove:fork(Pid, []).
 % {ok,44378}
-% 3> alcove:procctl(Drv, [Pid], 0, Pid, 'PROC_REAP_ACQUIRE', []).
+% 3> alcove:procctl(Drv, [Pid], 0, Pid, proc_reap_acquire, []).
 % {ok,<<>>,[]}
-% 4> alcove:procctl(Drv, [Pid], p_pid, Pid, 'PROC_REAP_STATUS', [
+% 4> alcove:procctl(Drv, [Pid], p_pid, Pid, proc_reap_status, [
 % 4>      <<0,0,0,0>>, % rs_flags
 % 4>      <<0,0,0,0>>, % rs_children
 % 4>      <<0,0,0,0>>, % rs_descendants
@@ -5445,9 +5441,9 @@ procctl(Drv, Pids, Arg1, Arg2, Arg3, Arg4) ->
 % {ok,<0.208.0>}
 % 2> {ok, Pid} = alcove:fork(Pid, []).
 % {ok,44378}
-% 3> alcove:procctl(Drv, [Pid], 0, Pid, 'PROC_REAP_ACQUIRE', []).
+% 3> alcove:procctl(Drv, [Pid], 0, Pid, proc_reap_acquire, []).
 % {ok,<<>>,[]}
-% 4> alcove:procctl(Drv, [Pid], p_pid, Pid, 'PROC_REAP_STATUS', [
+% 4> alcove:procctl(Drv, [Pid], p_pid, Pid, proc_reap_status, [
 % 4>      <<0,0,0,0>>, % rs_flags
 % 4>      <<0,0,0,0>>, % rs_children
 % 4>      <<0,0,0,0>>, % rs_descendants
@@ -6031,7 +6027,7 @@ seccomp(Drv, Pids, Arg1, Arg2, Arg3, Timeout) ->
 % ```
 % 1> {ok, Drv} = alcove_drv:start().
 % {ok,<0.177.0>}
-% 2> alcove:seccomp_constant(Drv, [], 'SECCOMP_SET_MODE_STRICT').
+% 2> alcove:seccomp_constant(Drv, [], seccomp_set_mode_strict).
 % 0
 % '''
 
@@ -6054,7 +6050,7 @@ seccomp_constant(Drv, Pids, Arg1) ->
 % ```
 % 1> {ok, Drv} = alcove_drv:start().
 % {ok,<0.177.0>}
-% 2> alcove:seccomp_constant(Drv, [], 'SECCOMP_SET_MODE_STRICT').
+% 2> alcove:seccomp_constant(Drv, [], seccomp_set_mode_strict).
 % 0
 % '''
 
@@ -7280,9 +7276,7 @@ sigaction(Drv, Pids, Arg1, Arg2, Timeout) ->
 % ```
 % 1> {ok, Drv} = alcove_drv:start().
 % {ok,<0.177.0>}
-% 2> alcove:signal_constant(Drv, [], 'SIGHUP').
-% 1
-% 3> alcove:signal_constant(Drv, [], sighup).
+% 2> alcove:signal_constant(Drv, [], sighup).
 % 1
 % '''
 
@@ -7305,9 +7299,7 @@ signal_constant(Drv, Pids, Arg1) ->
 % ```
 % 1> {ok, Drv} = alcove_drv:start().
 % {ok,<0.177.0>}
-% 2> alcove:signal_constant(Drv, [], 'SIGHUP').
-% 1
-% 3> alcove:signal_constant(Drv, [], sighup).
+% 2> alcove:signal_constant(Drv, [], sighup).
 % 1
 % '''
 
@@ -7427,9 +7419,7 @@ symlink(Drv, Pids, Arg1, Arg2, Timeout) ->
 % ```
 % 1> {ok, Drv} = alcove_drv:start().
 % {ok,<0.177.0>}
-% 2> alcove:syscall_constant(Drv, [], 'SYS_exit').
-% 60
-% 3> alcove:syscall_constant(Drv, [], sys_exit).
+% 2> alcove:syscall_constant(Drv, [], sys_exit).
 % 60
 % '''
 
@@ -7452,9 +7442,7 @@ syscall_constant(Drv, Pids, Arg1) ->
 % ```
 % 1> {ok, Drv} = alcove_drv:start().
 % {ok,<0.177.0>}
-% 2> alcove:syscall_constant(Drv, [], 'SYS_exit').
-% 60
-% 3> alcove:syscall_constant(Drv, [], sys_exit).
+% 2> alcove:syscall_constant(Drv, [], sys_exit).
 % 60
 % '''
 
