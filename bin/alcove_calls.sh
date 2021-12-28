@@ -1,11 +1,11 @@
 #!/bin/sh
 
-cat<< EOF
+cat <<EOF
 /* GENERATED: DO NOT EDIT */
 /* clang-format off */
 EOF
 
-cat<< 'EOF'
+cat <<'EOF'
 
 /* calls */
 typedef struct {
@@ -16,10 +16,10 @@ typedef struct {
 static const alcove_call_t calls[] = {
 EOF
 
-while IFS=/ read call arity; do
-    printf "    {alcove_sys_%s, %s},\n" "$call" "$arity"
-done < "$1"
+while IFS=/ read -r call arity; do
+	printf "    {alcove_sys_%s, %s},\n" "$call" "$arity"
+done <"$1"
 
-cat<< 'EOF'
+cat <<'EOF'
 };
 EOF
