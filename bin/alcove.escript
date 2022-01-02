@@ -87,7 +87,7 @@ main([ModuleName, Proto]) ->
 
     Code = lists:foldl(
         fun({Marker, Generated}, Text) ->
-            re:replace(Text, Marker, Generated)
+            re:replace(unicode:characters_to_binary(Text), Marker, Generated)
         end,
         Code0,
         [

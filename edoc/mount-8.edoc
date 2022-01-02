@@ -2,15 +2,15 @@
 
 The arguments are:
 
-* source
+• source
 
-* target
+• target
 
-* filesystem type
+• filesystem type
 
-* flags
+• flags
 
-* data
+• data
 
 An empty list may be used to specify NULL.
 

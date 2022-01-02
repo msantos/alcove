@@ -1,14 +1,14 @@
 @doc sigaction(2): set process behaviour for signals
 
-* sig_dfl
+• sig_dfl
 
   Uses the default behaviour for the signal
 
-* sig_ign
+• sig_ign
 
   Ignores the signal
 
-* sig_info
+• sig_info
 
   Catches the signal and sends the controlling Erlang process an event:
 
@@ -19,7 +19,7 @@
   Info is a binary containing the siginfo_t structure. See sigaction(2)
   for details.
 
-* []
+• []
 
   Returns the current handler for the signal.
 

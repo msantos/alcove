@@ -10,7 +10,7 @@ alcove:unveil(Drv, [Task], [], []).
 
 == Support ==
 
-* OpenBSD
+• OpenBSD
 
 == Examples ==
 

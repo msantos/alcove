@@ -1187,7 +1187,7 @@ filter(Drv, Pids, Calls) ->
 % Retrieves attributes set by the alcove control process for a
 % child process.
 %
-% * flowcontrol
+% • flowcontrol
 %
 %   Number of messages allowed from process:
 %
@@ -1197,7 +1197,7 @@ filter(Drv, Pids, Calls) ->
 %
 %         1+ : read this many messages from the process
 %
-% * signaloneof
+% • signaloneof
 %
 %   Signal sent to child process on shutdown.
 %
