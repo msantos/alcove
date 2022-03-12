@@ -1,4 +1,4 @@
-/* Copyright (c) 2015-2021, Michael Santos <michael.santos@gmail.com>
+/* Copyright (c) 2015-2022, Michael Santos <michael.santos@gmail.com>
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -73,7 +73,7 @@ static int signal_pid(alcove_state_t *ap, alcove_child_t *c, void *arg1,
                       void *arg2);
 
 void alcove_event_init(alcove_state_t *ap) {
-  int tlen = 0;
+  int tlen;
   char t[MAXMSGLEN] = {0};
 
   /* process has exec'ed itself */
@@ -86,7 +86,7 @@ void alcove_event_init(alcove_state_t *ap) {
 }
 
 void alcove_event_loop(alcove_state_t *ap) {
-  struct pollfd *fds = NULL;
+  struct pollfd *fds;
 
   (void)memcpy(ap->filter, ap->filter1, ALCOVE_NR_SIZE);
   (void)memset(ap->child, 0, sizeof(alcove_child_t) * ap->fdsetsize);
@@ -97,7 +97,7 @@ void alcove_event_loop(alcove_state_t *ap) {
 
   for (;;) {
     struct rlimit maxfd = {0};
-    int i = 0;
+    int i;
 
     if (getrlimit(RLIMIT_NOFILE, &maxfd) < 0)
       exit(errno);
@@ -171,8 +171,8 @@ void alcove_event_loop(alcove_state_t *ap) {
 }
 
 static int alcove_stdin(alcove_state_t *ap) {
-  u_int16_t type = 0;
-  pid_t pid = 0;
+  u_int16_t type;
+  pid_t pid;
   unsigned char msg[MAXMSGLEN] = {0};
   unsigned char *buf = msg;
   u_int16_t buflen = 0;
@@ -236,9 +236,9 @@ static int alcove_stdin(alcove_state_t *ap) {
 
 static ssize_t alcove_msg_call(alcove_state_t *ap, unsigned char *buf,
                                u_int16_t buflen) {
-  u_int16_t call = 0;
+  u_int16_t call;
   char reply[MAXMSGLEN] = {0};
-  ssize_t rlen = 0;
+  ssize_t rlen;
 
   if (buflen <= sizeof(call))
     return -1;
@@ -260,7 +260,7 @@ static ssize_t alcove_msg_call(alcove_state_t *ap, unsigned char *buf,
 
 static size_t alcove_proxy_hdr(unsigned char *hdr, size_t hdrlen,
                                u_int16_t type, pid_t pid, size_t buflen) {
-  u_int16_t len = 0;
+  u_int16_t len;
 
   if (hdrlen < 8)
     return 0;
@@ -277,7 +277,7 @@ static size_t alcove_proxy_hdr(unsigned char *hdr, size_t hdrlen,
 
 static size_t alcove_call_hdr(unsigned char *hdr, size_t hdrlen, u_int16_t type,
                               size_t buflen) {
-  u_int16_t len = 0;
+  u_int16_t len;
 
   if (hdrlen < 4)
     return 0;
@@ -378,7 +378,7 @@ static ssize_t alcove_call_reply(u_int16_t type, char *buf, size_t len) {
   struct iovec iov[2];
 
   unsigned char hdr[MAXHDRLEN] = {0};
-  u_int16_t hdrlen = 0;
+  u_int16_t hdrlen;
 
   hdrlen = alcove_call_hdr(hdr, sizeof(hdr), type, len);
 
@@ -398,10 +398,10 @@ static ssize_t alcove_call_spoof(pid_t pid, u_int16_t type, char *buf,
   struct iovec iov[3];
 
   unsigned char proxyhdr[MAXHDRLEN] = {0};
-  u_int16_t proxyhdrlen = 0;
+  u_int16_t proxyhdrlen;
 
   unsigned char callhdr[MAXHDRLEN] = {0};
-  u_int16_t callhdrlen = 0;
+  u_int16_t callhdrlen;
 
   callhdrlen = alcove_call_hdr(callhdr, sizeof(callhdr), type, len);
 
@@ -426,7 +426,7 @@ static ssize_t alcove_call_spoof(pid_t pid, u_int16_t type, char *buf,
 
 static int alcove_get_uint16(int fd, u_int16_t *val) {
   u_int16_t buf = 0;
-  ssize_t n = 0;
+  ssize_t n;
 
   n = alcove_read(fd, &buf, sizeof(buf));
 
@@ -695,7 +695,7 @@ static int read_child_stderr(alcove_state_t *ap, alcove_child_t *c) {
 static int alcove_handle_signal(alcove_state_t *ap) {
   siginfo_t info = {0};
   int status = 0;
-  ssize_t n = 0;
+  ssize_t n;
 
   errno = 0;
   n = read(ALCOVE_SIGREAD_FILENO, &info, sizeof(info));
