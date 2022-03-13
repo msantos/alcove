@@ -1,4 +1,4 @@
-/* Copyright (c) 2014-2020, Michael Santos <michael.santos@gmail.com>
+/* Copyright (c) 2014-2022, Michael Santos <michael.santos@gmail.com>
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -55,10 +55,10 @@ int alcove_decode_constant_list(const char *buf, size_t len, int *index,
   break;
 
   case ERL_LIST_EXT: {
-    int i = 0;
+    int i;
     int length = 0;
     int constant = 0;
-    int rv = 0;
+    int rv;
 
     if (ei_decode_list_header(buf, index, &length) < 0)
       return -1;

@@ -1,4 +1,4 @@
-/* Copyright (c) 2014, Michael Santos <michael.santos@gmail.com>
+/* Copyright (c) 2014-2022, Michael Santos <michael.santos@gmail.com>
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -21,7 +21,7 @@ int alcove_decode_argv(const char *arg, size_t len, int *index, char ***argv) {
   int arity = 0;
   int empty = 0;
 
-  int i = 0;
+  int i;
   long maxarg = sysconf(_SC_ARG_MAX);
 
   if (alcove_decode_list_header(arg, len, index, &arity) < 0)
@@ -63,7 +63,7 @@ static char *alcove_x_decode_iolist_to_string(const char *buf, size_t len,
                                               int *index) {
   char tmp[MAXMSGLEN] = {0};
   size_t tmplen = sizeof(tmp) - 1;
-  char *res = NULL;
+  char *res;
 
   if (alcove_decode_iolist(buf, len, index, tmp, &tmplen) < 0)
     return NULL;
@@ -76,7 +76,7 @@ static char *alcove_x_decode_iolist_to_string(const char *buf, size_t len,
 }
 
 void alcove_free_argv(char **argv) {
-  int i = 0;
+  int i;
 
   if (argv == NULL)
     return;
