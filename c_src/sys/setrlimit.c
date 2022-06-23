@@ -1,4 +1,4 @@
-/* Copyright (c) 2014-2017, Michael Santos <michael.santos@gmail.com>
+/* Copyright (c) 2014-2022, Michael Santos <michael.santos@gmail.com>
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -78,8 +78,13 @@ ssize_t alcove_sys_setrlimit(alcove_state_t *ap, const char *arg, size_t len,
 
   rv = setrlimit(resource, &rlim);
 
-  return (rv < 0) ? alcove_mk_errno(reply, rlen, errno)
-                  : alcove_mk_atom(reply, rlen, "ok");
+  if (rv < 0)
+    return alcove_mk_errno(reply, rlen, errno);
+
+  if (resource == RLIMIT_NOFILE)
+    ap->curfd = rlim.rlim_cur;
+
+  return alcove_mk_atom(reply, rlen, "ok");
 }
 
 #if defined(__linux__) || defined(__sunos__) || defined(__OpenBSD__)

@@ -1,4 +1,4 @@
-/* Copyright (c) 2014-2020, Michael Santos <michael.santos@gmail.com>
+/* Copyright (c) 2014-2022, Michael Santos <michael.santos@gmail.com>
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -167,6 +167,7 @@ typedef struct {
 typedef struct {
   int32_t opt;
   rlim_t maxfd;
+  rlim_t curfd;
   u_int8_t sigchld;
   u_int16_t maxforkdepth;
   u_int16_t fdsetsize;

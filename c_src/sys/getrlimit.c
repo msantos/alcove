@@ -1,4 +1,4 @@
-/* Copyright (c) 2014-2017, Michael Santos <michael.santos@gmail.com>
+/* Copyright (c) 2014-2022, Michael Santos <michael.santos@gmail.com>
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -47,6 +47,10 @@ ssize_t alcove_sys_getrlimit(alcove_state_t *ap, const char *arg, size_t len,
 
   if (rv < 0)
     return alcove_mk_errno(reply, rlen, errno);
+
+  if (resource == RLIMIT_NOFILE) {
+    ap->curfd = rlim.rlim_cur;
+  }
 
   ALCOVE_ERR(alcove_encode_version(reply, rlen, &rindex));
   ALCOVE_ERR(alcove_encode_tuple_header(reply, rlen, &rindex, 2));
