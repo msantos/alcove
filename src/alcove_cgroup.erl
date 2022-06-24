@@ -1,4 +1,4 @@
-%%% Copyright (c) 2014-2016, Michael Santos <michael.santos@gmail.com>
+%%% Copyright (c) 2014-2022, Michael Santos <michael.santos@gmail.com>
 %%%
 %%% Permission to use, copy, modify, and/or distribute this software for any
 %%% purpose with or without fee is hereby granted, provided that the above
@@ -34,7 +34,7 @@ supported(Drv, Pids) ->
         fun() ->
             Exists = [
                 alcove_cgroup:is_dir(Drv, Pids, Cgroup)
-                || Cgroup <- proplists:get_keys(cgroup(Drv, Pids))
+             || Cgroup <- proplists:get_keys(cgroup(Drv, Pids))
             ],
             [] =/= Exists andalso true =/= lists:member(false, Exists)
         end
@@ -49,11 +49,11 @@ supported(Drv, Pids) ->
 %%  * the process may be running in a chroot or a different mount namespace
 %%
 
--spec create(alcove_drv:ref(), [alcove:pid_t()]) -> 'ok'.
+-spec create(alcove_drv:ref(), [alcove:pid_t()]) -> ok.
 create(Drv, Pids) ->
     create(Drv, Pids, [<<"alcove">>]).
 
--spec create(alcove_drv:ref(), [alcove:pid_t()], [file:name_all()]) -> 'ok'.
+-spec create(alcove_drv:ref(), [alcove:pid_t()], [file:name_all()]) -> ok.
 create(Drv, Pids, Namespaces) ->
     _ = [create_1(Drv, Pids, Namespace) || Namespace <- expand(Namespaces)],
     ok.
@@ -119,7 +119,7 @@ get(Drv, Pids, MntOpt, Namespace, Key) ->
     fold(Drv, MntOpt, Namespace, Fun, []).
 
 -spec write(alcove_drv:ref(), [alcove:pid_t()], file:name_all(), iodata()) ->
-    {'error', file:posix()} | 'ok'.
+    {error, file:posix()} | ok.
 write(Drv, Pids, File, Bytes) ->
     case alcove:open(Drv, Pids, File, [o_wronly], 0) of
         {ok, FH} ->
@@ -138,7 +138,7 @@ write(Drv, Pids, File, Bytes) ->
     end.
 
 -spec read(alcove_drv:ref(), [alcove:pid_t()], file:name_all()) ->
-    {'error', file:posix()} | {'ok', binary()}.
+    {error, file:posix()} | {ok, binary()}.
 read(Drv, Pids, File) ->
     case alcove:open(Drv, Pids, File, [o_rdonly], 0) of
         {ok, FH} ->
@@ -201,7 +201,7 @@ cgroup(Drv, Pids) ->
     {ok, Entries} = mounts(Drv, Pids),
     [
         {Dir, binary:split(MntOpts, [<<",">>], [global])}
-        || {<<"cgroup">>, Dir, <<"cgroup">>, MntOpts, _Freq, _Passno} <- Entries
+     || {<<"cgroup">>, Dir, <<"cgroup">>, MntOpts, _Freq, _Passno} <- Entries
     ].
 
 mounts(Drv) ->
@@ -240,7 +240,7 @@ fsentry(Buf) ->
     Entries = binary:split(Buf, [<<"\n">>], [global, trim]),
     [
         list_to_tuple(binary:split(Entry, [<<"\s">>], [global]))
-        || Entry <- Entries
+     || Entry <- Entries
     ].
 
 is_dir(Drv, Pids, Path) ->

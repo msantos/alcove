@@ -1,4 +1,4 @@
-%%% Copyright (c) 2014-2021, Michael Santos <michael.santos@gmail.com>
+%%% Copyright (c) 2014-2022, Michael Santos <michael.santos@gmail.com>
 %%%
 %%% Permission to use, copy, modify, and/or distribute this software for any
 %%% purpose with or without fee is hereby granted, provided that the above
@@ -47,23 +47,23 @@
 }).
 
 % @doc Create the alcove port using the default options
--spec start() -> 'ignore' | {'error', _} | {'ok', pid()}.
+-spec start() -> ignore | {error, _} | {ok, pid()}.
 start() ->
     start(self(), []).
 
 % @doc Create the alcove port
 %
 % See start_link/1 for options.
--spec start(proplists:proplist()) -> 'ignore' | {'error', _} | {'ok', pid()}.
+-spec start(proplists:proplist()) -> ignore | {error, _} | {ok, pid()}.
 start(Options) ->
     start(self(), Options).
 
--spec start(pid(), proplists:proplist()) -> 'ignore' | {'error', _} | {'ok', pid()}.
+-spec start(pid(), proplists:proplist()) -> ignore | {error, _} | {ok, pid()}.
 start(Owner, Options) ->
     gen_server:start(?MODULE, [Owner, Options], []).
 
 % @doc Create and link against the alcove port using the default options
--spec start_link() -> 'ignore' | {'error', _} | {'ok', pid()}.
+-spec start_link() -> ignore | {error, _} | {ok, pid()}.
 start_link() ->
     start_link(self(), []).
 
@@ -109,11 +109,11 @@ start_link() ->
 %   must be writable by the alcove user.
 %
 % For the remaining options, see alcove:getopt/2,3.
--spec start_link(proplists:proplist()) -> 'ignore' | {'error', _} | {'ok', pid()}.
+-spec start_link(proplists:proplist()) -> ignore | {error, _} | {ok, pid()}.
 start_link(Options) ->
     start_link(self(), Options).
 
--spec start_link(pid(), proplists:proplist()) -> 'ignore' | {'error', _} | {'ok', pid()}.
+-spec start_link(pid(), proplists:proplist()) -> ignore | {error, _} | {ok, pid()}.
 start_link(Owner, Options) ->
     gen_server:start_link(?MODULE, [Owner, Options], []).
 
@@ -155,17 +155,17 @@ send(Drv, Data) ->
             {alcove_error, badarg}
     end.
 
--spec stdin(ref(), [alcove:pid_t()], iodata()) -> 'ok' | {alcove_error, 'badarg'}.
+-spec stdin(ref(), [alcove:pid_t()], iodata()) -> ok | {alcove_error, badarg}.
 stdin(Drv, Pids, Data) ->
     send(Drv, alcove_codec:stdin(Pids, Data)).
 
 -spec stdout(ref(), [alcove:pid_t()], timeout()) ->
-    'false' | binary() | {alcove_error, any()} | {alcove_pipe, integer()}.
+    false | binary() | {alcove_error, any()} | {alcove_pipe, integer()}.
 stdout(Drv, Pids, Timeout) ->
     reply(Drv, Pids, alcove_stdout, Timeout).
 
 -spec stderr(ref(), [alcove:pid_t()], timeout()) ->
-    'false' | binary() | {alcove_error, any()} | {alcove_pipe, integer()}.
+    false | binary() | {alcove_error, any()} | {alcove_pipe, integer()}.
 stderr(Drv, Pids, Timeout) ->
     reply(Drv, Pids, alcove_stderr, Timeout).
 
@@ -173,7 +173,7 @@ stderr(Drv, Pids, Timeout) ->
 event(Drv, Pids, Timeout) ->
     reply(Drv, Pids, alcove_event, Timeout).
 
--spec raw(ref()) -> 'ok'.
+-spec raw(ref()) -> ok.
 raw(Drv) ->
     gen_server:call(Drv, raw).
 
