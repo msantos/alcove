@@ -16,7 +16,7 @@
 #include "alcove_call.h"
 
 #ifdef __linux__
-#include <linux/unistd.h>
+#include <sys/syscall.h>
 #endif
 
 /*
@@ -43,7 +43,7 @@ ssize_t alcove_sys_pivot_root(alcove_state_t *ap, const char *arg, size_t len,
   if (alcove_decode_iolist(arg, len, &index, put_old, &plen) < 0 || plen == 0)
     return -1;
 
-  rv = syscall(__NR_pivot_root, new_root, put_old);
+  rv = syscall(SYS_pivot_root, new_root, put_old);
 
   return (rv < 0) ? alcove_mk_errno(reply, rlen, errno)
                   : alcove_mk_atom(reply, rlen, "ok");

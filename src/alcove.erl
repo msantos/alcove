@@ -5048,25 +5048,38 @@ open(Drv, Pids, Arg1, Arg2, Arg3, Timeout) ->
 % Warning: using pivot_root(2) in the global namespace may have unexpected
 % effects.
 %
+% To use an arbitrary directory as a mount point:
+%
+% • create a mount point by bind mounting the new root directory over
+%   itself
+%
+% • change the current working directory to the new root directory
+%
+% • call pivot_root(2) with new and old root set to the current working
+%   directory
+%
+% • unmount the current working directory
+%
 % == Support ==
 %
 % • Linux
 %
 % == Examples ==
 %
-% The new root must be a mount point. /tmp or /run are usually mounted
-% as tmpfs.
-%
 % ```
 % 1> {ok, Drv} = alcove_drv:start([{exec, "sudo -n"}]).
 % {ok,<0.177.0>}
-% 2> alcove:mkdir(Drv, [], "/run/alcove-old-root", 8#755).
+% 2> alcove:mkdir(Drv, [], "/tmp/alcove-root", 8#755).
 % ok
 % 3> {ok, Pid} = alcove:clone(Drv, [], [clone_newns]).
 % {ok,1371}
-% 4> alcove:pivot_root(Drv, [Pid], "/run", "/run/alcove-old-root").
+% 4> alcove:chdir(Drv, [Pid], "/tmp/alcove-root").
 % ok
-% '''
+% 5> alcove:pivot_root(Drv, [Pid], ".", ".").
+% ok
+% 6> alcove:umount2(Drv, [Pid], ".", [mnt_detach]).
+% ok
+% ```
 
 pivot_root(Drv, Pids, Arg1, Arg2) ->
     case alcove_drv:call(Drv,
@@ -5088,25 +5101,38 @@ pivot_root(Drv, Pids, Arg1, Arg2) ->
 % Warning: using pivot_root(2) in the global namespace may have unexpected
 % effects.
 %
+% To use an arbitrary directory as a mount point:
+%
+% • create a mount point by bind mounting the new root directory over
+%   itself
+%
+% • change the current working directory to the new root directory
+%
+% • call pivot_root(2) with new and old root set to the current working
+%   directory
+%
+% • unmount the current working directory
+%
 % == Support ==
 %
 % • Linux
 %
 % == Examples ==
 %
-% The new root must be a mount point. /tmp or /run are usually mounted
-% as tmpfs.
-%
 % ```
 % 1> {ok, Drv} = alcove_drv:start([{exec, "sudo -n"}]).
 % {ok,<0.177.0>}
-% 2> alcove:mkdir(Drv, [], "/run/alcove-old-root", 8#755).
+% 2> alcove:mkdir(Drv, [], "/tmp/alcove-root", 8#755).
 % ok
 % 3> {ok, Pid} = alcove:clone(Drv, [], [clone_newns]).
 % {ok,1371}
-% 4> alcove:pivot_root(Drv, [Pid], "/run", "/run/alcove-old-root").
+% 4> alcove:chdir(Drv, [Pid], "/tmp/alcove-root").
 % ok
-% '''
+% 5> alcove:pivot_root(Drv, [Pid], ".", ".").
+% ok
+% 6> alcove:umount2(Drv, [Pid], ".", [mnt_detach]).
+% ok
+% ```
 
 pivot_root(Drv, Pids, Arg1, Arg2, Timeout) ->
     case alcove_drv:call(Drv,

@@ -16,7 +16,7 @@
 #define _GNU_SOURCE
 #include <sched.h>
 #ifndef HAVE_SETNS
-#include <syscall.h>
+#include <sys/syscall.h>
 #endif
 #endif
 
@@ -34,8 +34,8 @@
 #ifdef __linux__
 #ifndef HAVE_SETNS
 int setns(int fd, int nstype) {
-#ifdef __NR_setns
-  return syscall(__NR_setns, fd, nstype);
+#ifdef SYS_setns
+  return syscall(SYS_setns, fd, nstype);
 #else
   errno = ENOSYS;
   return -1;

@@ -17,7 +17,7 @@
 
 #ifndef HAVE_SECCOMP
 #ifdef __linux__
-#include <syscall.h>
+#include <sys/syscall.h>
 #endif
 #endif
 
@@ -50,8 +50,8 @@ static int seccomp(unsigned int operation, unsigned int flags, void *args);
 #ifdef __linux__
 #ifndef HAVE_SECCOMP
 static int seccomp(unsigned int operation, unsigned int flags, void *args) {
-#ifdef __NR_seccomp
-  return syscall(__NR_seccomp, operation, flags, args);
+#ifdef SYS_seccomp
+  return syscall(SYS_seccomp, operation, flags, args);
 #else
   errno = ENOSYS;
   return -1;
