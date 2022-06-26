@@ -5050,6 +5050,8 @@ open(Drv, Pids, Arg1, Arg2, Arg3, Timeout) ->
 %
 % To use an arbitrary directory as a mount point:
 %
+% • mark the mount namespace as private
+%
 % • create a mount point by bind mounting the new root directory over
 %   itself
 %
@@ -5068,16 +5070,20 @@ open(Drv, Pids, Arg1, Arg2, Arg3, Timeout) ->
 %
 % ```
 % 1> {ok, Drv} = alcove_drv:start([{exec, "sudo -n"}]).
-% {ok,<0.177.0>}
+% {ok,<0.198.0>}
 % 2> alcove:mkdir(Drv, [], "/tmp/alcove-root", 8#755).
 % ok
 % 3> {ok, Pid} = alcove:clone(Drv, [], [clone_newns]).
-% {ok,1371}
-% 4> alcove:chdir(Drv, [Pid], "/tmp/alcove-root").
+% {ok,29739}
+% 4> alcove:mount(Drv, [Pid], "none", "/", [], [ms_rec, ms_private], [], []).
 % ok
-% 5> alcove:pivot_root(Drv, [Pid], ".", ".").
+% 5> alcove:mount(Drv, [Pid], "/tmp/alcove-root", "/tmp/alcove-root", [], [ms_bind], [], []).
 % ok
-% 6> alcove:umount2(Drv, [Pid], ".", [mnt_detach]).
+% 6> alcove:chdir(Drv, [Pid], "/tmp/alcove-root").
+% ok
+% 7> alcove:pivot_root(Drv, [Pid], ".", ".").
+% ok
+% 8> alcove:umount2(Drv, [Pid], ".", [mnt_detach]).
 % ok
 % ```
 
@@ -5103,6 +5109,8 @@ pivot_root(Drv, Pids, Arg1, Arg2) ->
 %
 % To use an arbitrary directory as a mount point:
 %
+% • mark the mount namespace as private
+%
 % • create a mount point by bind mounting the new root directory over
 %   itself
 %
@@ -5121,16 +5129,20 @@ pivot_root(Drv, Pids, Arg1, Arg2) ->
 %
 % ```
 % 1> {ok, Drv} = alcove_drv:start([{exec, "sudo -n"}]).
-% {ok,<0.177.0>}
+% {ok,<0.198.0>}
 % 2> alcove:mkdir(Drv, [], "/tmp/alcove-root", 8#755).
 % ok
 % 3> {ok, Pid} = alcove:clone(Drv, [], [clone_newns]).
-% {ok,1371}
-% 4> alcove:chdir(Drv, [Pid], "/tmp/alcove-root").
+% {ok,29739}
+% 4> alcove:mount(Drv, [Pid], "none", "/", [], [ms_rec, ms_private], [], []).
 % ok
-% 5> alcove:pivot_root(Drv, [Pid], ".", ".").
+% 5> alcove:mount(Drv, [Pid], "/tmp/alcove-root", "/tmp/alcove-root", [], [ms_bind], [], []).
 % ok
-% 6> alcove:umount2(Drv, [Pid], ".", [mnt_detach]).
+% 6> alcove:chdir(Drv, [Pid], "/tmp/alcove-root").
+% ok
+% 7> alcove:pivot_root(Drv, [Pid], ".", ".").
+% ok
+% 8> alcove:umount2(Drv, [Pid], ".", [mnt_detach]).
 % ok
 % ```
 

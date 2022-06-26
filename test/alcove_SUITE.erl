@@ -1,4 +1,4 @@
-%%% Copyright (c) 2014-2021, Michael Santos <michael.santos@gmail.com>
+%%% Copyright (c) 2014-2022, Michael Santos <michael.santos@gmail.com>
 %%%
 %%% Permission to use, copy, modify, and/or distribute this software for any
 %%% purpose with or without fee is hereby granted, provided that the above
@@ -69,6 +69,7 @@
     mount_constant/1,
     open/1,
     pipe_buf/1,
+    pivot_root/1,
     pledge/1,
     portstress/1,
     prctl/1,
@@ -180,7 +181,8 @@ groups() ->
             setns,
             unshare,
             prctl,
-            ptrace
+            ptrace,
+            pivot_root
         ]},
         {freebsd, [sequence], [
             setgroups,
@@ -1647,6 +1649,25 @@ ptrace(Config) ->
         -1,
         []
     ).
+
+pivot_root(Config) ->
+    Drv = ?config(drv, Config),
+    Child = ?config(child, Config),
+    NS = ?config(namespace, Config),
+
+    case NS of
+        true ->
+            ok = alcove:mount(Drv, [Child], "none", "/", [], [ms_rec, ms_private], [], []),
+            Dir = "/tmp/alcove-pivot_root." ++ os:getpid(),
+            ok = alcove:mkdir(Drv, [Child], Dir, 8#700),
+            ok = alcove:mount(Drv, [Child], Dir, Dir, [], [ms_bind], [], []),
+            ok = alcove:chdir(Drv, [Child], Dir),
+            ok = alcove:pivot_root(Drv, [Child], ".", "."),
+            ok = alcove:umount2(Drv, [Child], ".", [mnt_detach]),
+            ok = alcove:rmdir(Drv, [], Dir);
+        false ->
+            {skip, "pivot_root(2): not in a mount namespace"}
+    end.
 
 %%
 %% FreeBSD
