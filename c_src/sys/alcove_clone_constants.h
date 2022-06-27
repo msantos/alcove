@@ -1,4 +1,4 @@
-/* Copyright (c) 2014, Michael Santos <michael.santos@gmail.com>
+/* Copyright (c) 2014-2022, Michael Santos <michael.santos@gmail.com>
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -20,6 +20,9 @@
 static const alcove_constant_t alcove_clone_constants[] = {
 #ifdef CLONE_NEWNS
     ALCOVE_CONSTANT(CLONE_NEWNS),
+#endif
+#ifdef CLONE_NEWCGROUP
+    ALCOVE_CONSTANT(CLONE_NEWCGROUP),
 #endif
 #ifdef CLONE_NEWUTS
     ALCOVE_CONSTANT(CLONE_NEWUTS),

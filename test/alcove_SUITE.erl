@@ -75,6 +75,7 @@
     prctl/1,
     prctl_constant/1,
     priority/1,
+    procctl/1,
     process_tree_leader_exits/1,
     ptrace/1,
     ptrace_constant/1,
@@ -85,6 +86,7 @@
     sethostname/1,
     setns/1,
     setopt/1,
+    setpgid/1,
     setrlimit/1,
     setuid/1,
     signal/1,
@@ -133,6 +135,7 @@ all() ->
         chdir,
         setrlimit,
         setgid,
+        setpgid,
         setuid,
         chmod,
         fork,
@@ -192,7 +195,8 @@ groups() ->
             cap_enter,
             cap_rights_limit,
             cap_fcntls_limit,
-            cap_ioctls_limit
+            cap_ioctls_limit,
+            procctl
         ]},
         {openbsd, [], [setgroups, pledge, unveil]},
         {darwin, [], [no_os_specific_tests]},
@@ -691,6 +695,14 @@ setgroups(Config) ->
             _ ->
                 []
         end.
+
+setpgid(Config) ->
+    Drv = ?config(drv, Config),
+    Child = ?config(child, Config),
+
+    PGID = alcove:getpgrp(Drv, [Child]),
+    ok = alcove:setpgid(Drv, [Child], 0, 0),
+    true = PGID =/= alcove:getpgrp(Drv, [Child]).
 
 fork(Config) ->
     Drv = ?config(drv, Config),
@@ -1672,6 +1684,26 @@ pivot_root(Config) ->
 %%
 %% FreeBSD
 %%
+
+procctl(Config) ->
+    Drv = ?config(drv, Config),
+    Child = ?config(child, Config),
+
+    {ok, <<>>, []} = alcove:procctl(Drv, [Child], 0, Child, proc_reap_acquire, []),
+    {ok, <<1, 0, 0, 0, _/binary>>, [<<1, 0, 0, 0>> | _]} = alcove:procctl(
+        Drv, [Child], p_pid, Child, proc_reap_status, [
+            % rs_flags
+            <<0, 0, 0, 0>>,
+            % rs_children
+            <<0, 0, 0, 0>>,
+            % rs_descendants
+            <<0, 0, 0, 0>>,
+            % rs_reaper
+            <<0, 0, 0, 0>>,
+            % rs_pid
+            <<0, 0, 0, 0>>
+        ]
+    ).
 
 jail(Config) ->
     Drv = ?config(drv, Config),
