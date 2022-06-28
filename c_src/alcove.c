@@ -1,4 +1,4 @@
-/* Copyright (c) 2014-2021, Michael Santos <michael.santos@gmail.com>
+/* Copyright (c) 2014-2022, Michael Santos <michael.santos@gmail.com>
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -18,7 +18,7 @@
 
 static int alcove_signal_init(int boot);
 static int alcove_rlimit_init(void);
-static int alcove_fd_init(char *fifo);
+static int alcove_fd_init(const char *fifo);
 static int alcove_fdmove(int fd, int dupfd);
 
 static void usage(void);
@@ -28,7 +28,7 @@ extern char *__progname;
 int main(int argc, char *argv[]) {
   alcove_state_t *ap;
   int ch;
-  char *fifo = NULL;
+  const char *fifo = NULL;
   int boot = 1;
   struct rlimit maxfd = {0};
 
@@ -55,11 +55,7 @@ int main(int argc, char *argv[]) {
   while ((ch = getopt(argc, argv, "c:d:h")) != -1) {
     switch (ch) {
     case 'c':
-      if (fifo)
-        free(fifo);
-      fifo = strdup(optarg);
-      if (fifo == NULL)
-        exit(ENOMEM);
+      fifo = optarg;
       break;
     case 'd':
       boot = 0;
@@ -87,8 +83,6 @@ int main(int argc, char *argv[]) {
     if (alcove_fd_init(fifo) < 0)
       exit(errno);
   }
-
-  free(fifo);
 
   alcove_event_init(ap);
   exit(0);
@@ -140,7 +134,7 @@ static int alcove_rlimit_init(void) {
   return setrlimit(RLIMIT_STACK, &stack_size);
 }
 
-static int alcove_fd_init(char *fifo) {
+static int alcove_fd_init(const char *fifo) {
   int sigpipe[2] = {0};
   int fdctl;
 
