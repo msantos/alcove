@@ -1,4 +1,4 @@
-/* Copyright (c) 2018-2021, Michael Santos <michael.santos@gmail.com>
+/* Copyright (c) 2018-2022, Michael Santos <michael.santos@gmail.com>
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -46,13 +46,6 @@ ssize_t alcove_sys_unveil(alcove_state_t *ap, const char *arg, size_t len,
     plen = -1;
     break;
 
-  case ERL_ATOM_EXT:
-    if (alcove_decode_null(arg, len, &index) < 0)
-      return -1;
-
-    plen = -1;
-    break;
-
   default:
     if (alcove_decode_iolist(arg, len, &index, path, &plen) < 0)
       return -1;
@@ -65,13 +58,6 @@ ssize_t alcove_sys_unveil(alcove_state_t *ap, const char *arg, size_t len,
   switch (type) {
   case ERL_NIL_EXT:
     if (alcove_decode_list_header(arg, len, &index, &arity) < 0 || arity != 0)
-      return -1;
-
-    elen = -1;
-    break;
-
-  case ERL_ATOM_EXT:
-    if (alcove_decode_null(arg, len, &index) < 0)
       return -1;
 
     elen = -1;
