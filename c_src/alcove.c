@@ -152,27 +152,19 @@ static int alcove_fd_init(const char *fifo) {
   if (alcove_fdmove(ALCOVE_FDCTL_FILENO, 8) < 0)
     return -1;
 
-  if (pipe(sigpipe) < 0)
+  if (pipe2(sigpipe, O_CLOEXEC | O_NONBLOCK) < 0)
     return -1;
 
   /* XXX fd's will overlap */
   if (sigpipe[0] != ALCOVE_SIGREAD_FILENO) {
     if (dup2(sigpipe[0], ALCOVE_SIGREAD_FILENO) < 0)
       return -1;
-    if (close(sigpipe[0]) < 0)
-      return -1;
   }
 
   if (sigpipe[1] != ALCOVE_SIGWRITE_FILENO) {
     if (dup2(sigpipe[1], ALCOVE_SIGWRITE_FILENO) < 0)
       return -1;
-    if (close(sigpipe[1]) < 0)
-      return -1;
   }
-
-  if ((alcove_setfd(ALCOVE_SIGREAD_FILENO, FD_CLOEXEC | O_NONBLOCK) < 0) ||
-      (alcove_setfd(ALCOVE_SIGWRITE_FILENO, FD_CLOEXEC | O_NONBLOCK) < 0))
-    return -1;
 
   /* The control fd used to signal that the port has called exec(). The
    * control fd is a fifo. beam opens the fd in read-only mode.  When all

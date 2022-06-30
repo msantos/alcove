@@ -72,15 +72,11 @@ int alcove_child_fun(void *arg) {
   sigset_t *sigset = child_arg->sigset;
   int sigpipe[2] = {0};
 
-  if (pipe(sigpipe) < 0)
+  if (pipe2(sigpipe, O_CLOEXEC | O_NONBLOCK) < 0)
     return -1;
 
   if ((dup2(sigpipe[PIPE_READ], ALCOVE_SIGREAD_FILENO) < 0) ||
       (dup2(sigpipe[PIPE_WRITE], ALCOVE_SIGWRITE_FILENO) < 0))
-    return -1;
-
-  if ((alcove_setfd(ALCOVE_SIGREAD_FILENO, FD_CLOEXEC | O_NONBLOCK) < 0) ||
-      (alcove_setfd(ALCOVE_SIGWRITE_FILENO, FD_CLOEXEC | O_NONBLOCK) < 0))
     return -1;
 
   /* TODO ensure fd's do not overlap */
