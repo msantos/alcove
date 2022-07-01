@@ -1,4 +1,4 @@
-/* Copyright (c) 2014-2016, Michael Santos <michael.santos@gmail.com>
+/* Copyright (c) 2014-2022, Michael Santos <michael.santos@gmail.com>
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -46,7 +46,15 @@ int alcove_stdio(alcove_stdio_t *fd) {
   return 0;
 }
 
-static int alcove_set_cloexec(int fd) { return alcove_setfd(fd, FD_CLOEXEC); }
+static int alcove_set_cloexec(int fd) {
+  int flags;
+
+  flags = fcntl(fd, F_GETFD, 0);
+  if (flags < 0)
+    return -1;
+
+  return fcntl(fd, F_SETFD, flags | FD_CLOEXEC);
+}
 
 static int alcove_close_pipe(int fd[2]) {
   if (alcove_close_fd(fd[0]) < 0)

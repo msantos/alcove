@@ -201,7 +201,6 @@ int pid_equal(pid_t p1, pid_t p2);
 int pid_not_equal(pid_t p1, pid_t p2);
 
 ssize_t alcove_signal_name(char *, size_t, int *, int);
-int alcove_setfd(int, int);
 
 int alcove_get_type(const char *, size_t, const int *, int *, int *);
 int alcove_decode_binary(const char *, size_t, int *, void *, size_t *);
