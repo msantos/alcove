@@ -5085,7 +5085,7 @@ open(Drv, Pids, Arg1, Arg2, Arg3, Timeout) ->
 % ok
 % 8> alcove:umount2(Drv, [Pid], ".", [mnt_detach]).
 % ok
-% ```
+% '''
 
 pivot_root(Drv, Pids, Arg1, Arg2) ->
     case alcove_drv:call(Drv,
@@ -5144,7 +5144,7 @@ pivot_root(Drv, Pids, Arg1, Arg2) ->
 % ok
 % 8> alcove:umount2(Drv, [Pid], ".", [mnt_detach]).
 % ok
-% ```
+% '''
 
 pivot_root(Drv, Pids, Arg1, Arg2, Timeout) ->
     case alcove_drv:call(Drv,
