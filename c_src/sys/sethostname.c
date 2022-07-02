@@ -30,7 +30,6 @@ ssize_t alcove_sys_sethostname(alcove_state_t *ap, const char *arg, size_t len,
   char name[HOST_NAME_MAX] = {0};
   size_t nlen = sizeof(name) - 1;
   int rv = 0;
-  int errnum = 0;
 
   UNUSED(ap);
 
@@ -40,6 +39,6 @@ ssize_t alcove_sys_sethostname(alcove_state_t *ap, const char *arg, size_t len,
 
   rv = sethostname(name, strlen(name));
 
-  return (rv < 0) ? alcove_mk_errno(reply, rlen, errnum)
+  return (rv < 0) ? alcove_mk_errno(reply, rlen, errno)
                   : alcove_mk_atom(reply, rlen, "ok");
 }
