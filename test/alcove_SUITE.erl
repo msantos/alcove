@@ -435,6 +435,10 @@ setopt(Config) ->
     0 = alcove:getopt(Drv, [Fork], exit_status),
     true = 0 =/= alcove:getopt(Drv, [], maxforkdepth),
     0 = alcove:getopt(Drv, [Fork], maxforkdepth),
+    {error, eagain} = alcove:fork(Drv, [Fork]),
+
+    true = alcove:setopt(Drv, [Fork], maxforkdepth, 1),
+    true = alcove:setopt(Drv, [Fork], maxchild, 0),
     {error, eagain} = alcove:fork(Drv, [Fork]).
 
 event(Config) ->
@@ -708,12 +712,22 @@ fork(Config) ->
     Drv = ?config(drv, Config),
     Child = ?config(child, Config),
 
+    8 = alcove:getopt(Drv, [Child], maxchild),
     {ok, RL} = alcove:getrlimit(Drv, [Child], rlimit_nofile),
     ok = alcove:setrlimit(
         Drv,
         [Child],
         rlimit_nofile,
         RL#alcove_rlimit{cur = 64}
+    ),
+    % ALCOVE_MAXCHILD(64) = 9 maxchild, value is not changed
+    8 = alcove:getopt(Drv, [Child], maxchild),
+
+    ok = alcove:setrlimit(
+        Drv,
+        [Child],
+        rlimit_nofile,
+        RL#alcove_rlimit{cur = 32}
     ),
     4 = alcove:getopt(Drv, [Child], maxchild),
 

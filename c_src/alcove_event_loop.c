@@ -86,8 +86,8 @@ void alcove_event_init(alcove_state_t *ap) {
 }
 
 void alcove_event_loop(alcove_state_t *ap) {
+  int i;
   struct pollfd *fds;
-  struct rlimit maxfd = {0};
 
   (void)memcpy(ap->filter, ap->filter1, ALCOVE_NR_SIZE);
   (void)memset(ap->child, 0, sizeof(alcove_child_t) * ap->fdsetsize);
@@ -96,28 +96,20 @@ void alcove_event_loop(alcove_state_t *ap) {
   if (fds == NULL)
     exit(errno);
 
-  if (getrlimit(RLIMIT_NOFILE, &maxfd) < 0)
-    exit(errno);
-
-  ap->curfd = maxfd.rlim_cur;
-
   for (;;) {
-    int i;
-
-    if (ap->maxfd != ap->curfd) {
-      u_int16_t fdsetsize = ap->fdsetsize;
-      ap->maxfd = ap->curfd;
+    if (ap->fdsetsize != ap->maxchild) {
+      ap->maxfd = ALCOVE_NFD(ap->maxchild);
       fds = reallocarray(fds, ap->maxfd, sizeof(struct pollfd));
       if (fds == NULL)
         exit(errno);
       (void)memset(fds, 0, sizeof(struct pollfd) * ap->maxfd);
 
-      ap->fdsetsize = ALCOVE_MAXCHILD(ap->maxfd);
-
-      ap->child = recallocarray(ap->child, fdsetsize, ap->fdsetsize,
+      ap->child = recallocarray(ap->child, ap->fdsetsize, ap->maxchild,
                                 sizeof(alcove_child_t));
       if (ap->child == NULL)
         exit(errno);
+
+      ap->fdsetsize = ap->maxchild;
     }
 
     for (i = 0; i < ap->maxfd; i++) {

@@ -34,7 +34,7 @@ ssize_t alcove_sys_getopt(alcove_state_t *ap, const char *arg, size_t len,
   if (strcmp(opt, "flowcontrol") == 0) {
     val = ap->flowcontrol;
   } else if (strcmp(opt, "maxchild") == 0) {
-    val = ap->fdsetsize;
+    val = ap->maxchild;
   } else if (strcmp(opt, "maxforkdepth") == 0) {
     val = ap->maxforkdepth;
   } else if (strcmp(opt, "termsig") == 0) {

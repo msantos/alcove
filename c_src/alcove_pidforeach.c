@@ -37,3 +37,16 @@ int pid_foreach(alcove_state_t *ap, pid_t pid, void *arg1, void *arg2,
 int pid_equal(pid_t p1, pid_t p2) { return p1 == p2; }
 
 int pid_not_equal(pid_t p1, pid_t p2) { return p1 != p2; }
+
+int fdlimit_pid(alcove_state_t *ap, alcove_child_t *c, void *arg1, void *arg2) {
+  int *n = arg1;
+  int *maxfd = arg2;
+
+  if (*maxfd < c->fdctl || *maxfd < c->fdout || *maxfd < c->fderr ||
+      *maxfd < c->fdin)
+    return -1;
+
+  *n += 1;
+
+  return 1;
+}

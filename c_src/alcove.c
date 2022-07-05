@@ -46,13 +46,12 @@ int main(int argc, char *argv[]) {
   if (getrlimit(RLIMIT_NOFILE, &maxfd) < 0)
     exit(errno);
 
-  ap->maxfd = maxfd.rlim_cur;
-  ap->fdsetsize = ALCOVE_MAXCHILD(ap->maxfd);
+  ap->maxchild = MIN(MAXPROC, ALCOVE_MAXCHILD(maxfd.rlim_cur));
   ap->maxforkdepth = MAXFORKDEPTH;
   ap->flowcontrol = -1;
   ap->signaloneof = SIGTERM;
 
-  while ((ch = getopt(argc, argv, "c:d:h")) != -1) {
+  while ((ch = getopt(argc, argv, "c:d:m:h")) != -1) {
     switch (ch) {
     case 'c':
       fifo = optarg;
@@ -63,11 +62,19 @@ int main(int argc, char *argv[]) {
       if (ap->depth > UINT8_MAX)
         exit(EAGAIN);
       break;
+    case 'm':
+      ap->maxchild = (u_int16_t)atoi(optarg);
+      if (ALCOVE_NFD(ap->maxchild) > maxfd.rlim_cur)
+        exit(EAGAIN);
+      break;
     case 'h':
     default:
       usage();
     }
   }
+
+  ap->maxfd = ALCOVE_NFD(ap->maxchild);
+  ap->fdsetsize = ap->maxchild;
 
   ap->child = calloc(ap->fdsetsize, sizeof(alcove_child_t));
   if (ap->child == NULL)

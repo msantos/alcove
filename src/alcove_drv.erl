@@ -379,6 +379,7 @@ getopts(Options0) when is_list(Options0) ->
 
 optarg({fdctl, Arg}) -> switch("c", Arg);
 optarg({depth, Arg}) -> switch("d", integer_to_list(Arg));
+optarg({maxchild, Arg}) -> switch("m", integer_to_list(Arg));
 optarg(_) -> "".
 
 switch(Switch, Arg) when is_binary(Arg) ->

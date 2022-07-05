@@ -3537,10 +3537,11 @@ gethostname(Drv, Pids, Timeout) ->
 % The initial values for these options are set for the port by
 % alcove_drv:start/1.
 %
-% • maxchild : non_neg_integer() : (ulimit -n) / 4 - 4
+% • maxchild : non_neg_integer() : 64
 %
-%   Number of child processes allowed for this process. This value can be
-%   modified by adjusting RLIMIT_NOFILE for the process.
+%   Number of child processes allowed for this control process. The value
+%   can be modified using setopt/4,5. Additionally, reducing RLIMIT_NOFILE
+%   for the process may result in a reduced maxchild value.
 %
 % • exit_status : 1 | 0 : 1
 %
@@ -3599,10 +3600,11 @@ getopt(Drv, Pids, Arg1) ->
 % The initial values for these options are set for the port by
 % alcove_drv:start/1.
 %
-% • maxchild : non_neg_integer() : (ulimit -n) / 4 - 4
+% • maxchild : non_neg_integer() : 64
 %
-%   Number of child processes allowed for this process. This value can be
-%   modified by adjusting RLIMIT_NOFILE for the process.
+%   Number of child processes allowed for this control process. The value
+%   can be modified using setopt/4,5. Additionally, reducing RLIMIT_NOFILE
+%   for the process may result in a reduced maxchild value.
 %
 % • exit_status : 1 | 0 : 1
 %
@@ -6989,6 +6991,15 @@ setresuid(Drv, Pids, Arg1, Arg2, Arg3, Timeout) ->
 
 % @doc setrlimit(2): set a resource limit
 %
+% Note on `rlimit_nofile':
+%
+% The control process requires a fixed number of file descriptors for
+% each subprocess. Reducing the number of file descriptors will reduce
+% the limit on child processes.
+%
+% If the file descriptor limit is below the number of file descriptors
+% currently used, setrlimit/4,5 will return `{error, einval}'.
+%
 % == Examples ==
 %
 % ```
@@ -7019,6 +7030,15 @@ setrlimit(Drv, Pids, Arg1, Arg2) ->
     end.
 
 % @doc setrlimit(2): set a resource limit
+%
+% Note on `rlimit_nofile':
+%
+% The control process requires a fixed number of file descriptors for
+% each subprocess. Reducing the number of file descriptors will reduce
+% the limit on child processes.
+%
+% If the file descriptor limit is below the number of file descriptors
+% currently used, setrlimit/4,5 will return `{error, einval}'.
 %
 % == Examples ==
 %

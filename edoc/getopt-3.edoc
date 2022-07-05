@@ -6,10 +6,11 @@ from the parent.
 The initial values for these options are set for the port by
 alcove_drv:start/1.
 
-• maxchild : non_neg_integer() : (ulimit -n) / 4 - 4
+• maxchild : non_neg_integer() : 64
 
-  Number of child processes allowed for this process. This value can be
-  modified by adjusting RLIMIT_NOFILE for the process.
+  Number of child processes allowed for this control process. The value
+  can be modified using setopt/4,5. Additionally, reducing RLIMIT_NOFILE
+  for the process may result in a reduced maxchild value.
 
 • exit_status : 1 | 0 : 1
 

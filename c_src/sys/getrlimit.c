@@ -48,10 +48,6 @@ ssize_t alcove_sys_getrlimit(alcove_state_t *ap, const char *arg, size_t len,
   if (rv < 0)
     return alcove_mk_errno(reply, rlen, errno);
 
-  if (resource == RLIMIT_NOFILE) {
-    ap->curfd = rlim.rlim_cur;
-  }
-
   ALCOVE_ERR(alcove_encode_version(reply, rlen, &rindex));
   ALCOVE_ERR(alcove_encode_tuple_header(reply, rlen, &rindex, 2));
   ALCOVE_ERR(alcove_encode_atom(reply, rlen, &rindex, "ok"));

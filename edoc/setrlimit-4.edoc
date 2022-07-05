@@ -1,5 +1,14 @@
 @doc setrlimit(2): set a resource limit
 
+Note on `rlimit_nofile':
+
+The control process requires a fixed number of file descriptors for
+each subprocess. Reducing the number of file descriptors will reduce
+the limit on child processes.
+
+If the file descriptor limit is below the number of file descriptors
+currently used, setrlimit/4,5 will return `{error, einval}'.
+
 == Examples ==
 
 ```

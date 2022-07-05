@@ -17,15 +17,6 @@
 
 #include "alcove_rlimit_constants.h"
 
-#if defined(__linux__) || defined(__sunos__) || defined(__OpenBSD__)
-#include <dirent.h>
-#include <sys/types.h>
-
-static int rlimit_under_maxfd(long maxfd, unsigned long long curfd);
-static int rlimit_under_maxfd_fcntl(long maxfd, unsigned long long curfd);
-static int isnum(const char *s);
-#endif
-
 /*
  * setrlimit(2)
  *
@@ -40,6 +31,7 @@ ssize_t alcove_sys_setrlimit(alcove_state_t *ap, const char *arg, size_t len,
   unsigned long long cur = 0, max = 0;
   struct rlimit rlim = {0};
   int rv = 0;
+  size_t nproc = 0;
 
   UNUSED(ap);
 
@@ -71,12 +63,17 @@ ssize_t alcove_sys_setrlimit(alcove_state_t *ap, const char *arg, size_t len,
   if (alcove_decode_ulonglong(arg, len, &index, &max) < 0)
     return -1;
 
-#if defined(__linux__) || defined(__sunos__) || defined(__OpenBSD__)
   if (resource == RLIMIT_NOFILE) {
-    if (rlimit_under_maxfd(ap->maxfd, cur) < 0)
+    /* Check:
+     * * fd limit is not below an existing fd
+     * * fd limit is large enough to hold existing processes
+     */
+    if (pid_foreach(ap, 0, &nproc, &cur, pid_not_equal, fdlimit_pid) < 0)
+      return alcove_mk_errno(reply, rlen, EINVAL);
+
+    if (ALCOVE_NFD(nproc) > cur)
       return alcove_mk_errno(reply, rlen, EINVAL);
   }
-#endif
 
   rlim.rlim_cur = cur;
   rlim.rlim_max = max;
@@ -86,70 +83,12 @@ ssize_t alcove_sys_setrlimit(alcove_state_t *ap, const char *arg, size_t len,
   if (rv < 0)
     return alcove_mk_errno(reply, rlen, errno);
 
-  if (resource == RLIMIT_NOFILE)
-    ap->curfd = rlim.rlim_cur;
+  /* lower maxchild if RLIMIT_NOFILE reduced */
+  if (resource == RLIMIT_NOFILE) {
+    int maxchild = ALCOVE_MAXCHILD(cur);
+    if (ap->maxchild > maxchild)
+      ap->maxchild = maxchild;
+  }
 
   return alcove_mk_atom(reply, rlen, "ok");
 }
-
-#if defined(__linux__) || defined(__sunos__) || defined(__OpenBSD__)
-static int rlimit_under_maxfd(long maxfd, unsigned long long curfd) {
-  DIR *dp;
-  int dfd;
-  struct dirent *de;
-  int fd;
-
-  dp = opendir("/dev/fd");
-  if (dp == NULL) {
-    return rlimit_under_maxfd_fcntl(maxfd, curfd);
-  }
-
-  dfd = dirfd(dp);
-  if (dfd == -1) {
-    (void)closedir(dp);
-    return rlimit_under_maxfd_fcntl(maxfd, curfd);
-  }
-
-  while ((de = readdir(dp)) != NULL) {
-    if (!isnum(de->d_name))
-      continue;
-
-    fd = atoi(de->d_name);
-
-    if (fd < curfd || fd == dfd)
-      continue;
-
-    /* found fd is greater than curfd */
-    (void)closedir(dp);
-
-    return -1;
-  }
-
-  if (closedir(dp) == -1)
-    return -1;
-
-  return 0;
-}
-
-static int isnum(const char *s) {
-  const char *p;
-
-  for (p = s; *p != '\0'; p++) {
-    if (*p < '0' || *p > '9')
-      return 0;
-  }
-
-  return 1;
-}
-
-static int rlimit_under_maxfd_fcntl(long maxfd, unsigned long long curfd) {
-  int i;
-
-  for (i = curfd; i < maxfd; i++) {
-    if (fcntl(i, F_GETFD, 0) >= 0)
-      return -1;
-  }
-
-  return 0;
-}
-#endif

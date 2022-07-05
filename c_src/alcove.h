@@ -63,6 +63,7 @@
 
 #define UNUSED(x) (void)x
 
+#define MAXPROC 64
 #define MAXFORKDEPTH 16
 #define MAXMSGLEN UINT16_MAX
 #define MAXHDRLEN 8 /* 2 bytes length + 2 bytes type + 4 bytes PID */
@@ -151,7 +152,17 @@ enum {
   ALCOVE_MAXFILENO
 };
 
-#define ALCOVE_MAXCHILD(_nfds) ((_nfds) / ALCOVE_MAXFILENO - ALCOVE_MAXFILENO)
+/* Calculate the number of file descriptors required to handle the number
+ * of subprocesses:
+ *
+ * * the control process requires ALCOVE_MAXFILENO file descriptors
+ * * each subprocess requires ALCOVE_MAXFILENO file descriptors
+ *
+ */
+#define ALCOVE_NFD(_nproc) ((_nproc)*ALCOVE_MAXFILENO + ALCOVE_MAXFILENO)
+
+/* Calculate the number of subprocesses supported by a file descriptor limit */
+#define ALCOVE_MAXCHILD(_nfds) (((_nfds)-ALCOVE_MAXFILENO) / ALCOVE_MAXFILENO)
 
 typedef struct {
   pid_t pid;
@@ -167,8 +178,8 @@ typedef struct {
 typedef struct {
   int32_t opt;
   rlim_t maxfd;
-  rlim_t curfd;
   u_int8_t sigchld;
+  u_int16_t maxchild;
   u_int16_t maxforkdepth;
   u_int16_t fdsetsize;
   u_int16_t depth;
@@ -199,6 +210,7 @@ int pid_foreach(alcove_state_t *ap, pid_t pid, void *arg1, void *arg2,
                 int (*fp)(alcove_state_t *, alcove_child_t *, void *, void *));
 int pid_equal(pid_t p1, pid_t p2);
 int pid_not_equal(pid_t p1, pid_t p2);
+int fdlimit_pid(alcove_state_t *ap, alcove_child_t *c, void *arg1, void *arg2);
 
 ssize_t alcove_signal_name(char *, size_t, int *, int);
 

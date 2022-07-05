@@ -1,4 +1,4 @@
-/* Copyright (c) 2014-2018, Michael Santos <michael.santos@gmail.com>
+/* Copyright (c) 2014-2022, Michael Santos <michael.santos@gmail.com>
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -40,6 +40,27 @@ ssize_t alcove_sys_setopt(alcove_state_t *ap, const char *arg, size_t len,
 
   if (strcmp(opt, "exit_status") == 0) {
     ALCOVE_SETOPT(ap, alcove_opt_exit_status, val);
+  } else if (strcmp(opt, "maxchild") == 0) {
+    size_t nproc = 0;
+    struct rlimit maxfd = {0};
+
+    val = MIN(val, UINT16_MAX);
+
+    if (getrlimit(RLIMIT_NOFILE, &maxfd) < 0)
+      return alcove_mk_atom(reply, rlen, "false");
+
+    /* Count the number of PIDs and test existing fd's are below the fd limit */
+    if (pid_foreach(ap, 0, &nproc, &maxfd, pid_not_equal, fdlimit_pid) < 0)
+      return alcove_mk_atom(reply, rlen, "false");
+
+    if (nproc > val)
+      return alcove_mk_atom(reply, rlen, "false");
+
+    if (ALCOVE_NFD(val) > maxfd.rlim_cur) {
+      return alcove_mk_atom(reply, rlen, "false");
+    }
+
+    ap->maxchild = val;
   } else if (strcmp(opt, "maxforkdepth") == 0) {
     ap->maxforkdepth = MIN(val, UINT8_MAX);
   } else if (strcmp(opt, "termsig") == 0) {
