@@ -111,7 +111,7 @@ alcove:stdin(Drv, [Child1, Child2], "hello process\n"),
 ```
 
 Setting Up Privileges
-=====================
+---------------------
 
 * sudo
 
@@ -139,7 +139,7 @@ chmod u+s priv/alcove
   See capabilities(7) and setcap(8).
 
 Creating a chroot
-=================
+-----------------
 
 The standard Unix way of sandboxing a process is by doing a chroot(2). The
 chroot process involves:
@@ -291,7 +291,7 @@ ok
 ```
 
 Creating a Container Using Linux Namespaces
-===========================================
+-------------------------------------------
 
 Namespaces are the basis for Linux Containers (LXC). Creating a
 new namespace is as simple as passing in the appropriate flags to
@@ -400,15 +400,14 @@ sandbox(Drv, Argv) ->
     Child.
 ```
 
-alcove
-------
-
-### Operating System Support
+Operating System Support
+------------------------
 
 Functions marked as operating system specific raise an undefined function
 error on unsupported platforms.
 
-### Event Loop
+Event Loop
+----------
 
 These functions can be called while the process is running in the event
 loop. Using these functions after the process has called exec(3) will
@@ -432,7 +431,7 @@ the pipeline.
 See "Message Format" for a description of the messages.
 
 Message Format
-==============
+--------------
 
 * synchronous replies to calls from alcove processes running in the
   event loop. The type of the last element of the tuple depends on the call
@@ -455,7 +454,7 @@ Message Format
         {alcove_stdout, pid(), [non_neg_integer()], binary()}
 
 Examples
-========
+--------
 
 To compile the examples:
 
