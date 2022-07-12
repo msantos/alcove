@@ -622,15 +622,15 @@
 -spec iolist_to_bin(alcove_drv:ref(), [pid_t()], iodata()) -> binary().
 -spec iolist_to_bin(alcove_drv:ref(), [pid_t()], iodata(), timeout()) -> binary().
 
--spec jail(alcove_drv:ref(), [pid_t()], cstruct()) -> {ok, int32_t()} | {error, posix()}.
--spec jail(alcove_drv:ref(), [pid_t()], cstruct(), timeout()) ->
+-spec jail(alcove_drv:ref(), [pid_t()], Jail :: cstruct()) -> {ok, int32_t()} | {error, posix()}.
+-spec jail(alcove_drv:ref(), [pid_t()], Jail :: cstruct(), timeout()) ->
     {ok, int32_t()} | {error, posix()}.
 
--spec jail_attach(alcove_drv:ref(), [pid_t()], int32_t()) -> ok | {error, posix()}.
--spec jail_attach(alcove_drv:ref(), [pid_t()], int32_t(), timeout()) -> ok | {error, posix()}.
+-spec jail_attach(alcove_drv:ref(), [pid_t()], JID :: int32_t()) -> ok | {error, posix()}.
+-spec jail_attach(alcove_drv:ref(), [pid_t()], JID :: int32_t(), timeout()) -> ok | {error, posix()}.
 
--spec jail_remove(alcove_drv:ref(), [pid_t()], int32_t()) -> ok | {error, posix()}.
--spec jail_remove(alcove_drv:ref(), [pid_t()], int32_t(), timeout()) -> ok | {error, posix()}.
+-spec jail_remove(alcove_drv:ref(), [pid_t()], JID :: int32_t()) -> ok | {error, posix()}.
+-spec jail_remove(alcove_drv:ref(), [pid_t()], JID :: int32_t(), timeout()) -> ok | {error, posix()}.
 
 -spec kill(alcove_drv:ref(), [pid_t()], OSPid :: pid_t(), Signal :: constant()) ->
     ok | {error, posix()}.
@@ -817,7 +817,7 @@
     Readfds :: fd_set(),
     Writefds :: fd_set(),
     Exceptfds :: fd_set(),
-    Timeval :: [] | null | alcove_timeval()
+    Timeval :: [] | alcove_timeval()
 ) -> {ok, Readset :: fd_set(), Writeset :: fd_set(), Exceptset :: fd_set()} | {error, posix()}.
 -spec select(
     alcove_drv:ref(),
@@ -825,7 +825,7 @@
     Readfds :: fd_set(),
     Writefds :: fd_set(),
     Exceptfds :: fd_set(),
-    Timeval :: [] | null | alcove_timeval(),
+    Timeval :: [] | alcove_timeval(),
     timeout()
 ) -> {ok, Readset :: fd_set(), Writeset :: fd_set(), Exceptset :: fd_set()} | {error, posix()}.
 
@@ -3883,7 +3883,7 @@ getresuid(Drv, Pids, Timeout) ->
 % Returns a record:
 %
 % ```
-% •include_lib("alcove/include/alcove.hrl").
+% -include_lib("alcove/include/alcove.hrl").
 %
 % #alcove_rlimit{
 %     cur = integer(),
@@ -3919,7 +3919,7 @@ getrlimit(Drv, Pids, Arg1) ->
 % Returns a record:
 %
 % ```
-% •include_lib("alcove/include/alcove.hrl").
+% -include_lib("alcove/include/alcove.hrl").
 %
 % #alcove_rlimit{
 %     cur = integer(),
@@ -7847,8 +7847,18 @@ unshare(Drv, Pids, Arg1, Timeout) ->
 % {ok,28978}
 % 3> alcove:unveil(Drv, [Pid], <<"/etc">>, <<"r">>).
 % ok
-% 4> alcove:unveil(Drv, [Task], [], []).
+% 4> alcove:unveil(Drv, [Pid], [], []).
 % ok
+% 5> alcove:readdir(Drv, [Pid], "/etc").
+% {ok,[<<".">>,<<"..">>,<<"acme">>,<<"amd">>,<<"authpf">>,
+%      <<"daily">>,<<"disktab">>,<<"examples">>,<<"firmware">>,
+%      <<"hotplug">>,<<"iked">>,<<"isakmpd">>,<<"ldap">>,
+%      <<"magic">>,<<"mail">>,<<"moduli">>,<<"monthly">>,
+%      <<"mtree">>,<<"netstart">>,<<"npppd">>,<<"pf.os">>,
+%      <<"ppp">>,<<"protocols">>,<<"rc">>,<<"rc.conf">>,<<"rc.d">>,
+%      <<...>>|...]}
+% 6> alcove:readdir(Drv, [Pid], "/tmp").
+% {error,enoent}
 % '''
 
 unveil(Drv, Pids, Arg1, Arg2) ->
@@ -7886,8 +7896,18 @@ unveil(Drv, Pids, Arg1, Arg2) ->
 % {ok,28978}
 % 3> alcove:unveil(Drv, [Pid], <<"/etc">>, <<"r">>).
 % ok
-% 4> alcove:unveil(Drv, [Task], [], []).
+% 4> alcove:unveil(Drv, [Pid], [], []).
 % ok
+% 5> alcove:readdir(Drv, [Pid], "/etc").
+% {ok,[<<".">>,<<"..">>,<<"acme">>,<<"amd">>,<<"authpf">>,
+%      <<"daily">>,<<"disktab">>,<<"examples">>,<<"firmware">>,
+%      <<"hotplug">>,<<"iked">>,<<"isakmpd">>,<<"ldap">>,
+%      <<"magic">>,<<"mail">>,<<"moduli">>,<<"monthly">>,
+%      <<"mtree">>,<<"netstart">>,<<"npppd">>,<<"pf.os">>,
+%      <<"ppp">>,<<"protocols">>,<<"rc">>,<<"rc.conf">>,<<"rc.d">>,
+%      <<...>>|...]}
+% 6> alcove:readdir(Drv, [Pid], "/tmp").
+% {error,enoent}
 % '''
 
 unveil(Drv, Pids, Arg1, Arg2, Timeout) ->

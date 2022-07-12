@@ -21,6 +21,16 @@ alcove:unveil(Drv, [Task], [], []).
 {ok,28978}
 3> alcove:unveil(Drv, [Pid], <<"/etc">>, <<"r">>).
 ok
-4> alcove:unveil(Drv, [Task], [], []).
+4> alcove:unveil(Drv, [Pid], [], []).
 ok
+5> alcove:readdir(Drv, [Pid], "/etc").
+{ok,[<<".">>,<<"..">>,<<"acme">>,<<"amd">>,<<"authpf">>,
+     <<"daily">>,<<"disktab">>,<<"examples">>,<<"firmware">>,
+     <<"hotplug">>,<<"iked">>,<<"isakmpd">>,<<"ldap">>,
+     <<"magic">>,<<"mail">>,<<"moduli">>,<<"monthly">>,
+     <<"mtree">>,<<"netstart">>,<<"npppd">>,<<"pf.os">>,
+     <<"ppp">>,<<"protocols">>,<<"rc">>,<<"rc.conf">>,<<"rc.d">>,
+     <<...>>|...]}
+6> alcove:readdir(Drv, [Pid], "/tmp").
+{error,enoent}
 '''

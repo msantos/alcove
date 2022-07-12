@@ -3,7 +3,7 @@
 Returns a record:
 
 ```
-•include_lib("alcove/include/alcove.hrl").
+-include_lib("alcove/include/alcove.hrl").
 
 #alcove_rlimit{
     cur = integer(),

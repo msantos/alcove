@@ -606,7 +606,7 @@
     Readfds :: fd_set(),
     Writefds :: fd_set(),
     Exceptfds :: fd_set(),
-    Timeval :: [] | null | alcove_timeval()
+    Timeval :: [] | alcove_timeval()
 ) -> {ok, Readset :: fd_set(), Writeset :: fd_set(), Exceptset :: fd_set()} | {error, posix()}.
 -spec select(
     alcove_drv:ref(),
@@ -614,7 +614,7 @@
     Readfds :: fd_set(),
     Writefds :: fd_set(),
     Exceptfds :: fd_set(),
-    Timeval :: [] | null | alcove_timeval(),
+    Timeval :: [] | alcove_timeval(),
     timeout()
 ) -> {ok, Readset :: fd_set(), Writeset :: fd_set(), Exceptset :: fd_set()} | {error, posix()}.
 
