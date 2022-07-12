@@ -411,15 +411,15 @@
 -spec iolist_to_bin(alcove_drv:ref(), [pid_t()], iodata()) -> binary().
 -spec iolist_to_bin(alcove_drv:ref(), [pid_t()], iodata(), timeout()) -> binary().
 
--spec jail(alcove_drv:ref(), [pid_t()], cstruct()) -> {ok, int32_t()} | {error, posix()}.
--spec jail(alcove_drv:ref(), [pid_t()], cstruct(), timeout()) ->
+-spec jail(alcove_drv:ref(), [pid_t()], Jail :: cstruct()) -> {ok, int32_t()} | {error, posix()}.
+-spec jail(alcove_drv:ref(), [pid_t()], Jail :: cstruct(), timeout()) ->
     {ok, int32_t()} | {error, posix()}.
 
--spec jail_attach(alcove_drv:ref(), [pid_t()], int32_t()) -> ok | {error, posix()}.
--spec jail_attach(alcove_drv:ref(), [pid_t()], int32_t(), timeout()) -> ok | {error, posix()}.
+-spec jail_attach(alcove_drv:ref(), [pid_t()], JID :: int32_t()) -> ok | {error, posix()}.
+-spec jail_attach(alcove_drv:ref(), [pid_t()], JID :: int32_t(), timeout()) -> ok | {error, posix()}.
 
--spec jail_remove(alcove_drv:ref(), [pid_t()], int32_t()) -> ok | {error, posix()}.
--spec jail_remove(alcove_drv:ref(), [pid_t()], int32_t(), timeout()) -> ok | {error, posix()}.
+-spec jail_remove(alcove_drv:ref(), [pid_t()], JID :: int32_t()) -> ok | {error, posix()}.
+-spec jail_remove(alcove_drv:ref(), [pid_t()], JID :: int32_t(), timeout()) -> ok | {error, posix()}.
 
 -spec kill(alcove_drv:ref(), [pid_t()], OSPid :: pid_t(), Signal :: constant()) ->
     ok | {error, posix()}.
