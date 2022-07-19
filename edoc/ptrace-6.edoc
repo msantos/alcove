@@ -3,9 +3,9 @@
 == Examples ==
 
 ```
-•module(ptrace).
+-module(ptrace).
 
-•export([run/0]).
+-export([run/0]).
 
 run() ->
     {ok, Drv} = alcove_drv:start_link(),

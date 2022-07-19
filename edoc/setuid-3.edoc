@@ -12,3 +12,5 @@ ok
 73> alcove:getuid(Drv, [Pid]).
 123
 '''
+
+@see setresuid/5

@@ -1,7 +1,5 @@
 @doc Set port options
 
-See getopt/2,3 for the list of options.
-
 == Examples ==
 
 ```
@@ -10,3 +8,5 @@ See getopt/2,3 for the list of options.
 2> alcove:setopt(Drv, [], maxforkdepth, 128).
 true
 '''
+
+@see getopt/3

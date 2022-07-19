@@ -1,35 +1,15 @@
 @doc seccomp(2): restrict system operations
 
-Also see prctl/7.
-
 == Support ==
 
 • Linux
 
 == Examples ==
 
-To enforce a seccomp filter:
-
-```
-% NOTE: this filter will cause the port to receive a SIGSYS
-% See test/alcove_seccomp_tests.erl for all the syscalls
-% required for the port process to run
-
-Arch = alcove:define(Drv, [], alcove:audit_arch()),
-Filter = [
-    ?VALIDATE_ARCHITECTURE(Arch),
-    ?EXAMINE_SYSCALL,
-    sys_read,
-    sys_write
-],
-
-{ok,_,_,_,_,_} = alcove:prctl(Drv, [], pr_set_no_new_privs, 1, 0, 0, 0),
-Pad = (erlang:system_info({wordsize,external}) - 2) * 8,
-
-Prog = [
-    <<(iolist_size(Filter) div 8):2/native-unsigned-integer-unit:8>>,
-    <<0:Pad>>,
-    {ptr, list_to_binary(Filter)}
-],
-alcove:seccomp(Drv, [], seccomp_set_mode_filter, 0, Prog).
 '''
+%% Equivalent to:
+%% alcove:prctl(Drv, Pid, pr_set_seccomp, seccomp_mode_filter, Prog, 0, 0)
+alcove:seccomp(Drv, Pid, seccomp_set_mode_filter, 0, Prog)
+'''
+
+@see prctl/7

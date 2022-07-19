@@ -1800,6 +1800,10 @@ cap_fcntls_limit(Drv, Pids, Arg1, Arg2, Timeout) ->
 
 % @doc cap_getmode(2): check if capability mode is enabled
 %
+% • `0' : false
+%
+% • `1' : true
+%
 % == Support ==
 %
 % • FreeBSD
@@ -1832,6 +1836,10 @@ cap_getmode(Drv, Pids) ->
     end.
 
 % @doc cap_getmode(2): check if capability mode is enabled
+%
+% • `0' : false
+%
+% • `1' : true
 %
 % == Support ==
 %
@@ -1877,7 +1885,7 @@ cap_getmode(Drv, Pids, Timeout) ->
 % {ok,<0.209.0>}
 % 2> {ok, Pid} = alcove:fork(Drv, []).
 % {ok,75710}
-% 3> {ok, Pty} = alcove:open(Drv, [Pid], "/dev/pts/1", [o_rdwr, o_nonblock], 0).
+% 3> {ok, FD} = alcove:open(Drv, [Pid], "/dev/pts/1", [o_rdwr, o_nonblock], 0).
 % {ok,6}
 % 4> alcove:cap_enter(Drv, [Pid]).
 % ok
@@ -1914,7 +1922,7 @@ cap_ioctls_limit(Drv, Pids, Arg1, Arg2) ->
 % {ok,<0.209.0>}
 % 2> {ok, Pid} = alcove:fork(Drv, []).
 % {ok,75710}
-% 3> {ok, Pty} = alcove:open(Drv, [Pid], "/dev/pts/1", [o_rdwr, o_nonblock], 0).
+% 3> {ok, FD} = alcove:open(Drv, [Pid], "/dev/pts/1", [o_rdwr, o_nonblock], 0).
 % {ok,6}
 % 4> alcove:cap_enter(Drv, [Pid]).
 % ok
@@ -3211,7 +3219,7 @@ file_constant(Drv, Pids, Arg1, Timeout) ->
 % <<255,255,255,231,239,255,255,255,255,255,255,255,15>>
 % 4> F2 = alcove:filter({allow, [getpid,gethostname]}).
 % <<255,255,255,223,237,255,255,255,255,255,255,255,15>>
-% % Control process: restricted to: fork, filter
+% % Control process: restricted to: fork, filter, getcwd
 % % Any forked control subprocess: restricted to: getpid, gethostname
 % 5> alcove:filter(Drv, [], F1, F2).
 % ok
@@ -3255,7 +3263,7 @@ filter(Drv, Pids, Arg1, Arg2) ->
 % <<255,255,255,231,239,255,255,255,255,255,255,255,15>>
 % 4> F2 = alcove:filter({allow, [getpid,gethostname]}).
 % <<255,255,255,223,237,255,255,255,255,255,255,255,15>>
-% % Control process: restricted to: fork, filter
+% % Control process: restricted to: fork, filter, getcwd
 % % Any forked control subprocess: restricted to: getpid, gethostname
 % 5> alcove:filter(Drv, [], F1, F2).
 % ok
@@ -4829,7 +4837,7 @@ mkfifo(Drv, Pids, Arg1, Arg2, Timeout) ->
 % ok = alcove:mount(Drv, [Task], "none", "/", [], [ms_rec, ms_private], []).
 % '''
 %
-% On BSD systems, the Source argument is ignored and passed to the system
+% On BSD systems, the `Source' argument is ignored and passed to the system
 % mount call as:
 %
 % ```
@@ -4893,7 +4901,7 @@ mount(Drv, Pids, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6) ->
 % ok = alcove:mount(Drv, [Task], "none", "/", [], [ms_rec, ms_private], []).
 % '''
 %
-% On BSD systems, the Source argument is ignored and passed to the system
+% On BSD systems, the `Source' argument is ignored and passed to the system
 % mount call as:
 %
 % ```
@@ -5274,28 +5282,47 @@ pledge(Drv, Pids, Arg1, Arg2, Timeout) ->
 % To enforce a seccomp filter:
 %
 % ```
-% % NOTE: this filter will cause the port to receive a SIGSYS
-% % See test/alcove_seccomp_tests.erl for all the syscalls
-% % required for the port process to run
+% -module(seccomp).
 %
-% Arch = alcove:define(Drv, [], alcove:audit_arch()),
-% Filter = [
-%     ?VALIDATE_ARCHITECTURE(Arch),
-%     ?EXAMINE_SYSCALL,
-%     sys_read,
-%     sys_write
-% ],
+% -include_lib("alcove/include/alcove_seccomp.hrl").
 %
-% {ok,_,_,_,_,_} = alcove:prctl(Drv, [], pr_set_no_new_privs, 1, 0, 0, 0),
-% Pad = (erlang:system_info({wordsize,external}) - 2) * 8,
+% -export([run/2, run/3, filter/3]).
 %
-% Prog = [
-%     <<(iolist_size(Filter) div 8):2/native-unsigned-integer-unit:8>>,
-%     <<0:Pad>>,
-%     {ptr, list_to_binary(Filter)}
-% ],
-% alcove:prctl(Drv, [], pr_set_seccomp, seccomp_mode_filter, Prog, 0, 0).
+% -define(DENY_SYSCALL(Syscall), [
+%     ?BPF_JUMP(?BPF_JMP + ?BPF_JEQ + ?BPF_K, (Syscall), 0, 1),
+%     ?BPF_STMT(?BPF_RET + ?BPF_K, ?SECCOMP_RET_KILL)
+% ]).
+%
+% filter(Drv, Pid, Syscall) ->
+%     Arch = alcove:define(Drv, Pid, alcove:audit_arch()),
+%     NR = alcove:syscall_constant(Drv, Pid, syscall_constant, Syscall),
+%
+%     [
+%         ?VALIDATE_ARCHITECTURE(Arch),
+%         ?EXAMINE_SYSCALL,
+%         ?DENY_SYSCALL(NR),
+%         ?BPF_STMT(?BPF_RET + ?BPF_K, ?SECCOMP_RET_ALLOW)
+%     ].
+%
+% run(Drv, Pid) ->
+%     run(Drv, Pid, sys_getcwd).
+%
+% run(Drv, Pid, Syscall) ->
+%     Filter = filter(Drv, Pid, Syscall),
+%
+%     {ok, _, _, _, _, _} = alcove:prctl(Drv, Pid, pr_set_no_new_privs, 1, 0, 0, 0),
+%     Pad = (erlang:system_info({wordsize, external}) - 2) * 8,
+%
+%     Prog = [
+%         <<(iolist_size(Filter) div 8):2/native-unsigned-integer-unit:8>>,
+%         <<0:Pad>>,
+%         {ptr, list_to_binary(Filter)}
+%     ],
+%     %% alcove:seccomp(Drv, Pid, seccomp_set_mode_filter, 0, Prog)
+%     alcove:prctl(Drv, Pid, pr_set_seccomp, seccomp_mode_filter, Prog, 0, 0).
 % '''
+%
+% @see seccomp/5
 
 prctl(Drv, Pids, Arg1, Arg2, Arg3, Arg4, Arg5) ->
     case alcove_drv:call(Drv,
@@ -5344,28 +5371,47 @@ prctl(Drv, Pids, Arg1, Arg2, Arg3, Arg4, Arg5) ->
 % To enforce a seccomp filter:
 %
 % ```
-% % NOTE: this filter will cause the port to receive a SIGSYS
-% % See test/alcove_seccomp_tests.erl for all the syscalls
-% % required for the port process to run
+% -module(seccomp).
 %
-% Arch = alcove:define(Drv, [], alcove:audit_arch()),
-% Filter = [
-%     ?VALIDATE_ARCHITECTURE(Arch),
-%     ?EXAMINE_SYSCALL,
-%     sys_read,
-%     sys_write
-% ],
+% -include_lib("alcove/include/alcove_seccomp.hrl").
 %
-% {ok,_,_,_,_,_} = alcove:prctl(Drv, [], pr_set_no_new_privs, 1, 0, 0, 0),
-% Pad = (erlang:system_info({wordsize,external}) - 2) * 8,
+% -export([run/2, run/3, filter/3]).
 %
-% Prog = [
-%     <<(iolist_size(Filter) div 8):2/native-unsigned-integer-unit:8>>,
-%     <<0:Pad>>,
-%     {ptr, list_to_binary(Filter)}
-% ],
-% alcove:prctl(Drv, [], pr_set_seccomp, seccomp_mode_filter, Prog, 0, 0).
+% -define(DENY_SYSCALL(Syscall), [
+%     ?BPF_JUMP(?BPF_JMP + ?BPF_JEQ + ?BPF_K, (Syscall), 0, 1),
+%     ?BPF_STMT(?BPF_RET + ?BPF_K, ?SECCOMP_RET_KILL)
+% ]).
+%
+% filter(Drv, Pid, Syscall) ->
+%     Arch = alcove:define(Drv, Pid, alcove:audit_arch()),
+%     NR = alcove:syscall_constant(Drv, Pid, syscall_constant, Syscall),
+%
+%     [
+%         ?VALIDATE_ARCHITECTURE(Arch),
+%         ?EXAMINE_SYSCALL,
+%         ?DENY_SYSCALL(NR),
+%         ?BPF_STMT(?BPF_RET + ?BPF_K, ?SECCOMP_RET_ALLOW)
+%     ].
+%
+% run(Drv, Pid) ->
+%     run(Drv, Pid, sys_getcwd).
+%
+% run(Drv, Pid, Syscall) ->
+%     Filter = filter(Drv, Pid, Syscall),
+%
+%     {ok, _, _, _, _, _} = alcove:prctl(Drv, Pid, pr_set_no_new_privs, 1, 0, 0, 0),
+%     Pad = (erlang:system_info({wordsize, external}) - 2) * 8,
+%
+%     Prog = [
+%         <<(iolist_size(Filter) div 8):2/native-unsigned-integer-unit:8>>,
+%         <<0:Pad>>,
+%         {ptr, list_to_binary(Filter)}
+%     ],
+%     %% alcove:seccomp(Drv, Pid, seccomp_set_mode_filter, 0, Prog)
+%     alcove:prctl(Drv, Pid, pr_set_seccomp, seccomp_mode_filter, Prog, 0, 0).
 % '''
+%
+% @see seccomp/5
 
 prctl(Drv, Pids, Arg1, Arg2, Arg3, Arg4, Arg5,
       Timeout) ->
@@ -5518,9 +5564,9 @@ procctl(Drv, Pids, Arg1, Arg2, Arg3, Arg4, Timeout) ->
 % == Examples ==
 %
 % ```
-% •module(ptrace).
+% -module(ptrace).
 %
-% •export([run/0]).
+% -export([run/0]).
 %
 % run() ->
 %     {ok, Drv} = alcove_drv:start_link(),
@@ -5623,9 +5669,9 @@ ptrace(Drv, Pids, Arg1, Arg2, Arg3, Arg4) ->
 % == Examples ==
 %
 % ```
-% •module(ptrace).
+% -module(ptrace).
 %
-% •export([run/0]).
+% -export([run/0]).
 %
 % run() ->
 %     {ok, Drv} = alcove_drv:start_link(),
@@ -5967,39 +6013,19 @@ rmdir(Drv, Pids, Arg1, Timeout) ->
 
 % @doc seccomp(2): restrict system operations
 %
-% Also see prctl/7.
-%
 % == Support ==
 %
 % • Linux
 %
 % == Examples ==
 %
-% To enforce a seccomp filter:
-%
-% ```
-% % NOTE: this filter will cause the port to receive a SIGSYS
-% % See test/alcove_seccomp_tests.erl for all the syscalls
-% % required for the port process to run
-%
-% Arch = alcove:define(Drv, [], alcove:audit_arch()),
-% Filter = [
-%     ?VALIDATE_ARCHITECTURE(Arch),
-%     ?EXAMINE_SYSCALL,
-%     sys_read,
-%     sys_write
-% ],
-%
-% {ok,_,_,_,_,_} = alcove:prctl(Drv, [], pr_set_no_new_privs, 1, 0, 0, 0),
-% Pad = (erlang:system_info({wordsize,external}) - 2) * 8,
-%
-% Prog = [
-%     <<(iolist_size(Filter) div 8):2/native-unsigned-integer-unit:8>>,
-%     <<0:Pad>>,
-%     {ptr, list_to_binary(Filter)}
-% ],
-% alcove:seccomp(Drv, [], seccomp_set_mode_filter, 0, Prog).
 % '''
+% %% Equivalent to:
+% %% alcove:prctl(Drv, Pid, pr_set_seccomp, seccomp_mode_filter, Prog, 0, 0)
+% alcove:seccomp(Drv, Pid, seccomp_set_mode_filter, 0, Prog)
+% '''
+%
+% @see prctl/7
 
 seccomp(Drv, Pids, Arg1, Arg2, Arg3) ->
     case alcove_drv:call(Drv,
@@ -6015,39 +6041,19 @@ seccomp(Drv, Pids, Arg1, Arg2, Arg3) ->
 
 % @doc seccomp(2): restrict system operations
 %
-% Also see prctl/7.
-%
 % == Support ==
 %
 % • Linux
 %
 % == Examples ==
 %
-% To enforce a seccomp filter:
-%
-% ```
-% % NOTE: this filter will cause the port to receive a SIGSYS
-% % See test/alcove_seccomp_tests.erl for all the syscalls
-% % required for the port process to run
-%
-% Arch = alcove:define(Drv, [], alcove:audit_arch()),
-% Filter = [
-%     ?VALIDATE_ARCHITECTURE(Arch),
-%     ?EXAMINE_SYSCALL,
-%     sys_read,
-%     sys_write
-% ],
-%
-% {ok,_,_,_,_,_} = alcove:prctl(Drv, [], pr_set_no_new_privs, 1, 0, 0, 0),
-% Pad = (erlang:system_info({wordsize,external}) - 2) * 8,
-%
-% Prog = [
-%     <<(iolist_size(Filter) div 8):2/native-unsigned-integer-unit:8>>,
-%     <<0:Pad>>,
-%     {ptr, list_to_binary(Filter)}
-% ],
-% alcove:seccomp(Drv, [], seccomp_set_mode_filter, 0, Prog).
 % '''
+% %% Equivalent to:
+% %% alcove:prctl(Drv, Pid, pr_set_seccomp, seccomp_mode_filter, Prog, 0, 0)
+% alcove:seccomp(Drv, Pid, seccomp_set_mode_filter, 0, Prog)
+% '''
+%
+% @see prctl/7
 
 seccomp(Drv, Pids, Arg1, Arg2, Arg3, Timeout) ->
     case alcove_drv:call(Drv,
@@ -6634,8 +6640,6 @@ setns(Drv, Pids, Arg1, Arg2, Timeout) ->
 
 % @doc Set port options
 %
-% See getopt/2,3 for the list of options.
-%
 % == Examples ==
 %
 % ```
@@ -6644,6 +6648,8 @@ setns(Drv, Pids, Arg1, Arg2, Timeout) ->
 % 2> alcove:setopt(Drv, [], maxforkdepth, 128).
 % true
 % '''
+%
+% @see getopt/3
 
 setopt(Drv, Pids, Arg1, Arg2) ->
     case alcove_drv:call(Drv,
@@ -6659,8 +6665,6 @@ setopt(Drv, Pids, Arg1, Arg2) ->
 
 % @doc Set port options
 %
-% See getopt/2,3 for the list of options.
-%
 % == Examples ==
 %
 % ```
@@ -6669,6 +6673,8 @@ setopt(Drv, Pids, Arg1, Arg2) ->
 % 2> alcove:setopt(Drv, [], maxforkdepth, 128).
 % true
 % '''
+%
+% @see getopt/3
 
 setopt(Drv, Pids, Arg1, Arg2, Timeout) ->
     case alcove_drv:call(Drv,
@@ -7123,6 +7129,8 @@ setsid(Drv, Pids, Timeout) ->
 % 73> alcove:getuid(Drv, [Pid]).
 % 123
 % '''
+%
+% @see setresuid/5
 
 setuid(Drv, Pids, Arg1) ->
     case alcove_drv:call(Drv,
@@ -7150,6 +7158,8 @@ setuid(Drv, Pids, Arg1) ->
 % 73> alcove:getuid(Drv, [Pid]).
 % 123
 % '''
+%
+% @see setresuid/5
 
 setuid(Drv, Pids, Arg1, Timeout) ->
     case alcove_drv:call(Drv, Pids, setuid, [Arg1], Timeout)

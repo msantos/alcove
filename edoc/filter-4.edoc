@@ -14,7 +14,7 @@ false
 <<255,255,255,231,239,255,255,255,255,255,255,255,15>>
 4> F2 = alcove:filter({allow, [getpid,gethostname]}).
 <<255,255,255,223,237,255,255,255,255,255,255,255,15>>
-% Control process: restricted to: fork, filter
+% Control process: restricted to: fork, filter, getcwd
 % Any forked control subprocess: restricted to: getpid, gethostname
 5> alcove:filter(Drv, [], F1, F2).
 ok

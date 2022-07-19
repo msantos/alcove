@@ -32,25 +32,44 @@ an argument. List elements are used to contiguously populate a buffer
 To enforce a seccomp filter:
 
 ```
-% NOTE: this filter will cause the port to receive a SIGSYS
-% See test/alcove_seccomp_tests.erl for all the syscalls
-% required for the port process to run
+-module(seccomp).
 
-Arch = alcove:define(Drv, [], alcove:audit_arch()),
-Filter = [
-    ?VALIDATE_ARCHITECTURE(Arch),
-    ?EXAMINE_SYSCALL,
-    sys_read,
-    sys_write
-],
+-include_lib("alcove/include/alcove_seccomp.hrl").
 
-{ok,_,_,_,_,_} = alcove:prctl(Drv, [], pr_set_no_new_privs, 1, 0, 0, 0),
-Pad = (erlang:system_info({wordsize,external}) - 2) * 8,
+-export([run/2, run/3, filter/3]).
 
-Prog = [
-    <<(iolist_size(Filter) div 8):2/native-unsigned-integer-unit:8>>,
-    <<0:Pad>>,
-    {ptr, list_to_binary(Filter)}
-],
-alcove:prctl(Drv, [], pr_set_seccomp, seccomp_mode_filter, Prog, 0, 0).
+-define(DENY_SYSCALL(Syscall), [
+    ?BPF_JUMP(?BPF_JMP + ?BPF_JEQ + ?BPF_K, (Syscall), 0, 1),
+    ?BPF_STMT(?BPF_RET + ?BPF_K, ?SECCOMP_RET_KILL)
+]).
+
+filter(Drv, Pid, Syscall) ->
+    Arch = alcove:define(Drv, Pid, alcove:audit_arch()),
+    NR = alcove:syscall_constant(Drv, Pid, syscall_constant, Syscall),
+
+    [
+        ?VALIDATE_ARCHITECTURE(Arch),
+        ?EXAMINE_SYSCALL,
+        ?DENY_SYSCALL(NR),
+        ?BPF_STMT(?BPF_RET + ?BPF_K, ?SECCOMP_RET_ALLOW)
+    ].
+
+run(Drv, Pid) ->
+    run(Drv, Pid, sys_getcwd).
+
+run(Drv, Pid, Syscall) ->
+    Filter = filter(Drv, Pid, Syscall),
+
+    {ok, _, _, _, _, _} = alcove:prctl(Drv, Pid, pr_set_no_new_privs, 1, 0, 0, 0),
+    Pad = (erlang:system_info({wordsize, external}) - 2) * 8,
+
+    Prog = [
+        <<(iolist_size(Filter) div 8):2/native-unsigned-integer-unit:8>>,
+        <<0:Pad>>,
+        {ptr, list_to_binary(Filter)}
+    ],
+    %% alcove:seccomp(Drv, Pid, seccomp_set_mode_filter, 0, Prog)
+    alcove:prctl(Drv, Pid, pr_set_seccomp, seccomp_mode_filter, Prog, 0, 0).
 '''
+
+@see seccomp/5
