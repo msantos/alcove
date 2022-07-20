@@ -1,4 +1,4 @@
-/* Copyright (c) 2014-2020, Michael Santos <michael.santos@gmail.com>
+/* Copyright (c) 2014-2022, Michael Santos <michael.santos@gmail.com>
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -124,9 +124,10 @@ int alcove_decode_cstruct(const char *arg, size_t len, int *index, char *res,
   /* n = number of bytes written to the buffer
    * total = number of bytes to be allocated
    *
-   * total may be smaller than n, e.g., pointer to 1 byte
+   * total may be smaller or larger than n, e.g., pointer to 1 byte or
+   * 10 bytes
    */
-  if (n > *rlen || total > *rlen)
+  if (n > *rlen || total > UINT16_MAX)
     return -1;
 
   *rlen = n;
