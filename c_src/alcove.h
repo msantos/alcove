@@ -77,7 +77,7 @@
 
 #define ALCOVE_ERR(_x)                                                         \
   if ((_x) < 0)                                                                \
-    abort();
+    exit(111);
 
 #define ALCOVE_TUPLE2(_msg, _len, _index, _tag, _term)                         \
   do {                                                                         \

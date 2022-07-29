@@ -575,7 +575,7 @@ static int write_to_pid(alcove_state_t *ap, alcove_child_t *c, void *arg1,
         char t[MAXMSGLEN] = {0};
         tlen = alcove_mk_long(t, sizeof(t), written);
         if (alcove_call_spoof(c->pid, ALCOVE_MSG_PIPE, t, tlen) < 0)
-          abort();
+          exit(errno);
         break;
       }
       default:

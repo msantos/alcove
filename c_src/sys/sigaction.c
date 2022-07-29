@@ -98,7 +98,7 @@ ssize_t alcove_sys_sigaction(alcove_state_t *ap, const char *arg, size_t len,
 
   /* Unknown signal handler installed: crash process */
   if (ohandler == NULL)
-    abort();
+    exit(EFAULT);
 
 REPLY:
   ALCOVE_ERR(alcove_encode_version(reply, rlen, &rindex));

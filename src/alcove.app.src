@@ -1,6 +1,6 @@
 {application, alcove, [
     {description, "Control plane for Unix processes, containers and sandboxes"},
-    {vsn, "0.40.2"},
+    {vsn, "0.40.3"},
     {registered, []},
     {applications, [kernel, stdlib, sasl]},
     {env, []},

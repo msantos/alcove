@@ -1,4 +1,4 @@
-/* Copyright (c) 2015, Michael Santos <michael.santos@gmail.com>
+/* Copyright (c) 2015-2022, Michael Santos <michael.santos@gmail.com>
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -19,5 +19,5 @@ void alcove_sig_info(int sig, siginfo_t *info, void *context) {
 
   if (write(ALCOVE_SIGWRITE_FILENO, info, sizeof(siginfo_t)) !=
       sizeof(siginfo_t))
-    (void)close(ALCOVE_SIGWRITE_FILENO);
+    _exit(errno);
 }
