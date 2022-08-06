@@ -40,7 +40,6 @@
 #include "alcove_nr.h"
 #include "alcove_version.h"
 
-#include "reallocarray.h"
 #include "recallocarray.h"
 #include "setproctitle.h"
 

@@ -98,11 +98,10 @@ void alcove_event_loop(alcove_state_t *ap) {
 
   for (;;) {
     if (ap->fdsetsize != ap->maxchild) {
-      ap->maxfd = ALCOVE_NFD(ap->maxchild);
-      fds = reallocarray(fds, ap->maxfd, sizeof(struct pollfd));
+      fds = recallocarray(fds, ap->maxfd, ALCOVE_NFD(ap->maxchild), sizeof(struct pollfd));
       if (fds == NULL)
         exit(errno);
-      (void)memset(fds, 0, sizeof(struct pollfd) * ap->maxfd);
+      ap->maxfd = ALCOVE_NFD(ap->maxchild);
 
       ap->child = recallocarray(ap->child, ap->fdsetsize, ap->maxchild,
                                 sizeof(alcove_child_t));
