@@ -18,7 +18,7 @@
 #include "alcove_fcntl_constants.h"
 
 /*
- * fcntl contants
+ * fcntl constants
  *
  */
 ssize_t alcove_sys_fcntl_constant(alcove_state_t *ap, const char *arg,
