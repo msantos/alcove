@@ -1,6 +1,9 @@
 alcove
 ======
 
+[![Package Version](https://img.shields.io/hexpm/v/alcove)](https://hex.pm/packages/alcove)
+[![Hex Docs](https://img.shields.io/badge/hex-docs)](https://hexdocs.pm/alcove/)
+
 alcove is:
 
 * a control plane for system processes
