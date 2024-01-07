@@ -50,8 +50,9 @@ else ifeq ($(UNAME_SYS), SunOS)
 	CFLAGS += -std=c99 -D_POSIX_C_SOURCE=200112L -D__EXTENSIONS__=1 -fno-strict-aliasing
 endif
 
-ALCOVE_CFLAGS ?= -g -Wall -fwrapv -pedantic -Wshadow -Wpointer-arith \
-								 -Wcast-qual -Wstrict-prototypes -Wmissing-prototypes
+ALCOVE_CFLAGS ?= -g -Wall -Wextra -fwrapv -pedantic -Wshadow -Wpointer-arith \
+								 -Wcast-qual -Wstrict-prototypes -Wmissing-prototypes \
+								 -Wno-unused-parameter -Wno-sign-compare
 CFLAGS += $(ALCOVE_CFLAGS) $(ALCOVE_DEFINE) -I $(C_SRC_DIR) -I $(ERTS_INCLUDE_DIR) -I $(ERL_INTERFACE_INCLUDE_DIR)
 
 LDLIBS += -L $(ERL_INTERFACE_LIB_DIR) $(ALCOVE_LDFLAGS) -lei

@@ -1,4 +1,4 @@
-/* Copyright (c) 2014, Michael Santos <michael.santos@gmail.com>
+/* Copyright (c) 2014-2024, Michael Santos <michael.santos@gmail.com>
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -27,8 +27,10 @@ int alcove_get_type(const char *buf, size_t len, const int *index, int *type,
 
   switch (*type) {
   case ERL_SMALL_ATOM_EXT:
+    /* fallthrough */
   case ERL_SMALL_ATOM_UTF8_EXT:
     *type = ERL_ATOM_EXT;
+    /* fallthrough */
   case ERL_SMALL_TUPLE_EXT:
     n += 1;
     if (n > len)
@@ -43,7 +45,9 @@ int alcove_get_type(const char *buf, size_t len, const int *index, int *type,
 
   case ERL_ATOM_UTF8_EXT:
     *type = ERL_ATOM_EXT;
+    /* fallthrough */
   case ERL_ATOM_EXT:
+    /* fallthrough */
   case ERL_STRING_EXT:
     n += 2;
     if (n > len)
@@ -57,7 +61,9 @@ int alcove_get_type(const char *buf, size_t len, const int *index, int *type,
     break;
 
   case ERL_LARGE_TUPLE_EXT:
+    /* fallthrough */
   case ERL_LIST_EXT:
+    /* fallthrough */
   case ERL_BINARY_EXT:
     n += 4;
     if (n > len)
