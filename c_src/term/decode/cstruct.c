@@ -1,4 +1,4 @@
-/* Copyright (c) 2014-2022, Michael Santos <michael.santos@gmail.com>
+/* Copyright (c) 2014-2024, Michael Santos <michael.santos@gmail.com>
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -23,13 +23,13 @@ int alcove_decode_cstruct(const char *arg, size_t len, int *index, char *res,
   size_t tmp_size = 0;
   long size = 0;
 
-  int tmp_index = 0;
-  int tmp_arity = 0;
+  int tmp_index;
+  int tmp_arity;
 
   char tmp[MAXMSGLEN] = {0};
   unsigned long val = 0;
 
-  int i = 0;
+  int i;
   size_t n = 0;
   size_t total = 0;
 
@@ -200,7 +200,7 @@ int alcove_decode_cstruct(const char *arg, size_t len, int *index, char *res,
 }
 
 static void *alcove_malloc(ssize_t size) {
-  void *buf = NULL;
+  void *buf;
 
   if (size <= 0 || size >= INT32_MAX)
     exit(ENOMEM);
