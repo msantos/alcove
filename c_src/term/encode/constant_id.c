@@ -1,4 +1,4 @@
-/* Copyright (c) 2015, Michael Santos <michael.santos@gmail.com>
+/* Copyright (c) 2015-2024, Michael Santos <michael.santos@gmail.com>
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -21,7 +21,7 @@ static int alcove_encode_atom_to_lower(char *buf, size_t len, int *index,
 
 int alcove_encode_constant_id(char *buf, size_t len, int *index, long long val,
                               const alcove_constant_t *constants) {
-  const alcove_constant_t *dp = NULL;
+  const alcove_constant_t *dp;
 
   for (dp = constants; dp->name != NULL; dp++) {
     if (val == dp->val)
