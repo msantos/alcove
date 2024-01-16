@@ -1,4 +1,4 @@
-/* Copyright (c) 2015, Michael Santos <michael.santos@gmail.com>
+/* Copyright (c) 2015-2024, Michael Santos <michael.santos@gmail.com>
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -17,13 +17,13 @@
 int alcove_encode_cstruct(char *reply, size_t rlen, int *rindex,
                           const char *buf, size_t len, alcove_alloc_t *ptr,
                           ssize_t nptr) {
-  int i = 0;
+  int i;
   size_t offset = 0;
 
   if (alcove_encode_list_header(reply, rlen, rindex, nptr) < 0)
     return -1;
 
-  for (; i < nptr; i++) {
+  for (i = 0; i < nptr; i++) {
     if (ptr[i].p) {
       if (offset + sizeof(void *) > len)
         return -1;
