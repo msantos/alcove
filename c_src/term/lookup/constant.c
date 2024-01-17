@@ -1,4 +1,4 @@
-/* Copyright (c) 2015, Michael Santos <michael.santos@gmail.com>
+/* Copyright (c) 2015-2024, Michael Santos <michael.santos@gmail.com>
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -16,7 +16,7 @@
 
 int alcove_lookup_constant(char *name, long long *val,
                            const alcove_constant_t *constants) {
-  const alcove_constant_t *dp = NULL;
+  const alcove_constant_t *dp;
 
   for (dp = constants; dp->name != NULL; dp++) {
     if (!strcasecmp(name, dp->name)) {
