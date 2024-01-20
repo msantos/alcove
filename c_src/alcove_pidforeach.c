@@ -1,4 +1,4 @@
-/* Copyright (c) 2015-2022, Michael Santos <michael.santos@gmail.com>
+/* Copyright (c) 2015-2024, Michael Santos <michael.santos@gmail.com>
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -20,6 +20,8 @@ int pid_foreach(alcove_state_t *ap, pid_t pid, void *arg1, void *arg2,
                           void *)) {
   int i;
   int rv;
+
+  UNUSED(ap);
 
   for (i = 0; i < ap->fdsetsize; i++) {
     if ((*comp)(ap->child[i].pid, pid) == 0)

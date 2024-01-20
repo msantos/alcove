@@ -52,7 +52,7 @@ endif
 
 ALCOVE_CFLAGS ?= -g -Wall -Wextra -fwrapv -pedantic -Wshadow -Wpointer-arith \
 								 -Wcast-qual -Wstrict-prototypes -Wmissing-prototypes \
-								 -Wno-unused-parameter -Wno-sign-compare
+								 -Wno-sign-compare
 CFLAGS += $(ALCOVE_CFLAGS) $(ALCOVE_DEFINE) -I $(C_SRC_DIR) -I $(ERTS_INCLUDE_DIR) -I $(ERL_INTERFACE_INCLUDE_DIR)
 
 LDLIBS += -L $(ERL_INTERFACE_LIB_DIR) $(ALCOVE_LDFLAGS) -lei

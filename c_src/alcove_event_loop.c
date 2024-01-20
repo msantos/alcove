@@ -1,4 +1,4 @@
-/* Copyright (c) 2015-2022, Michael Santos <michael.santos@gmail.com>
+/* Copyright (c) 2015-2024, Michael Santos <michael.santos@gmail.com>
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -719,6 +719,8 @@ static int alcove_handle_signal(alcove_state_t *ap) {
 static int alcove_signal_event(alcove_state_t *ap, siginfo_t *info) {
   int index = 0;
   char reply[MAXMSGLEN] = {0};
+
+  UNUSED(ap);
 
   ALCOVE_TUPLE3(
       reply, sizeof(reply), &index, "signal",
