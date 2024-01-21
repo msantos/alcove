@@ -1,4 +1,4 @@
-/* Copyright (c) 2018, Michael Santos <michael.santos@gmail.com>
+/* Copyright (c) 2018-2024, Michael Santos <michael.santos@gmail.com>
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -63,6 +63,7 @@ static int set_flowcontrol_pid(alcove_state_t *ap, alcove_child_t *c,
                                void *arg1, void *arg2) {
   int32_t *count = arg1;
 
+  UNUSED(ap);
   UNUSED(arg2);
 
   c->flowcontrol = *count;
@@ -74,6 +75,7 @@ static int set_signaloneof_pid(alcove_state_t *ap, alcove_child_t *c,
                                void *arg1, void *arg2) {
   int *sig = arg1;
 
+  UNUSED(ap);
   UNUSED(arg2);
 
   c->signaloneof = *sig;
