@@ -1,4 +1,4 @@
-/* Copyright (c) 2014-2021, Michael Santos <michael.santos@gmail.com>
+/* Copyright (c) 2014-2024, Michael Santos <michael.santos@gmail.com>
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -111,6 +111,8 @@ REPLY:
 
 static int atom_to_sighandler(struct sigaction *act, int signum,
                               char *handler) {
+  UNUSED(signum);
+
   if (strcmp(handler, "sig_info") == 0) {
     act->sa_sigaction = alcove_sig_info;
   } else if (strcmp(handler, "sig_dfl") == 0) {
