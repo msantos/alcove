@@ -736,6 +736,7 @@ static int alcove_signal_event(alcove_state_t *ap, siginfo_t *info) {
 
 static int signal_pid(alcove_state_t *ap, alcove_child_t *c, void *arg1,
                       void *arg2) {
+  UNUSED(ap);
   UNUSED(arg1);
   UNUSED(arg2);
 
