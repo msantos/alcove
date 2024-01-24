@@ -44,6 +44,8 @@ int fdlimit_pid(alcove_state_t *ap, alcove_child_t *c, void *arg1, void *arg2) {
   int *n = arg1;
   int *maxfd = arg2;
 
+  UNUSED(ap);
+
   if (*maxfd < c->fdctl || *maxfd < c->fdout || *maxfd < c->fderr ||
       *maxfd < c->fdin)
     return -1;
