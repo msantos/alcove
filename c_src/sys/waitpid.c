@@ -1,4 +1,4 @@
-/* Copyright (c) 2016, Michael Santos <michael.santos@gmail.com>
+/* Copyright (c) 2016-2024, Michael Santos <michael.santos@gmail.com>
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -35,7 +35,7 @@ ssize_t alcove_sys_waitpid(alcove_state_t *ap, const char *arg, size_t len,
   int status = 0;
   int options = 0;
 
-  pid_t rv = 0;
+  pid_t rv;
 
   UNUSED(ap);
 
