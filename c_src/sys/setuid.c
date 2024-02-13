@@ -1,4 +1,4 @@
-/* Copyright (c) 2014, Michael Santos <michael.santos@gmail.com>
+/* Copyright (c) 2014-2024, Michael Santos <michael.santos@gmail.com>
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -23,7 +23,7 @@ ssize_t alcove_sys_setuid(alcove_state_t *ap, const char *arg, size_t len,
                           char *reply, size_t rlen) {
   int index = 0;
   uid_t uid = {0};
-  int rv = 0;
+  int rv;
 
   UNUSED(ap);
 
