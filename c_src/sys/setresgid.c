@@ -1,4 +1,4 @@
-/* Copyright (c) 2014-2018, Michael Santos <michael.santos@gmail.com>
+/* Copyright (c) 2014-2024, Michael Santos <michael.santos@gmail.com>
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -31,7 +31,7 @@ ssize_t alcove_sys_setresgid(alcove_state_t *ap, const char *arg, size_t len,
   gid_t gid = {0};
   gid_t egid = {0};
   gid_t sgid = {0};
-  int rv = 0;
+  int rv;
 
   UNUSED(ap);
 
