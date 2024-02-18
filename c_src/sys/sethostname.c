@@ -1,4 +1,4 @@
-/* Copyright (c) 2014, Michael Santos <michael.santos@gmail.com>
+/* Copyright (c) 2014-2024, Michael Santos <michael.santos@gmail.com>
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -29,7 +29,7 @@ ssize_t alcove_sys_sethostname(alcove_state_t *ap, const char *arg, size_t len,
 
   char name[HOST_NAME_MAX] = {0};
   size_t nlen = sizeof(name) - 1;
-  int rv = 0;
+  int rv;
 
   UNUSED(ap);
 
