@@ -1,4 +1,4 @@
-/* Copyright (c) 2014-2022, Michael Santos <michael.santos@gmail.com>
+/* Copyright (c) 2014-2024, Michael Santos <michael.santos@gmail.com>
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -41,7 +41,7 @@ ssize_t alcove_sys_select(alcove_state_t *ap, const char *arg, size_t len,
   struct timeval tv;
   struct timeval *timeout = NULL;
 
-  int rv = 0;
+  int rv;
 
   UNUSED(ap);
 
@@ -125,7 +125,7 @@ static int alcove_list_to_fd_set(const char *arg, size_t len, int *index,
   int type = 0;
   int arity = 0;
 
-  int i = 0;
+  int i;
   int fd = -1;
 
   if (alcove_get_type(arg, len, index, &type, &arity) < 0)
@@ -190,7 +190,7 @@ static int alcove_list_to_fd_set(const char *arg, size_t len, int *index,
 }
 
 static int alcove_fd_isset(char *buf, size_t len, int *index, fd_set *set) {
-  int fd = 0;
+  int fd;
 
   if (set == NULL)
     return 0;
