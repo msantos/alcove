@@ -1,4 +1,4 @@
-/* Copyright (c) 2014, Michael Santos <michael.santos@gmail.com>
+/* Copyright (c) 2014-2024, Michael Santos <michael.santos@gmail.com>
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -29,8 +29,8 @@ ssize_t alcove_sys_readdir(alcove_state_t *ap, const char *arg, size_t len,
 
   char name[PATH_MAX] = {0};
   size_t namelen = sizeof(name) - 1;
-  DIR *dirp = NULL;
-  struct dirent *dent = NULL;
+  DIR *dirp;
+  struct dirent *dent;
 
   UNUSED(ap);
 
