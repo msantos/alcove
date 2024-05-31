@@ -1,4 +1,4 @@
-/* Copyright (c) 2014-2017, Michael Santos <michael.santos@gmail.com>
+/* Copyright (c) 2014-2024, Michael Santos <michael.santos@gmail.com>
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -25,10 +25,10 @@ ssize_t alcove_sys_read(alcove_state_t *ap, const char *arg, size_t len,
   int rindex = 0;
 
   int fd = -1;
-  size_t count = 0;
+  size_t count;
   unsigned long long val = 0;
   char buf[MAXMSGLEN] = {0};
-  int rv = 0;
+  int rv;
 
   UNUSED(ap);
 
