@@ -1,4 +1,4 @@
-/* Copyright (c) 2021, Michael Santos <michael.santos@gmail.com>
+/* Copyright (c) 2021-2024, Michael Santos <michael.santos@gmail.com>
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -42,7 +42,7 @@ ssize_t alcove_sys_procctl(alcove_state_t *ap, const char *arg, size_t len,
   alcove_alloc_t *elem = NULL;
   ssize_t nelem = 0;
 
-  int rv = 0;
+  int rv;
 
   UNUSED(ap);
 
