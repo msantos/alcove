@@ -1,4 +1,4 @@
-/* Copyright (c) 2016-2022, Michael Santos <michael.santos@gmail.com>
+/* Copyright (c) 2016-2024, Michael Santos <michael.santos@gmail.com>
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -30,7 +30,7 @@ ssize_t alcove_sys_pledge(alcove_state_t *ap, const char *arg, size_t len,
   size_t plen = sizeof(promises) - 1;
   char execpromises[PATH_MAX] = {0};
   size_t elen = sizeof(execpromises) - 1;
-  int rv = 0;
+  int rv;
 
   UNUSED(ap);
 
