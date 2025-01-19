@@ -1,4 +1,4 @@
-/* Copyright (c) 2014-2022, Michael Santos <michael.santos@gmail.com>
+/* Copyright (c) 2014-2025, Michael Santos <michael.santos@gmail.com>
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -235,7 +235,7 @@ static int alcove_fdmove(int fd, int dupfd) {
   return fcntl(dupfd, F_SETFD, flags);
 }
 
-static void usage() {
+static void usage(void) {
   (void)fprintf(stderr, "%s %s\n", __progname, ALCOVE_VERSION);
   (void)fprintf(stderr, "usage: %s -c <path> [<options>]\n", __progname);
 
