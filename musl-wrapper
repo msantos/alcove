@@ -11,6 +11,6 @@ esac
 
 export MUSL_INCLUDE="${MUSL_INCLUDE-/usr/local/lib}"
 export ALCOVE_LDFLAGS="-I$MUSL_INCLUDE/kernel-headers/generic/include -I$MUSL_INCLUDE/kernel-headers/${MACHTYPE}/include"
-export ALCOVE_CFLAGS="-g -Wall -fwrapv -no-pie -Wshadow -Wpointer-arith -Wcast-qual -Wstrict-prototypes -Wmissing-prototypes -Wno-unused-variable"
+export ALCOVE_CFLAGS="-g -Wall -fwrapv -Wshadow -Wpointer-arith -Wcast-qual -Wstrict-prototypes -Wmissing-prototypes -Wno-unused-variable"
 export CC="musl-gcc -static -Os"
 exec $@
