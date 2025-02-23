@@ -17,23 +17,23 @@ library that maps the alcove Unix processes to Erlang processes.
 ## Build
 
 ```
-  rebar3 compile
+rebar3 compile
 
-  # to run tests (see "Setting Up Privileges")
-  rebar3 do clean, compile, ct
+# to run tests (see "Setting Up Privileges")
+rebar3 do clean, compile, ct
 
-  # Linux: statically link using musl
-  sudo apt install musl-dev musl-tools
+# Linux: statically link using musl
+sudo apt install musl-dev musl-tools
 
-  # clone the kernel headers somewhere
-  cd /path/to/dir
-  git clone https://github.com/sabotage-linux/kernel-headers.git
+# clone the kernel headers somewhere
+cd /path/to/dir
+git clone https://github.com/sabotage-linux/kernel-headers.git
 
-  # then compile
-  MUSL_INCLUDE=/path/to/dir ./musl-wrapper rebar3 do clean, compile
+# then compile
+MUSL_INCLUDE=/path/to/dir ./musl-wrapper rebar3 do clean, compile
 
-  ## Generate code
-  make gen
+## Generate code
+make gen
 ```
 
 ## Overview
