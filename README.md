@@ -26,11 +26,11 @@ rebar3 do clean, compile, ct
 sudo apt install musl-dev musl-tools
 
 # clone the kernel headers somewhere
-cd /path/to/dir
-git clone https://github.com/sabotage-linux/kernel-headers.git
+export MUSL_INCLUDE=/tmp
+git clone https://github.com/sabotage-linux/kernel-headers.git $MUSL_INCLUDE/kernel-headers
 
 # then compile
-MUSL_INCLUDE=/path/to/dir ./musl-wrapper rebar3 do clean, compile
+./musl-wrapper rebar3 do clean, compile
 
 ## Generate code
 make gen
