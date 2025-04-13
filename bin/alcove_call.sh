@@ -1,5 +1,8 @@
 #!/bin/sh
 
+set -o errexit
+set -o nounset
+
 cat <<EOF
 /* GENERATED: DO NOT EDIT */
 /* clang-format off */
