@@ -17,10 +17,9 @@
 
 /* OPENBSD ORIGINAL: lib/libc/stdlib/recallocarray.c */
 
-#ifndef HAVE_RECALLOCARRAY
-
 #include <errno.h>
 #include <stdlib.h>
+#ifndef HAVE_RECALLOCARRAY
 #ifdef HAVE_STDINT_H
 #include <stdint.h>
 #endif
