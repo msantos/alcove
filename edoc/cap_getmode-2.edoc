@@ -1,12 +1,12 @@
 @doc cap_getmode(2): check if capability mode is enabled
 
-• `0' : false
+* `0' : false
 
-• `1' : true
+* `1' : true
 
 == Support ==
 
-• FreeBSD
+* FreeBSD
 
 == Examples ==
 

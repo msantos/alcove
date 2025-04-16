@@ -7,16 +7,16 @@ A list can be used for prctl operations requiring a C structure as
 an argument. List elements are used to contiguously populate a buffer
 (it is up to the caller to add padding):
 
-• binary(): the element is copied directly into the buffer
+* binary(): the element is copied directly into the buffer
 
   On return, the contents of the binary is returned to the caller.
 
-• {ptr, N}: N bytes of memory is allocated and zeroed. The pointer is
+* {ptr, N}: N bytes of memory is allocated and zeroed. The pointer is
   placed in the buffer.
 
   On return, the contents of the memory is returned to the caller.
 
-• {ptr, binary()}
+* {ptr, binary()}
 
    Memory equal to the size of the binary is allocated and initialized
    with the contents of the binary.
@@ -25,7 +25,7 @@ an argument. List elements are used to contiguously populate a buffer
 
 == Support ==
 
-• Linux
+* Linux
 
 == Examples ==
 

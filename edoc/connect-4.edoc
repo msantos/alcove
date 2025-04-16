@@ -3,9 +3,9 @@
 == Examples ==
 
 ```
-•module(unix_socket).
+*module(unix_socket).
 
-•export([connect]).
+*export([connect]).
 
 connect(Data) when is_binary(Data) ->
     {ok, Drv} = alcove:start(),

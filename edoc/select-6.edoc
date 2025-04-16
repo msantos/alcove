@@ -5,15 +5,15 @@ is reached or interrupted by a signal.
 
 The Timeout value may be:
 
-• an empty list ([]): causes select to block indefinitely (no timeout)
+* an empty list ([]): causes select to block indefinitely (no timeout)
 
-• an alcove_timeval record
+* an alcove_timeval record
 
 An alcove_timeval record contains these fields:
 
-• sec : number of seconds to wait
+* sec : number of seconds to wait
 
-• usec : number of microseconds to wait
+* usec : number of microseconds to wait
 
 == Examples ==
 

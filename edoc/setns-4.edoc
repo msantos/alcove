@@ -3,9 +3,9 @@
 A process namespace is represented as a path in the /proc filesystem. The
 path is `/proc/<pid>/ns/<ns>', where:
 
-• pid: the system PID
+* pid: the system PID
 
-• ns: a file representing the namespace
+* ns: a file representing the namespace
 
 The available namespaces is dependent on the kernel version. You can
 see which are supported by running:
@@ -16,7 +16,7 @@ ls -al /proc/$$/ns
 
 == Support ==
 
-• Linux
+* Linux
 
 == Examples ==
 

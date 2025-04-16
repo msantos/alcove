@@ -1398,7 +1398,7 @@ filter(Drv, Pids, Calls) ->
 % Retrieves attributes set by the alcove control process for a
 % child process.
 %
-% • flowcontrol
+% â¢ flowcontrol
 %
 %   Number of messages allowed from process:
 %
@@ -1408,7 +1408,7 @@ filter(Drv, Pids, Calls) ->
 %
 %         1+ : read this many messages from the process
 %
-% • signaloneof
+% â¢ signaloneof
 %
 %   Signal sent to child process on shutdown.
 %
@@ -1449,19 +1449,19 @@ indexof(El, [_ | Tail], N) ->
 %
 % Memory is allocated using a cstruct which is a list containing:
 %
-% • binary: a value to be allocated and initialized in the memory
+% * binary: a value to be allocated and initialized in the memory
 %
-% • {ptr, integer()}: create a pointer to 0 initialized memory
+% * {ptr, integer()}: create a pointer to 0 initialized memory
 %
-% • {ptr, binary()}: create a pointer to memory initialized to the binary
+% * {ptr, binary()}: create a pointer to memory initialized to the binary
 %
 % The return value is an ok tuple:
 %
-% • the atom ok
+% * the atom ok
 %
-% • a binary with the raw memory
+% * a binary with the raw memory
 %
-% • an initialized cstruct
+% * an initialized cstruct
 %
 % == Examples ==
 %
@@ -1497,19 +1497,19 @@ alloc(Drv, Pids, Arg1) ->
 %
 % Memory is allocated using a cstruct which is a list containing:
 %
-% • binary: a value to be allocated and initialized in the memory
+% * binary: a value to be allocated and initialized in the memory
 %
-% • {ptr, integer()}: create a pointer to 0 initialized memory
+% * {ptr, integer()}: create a pointer to 0 initialized memory
 %
-% • {ptr, binary()}: create a pointer to memory initialized to the binary
+% * {ptr, binary()}: create a pointer to memory initialized to the binary
 %
 % The return value is an ok tuple:
 %
-% • the atom ok
+% * the atom ok
 %
-% • a binary with the raw memory
+% * a binary with the raw memory
 %
-% • an initialized cstruct
+% * an initialized cstruct
 %
 % == Examples ==
 %
@@ -1542,7 +1542,7 @@ alloc(Drv, Pids, Arg1, Timeout) ->
 %
 % == Support ==
 %
-% • FreeBSD
+% * FreeBSD
 %
 % == Examples ==
 %
@@ -1569,7 +1569,7 @@ cap_constant(Drv, Pids, Arg1) ->
 %
 % == Support ==
 %
-% • FreeBSD
+% * FreeBSD
 %
 % == Examples ==
 %
@@ -1596,7 +1596,7 @@ cap_constant(Drv, Pids, Arg1, Timeout) ->
 %
 % == Support ==
 %
-% • FreeBSD
+% * FreeBSD
 %
 % == Examples ==
 %
@@ -1629,7 +1629,7 @@ cap_enter(Drv, Pids) ->
 %
 % == Support ==
 %
-% • FreeBSD
+% * FreeBSD
 %
 % == Examples ==
 %
@@ -1662,7 +1662,7 @@ cap_enter(Drv, Pids, Timeout) ->
 %
 % == Support ==
 %
-% • FreeBSD
+% * FreeBSD
 %
 % == Examples ==
 %
@@ -1695,7 +1695,7 @@ cap_fcntls_get(Drv, Pids, Arg1) ->
 %
 % == Support ==
 %
-% • FreeBSD
+% * FreeBSD
 %
 % == Examples ==
 %
@@ -1728,7 +1728,7 @@ cap_fcntls_get(Drv, Pids, Arg1, Timeout) ->
 %
 % == Support ==
 %
-% • FreeBSD
+% * FreeBSD
 %
 % == Examples ==
 %
@@ -1765,7 +1765,7 @@ cap_fcntls_limit(Drv, Pids, Arg1, Arg2) ->
 %
 % == Support ==
 %
-% • FreeBSD
+% * FreeBSD
 %
 % == Examples ==
 %
@@ -1800,13 +1800,13 @@ cap_fcntls_limit(Drv, Pids, Arg1, Arg2, Timeout) ->
 
 % @doc cap_getmode(2): check if capability mode is enabled
 %
-% • `0' : false
+% * `0' : false
 %
-% • `1' : true
+% * `1' : true
 %
 % == Support ==
 %
-% • FreeBSD
+% * FreeBSD
 %
 % == Examples ==
 %
@@ -1837,13 +1837,13 @@ cap_getmode(Drv, Pids) ->
 
 % @doc cap_getmode(2): check if capability mode is enabled
 %
-% • `0' : false
+% * `0' : false
 %
-% • `1' : true
+% * `1' : true
 %
 % == Support ==
 %
-% • FreeBSD
+% * FreeBSD
 %
 % == Examples ==
 %
@@ -1876,7 +1876,7 @@ cap_getmode(Drv, Pids, Timeout) ->
 %
 % == Support ==
 %
-% • FreeBSD
+% * FreeBSD
 %
 % == Examples ==
 %
@@ -1913,7 +1913,7 @@ cap_ioctls_limit(Drv, Pids, Arg1, Arg2) ->
 %
 % == Support ==
 %
-% • FreeBSD
+% * FreeBSD
 %
 % == Examples ==
 %
@@ -1950,7 +1950,7 @@ cap_ioctls_limit(Drv, Pids, Arg1, Arg2, Timeout) ->
 %
 % == Support ==
 %
-% • FreeBSD
+% * FreeBSD
 %
 % == Examples ==
 %
@@ -1989,7 +1989,7 @@ cap_rights_limit(Drv, Pids, Arg1, Arg2) ->
 %
 % == Support ==
 %
-% • FreeBSD
+% * FreeBSD
 %
 % == Examples ==
 %
@@ -2291,7 +2291,7 @@ clearenv(Drv, Pids, Timeout) ->
 %
 % == Support ==
 %
-% • Linux
+% * Linux
 %
 % == Examples ==
 %
@@ -2316,7 +2316,7 @@ clone(Drv, Pids, Arg1) ->
 %
 % == Support ==
 %
-% • Linux
+% * Linux
 %
 % == Examples ==
 %
@@ -2341,7 +2341,7 @@ clone(Drv, Pids, Arg1, Timeout) ->
 %
 % == Support ==
 %
-% • Linux
+% * Linux
 %
 % == Examples ==
 %
@@ -2370,7 +2370,7 @@ clone_constant(Drv, Pids, Arg1) ->
 %
 % == Support ==
 %
-% • Linux
+% * Linux
 %
 % == Examples ==
 %
@@ -2446,9 +2446,9 @@ close(Drv, Pids, Arg1, Timeout) ->
 % == Examples ==
 %
 % ```
-% •module(unix_socket).
+% *module(unix_socket).
 %
-% •export([connect]).
+% *export([connect]).
 %
 % connect(Data) when is_binary(Data) ->
 %     {ok, Drv} = alcove:start(),
@@ -2532,9 +2532,9 @@ connect(Drv, Pids, Arg1, Arg2) ->
 % == Examples ==
 %
 % ```
-% •module(unix_socket).
+% *module(unix_socket).
 %
-% •export([connect]).
+% *export([connect]).
 %
 % connect(Data) when is_binary(Data) ->
 %     {ok, Drv} = alcove:start(),
@@ -3068,9 +3068,9 @@ fcntl_constant(Drv, Pids, Arg1, Timeout) ->
 %
 % == Support ==
 %
-% • Linux
+% * Linux
 %
-% • FreeBSD
+% * FreeBSD
 %
 % == Examples ==
 %
@@ -3123,9 +3123,9 @@ fexecve(Drv, Pids, Arg1, Arg2, Arg3) ->
 %
 % == Support ==
 %
-% • Linux
+% * Linux
 %
-% • FreeBSD
+% * FreeBSD
 %
 % == Examples ==
 %
@@ -3545,34 +3545,34 @@ gethostname(Drv, Pids, Timeout) ->
 % The initial values for these options are set for the port by
 % alcove_drv:start/1.
 %
-% • maxchild : non_neg_integer() : 64
+% * maxchild : non_neg_integer() : 64
 %
 %   Number of child processes allowed for this control process. The value
 %   can be modified using setopt/4,5. Additionally, reducing RLIMIT_NOFILE
 %   for the process may result in a reduced maxchild value.
 %
-% • exit_status : 1 | 0 : 1
+% * exit_status : 1 | 0 : 1
 %
 %   Controls whether the controlling Erlang process is informed of a
 %   process exit value.
 %
-% • maxforkdepth : non_neg_integer() : 16
+% * maxforkdepth : non_neg_integer() : 16
 %
 %   Sets the maximum length of the alcove process pipeline.
 %
-% • termsig : 1 | 0 : 1
+% * termsig : 1 | 0 : 1
 %
 %   If a child process exits because of a signal, notify the controlling
 %   Erlang process.
 %
-% • flowcontrol : int32_t() : -1 (disabled)
+% * flowcontrol : int32_t() : -1 (disabled)
 %
 %   Sets the default flow control behaviour for a newly forked process. Flow
 %   control is applied after the child process calls exec().
 %
 %   See setcpid/5.
 %
-% • signaloneof : 0-255 : 15
+% * signaloneof : 0-255 : 15
 %
 %   Send a signal to a child process on shutdown (stdin of the alcove
 %   control process is closed).
@@ -3608,34 +3608,34 @@ getopt(Drv, Pids, Arg1) ->
 % The initial values for these options are set for the port by
 % alcove_drv:start/1.
 %
-% • maxchild : non_neg_integer() : 64
+% * maxchild : non_neg_integer() : 64
 %
 %   Number of child processes allowed for this control process. The value
 %   can be modified using setopt/4,5. Additionally, reducing RLIMIT_NOFILE
 %   for the process may result in a reduced maxchild value.
 %
-% • exit_status : 1 | 0 : 1
+% * exit_status : 1 | 0 : 1
 %
 %   Controls whether the controlling Erlang process is informed of a
 %   process exit value.
 %
-% • maxforkdepth : non_neg_integer() : 16
+% * maxforkdepth : non_neg_integer() : 16
 %
 %   Sets the maximum length of the alcove process pipeline.
 %
-% • termsig : 1 | 0 : 1
+% * termsig : 1 | 0 : 1
 %
 %   If a child process exits because of a signal, notify the controlling
 %   Erlang process.
 %
-% • flowcontrol : int32_t() : -1 (disabled)
+% * flowcontrol : int32_t() : -1 (disabled)
 %
 %   Sets the default flow control behaviour for a newly forked process. Flow
 %   control is applied after the child process calls exec().
 %
 %   See setcpid/5.
 %
-% • signaloneof : 0-255 : 15
+% * signaloneof : 0-255 : 15
 %
 %   Send a signal to a child process on shutdown (stdin of the alcove
 %   control process is closed).
@@ -3782,11 +3782,11 @@ getpriority(Drv, Pids, Arg1, Arg2, Timeout) ->
 %
 % == Support ==
 %
-% • Linux
+% * Linux
 %
-% • OpenBSD
+% * OpenBSD
 %
-% • FreeBSD
+% * FreeBSD
 %
 % == Examples ==
 %
@@ -3809,11 +3809,11 @@ getresgid(Drv, Pids) ->
 %
 % == Support ==
 %
-% • Linux
+% * Linux
 %
-% • OpenBSD
+% * OpenBSD
 %
-% • FreeBSD
+% * FreeBSD
 %
 % == Examples ==
 %
@@ -3836,11 +3836,11 @@ getresgid(Drv, Pids, Timeout) ->
 %
 % == Support ==
 %
-% • Linux
+% * Linux
 %
-% • OpenBSD
+% * OpenBSD
 %
-% • FreeBSD
+% * FreeBSD
 %
 % == Examples ==
 %
@@ -3863,11 +3863,11 @@ getresuid(Drv, Pids) ->
 %
 % == Support ==
 %
-% • Linux
+% * Linux
 %
-% • OpenBSD
+% * OpenBSD
 %
-% • FreeBSD
+% * FreeBSD
 %
 % == Examples ==
 %
@@ -4046,16 +4046,16 @@ getuid(Drv, Pids, Timeout) ->
 %
 % On success, ioctl/5 returns a 3-tuple:
 %
-% • Result: an integer equal to the return value of the ioctl
+% * Result: an integer equal to the return value of the ioctl
 %
 %   Usually 0 but some ioctls may use the return value as the output
 %   parameter.
 %
-% • Bin: the value depends on the type of the input parameter Argp
+% * Bin: the value depends on the type of the input parameter Argp
 %
-% • cstruct: contains the contents of the memory pointed to by Argp
+% * cstruct: contains the contents of the memory pointed to by Argp
 %
-% • integer/binary: an empty binary
+% * integer/binary: an empty binary
 %
 % == Examples ==
 %
@@ -4102,16 +4102,16 @@ ioctl(Drv, Pids, Arg1, Arg2, Arg3) ->
 %
 % On success, ioctl/5 returns a 3-tuple:
 %
-% • Result: an integer equal to the return value of the ioctl
+% * Result: an integer equal to the return value of the ioctl
 %
 %   Usually 0 but some ioctls may use the return value as the output
 %   parameter.
 %
-% • Bin: the value depends on the type of the input parameter Argp
+% * Bin: the value depends on the type of the input parameter Argp
 %
-% • cstruct: contains the contents of the memory pointed to by Argp
+% * cstruct: contains the contents of the memory pointed to by Argp
 %
-% • integer/binary: an empty binary
+% * integer/binary: an empty binary
 %
 % == Examples ==
 %
@@ -4251,7 +4251,7 @@ iolist_to_bin(Drv, Pids, Arg1, Timeout) ->
 %
 % == Support ==
 %
-% • FreeBSD
+% * FreeBSD
 %
 % == Examples ==
 %
@@ -4293,7 +4293,7 @@ jail(Drv, Pids, Arg1) ->
 %
 % == Support ==
 %
-% • FreeBSD
+% * FreeBSD
 %
 % == Examples ==
 %
@@ -4335,7 +4335,7 @@ jail(Drv, Pids, Arg1, Timeout) ->
 %
 % == Support ==
 %
-% • FreeBSD
+% * FreeBSD
 %
 % == Examples ==
 %
@@ -4387,7 +4387,7 @@ jail_attach(Drv, Pids, Arg1) ->
 %
 % == Support ==
 %
-% • FreeBSD
+% * FreeBSD
 %
 % == Examples ==
 %
@@ -4439,7 +4439,7 @@ jail_attach(Drv, Pids, Arg1, Timeout) ->
 %
 % == Support ==
 %
-% • FreeBSD
+% * FreeBSD
 %
 % == Examples ==
 %
@@ -4491,7 +4491,7 @@ jail_remove(Drv, Pids, Arg1) ->
 %
 % == Support ==
 %
-% • FreeBSD
+% * FreeBSD
 %
 % == Examples ==
 %
@@ -4816,15 +4816,15 @@ mkfifo(Drv, Pids, Arg1, Arg2, Timeout) ->
 %
 % The arguments are:
 %
-% • source
+% * source
 %
-% • target
+% * target
 %
-% • filesystem type
+% * filesystem type
 %
-% • flags
+% * flags
 %
-% • data
+% * data
 %
 % An empty list may be used to specify NULL.
 %
@@ -4880,15 +4880,15 @@ mount(Drv, Pids, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6) ->
 %
 % The arguments are:
 %
-% • source
+% * source
 %
-% • target
+% * target
 %
-% • filesystem type
+% * filesystem type
 %
-% • flags
+% * flags
 %
-% • data
+% * data
 %
 % An empty list may be used to specify NULL.
 %
@@ -5060,21 +5060,21 @@ open(Drv, Pids, Arg1, Arg2, Arg3, Timeout) ->
 %
 % To use an arbitrary directory as a mount point:
 %
-% • mark the mount namespace as private
+% * mark the mount namespace as private
 %
-% • create a mount point by bind mounting the new root directory over
+% * create a mount point by bind mounting the new root directory over
 %   itself
 %
-% • change the current working directory to the new root directory
+% * change the current working directory to the new root directory
 %
-% • call pivot_root(2) with new and old root set to the current working
+% * call pivot_root(2) with new and old root set to the current working
 %   directory
 %
-% • unmount the current working directory
+% * unmount the current working directory
 %
 % == Support ==
 %
-% • Linux
+% * Linux
 %
 % == Examples ==
 %
@@ -5119,21 +5119,21 @@ pivot_root(Drv, Pids, Arg1, Arg2) ->
 %
 % To use an arbitrary directory as a mount point:
 %
-% • mark the mount namespace as private
+% * mark the mount namespace as private
 %
-% • create a mount point by bind mounting the new root directory over
+% * create a mount point by bind mounting the new root directory over
 %   itself
 %
-% • change the current working directory to the new root directory
+% * change the current working directory to the new root directory
 %
-% • call pivot_root(2) with new and old root set to the current working
+% * call pivot_root(2) with new and old root set to the current working
 %   directory
 %
-% • unmount the current working directory
+% * unmount the current working directory
 %
 % == Support ==
 %
-% • Linux
+% * Linux
 %
 % == Examples ==
 %
@@ -5177,15 +5177,15 @@ pivot_root(Drv, Pids, Arg1, Arg2, Timeout) ->
 %
 % == Support ==
 %
-% • OpenBSD
+% * OpenBSD
 %
 % == Examples ==
 %
 % Fork a control process:
 %
-% • restricted to stdio, proc and exec capabilities
+% * restricted to stdio, proc and exec capabilities
 %
-% • unrestricted after calling exec
+% * unrestricted after calling exec
 %
 % ```
 % 1> {ok, Drv} = alcove_drv:start().
@@ -5217,15 +5217,15 @@ pledge(Drv, Pids, Arg1, Arg2) ->
 %
 % == Support ==
 %
-% • OpenBSD
+% * OpenBSD
 %
 % == Examples ==
 %
 % Fork a control process:
 %
-% • restricted to stdio, proc and exec capabilities
+% * restricted to stdio, proc and exec capabilities
 %
-% • unrestricted after calling exec
+% * unrestricted after calling exec
 %
 % ```
 % 1> {ok, Drv} = alcove_drv:start().
@@ -5257,16 +5257,16 @@ pledge(Drv, Pids, Arg1, Arg2, Timeout) ->
 % an argument. List elements are used to contiguously populate a buffer
 % (it is up to the caller to add padding):
 %
-% • binary(): the element is copied directly into the buffer
+% * binary(): the element is copied directly into the buffer
 %
 %   On return, the contents of the binary is returned to the caller.
 %
-% • {ptr, N}: N bytes of memory is allocated and zeroed. The pointer is
+% * {ptr, N}: N bytes of memory is allocated and zeroed. The pointer is
 %   placed in the buffer.
 %
 %   On return, the contents of the memory is returned to the caller.
 %
-% • {ptr, binary()}
+% * {ptr, binary()}
 %
 %    Memory equal to the size of the binary is allocated and initialized
 %    with the contents of the binary.
@@ -5275,7 +5275,7 @@ pledge(Drv, Pids, Arg1, Arg2, Timeout) ->
 %
 % == Support ==
 %
-% • Linux
+% * Linux
 %
 % == Examples ==
 %
@@ -5346,16 +5346,16 @@ prctl(Drv, Pids, Arg1, Arg2, Arg3, Arg4, Arg5) ->
 % an argument. List elements are used to contiguously populate a buffer
 % (it is up to the caller to add padding):
 %
-% • binary(): the element is copied directly into the buffer
+% * binary(): the element is copied directly into the buffer
 %
 %   On return, the contents of the binary is returned to the caller.
 %
-% • {ptr, N}: N bytes of memory is allocated and zeroed. The pointer is
+% * {ptr, N}: N bytes of memory is allocated and zeroed. The pointer is
 %   placed in the buffer.
 %
 %   On return, the contents of the memory is returned to the caller.
 %
-% • {ptr, binary()}
+% * {ptr, binary()}
 %
 %    Memory equal to the size of the binary is allocated and initialized
 %    with the contents of the binary.
@@ -5364,7 +5364,7 @@ prctl(Drv, Pids, Arg1, Arg2, Arg3, Arg4, Arg5) ->
 %
 % == Support ==
 %
-% • Linux
+% * Linux
 %
 % == Examples ==
 %
@@ -5477,7 +5477,7 @@ prctl_constant(Drv, Pids, Arg1, Timeout) ->
 %
 % == Support ==
 %
-% • FreeBSD
+% * FreeBSD
 %
 % == Examples ==
 %
@@ -5520,7 +5520,7 @@ procctl(Drv, Pids, Arg1, Arg2, Arg3, Arg4) ->
 %
 % == Support ==
 %
-% • FreeBSD
+% * FreeBSD
 %
 % == Examples ==
 %
@@ -6015,7 +6015,7 @@ rmdir(Drv, Pids, Arg1, Timeout) ->
 %
 % == Support ==
 %
-% • Linux
+% * Linux
 %
 % == Examples ==
 %
@@ -6043,7 +6043,7 @@ seccomp(Drv, Pids, Arg1, Arg2, Arg3) ->
 %
 % == Support ==
 %
-% • Linux
+% * Linux
 %
 % == Examples ==
 %
@@ -6121,15 +6121,15 @@ seccomp_constant(Drv, Pids, Arg1, Timeout) ->
 %
 % The Timeout value may be:
 %
-% • an empty list ([]): causes select to block indefinitely (no timeout)
+% * an empty list ([]): causes select to block indefinitely (no timeout)
 %
-% • an alcove_timeval record
+% * an alcove_timeval record
 %
 % An alcove_timeval record contains these fields:
 %
-% • sec : number of seconds to wait
+% * sec : number of seconds to wait
 %
-% • usec : number of microseconds to wait
+% * usec : number of microseconds to wait
 %
 % == Examples ==
 %
@@ -6166,15 +6166,15 @@ select(Drv, Pids, Arg1, Arg2, Arg3, Arg4) ->
 %
 % The Timeout value may be:
 %
-% • an empty list ([]): causes select to block indefinitely (no timeout)
+% * an empty list ([]): causes select to block indefinitely (no timeout)
 %
-% • an alcove_timeval record
+% * an alcove_timeval record
 %
 % An alcove_timeval record contains these fields:
 %
-% • sec : number of seconds to wait
+% * sec : number of seconds to wait
 %
-% • usec : number of microseconds to wait
+% * usec : number of microseconds to wait
 %
 % == Examples ==
 %
@@ -6209,20 +6209,20 @@ select(Drv, Pids, Arg1, Arg2, Arg3, Arg4, Timeout) ->
 % `flowcontrol' enables rate limiting of the stdout and stderr of a child
 % process. stdin is not rate limited (default: -1 (disabled))
 %
-% • 0: stdout/stderr for process is not read
+% * 0: stdout/stderr for process is not read
 %
-% • 1-2147483646: read this many messages from the process
+% * 1-2147483646: read this many messages from the process
 %
-% • -1: disable flow control
+% * -1: disable flow control
 %
 % NOTE: the limit applies to stdout and stderr. If the limit is set to 1,
 % it is possible to get:
 %
-% • 1 message from stdout
+% * 1 message from stdout
 %
-% • 1 message from stderr
+% * 1 message from stderr
 %
-% • 1 message from stdout and stderr
+% * 1 message from stdout and stderr
 %
 % `signaloneof' delivers a signal to any subprocesses when the alcove
 % control process shuts down (default: 15 (SIGTERM))
@@ -6257,20 +6257,20 @@ setcpid(Drv, Pids, Arg1, Arg2, Arg3) ->
 % `flowcontrol' enables rate limiting of the stdout and stderr of a child
 % process. stdin is not rate limited (default: -1 (disabled))
 %
-% • 0: stdout/stderr for process is not read
+% * 0: stdout/stderr for process is not read
 %
-% • 1-2147483646: read this many messages from the process
+% * 1-2147483646: read this many messages from the process
 %
-% • -1: disable flow control
+% * -1: disable flow control
 %
 % NOTE: the limit applies to stdout and stderr. If the limit is set to 1,
 % it is possible to get:
 %
-% • 1 message from stdout
+% * 1 message from stdout
 %
-% • 1 message from stderr
+% * 1 message from stderr
 %
-% • 1 message from stdout and stderr
+% * 1 message from stdout and stderr
 %
 % `signaloneof' delivers a signal to any subprocesses when the alcove
 % control process shuts down (default: 15 (SIGTERM))
@@ -6541,9 +6541,9 @@ sethostname(Drv, Pids, Arg1, Timeout) ->
 % A process namespace is represented as a path in the /proc filesystem. The
 % path is `/proc/<pid>/ns/<ns>', where:
 %
-% • pid: the system PID
+% * pid: the system PID
 %
-% • ns: a file representing the namespace
+% * ns: a file representing the namespace
 %
 % The available namespaces is dependent on the kernel version. You can
 % see which are supported by running:
@@ -6554,7 +6554,7 @@ sethostname(Drv, Pids, Arg1, Timeout) ->
 %
 % == Support ==
 %
-% • Linux
+% * Linux
 %
 % == Examples ==
 %
@@ -6592,9 +6592,9 @@ setns(Drv, Pids, Arg1, Arg2) ->
 % A process namespace is represented as a path in the /proc filesystem. The
 % path is `/proc/<pid>/ns/<ns>', where:
 %
-% • pid: the system PID
+% * pid: the system PID
 %
-% • ns: a file representing the namespace
+% * ns: a file representing the namespace
 %
 % The available namespaces is dependent on the kernel version. You can
 % see which are supported by running:
@@ -6605,7 +6605,7 @@ setns(Drv, Pids, Arg1, Arg2) ->
 %
 % == Support ==
 %
-% • Linux
+% * Linux
 %
 % == Examples ==
 %
@@ -6865,11 +6865,11 @@ setproctitle(Drv, Pids, Arg1, Timeout) ->
 %
 % == Support ==
 %
-% • Linux
+% * Linux
 %
-% • FreeBSD
+% * FreeBSD
 %
-% • OpenBSD
+% * OpenBSD
 %
 % == Examples ==
 %
@@ -6898,11 +6898,11 @@ setresgid(Drv, Pids, Arg1, Arg2, Arg3) ->
 %
 % == Support ==
 %
-% • Linux
+% * Linux
 %
-% • FreeBSD
+% * FreeBSD
 %
-% • OpenBSD
+% * OpenBSD
 %
 % == Examples ==
 %
@@ -6932,11 +6932,11 @@ setresgid(Drv, Pids, Arg1, Arg2, Arg3, Timeout) ->
 %
 % == Support ==
 %
-% • Linux
+% * Linux
 %
-% • FreeBSD
+% * FreeBSD
 %
-% • OpenBSD
+% * OpenBSD
 %
 % == Examples ==
 %
@@ -6965,11 +6965,11 @@ setresuid(Drv, Pids, Arg1, Arg2, Arg3) ->
 %
 % == Support ==
 %
-% • Linux
+% * Linux
 %
-% • FreeBSD
+% * FreeBSD
 %
-% • OpenBSD
+% * OpenBSD
 %
 % == Examples ==
 %
@@ -7171,15 +7171,15 @@ setuid(Drv, Pids, Arg1, Timeout) ->
 
 % @doc sigaction(2): set process behaviour for signals
 %
-% • sig_dfl
+% * sig_dfl
 %
 %   Uses the default behaviour for the signal
 %
-% • sig_ign
+% * sig_ign
 %
 %   Ignores the signal
 %
-% • sig_info
+% * sig_info
 %
 %   Catches the signal and sends the controlling Erlang process an event:
 %
@@ -7190,7 +7190,7 @@ setuid(Drv, Pids, Arg1, Timeout) ->
 %   Info is a binary containing the siginfo_t structure. See sigaction(2)
 %   for details.
 %
-% • []
+% * []
 %
 %   Returns the current handler for the signal.
 %
@@ -7257,15 +7257,15 @@ sigaction(Drv, Pids, Arg1, Arg2) ->
 
 % @doc sigaction(2): set process behaviour for signals
 %
-% • sig_dfl
+% * sig_dfl
 %
 %   Uses the default behaviour for the signal
 %
-% • sig_ign
+% * sig_ign
 %
 %   Ignores the signal
 %
-% • sig_info
+% * sig_info
 %
 %   Catches the signal and sends the controlling Erlang process an event:
 %
@@ -7276,7 +7276,7 @@ sigaction(Drv, Pids, Arg1, Arg2) ->
 %   Info is a binary containing the siginfo_t structure. See sigaction(2)
 %   for details.
 %
-% • []
+% * []
 %
 %   Returns the current handler for the signal.
 %
@@ -7592,7 +7592,7 @@ umount(Drv, Pids, Arg1, Timeout) ->
 %
 % == Support ==
 %
-% • Linux
+% * Linux
 %
 % == Examples ==
 %
@@ -7625,7 +7625,7 @@ umount2(Drv, Pids, Arg1, Arg2) ->
 %
 % == Support ==
 %
-% • Linux
+% * Linux
 %
 % == Examples ==
 %
@@ -7846,7 +7846,7 @@ unshare(Drv, Pids, Arg1, Timeout) ->
 %
 % == Support ==
 %
-% • OpenBSD
+% * OpenBSD
 %
 % == Examples ==
 %
@@ -7895,7 +7895,7 @@ unveil(Drv, Pids, Arg1, Arg2) ->
 %
 % == Support ==
 %
-% • OpenBSD
+% * OpenBSD
 %
 % == Examples ==
 %

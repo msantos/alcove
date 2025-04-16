@@ -8,21 +8,21 @@ effects.
 
 To use an arbitrary directory as a mount point:
 
-• mark the mount namespace as private
+* mark the mount namespace as private
 
-• create a mount point by bind mounting the new root directory over
+* create a mount point by bind mounting the new root directory over
   itself
 
-• change the current working directory to the new root directory
+* change the current working directory to the new root directory
 
-• call pivot_root(2) with new and old root set to the current working
+* call pivot_root(2) with new and old root set to the current working
   directory
 
-• unmount the current working directory
+* unmount the current working directory
 
 == Support ==
 
-• Linux
+* Linux
 
 == Examples ==
 

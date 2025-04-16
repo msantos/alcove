@@ -7,15 +7,15 @@ To specify no capabilities, use an empty binary: `<<>>>' or `<<"">>'
 
 == Support ==
 
-• OpenBSD
+* OpenBSD
 
 == Examples ==
 
 Fork a control process:
 
-• restricted to stdio, proc and exec capabilities
+* restricted to stdio, proc and exec capabilities
 
-• unrestricted after calling exec
+* unrestricted after calling exec
 
 ```
 1> {ok, Drv} = alcove_drv:start().
