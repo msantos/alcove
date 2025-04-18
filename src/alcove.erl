@@ -418,6 +418,10 @@
     fd/0,
     fd_set/0,
 
+    ptr_arg/0,
+    ptr_val/0,
+    waitstatus/0,
+
     pid_t/0,
     constant/0,
 
