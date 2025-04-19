@@ -174,7 +174,7 @@ b2i(N) when is_binary(N) ->
     list_to_integer(binary_to_list(N)).
 
 docfile(Fun, Arity) ->
-    File = "edoc/" ++ Fun ++ "-" ++ integer_to_list(Arity + 2) ++ ".md",
+    File = "edoc/" ++ Fun ++ "-" ++ integer_to_list(Arity + 2) ++ ".edoc",
     case file:read_file(File) of
         {ok, Bin} ->
             Doc = [
