@@ -173,7 +173,7 @@ static int alcove_fd_init(const char *fifo) {
       return -1;
   }
 
-  /* The control fd used to signal that the port has called exec(). The
+  /* The control fd is used to signal that the port has called exec(). The
    * control fd is a fifo. beam opens the fd in read-only mode.  When all
    * the writers of a fifo call close(), the reader receives EOF.
    *

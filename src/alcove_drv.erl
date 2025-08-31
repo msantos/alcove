@@ -42,7 +42,7 @@
     owner :: pid(),
     raw = false,
     port :: port(),
-    fdctl :: port(),
+    fdctl :: pid(),
     buf = <<>> :: binary()
 }).
 
@@ -185,15 +185,6 @@ port(Drv) ->
 %%% Callbacks
 %%--------------------------------------------------------------------
 
-% init/2 uses an undocumented feature of open_port/2 to set up a fifo
-% between the alcove port process and beam. The close of the fifo indicates
-% the port has called exec().
-%
-% As a result, dialyzer will warn about the first argument passed to
-% open_port/2.
--dialyzer({nowarn_function, init/1}).
--dialyzer({no_unused, call_unlink/2}).
-
 init([Owner, Options]) ->
     process_flag(trap_exit, true),
 
@@ -229,11 +220,27 @@ init([Owner, Options]) ->
         {Port, {data, Data}} ->
             {alcove_call, [], ok} = alcove_codec:decode(Data),
 
-            Fdctl = erlang:open_port(Fifo, [in]),
+            % Monitor if the port process has called exec(3). The port
+            % process opens a named pipe with the close on exec flag set.
+            %
+            % handle_info({'EXIT', Fdctl, _Reason}, #state{fdctl = Fdctl, owner = Owner} = State)
+            Pid = self(),
+            Fdctl = spawn(fun() ->
+                Reason =
+                    case file:open(Fifo, [raw, read]) of
+                        {ok, FD} ->
+                            % blocks until the read returns EOF
+                            file:read(FD, 1);
+                        Err ->
+                            Err
+                    end,
+                Pid ! {'EXIT', self(), Reason},
 
-            % Decrease the link count of the fifo. The fifo is deleted in
-            % the port because the port may be running as a different user.
-            ok = call_unlink(Port, Fifo),
+                % Decrease the link count of the fifo. The fifo is deleted in
+                % the port because the port may be running as a different user.
+                ok = call_unlink(Port, Fifo)
+            end),
+
             {ok, #state{
                 port = Port,
                 fdctl = Fdctl,
@@ -267,7 +274,7 @@ handle_cast(_Msg, State) ->
 
 terminate(_Reason, #state{port = Port, fdctl = Fdctl}) ->
     catch erlang:port_close(Port),
-    catch erlang:port_close(Fdctl),
+    exit(Fdctl, kill),
     ok.
 
 code_change(_OldVsn, State, _Extra) ->
