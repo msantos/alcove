@@ -226,20 +226,25 @@ init([Owner, Options]) ->
             % handle_info({'EXIT', Fdctl, _Reason}, #state{fdctl = Fdctl, owner = Owner} = State)
             Pid = self(),
             Fdctl = spawn(fun() ->
+                Open = file:open(Fifo, [raw, read]),
+                Pid ! {self(), call_unlink},
                 Reason =
-                    case file:open(Fifo, [raw, read]) of
+                    case Open of
                         {ok, FD} ->
                             % blocks until the read returns EOF
                             file:read(FD, 1);
                         Err ->
                             Err
                     end,
-                Pid ! {'EXIT', self(), Reason},
-
-                % Decrease the link count of the fifo. The fifo is deleted in
-                % the port because the port may be running as a different user.
-                ok = call_unlink(Port, Fifo)
+                Pid ! {'EXIT', self(), Reason}
             end),
+
+            % Decrease the link count of the fifo. The fifo is deleted in
+            % the port because the port may be running as a different user.
+            receive
+                {Fdctl, call_unlink} ->
+                    ok = call_unlink(Port, Fifo)
+            end,
 
             {ok, #state{
                 port = Port,
