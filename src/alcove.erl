@@ -2450,9 +2450,9 @@ close(Drv, Pids, Arg1, Timeout) ->
 % == Examples ==
 %
 % ```
-% *module(unix_socket).
+% -module(unix_socket).
 %
-% *export([connect]).
+% -export([connect]).
 %
 % connect(Data) when is_binary(Data) ->
 %     {ok, Drv} = alcove:start(),
@@ -2536,9 +2536,9 @@ connect(Drv, Pids, Arg1, Arg2) ->
 % == Examples ==
 %
 % ```
-% *module(unix_socket).
+% -module(unix_socket).
 %
-% *export([connect]).
+% -export([connect]).
 %
 % connect(Data) when is_binary(Data) ->
 %     {ok, Drv} = alcove:start(),
