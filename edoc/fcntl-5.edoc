@@ -11,4 +11,11 @@
 % stdin = 0
 3> alcove:fcntl(Drv, [Pid], 0, f_getfd, 0).
 {ok,0}
+
+4> FD_CLOEXEC = alcove:fcntl_constant(Drv, [], fd_cloexec).
+1
+5> alcove:fcntl(Drv, [Pid], 0, f_setfd, FD_CLOEXEC).
+{ok,0}
+6> alcove:fcntl(Drv, [Pid], 0, f_getfd, 0).
+{ok,1}
 '''
