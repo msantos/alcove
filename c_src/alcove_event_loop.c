@@ -453,6 +453,12 @@ static ssize_t alcove_write(int fd, struct iovec *iov, int count) {
     iov[offset].iov_len -= written;
 
     written = writev(fd, iov + offset, count - offset);
+
+    if (written < 0 && errno == EINTR) {
+      written = 0;
+      continue;
+    }
+
     if (written <= 0)
       return written;
 
