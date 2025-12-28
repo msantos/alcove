@@ -2962,6 +2962,13 @@ exit(Drv, Pids, Arg1, Timeout) ->
 % % stdin = 0
 % 3> alcove:fcntl(Drv, [Pid], 0, f_getfd, 0).
 % {ok,0}
+%
+% 4> FD_CLOEXEC = alcove:fcntl_constant(Drv, [], fd_cloexec).
+% 1
+% 5> alcove:fcntl(Drv, [Pid], 0, f_setfd, FD_CLOEXEC).
+% {ok,0}
+% 6> alcove:fcntl(Drv, [Pid], 0, f_getfd, 0).
+% {ok,1}
 % '''
 
 fcntl(Drv, Pids, Arg1, Arg2, Arg3) ->
@@ -2989,6 +2996,13 @@ fcntl(Drv, Pids, Arg1, Arg2, Arg3) ->
 % % stdin = 0
 % 3> alcove:fcntl(Drv, [Pid], 0, f_getfd, 0).
 % {ok,0}
+%
+% 4> FD_CLOEXEC = alcove:fcntl_constant(Drv, [], fd_cloexec).
+% 1
+% 5> alcove:fcntl(Drv, [Pid], 0, f_setfd, FD_CLOEXEC).
+% {ok,0}
+% 6> alcove:fcntl(Drv, [Pid], 0, f_getfd, 0).
+% {ok,1}
 % '''
 
 fcntl(Drv, Pids, Arg1, Arg2, Arg3, Timeout) ->
