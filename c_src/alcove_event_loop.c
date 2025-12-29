@@ -418,15 +418,14 @@ static ssize_t alcove_call_spoof(pid_t pid, u_int16_t type, char *buf,
 }
 
 static int alcove_get_uint16(int fd, u_int16_t *val) {
-  u_int16_t buf = 0;
   ssize_t n;
 
-  n = alcove_read(fd, &buf, sizeof(buf));
+  n = alcove_read(fd, val, sizeof(*val));
 
-  if (n != sizeof(buf))
+  if (n != sizeof(*val))
     return n;
 
-  *val = ntohs(buf);
+  *val = ntohs(*val);
   return n;
 }
 
