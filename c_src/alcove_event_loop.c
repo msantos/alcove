@@ -1,4 +1,4 @@
-/* Copyright (c) 2015-2024, Michael Santos <michael.santos@gmail.com>
+/* Copyright (c) 2015-2026, Michael Santos <michael.santos@gmail.com>
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -434,8 +434,14 @@ static ssize_t alcove_read(int fd, void *buf, ssize_t len) {
   ssize_t got = 0;
 
   do {
-    if ((i = read(fd, (char *)buf + got, len - got)) <= 0)
+    i = read(fd, (char *)buf + got, len - got);
+
+    if (i < 0 && errno == EINTR)
+      continue;
+
+    if (i <= 0)
       return i;
+
     got += i;
   } while (got < len);
 
