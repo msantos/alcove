@@ -32,14 +32,19 @@ static int close_parent_fd(alcove_state_t *ap, alcove_child_t *c, void *arg1,
  * Utility functions
  */
 int alcove_stdio(alcove_stdio_t *fd) {
+  int oerrno;
+
   if (socketpair(AF_UNIX, SOCK_STREAM, 0, fd->ctl) < 0)
     return -1;
 
   if ((pipe(fd->in) < 0) || (pipe(fd->out) < 0) || (pipe(fd->err) < 0)) {
+    oerrno = errno;
     (void)alcove_close_pipe(fd->ctl);
     (void)alcove_close_pipe(fd->in);
     (void)alcove_close_pipe(fd->out);
     (void)alcove_close_pipe(fd->err);
+    errno = oerrno;
+
     return -1;
   }
 
