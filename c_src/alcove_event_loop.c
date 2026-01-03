@@ -98,7 +98,8 @@ void alcove_event_loop(alcove_state_t *ap) {
 
   for (;;) {
     if (ap->fdsetsize != ap->maxchild) {
-      fds = recallocarray(fds, ap->maxfd, ALCOVE_NFD(ap->maxchild), sizeof(struct pollfd));
+      fds = recallocarray(fds, ap->maxfd, ALCOVE_NFD(ap->maxchild),
+                          sizeof(struct pollfd));
       if (fds == NULL)
         exit(errno);
       ap->maxfd = ALCOVE_NFD(ap->maxchild);
