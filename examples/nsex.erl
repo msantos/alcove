@@ -1,4 +1,4 @@
-%%% Copyright (c) 2014, Michael Santos <michael.santos@gmail.com>
+%%% Copyright (c) 2014-2026, Michael Santos <michael.santos@gmail.com>
 %%%
 %%% Permission to use, copy, modify, and/or distribute this software for any
 %%% purpose with or without fee is hereby granted, provided that the above
@@ -77,4 +77,4 @@ drop_privs(Drv, Child, Id) ->
     ok = alcove:setuid(Drv, [Child], Id).
 
 id() ->
-    crypto:rand_uniform(16#f0000000, 16#f000ffff).
+    16#f0000000 + rand:uniform(16#ffff).
