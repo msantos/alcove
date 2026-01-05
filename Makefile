@@ -24,7 +24,8 @@ test:
 
 examples: eg
 eg:
-	@erlc -I deps -o ebin examples/*.erl
+	@mkdir -p ebin
+	@erlc -I $(PWD)/.. -o ebin examples/*.erl
 
 dialyzer:
 	@$(REBAR) dialyzer
