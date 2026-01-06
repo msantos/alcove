@@ -1,4 +1,4 @@
-%%% Copyright (c) 2014, Michael Santos <michael.santos@gmail.com>
+%%% Copyright (c) 2014-2026, Michael Santos <michael.santos@gmail.com>
 %%%
 %%% Permission to use, copy, modify, and/or distribute this software for any
 %%% purpose with or without fee is hereby granted, provided that the above
@@ -29,8 +29,11 @@
 -spec call(atom(), [alcove:pid_t()], [any()]) -> iodata().
 call(Call, Pids, Arg) ->
     Bin =
-        <<?UINT16(?ALCOVE_MSG_CALL), ?UINT16(alcove_proto:call(Call)),
-            (term_to_binary(list_to_tuple(Arg)))/binary>>,
+        <<
+            ?UINT16(?ALCOVE_MSG_CALL),
+            ?UINT16(alcove_proto:call(Call)),
+            (term_to_binary(list_to_tuple(Arg)))/binary
+        >>,
     Size = byte_size(Bin),
     stdin(Pids, [<<?UINT16(Size)>>, Bin]).
 

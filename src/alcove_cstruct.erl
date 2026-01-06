@@ -1,4 +1,4 @@
-%%% Copyright (c) 2015, Michael Santos <michael.santos@gmail.com>
+%%% Copyright (c) 2015-2026, Michael Santos <michael.santos@gmail.com>
 %%% Permission to use, copy, modify, and/or distribute this software for any
 %%% purpose with or without fee is hereby granted, provided that the above
 %%% copyright notice and this permission notice appear in all copies.
@@ -33,11 +33,13 @@ jail(#alcove_jail{
         {ptr, <<(iolist_to_binary(Path))/binary, 0>>},
         {ptr, <<(iolist_to_binary(Hostname))/binary, 0>>},
         {ptr, <<(iolist_to_binary(Jailname))/binary, 0>>},
-        <<(length(IPv4)):4/native-unsigned-integer-unit:8,
-            (length(IPv6)):4/native-unsigned-integer-unit:8>>,
+        <<
+            (length(IPv4)):4/native-unsigned-integer-unit:8,
+            (length(IPv6)):4/native-unsigned-integer-unit:8
+        >>,
         {ptr, <<<<IP1, IP2, IP3, IP4>> || {IP1, IP2, IP3, IP4} <- IPv4>>},
         {ptr, <<
             <<IP1:16, IP2:16, IP3:16, IP4:16, IP5:16, IP6:16, IP7:16, IP8:16>>
-            || {IP1, IP2, IP3, IP4, IP5, IP6, IP7, IP8} <- IPv6
+         || {IP1, IP2, IP3, IP4, IP5, IP6, IP7, IP8} <- IPv6
         >>}
     ].
