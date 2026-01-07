@@ -45,14 +45,13 @@ When alcove is started, it enters an event loop:
 ```
 
 Similar to a shell, alcove waits for a command. For example, alcove can
-be requested to fork(2):
+be requested to [fork(2)](https://man7.org/linux/man-pages/man2/fork.2.html):
 
 ```erlang
 {ok, Child1} = alcove:fork(Drv, []).
 ```
 
-Now there are 2 processes in a parent/child relationship, sitting in
-their event loops:
+A new process is created in a parent/child relationship:
 
 ```
 beam.smp
@@ -66,7 +65,7 @@ Processes are arranged in a pipeline:
 * a pipeline is a list of 0 or more integers representing the process IDs
 
   By default, pipelines are limited to a length of 16 processes. The
-  pipeline length can be increased using getopt/3 up to the system limits.
+  pipeline length can be increased using [getopt/3](https://hexdocs.pm/alcove/alcove.html#getopt/3) up to the system limits.
 
 * unlike in a shell, each successive process in the pipeline is forked
   from the previous process
@@ -137,12 +136,11 @@ chmod u+s priv/alcove
 
 * Linux: file capabilities
 
-  See capabilities(7) and setcap(8).
+  See [capabilities(7)](https://man7.org/linux/man-pages/man7/capabilities.7.html) and [setcap(8)](https://man7.org/linux/man-pages/man8/setcap.8.html).
 
 ## Creating a chroot
 
-The standard Unix way of sandboxing a process is by doing a chroot(2). The
-chroot process involves:
+The standard Unix way of sandboxing a process is by doing a [chroot(2)](https://man7.org/linux/man-pages/man2/chroot.2.html). The chroot process involves:
 
 * running as root
 * setting process limits
@@ -150,7 +148,7 @@ chroot process involves:
 * changing to an unprivileged user
 * running the sandboxed code
 
-See `examples/chrootex.erl`.
+See [chrootex.erl](examples/chrootex.erl).
 
 We'll create a chroot using an interface like:
 
@@ -159,32 +157,24 @@ We'll create a chroot using an interface like:
 sandbox(Drv, ["/bin/sh", "-i"]).
 ```
 
-The function returns the system PID of the child process. This would
-create an interactive shell we access through standard I/O.
+The function returns the system PID of the child process, creating an
+interactive shell we access through standard I/O.
 
-In order to call chroot(2), the port will need root privileges:
+The port will need root privileges to call [chroot(2)](https://man7.org/linux/man-pages/man2/chroot.2.html).
 
 ```erlang
 {ok, Drv} = alcove_drv:start([{exec, "sudo -n"}]).
 ```
 
-Following the steps outlined earlier, we want to set some process
-limits. In this case, we'll use setrlimit(2):
+We'll use setrlimit(2) to set some process limits.
 
 ```erlang
 setlimits(Drv, Child) ->
-    % Disable creation of files
+    % Disable writing to files
     ok = alcove:setrlimit(
         Drv,
         [Child],
         rlimit_fsize,
-        #alcove_rlimit{cur = 0, max = 0}
-    ),
-
-    ok = alcove:setrlimit(
-        Drv,
-        [Child],
-        rlimit_nofile,
         #alcove_rlimit{cur = 0, max = 0}
     ),
 
@@ -194,7 +184,31 @@ setlimits(Drv, Child) ->
         [Child],
         rlimit_nproc,
         #alcove_rlimit{cur = 1, max = 1}
-    ).
+    ),
+
+    % Disable opening new file descriptors
+    ok =
+        case
+            alcove:setrlimit(
+                Drv,
+                [Child],
+                rlimit_nofile,
+                #alcove_rlimit{cur = 0, max = 0}
+            )
+        of
+            ok ->
+                ok;
+            {error, einval} ->
+                {ok, NFD} = alcove:getrlimit(Drv, [Child], rlimit_nofile),
+                alcove:setrlimit(
+                    Drv,
+                    [Child],
+                    rlimit_nofile,
+                    #alcove_rlimit{cur = NFD#alcove_rlimit.cur, max = NFD#alcove_rlimit.cur}
+                );
+            Error ->
+                Error
+        end.
 ```
 
 Next we chroot and drop root privileges. We will set the user and group
@@ -211,14 +225,15 @@ drop_privs(Drv, Child, Id) ->
     ok = alcove:setuid(Drv, [Child], Id).
 
 id() ->
-    16#f0000000 + crypto:rand_uniform(0, 16#ffff).
+    16#f0000000 + rand:uniform(16#ffff).
 ```
 
 Tying it all together:
 
 ```erlang
-% The default is to run the cat command. Because of the chroot, we need
-% to use a statically linked executable.
+% The default is to run the cat command using a statically linked
+% executable because the chroot limits the view of the host filesystem.
+
 sandbox(Drv) ->
     sandbox(Drv, ["/bin/busybox", "cat"]).
 sandbox(Drv, Argv) ->
@@ -244,18 +259,15 @@ argv([Arg0, Args]) ->
 Compile and run the example:
 
 ```
-# If alcove is in ~/src/alcove
-export ERL_LIBS=~/src
 make eg
 rebar shell
 ```
 
 ```erlang
 1> {ok, Drv} = chrootex:start().
-
+{ok,<0.229.0>}
 2> Cat = chrootex:sandbox(Drv).
 31831
-
 3> alcove:stdin(Drv, [Cat], "test test\n").
 4> alcove:stdout(Drv, [Cat]).
 [<<"test test\n">>]
@@ -269,36 +281,37 @@ herding cats:
 31861
 
 % Test the shell is working
-6> alcove:stdin(P, [Sh], "echo hello\n").
+6> alcove:stdin(Drv, [Sh], "echo hello\n").
 ok
-7> alcove:stdout(P, [Sh]).
+7> alcove:stdout(Drv, [Sh]).
 [<<"hello\n">>]
 
 % Attempt to create a file
 6> alcove:stdin(Drv, [Sh], "> foo\n").
 ok
-7> alcove:stderr(P, [Sh]).
+7> alcove:stderr(Drv, [Sh]).
 [<<"sh: can't create foo: Too many open files\n">>]
 
 % Try to fork a new process
 8> alcove:stdin(Drv, [Sh], "ls\n").
-9> alcove:stderr(P, [Sh]).
+9> alcove:stderr(Drv, [Sh]).
 [<<"sh: can't fork\n">>]
 
 % If we check the parent for events, we can see the child has exited
-10> alcove:event(P, []).
+10> alcove:event(Drv, []).
 {signal,sigchld}
 ```
 
 ## Creating a Container Using Linux Namespaces
 
-Namespaces are the basis for Linux Containers (LXC). Creating a
-new namespace is as simple as passing in the appropriate flags to
-clone(2). We'll rewrite the chroot example to run inside a namespace and
-use another Linux feature, control groups, to limit the system resources
-available to the process.
+Namespaces are the basis for linux containers. Creating a new
+namespace is as simple as passing in the appropriate flags to
+[clone(2)](https://man7.org/linux/man-pages/man2/clone.2.html). We'll
+rewrite the chroot example to run inside a namespace and use another
+Linux feature, control groups, to limit the system resources available
+to the process.
 
-See `examples/nsex.erl`.
+See [nsex.erl](examples/nsex.erl).
 
 * set process limits using cgroups (see cpuset(7))
 
@@ -370,8 +383,8 @@ setlimits(Drv, Child) ->
     ).
 ```
 
-* running the code involves calling clone(2) to create the namespaces,
-  rather than using fork(2)
+* running the code involves calling [clone(2)](https://man7.org/linux/man-pages/man2/clone.2.html) to create the namespaces,
+  rather than using [fork(2)](https://man7.org/linux/man-pages/man2/fork.2.html)
 
 ```erlang
 sandbox(Drv, Argv) ->
@@ -406,11 +419,12 @@ error on unsupported platforms.
 
 ## Event Loop
 
-These functions can be called while the process is running in the event
-loop. Using these functions after the process has called exec(3) will
-probably confuse the process.
+These functions can be called while the process is running in
+the event loop. Using these functions after the process has called
+[exec(3)](https://man7.org/linux/man-pages/man3/exec.3.html) will probably
+confuse the process.
 
-Functions accepting a constant() will return {error, enotsup} if an
+Functions accepting a `constant()` will return `{error, enotsup}` if an
 atom is used as the argument and is not found on the platform.
 
 The alcove module functions accept an additional argument which allows
@@ -467,16 +481,12 @@ To compile the examples:
 make eg
 ```
 
-* GPIO
+### GPIO
 
-`examples/gpioled.erl` is a simple example of interacting with the GPIO
-on a beaglebone black or raspberry pi that will blink an LED. The example
-works with two system processes:
-
-```
+[gpioled.erl](examples/gpioled.erl) is a simple example of interacting
+with the GPIO on a beaglebone black or raspberry pi that will blink an
+LED. The example works with two system processes:
 * a port process which requests the GPIO pin be exported to user
   space, forks a child into a new namespace, then drops privileges
-
 * a child process gets a file descriptor for the GPIO, then drops
   privileges
-```

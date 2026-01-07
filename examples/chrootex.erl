@@ -15,9 +15,9 @@
 -include_lib("alcove/include/alcove.hrl").
 
 -export([
-        start/0,
-        sandbox/1, sandbox/2
-    ]).
+    start/0,
+    sandbox/1, sandbox/2
+]).
 
 start() ->
     alcove_drv:start_link([{exec, "sudo"}]).
@@ -43,14 +43,45 @@ argv([Arg0, Args]) ->
     {Path, Progname, Args}.
 
 setlimits(Drv, Child) ->
-    ok = alcove:setrlimit(Drv, [Child], rlimit_fsize,
-        #alcove_rlimit{cur = 0, max = 0}),
+    % Disable writing to files
+    ok = alcove:setrlimit(
+        Drv,
+        [Child],
+        rlimit_fsize,
+        #alcove_rlimit{cur = 0, max = 0}
+    ),
 
-    ok = alcove:setrlimit(Drv, [Child], rlimit_nproc,
-        #alcove_rlimit{cur = 1, max = 1}),
+    % Limit to one process
+    ok = alcove:setrlimit(
+        Drv,
+        [Child],
+        rlimit_nproc,
+        #alcove_rlimit{cur = 1, max = 1}
+    ),
 
-    ok = alcove:setrlimit(Drv, [Child], rlimit_nofile,
-        #alcove_rlimit{cur = 0, max = 0}).
+    % Disable opening new file descriptors
+    ok =
+        case
+            alcove:setrlimit(
+                Drv,
+                [Child],
+                rlimit_nofile,
+                #alcove_rlimit{cur = 0, max = 0}
+            )
+        of
+            ok ->
+                ok;
+            {error, einval} ->
+                {ok, NFD} = alcove:getrlimit(Drv, [Child], rlimit_nofile),
+                alcove:setrlimit(
+                    Drv,
+                    [Child],
+                    rlimit_nofile,
+                    #alcove_rlimit{cur = NFD#alcove_rlimit.cur, max = NFD#alcove_rlimit.cur}
+                );
+            Error ->
+                Error
+        end.
 
 chroot(Drv, Child, Path) ->
     ok = alcove:chroot(Drv, [Child], Path),
