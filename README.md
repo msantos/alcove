@@ -9,10 +9,10 @@ alcove is:
 * an interface for system programming
 * a library for building containerized services
 
-*alcove* is an external port process (a stand-alone
-Unix process that communicates with the Erlang VM using
-stdin/stdout). [prx](https://github.com/msantos/prx) is a higher level
-library that maps the alcove Unix processes to Erlang processes.
+*alcove* uses an external port process (a stand-alone Unix process
+that communicates with the Erlang VM using standard input and
+output). [prx](https://github.com/msantos/prx) is a higher level library
+that maps the alcove Unix processes to Erlang processes.
 
 ## Build
 
@@ -211,9 +211,10 @@ setlimits(Drv, Child) ->
         end.
 ```
 
-Next we chroot and drop root privileges. We will set the user and group
-to a random, high UID/GID that is unlikely to conflict with an existing
-system user:
+Next we call
+[chroot(2)](https://man7.org/linux/man-pages/man2/chroot.2.html), drop
+root privileges and set the user and group to a random, high UID/GID
+that is unlikely to conflict with an existing system user:
 
 ```erlang
 chroot(Drv, Child, Path) ->
@@ -279,33 +280,26 @@ herding cats:
 ```erlang
 5> Sh = chrootex:sandbox(Drv, ["/bin/busybox", "sh"]).
 31861
-
 % Test the shell is working
 6> alcove:stdin(Drv, [Sh], "echo hello\n").
 ok
 7> alcove:stdout(Drv, [Sh]).
 [<<"hello\n">>]
-
 % Attempt to create a file
 6> alcove:stdin(Drv, [Sh], "> foo\n").
 ok
 7> alcove:stderr(Drv, [Sh]).
 [<<"sh: can't create foo: Too many open files\n">>]
-
 % Try to fork a new process
 8> alcove:stdin(Drv, [Sh], "ls\n").
 9> alcove:stderr(Drv, [Sh]).
 [<<"sh: can't fork\n">>]
-
-% If we check the parent for events, we can see the child has exited
-10> alcove:event(Drv, []).
-{signal,sigchld}
 ```
 
 ## Creating a Container Using Linux Namespaces
 
-Namespaces are the basis for linux containers. Creating a new
-namespace is as simple as passing in the appropriate flags to
+Namespaces are the basis for linux
+containers. New namespaces are created using
 [clone(2)](https://man7.org/linux/man-pages/man2/clone.2.html). We'll
 rewrite the chroot example to run inside a namespace and use another
 Linux feature, control groups, to limit the system resources available
