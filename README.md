@@ -9,20 +9,31 @@ alcove is:
 * an interface for system programming
 * a library for building containerized services
 
-*alcove* uses an external port process (a stand-alone Unix process
-that communicates with the Erlang VM using standard input and
-output). [prx](https://github.com/msantos/prx) is a higher level library
-that maps the alcove Unix processes to Erlang processes.
+*alcove* is a stand-alone Unix process that communicates
+with the Erlang VM using standard input and output using
+Erlang [ports](https://www.erlang.org/doc/system/c_port.html).
+[prx](https://github.com/msantos/prx) is a higher level library that
+maps the alcove Unix processes to Erlang processes.
 
 ## Build
 
 ```
 rebar3 compile
+```
 
-# to run tests (see "Setting Up Privileges")
-rebar3 do clean, compile, ct
+### Generate Code
 
-# Linux: statically link using musl
+To regenerate Erlang and C code:
+
+```
+make gen
+```
+
+### Linux: Statically Linking Using musl
+
+To build a statically linked executable:
+
+```
 sudo apt install musl-dev musl-tools
 
 # clone the kernel headers somewhere
@@ -31,9 +42,14 @@ git clone https://github.com/sabotage-linux/kernel-headers.git $MUSL_INCLUDE/ker
 
 # then compile
 ./musl-wrapper rebar3 do clean, compile
+```
 
-## Generate code
-make gen
+### Tests
+
+To run tests, see [Setting Up Privileges](#setting-up-privileges).
+
+```
+rebar3 do clean, compile, ct
 ```
 
 ## Overview
