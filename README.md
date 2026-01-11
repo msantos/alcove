@@ -203,28 +203,10 @@ setlimits(Drv, Child) ->
     ),
 
     % Disable opening new file descriptors
-    ok =
-        case
-            alcove:setrlimit(
-                Drv,
-                [Child],
-                rlimit_nofile,
-                #alcove_rlimit{cur = 0, max = 0}
-            )
-        of
-            ok ->
-                ok;
-            {error, einval} ->
-                {ok, NFD} = alcove:getrlimit(Drv, [Child], rlimit_nofile),
-                alcove:setrlimit(
-                    Drv,
-                    [Child],
-                    rlimit_nofile,
-                    #alcove_rlimit{cur = NFD#alcove_rlimit.cur, max = NFD#alcove_rlimit.cur}
-                );
-            Error ->
-                Error
-        end.
+    {ok, NFD} = alcove:getrlimit(Drv, [Child], rlimit_nofile),
+    ok = alcove:setrlimit(Drv, [Child], rlimit_nofile, #alcove_rlimit{
+        cur = NFD#alcove_rlimit.cur, max = NFD#alcove_rlimit.cur
+    }).
 ```
 
 Next we call
