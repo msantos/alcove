@@ -38,12 +38,12 @@
 %%  gpioled:start(11).
 %%
 -record(state, {
-        drv,
-        pid,
-        gpio,
-        direction,
-        unexport
-    }).
+    drv,
+    pid,
+    gpio,
+    direction,
+    unexport
+}).
 
 start(GPIO) ->
     start(GPIO, 1000).
@@ -62,18 +62,26 @@ start(GPIO, N) ->
     ],
     {ok, Child} = alcove:clone(Drv, [], Flags),
 
-    ok = alcove:chroot(Drv, [Child],
-        ["/sys/class/gpio/gpio", integer_to_list(GPIO)]),
+    ok = alcove:chroot(
+        Drv,
+        [Child],
+        ["/sys/class/gpio/gpio", integer_to_list(GPIO)]
+    ),
     ok = alcove:chdir(Drv, [Child], "/"),
-    {ok, FD} = alcove:open(Drv, [Child], "/direction", [o_rdwr,o_cloexec], 0),
+    {ok, FD} = alcove:open(Drv, [Child], "/direction", [o_rdwr, o_cloexec], 0),
 
     Id = id(),
     ok = alcove:setgid(Drv, [Child], Id),
     ok = alcove:setuid(Drv, [Child], Id),
 
     % Drop privs in the port
-    {ok, UFD} = alcove:open(Drv, [], "/sys/class/gpio/unexport",
-        [o_wronly,o_cloexec], 0),
+    {ok, UFD} = alcove:open(
+        Drv,
+        [],
+        "/sys/class/gpio/unexport",
+        [o_wronly, o_cloexec],
+        0
+    ),
 
     ok = alcove:unshare(Drv, [], Flags),
     ok = alcove:chroot(Drv, [], "priv"),
@@ -83,17 +91,27 @@ start(GPIO, N) ->
     ok = alcove:setgid(Drv, [], Id1),
     ok = alcove:setuid(Drv, [], Id1),
 
-    strobe(#state{
+    strobe(
+        #state{
             drv = Drv,
             pid = Child,
             gpio = GPIO,
             direction = FD,
             unexport = UFD
-        }, N).
+        },
+        N
+    ).
 
-
-strobe(#state{drv = Drv, pid = Child, direction = FD,
-        unexport = UFD, gpio = GPIO}, 0) ->
+strobe(
+    #state{
+        drv = Drv,
+        pid = Child,
+        direction = FD,
+        unexport = UFD,
+        gpio = GPIO
+    },
+    0
+) ->
     alcove:write(Drv, [Child], FD, <<"low">>),
     alcove:close(Drv, [Child], FD),
     {ok, _} = alcove:write(Drv, [], UFD, integer_to_list(GPIO)),
@@ -104,16 +122,21 @@ strobe(#state{drv = Drv, pid = Child, direction = FD} = State, N) ->
     alcove:write(Drv, [Child], FD, <<"low">>),
     timer:sleep(100),
     alcove:write(Drv, [Child], FD, <<"high">>),
-    strobe(State, N-1).
+    strobe(State, N - 1).
 
 id() ->
     16#f0000000 + rand:uniform(16#ffff).
 
 export(Drv, Pin) ->
-    {ok, FD} = alcove:open(Drv, [], "/sys/class/gpio/export",
-        [o_wronly,o_cloexec], 0),
+    {ok, FD} = alcove:open(
+        Drv,
+        [],
+        "/sys/class/gpio/export",
+        [o_wronly, o_cloexec],
+        0
+    ),
     case alcove:write(Drv, [], FD, integer_to_list(Pin)) of
         {ok, _} -> ok;
-        {error,ebusy} -> ok
+        {error, ebusy} -> ok
     end,
     alcove:close(Drv, [], FD).

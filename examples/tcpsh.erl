@@ -28,10 +28,10 @@ start() ->
 start(Options) ->
     TCPPort = proplists:get_value(port, Options, 31337),
     {ok, LSock} = gen_tcp:listen(TCPPort, [
-            binary,
-            {active,false},
-            {reuseaddr,true}
-        ]),
+        binary,
+        {active, false},
+        {reuseaddr, true}
+    ]),
     accept(LSock, Options).
 
 accept(LSock, Options) ->
@@ -41,24 +41,24 @@ accept(LSock, Options) ->
     accept(LSock, Options).
 
 create(Socket, _Options) ->
-    {ok, Drv} = alcove_drv:start_link([{exec,"sudo"}]),
+    {ok, Drv} = alcove_drv:start_link([{exec, "sudo"}]),
 
     ok = alcove:chdir(Drv, [], "/"),
 
     {ok, PID} = alcove:clone(Drv, [], [
-            clone_newipc,
-            clone_newnet,
-            clone_newns,
-            clone_newpid,
-            clone_newuts
-        ]),
+        clone_newipc,
+        clone_newnet,
+        clone_newns,
+        clone_newpid,
+        clone_newuts
+    ]),
 
     Id = id(),
 
     ok = alcove:sethostname(Drv, [PID], ["alcove", integer_to_list(Id)]),
 
     % proc on /proc type proc (rw,noexec,nosuid,nodev)
-    MountFlags= [
+    MountFlags = [
         ms_noexec,
         ms_nosuid,
         ms_nodev
@@ -67,8 +67,13 @@ create(Socket, _Options) ->
 
     ok = alcove:setgid(Drv, [PID], Id),
     ok = alcove:setuid(Drv, [PID], Id),
-    ok = alcove:execve(Drv, [PID], "/bin/busybox",
-        ["/bin/busybox", "sh", "-i"], ["HOME=/"]),
+    ok = alcove:execve(
+        Drv,
+        [PID],
+        "/bin/busybox",
+        ["/bin/busybox", "sh", "-i"],
+        ["HOME=/"]
+    ),
     shell(Drv, Socket, PID).
 
 shell(Drv, Socket, PID) ->

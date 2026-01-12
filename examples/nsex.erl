@@ -15,27 +15,51 @@
 -include_lib("alcove/include/alcove.hrl").
 
 -export([
-        start/0,
-        sandbox/1, sandbox/2
-    ]).
+    start/0,
+    sandbox/1, sandbox/2
+]).
 
 start() ->
     {ok, Drv} = alcove_drv:start_link([{exec, "sudo"}]),
     case alcove_cgroup:supported(Drv, []) of
         true ->
             ok = alcove_cgroup:create(Drv, [], [<<"alcove">>]),
-            ok = alcove_cgroup:set(Drv, [], <<"cpuset">>, [<<"alcove">>],
-                <<"cpuset.cpus">>, <<"0">>),
-            ok = alcove_cgroup:set(Drv, [], <<"cpuset">>, [<<"alcove">>],
-                <<"cpuset.mems">>, <<"0">>),
-            alcove_cgroup:set(Drv, [], <<"memory">>, [<<"alcove">>],
-                <<"memory.memsw.limit_in_bytes">>, <<"16m">>),
-            ok = alcove_cgroup:set(Drv, [], <<"memory">>, [<<"alcove">>],
-                <<"memory.limit_in_bytes">>, <<"16m">>),
+            ok = alcove_cgroup:set(
+                Drv,
+                [],
+                <<"cpuset">>,
+                [<<"alcove">>],
+                <<"cpuset.cpus">>,
+                <<"0">>
+            ),
+            ok = alcove_cgroup:set(
+                Drv,
+                [],
+                <<"cpuset">>,
+                [<<"alcove">>],
+                <<"cpuset.mems">>,
+                <<"0">>
+            ),
+            alcove_cgroup:set(
+                Drv,
+                [],
+                <<"memory">>,
+                [<<"alcove">>],
+                <<"memory.memsw.limit_in_bytes">>,
+                <<"16m">>
+            ),
+            ok = alcove_cgroup:set(
+                Drv,
+                [],
+                <<"memory">>,
+                [<<"alcove">>],
+                <<"memory.limit_in_bytes">>,
+                <<"16m">>
+            ),
             Drv;
         false ->
             alcove_drv:stop(Drv),
-            {error,enotsup}
+            {error, enotsup}
     end.
 
 sandbox(Drv) ->
@@ -44,12 +68,12 @@ sandbox(Drv, Argv) ->
     {Path, Arg0, Args} = argv(Argv),
 
     {ok, Child} = alcove:clone(Drv, [], [
-            clone_newipc,
-            clone_newnet,
-            clone_newns,
-            clone_newpid,
-            clone_newuts
-        ]),
+        clone_newipc,
+        clone_newnet,
+        clone_newns,
+        clone_newpid,
+        clone_newuts
+    ]),
 
     setlimits(Drv, Child),
     chroot(Drv, Child, Path),
@@ -65,8 +89,14 @@ argv([Arg0, Args]) ->
     {Path, Progname, Args}.
 
 setlimits(Drv, Child) ->
-    ok = alcove_cgroup:set(Drv, [], <<>>, [<<"alcove">>],
-        <<"tasks">>, integer_to_list(Child)).
+    ok = alcove_cgroup:set(
+        Drv,
+        [],
+        <<>>,
+        [<<"alcove">>],
+        <<"tasks">>,
+        integer_to_list(Child)
+    ).
 
 chroot(Drv, Child, Path) ->
     ok = alcove:chroot(Drv, [Child], Path),
