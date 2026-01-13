@@ -296,12 +296,11 @@ ok
 
 ## Creating a Container Using Linux Namespaces
 
-Namespaces are the basis for linux
-containers. New namespaces are created using
-[clone(2)](https://man7.org/linux/man-pages/man2/clone.2.html). We'll
-rewrite the chroot example to run inside a namespace and use another
-Linux feature, control groups, to limit the system resources available
-to the process.
+Namespaces are the basis for linux containers. New namespaces are created using
+[clone(2)](https://man7.org/linux/man-pages/man2/clone.2.html). We'll rewrite
+the chroot example to run inside a namespace and use another Linux feature,
+[cgroups](https://man7.org/linux/man-pages/man7/cgroups.7.html), to limit the
+system resources available to the process.
 
 See [nsex.erl](examples/nsex.erl).
 
@@ -375,8 +374,9 @@ setlimits(Drv, Child) ->
     ).
 ```
 
-* running the code involves calling [clone(2)](https://man7.org/linux/man-pages/man2/clone.2.html) to create the namespaces,
-  rather than using [fork(2)](https://man7.org/linux/man-pages/man2/fork.2.html)
+* [clone(2)](https://man7.org/linux/man-pages/man2/clone.2.html) is
+  used to [fork(2)](https://man7.org/linux/man-pages/man2/fork.2.html)
+  a new process into new namespaces
 
 ```erlang
 sandbox(Drv, Argv) ->
