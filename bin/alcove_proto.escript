@@ -3,6 +3,7 @@
 %%%
 %%% Generate the alcove.erl file
 %%%
+%%% % @noformat
 main([]) ->
     ModuleName = "alcove_proto",
     Proto = "c_src/alcove_call.proto",

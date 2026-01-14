@@ -1,3 +1,4 @@
+%%% % @noformat
 TMPDIR = os:getenv("TMPDIR", "/tmp"),
 
 Compile = fun(Name0, Prog) ->
@@ -67,6 +68,7 @@ int main(int argc, char *argv[], char *envp[]) {
     (void)fexecve(0, argv, envp);
     return 0;
 }",
+
     Flag = Test("test_fexecve.c", Prog, "-DHAVE_FEXECVE", ""),
     true = Setenv("ALCOVE_DEFINE", Flag),
     Config
@@ -81,6 +83,7 @@ int main(int argc, char *argv[]) {
     (void)setns(0,0);
     return 0;
 }",
+
     Flag = Linux("test_setns.c", Prog, "-DHAVE_SETNS", ""),
     true = Setenv("ALCOVE_DEFINE", Flag),
     Config
@@ -95,6 +98,7 @@ int main(int argc, char *argv[]) {
     return 0;
 #endif
 }",
+
     Flag = Linux("test_prctl_seccomp.c", Prog, "-DHAVE_PRCTL_SECCOMP", ""),
     true = Setenv("ALCOVE_DEFINE", Flag),
     Config
@@ -115,6 +119,7 @@ Seccomp = fun(Config) ->
 int main(int argc, char *argv[]) {
     return seccomp(SECCOMP_SET_MODE_STRICT, 0, NULL);
 }",
+
     Flag = Linux("test_seccomp.c", Prog, "-DHAVE_SECCOMP", ""),
     true = Setenv("ALCOVE_DEFINE", Flag),
     Config
