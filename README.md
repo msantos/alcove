@@ -4,29 +4,20 @@
 [![Hex Docs](https://img.shields.io/badge/hex-docs)](https://hexdocs.pm/alcove/)
 
 alcove is:
-
 * a control plane for system processes
 * an interface for system programming
 * a library for building containerized services
 
-*alcove* is a stand-alone Unix process that communicates
-with the Erlang VM using standard input and output using
+alcove runs a stand-alone Unix process to communicate
+with the Erlang VM using standard input and output through
 Erlang [ports](https://www.erlang.org/doc/system/c_port.html).
-[prx](https://github.com/msantos/prx) is a higher level library that
+[prx](https://github.com/msantos/prx) provides a higher level library that
 maps the alcove Unix processes to Erlang processes.
 
 ## Build
 
 ```
 rebar3 compile
-```
-
-### Generate Code
-
-To regenerate Erlang and C code:
-
-```
-make gen
 ```
 
 ### Linux: Statically Linking Using musl
@@ -50,6 +41,14 @@ To run tests, see [Setting Up Privileges](#setting-up-privileges).
 
 ```
 rebar3 do clean, compile, ct
+```
+
+### Generate Code
+
+To regenerate Erlang and C code:
+
+```
+make gen
 ```
 
 ## Overview
@@ -433,7 +432,7 @@ timeout is reached. If the failure is caught, the caller must deal
 with any delayed messages that arrive for the Unix process described by
 the pipeline.
 
-See "Message Format" for a description of the messages.
+See [Message Format](#message-format) for a description of the messages.
 
 ## Message Format
 
