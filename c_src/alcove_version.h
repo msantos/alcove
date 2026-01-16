@@ -1,2 +1,2 @@
 /* GENERATED: DO NOT EDIT */
-#define ALCOVE_VERSION "1.0.0"
+#define ALCOVE_VERSION "1.0.1"

@@ -631,10 +631,12 @@
     {ok, int32_t()} | {error, posix()}.
 
 -spec jail_attach(alcove_drv:ref(), [pid_t()], JID :: int32_t()) -> ok | {error, posix()}.
--spec jail_attach(alcove_drv:ref(), [pid_t()], JID :: int32_t(), timeout()) -> ok | {error, posix()}.
+-spec jail_attach(alcove_drv:ref(), [pid_t()], JID :: int32_t(), timeout()) ->
+    ok | {error, posix()}.
 
 -spec jail_remove(alcove_drv:ref(), [pid_t()], JID :: int32_t()) -> ok | {error, posix()}.
--spec jail_remove(alcove_drv:ref(), [pid_t()], JID :: int32_t(), timeout()) -> ok | {error, posix()}.
+-spec jail_remove(alcove_drv:ref(), [pid_t()], JID :: int32_t(), timeout()) ->
+    ok | {error, posix()}.
 
 -spec kill(alcove_drv:ref(), [pid_t()], OSPid :: pid_t(), Signal :: constant()) ->
     ok | {error, posix()}.
